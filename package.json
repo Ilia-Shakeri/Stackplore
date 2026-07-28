@@ -1,0 +1,36 @@
+{
+  "name": "stackplore",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local-first infrastructure visibility workspace.",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.17.0"
+  },
+  "scripts": {
+    "bootstrap": "node scripts/bootstrap.mjs",
+    "dev": "node scripts/dev.mjs",
+    "format": "prettier --write --ignore-unknown . && node scripts/gofmt.mjs --write",
+    "format:check": "prettier --check --ignore-unknown . && node scripts/gofmt.mjs --check",
+    "lint": "corepack pnpm run lint:web && corepack pnpm run lint:api",
+    "lint:web": "eslint apps/web/src apps/web/vite.config.ts scripts/*.mjs eslint.config.mjs prettier.config.mjs",
+    "lint:api": "go -C apps/api vet ./...",
+    "typecheck": "corepack pnpm --filter @stackplore/web typecheck",
+    "test": "corepack pnpm run test:api && corepack pnpm run test:web",
+    "test:api": "go -C apps/api test ./...",
+    "test:web": "corepack pnpm --filter @stackplore/web test",
+    "build": "corepack pnpm run build:api && corepack pnpm run build:web",
+    "build:api": "go -C apps/api build ./...",
+    "build:web": "corepack pnpm --filter @stackplore/web build",
+    "verify": "corepack pnpm run format:check && corepack pnpm run lint && corepack pnpm run typecheck && corepack pnpm run test && corepack pnpm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "concurrently": "10.0.4",
+    "eslint": "10.8.0",
+    "prettier": "3.9.6",
+    "typescript-eslint": "8.65.0"
+  }
+}

@@ -1,7 +1,7 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 0 — complete, awaiting maintainer commit
+- **Current phase:** Phase 1 — complete, awaiting maintainer commit
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -41,21 +41,22 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Planning audit on 2026-07-28 found:
+Phase 1 validation on 2026-07-28 found:
 
-| Tool | Local state | First required phase | Plan |
+| Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
 | Git | 2.53.0 | 0 | Available |
-| Node.js | 22.23.0 | 1 | Move project baseline to Node 24 LTS |
-| Corepack | 0.34.6 | 1 | Available for an approved pnpm fetch |
-| pnpm | Missing | 1 | Pin and fetch after explicit approval |
-| Go | Missing | 1 | Install after explicit approval |
-| Make | Missing | 1 | Provide direct shell and PowerShell equivalents |
+| Node.js | 22.23.0 | 1 | 24.18.0 LTS verified from a checksummed repo-local archive |
+| Corepack | 0.34.6 | 1 | Bundled 0.35.0 verified through the pinned Node.js archive |
+| pnpm | Missing | 1 | 11.17.0 verified through repo-local Corepack cache |
+| Go | Missing | 1 | 1.26.5 verified from a checksummed repo-local archive |
+| Make | Missing | 1 | PowerShell, POSIX shell, and direct root equivalents verified |
 | Docker and Compose | Missing | 28 | Require local or external validation host |
 | kubectl | Missing | 29 | Require cluster validation host |
 | Helm | Missing | 29 | Install only with explicit approval |
 
-Phase 0 requires no missing build tool.
+Repo-local validation tools live under ignored `.tools`; Phase 1 installed no
+global tool. Make itself remains unavailable on this Windows host.
 
 ## Architecture baseline
 
@@ -81,7 +82,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 ## Phase progress
 
 - [x] Phase 0 — Product specification and repository governance
-- [ ] Phase 1 — Monorepo and developer toolchain
+- [x] Phase 1 — Monorepo and developer toolchain
 - [ ] Phase 2 — Design system and application shell
 - [ ] Phase 3 — English, Persian, RTL, and localization
 - [ ] Phase 4 — Domain contracts and OpenAPI foundation
@@ -172,6 +173,25 @@ Deliver:
 - formatting, linting, type checks, and basic tests;
 - reproducible bootstrap instructions;
 - frontend smoke screen.
+
+Phase 1 checklist:
+
+- [x] pnpm workspace, root tasks, exact manifests, lockfile, and checksum files
+  are present.
+- [x] Node.js, Corepack, pnpm, Go, and direct dependencies use exact stable
+  pins compatible with the selected toolchain.
+- [x] The strict TypeScript React smoke screen passes lint, type, test, and
+  production build checks.
+- [x] The Go API uses Chi, binds only to loopback, and tests the terse
+  `/healthz` contract and method boundary.
+- [x] Make, direct PowerShell, PowerShell wrapper, and POSIX shell task paths
+  are documented; both wrappers were exercised.
+- [x] `.env.example` contains development-only non-secret values.
+- [x] Bootstrap verifies tool versions, installs the frozen workspace lock,
+  and downloads checksummed Go modules.
+- [x] The root verification task passes.
+- [x] A live development boot served the smoke page and proxied `/healthz` to
+  the API on a configurable loopback port.
 
 Commit:
 

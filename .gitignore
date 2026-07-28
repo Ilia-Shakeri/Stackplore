@@ -9,6 +9,7 @@
 # JavaScript workspace
 node_modules/
 .pnpm-store/
+.tools/
 dist/
 dev-dist/
 .vite/

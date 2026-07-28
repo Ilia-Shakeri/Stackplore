@@ -1,0 +1,11 @@
+.git/
+.tools/
+.github/
+coverage/
+dist/
+docs/
+node_modules/
+test-results/
+*.md
+LICENSE
+pnpm-lock.yaml

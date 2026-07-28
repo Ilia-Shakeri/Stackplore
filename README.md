@@ -4,7 +4,10 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Stackplore is in its documentation and architecture phase. This repository does not yet contain a runnable application, container image, deployment, demo, or published release.
+> **Project status:** Phase 1 provides a runnable developer scaffold: a React
+> smoke screen, a Go `/healthz` endpoint, pinned toolchains, and verified root
+> checks. Product workflows, providers, storage, authentication, containers,
+> deployment assets, a demo, and a published release do not exist yet.
 
 Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
 
@@ -25,7 +28,10 @@ These are design goals, not claims about the current repository state. Delivery 
 
 ## Current repository
 
-Phase 0 establishes the product definition, architecture boundaries, security model, delivery plan, and community standards. There is no build or start command yet.
+Phase 0 established the product definition, architecture boundaries, security
+model, delivery plan, and community standards. Phase 1 adds the pnpm workspace,
+strict TypeScript web scaffold, Go API scaffold, tests, builds, and portable
+task entry points.
 
 The main project documents are:
 
@@ -35,7 +41,22 @@ The main project documents are:
 - [Architecture](docs/architecture.md)
 - [Security model](docs/security.md)
 - [Architecture decisions](docs/adr/)
+- [Development guide](docs/development.md)
 - [Change history](CHANGELOG.md)
+
+## Development
+
+Use the exact Node.js, Corepack, pnpm, and Go versions in the
+[development guide](docs/development.md), then run:
+
+```sh
+node scripts/bootstrap.mjs
+corepack pnpm run verify
+corepack pnpm run dev
+```
+
+The development page runs at `http://127.0.0.1:5173`. The API binds only to a
+loopback address in this phase.
 
 ## Security posture
 

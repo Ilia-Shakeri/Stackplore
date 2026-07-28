@@ -6,10 +6,11 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 
 ## 1. Current state
 
-Phase 0 product, architecture, security, and governance documents are complete
-and awaiting the maintainer commit. There is no runnable application yet.
-Commands described as planned interfaces must not be presented as available
-until their phase implements and verifies them.
+Phase 0 product, architecture, security, and governance documents are
+committed. Phase 1 provides a runnable web and API developer scaffold with
+basic tests and builds. Product workflows remain planned. Available commands
+and their verified scope are documented in
+[docs/development.md](docs/development.md).
 
 ## 2. Delivery contract
 
@@ -196,11 +197,14 @@ general provider proxy.
 
 Initial Phase 1 baseline:
 
-- Node.js 24 LTS;
-- pnpm 11;
-- Go 1.26.
+- Node.js 24.18.0 LTS;
+- Corepack 0.35.0;
+- pnpm 11.17.0;
+- Go 1.26.5.
 
-Exact patch versions are recorded when Phase 1 creates manifests.
+Frontend dependency patches are exact in the workspace manifests and
+`pnpm-lock.yaml`. Go dependency patches and checksums are exact in `go.mod` and
+`go.sum`.
 
 ## 7. Code quality
 
@@ -229,7 +233,7 @@ Exact patch versions are recorded when Phase 1 creates manifests.
 - Add a regression test for every confirmed defect when practical.
 - Keep browser tests isolated and repeatable.
 
-Planned root commands:
+Available root commands:
 
 ```text
 make bootstrap
@@ -238,17 +242,16 @@ make verify
 make test
 make test-api
 make test-web
-make e2e
 make build
-make demo
-make compose-up
-make compose-down
-make contract
 make lint
+make typecheck
 make format
+make format-check
 ```
 
-Phase 1 must provide direct equivalents for hosts without Make.
+Direct PowerShell and POSIX shell equivalents are in
+[docs/development.md](docs/development.md). Later phases own end-to-end,
+contract, demo, and deployment commands; those commands are not available yet.
 
 ## 9. Internationalization and accessibility
 

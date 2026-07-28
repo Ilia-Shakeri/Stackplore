@@ -10,7 +10,10 @@ Thank you for helping improve Stackplore. The project is being delivered in numb
 4. Open an issue before substantial work so scope and design can be agreed upon.
 5. Use the private process in [SECURITY.md](SECURITY.md) for vulnerabilities.
 
-The repository is currently documentation-only. Until a development environment and verification commands are added in a later phase, do not imply that application behavior, builds, or tests exist.
+The repository currently contains the Phase 1 web and API developer scaffold,
+builds, and basic tests. Product workflows remain planned. Follow
+[docs/development.md](docs/development.md) for the pinned bootstrap and
+verification commands, and do not imply that later-phase behavior exists.
 
 ## Scope and design
 
