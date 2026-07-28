@@ -1,0 +1,29 @@
+name: Private contact request
+description: Ask for a safe contact route without posting sensitive details
+title: "[Private contact needed]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Do not include vulnerability details, conduct details, credentials, exploit steps, private logs, personal data, or affected system names.
+
+        Use this form only when the private routes in SECURITY.md are unavailable. A maintainer will state what safe route is available.
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Contact category
+      options:
+        - Security report
+        - Community conduct report
+        - Other sensitive project matter
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Public-content check
+      options:
+        - label: I included no sensitive details and ask only for a private contact route.
+          required: true

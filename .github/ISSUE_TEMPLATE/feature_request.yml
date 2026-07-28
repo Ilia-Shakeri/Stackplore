@@ -1,0 +1,87 @@
+name: Feature request
+description: Propose a focused product or documentation improvement
+title: "[Feature]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user need before the proposed solution. Check the product specification and active delivery phase first.
+
+        Do not include credentials, private infrastructure details, or other sensitive information.
+        Suspected vulnerabilities belong in the private route described by SECURITY.md, not this public form.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-request checks
+      options:
+        - label: I searched existing issues and the delivery plan for this request.
+          required: true
+        - label: I removed private and sensitive information.
+          required: true
+        - label: This request contains no suspected vulnerability details; I will use the private security route for those.
+          required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Documentation or project setup
+        - Web experience
+        - API or authentication
+        - Infrastructure providers
+        - Topology or resource exploration
+        - Logs, metrics, events, or alerts
+        - Security hardening or audit
+        - Deployment or operations
+        - Localization or accessibility
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user need
+      description: Who has the problem, what are they trying to do, and why does it matter?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the behavior and result you would like without requiring a specific implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe current workarounds or other approaches you considered.
+    validations:
+      required: false
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Scope and safety boundaries
+      description: Note what should remain unchanged and any security, privacy, permission, localization, or compatibility constraints.
+    validations:
+      required: true
+  - type: input
+    id: phase
+    attributes:
+      label: Suggested delivery phase
+      description: Give a PLAN.md phase if known, or write "unsure."
+      placeholder: "Example: Phase 14"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance notes
+      description: List observable results that would show the need is met.
+      placeholder: |
+        - A user can ...
+        - The system does not ...
+    validations:
+      required: false

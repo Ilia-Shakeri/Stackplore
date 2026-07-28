@@ -1,0 +1,108 @@
+name: Bug report
+description: Report a reproducible problem in Stackplore or its documentation
+title: "[Bug]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking time to report a problem.
+
+        **Never include passwords, tokens, private keys, session values, raw kubeconfig content, provider credentials, private addresses, or unredacted logs.** Use the private route in the security policy for vulnerabilities.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-report checks
+      options:
+        - label: I searched open and closed issues for the same problem.
+          required: true
+        - label: I removed credentials, private infrastructure data, and other sensitive content.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Select the part most closely related to the problem.
+      options:
+        - Documentation or project setup
+        - Web interface
+        - API or authentication
+        - Storage or migrations
+        - Docker provider
+        - Kubernetes provider
+        - Logs, metrics, events, or alerts
+        - Deployment or operations
+        - Localization or accessibility
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or revision
+      description: Give the release version or commit identifier. Write "not applicable" for documentation-only reports.
+      placeholder: "Example: v1.0.0 or 0123abcd"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: List only relevant, non-sensitive details such as operating system, browser, deployment type, and provider version.
+      placeholder: |
+        Operating system:
+        Browser:
+        Deployment type:
+        Provider version:
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Give a minimal, repeatable sequence using sanitized example data.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Include exact safe error text when useful.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic-output
+    attributes:
+      label: Sanitized diagnostic output
+      description: Add short logs or error output only after removing sensitive data. Leave blank if none.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Screenshots or other evidence
+      description: Attach evidence only after removing private data, names, addresses, identifiers, and credentials.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add relevant timing, frequency, regression, or workaround details.
+    validations:
+      required: false
