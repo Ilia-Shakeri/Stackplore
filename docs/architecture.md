@@ -1,12 +1,13 @@
 # Stackplore Architecture
 
-Status: Initial target architecture
-Last updated: 2026-07-28
+Status: Target architecture with Phase 2 interface foundation
+Last updated: 2026-07-29
 
 This document defines the intended v1 architecture for Stackplore. Phase 0
-contains design and governance documents only. Components, routes, schemas, and
-deployment behavior described here are targets for later phases, not claims
-about current functionality.
+established the design and governance documents. Phases 1 and 2 implement the
+developer scaffold and responsive interface foundation. Product services,
+provider behavior, schemas, and deployment behavior described here remain
+targets for their later phases, not claims about current functionality.
 
 ## Goals and constraints
 
@@ -542,3 +543,4 @@ The decision log is indexed in [`docs/adr/README.md`](adr/README.md).
 | [ADR-0005](adr/0005-local-sessions-and-csrf.md) | Local server-side sessions and CSRF defense |
 | [ADR-0006](adr/0006-read-only-and-guarded-mutations.md) | Read-only default with narrow guarded actions |
 | [ADR-0007](adr/0007-deterministic-isolated-demo.md) | Deterministic demo fixtures in an isolated mode |
+| [ADR-0008](adr/0008-project-owned-interface-system.md) | Project-owned interface primitives and themes |

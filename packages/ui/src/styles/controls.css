@@ -1,0 +1,279 @@
+.ui-button {
+  display: inline-flex;
+  min-height: var(--sp-control-md);
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-space-2);
+  padding-inline: var(--sp-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--sp-radius-md);
+  font-weight: var(--sp-font-weight-semibold);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color var(--sp-duration-fast) var(--sp-ease-standard),
+    background-color var(--sp-duration-fast) var(--sp-ease-standard),
+    border-color var(--sp-duration-fast) var(--sp-ease-standard),
+    box-shadow var(--sp-duration-fast) var(--sp-ease-standard);
+}
+
+.ui-button:focus-visible,
+.ui-input:focus-visible,
+.ui-select__control:focus-visible,
+.ui-dropdown__item:focus-visible,
+.ui-tabs__trigger:focus-visible {
+  outline: var(--sp-ring-size) solid var(--sp-focus);
+  outline-offset: 2px;
+}
+
+.ui-tabs__trigger:focus-visible {
+  outline-offset: calc(var(--sp-ring-size) * -1);
+}
+
+.ui-button[data-size='sm'] {
+  min-height: var(--sp-control-sm);
+  padding-inline: var(--sp-space-3);
+  font-size: var(--sp-font-size-sm);
+}
+
+.ui-button[data-size='lg'] {
+  min-height: var(--sp-control-lg);
+  padding-inline: var(--sp-space-5);
+  font-size: var(--sp-font-size-md);
+}
+
+.ui-button[data-size='icon'] {
+  width: var(--sp-control-md);
+  min-width: var(--sp-control-md);
+  min-height: var(--sp-control-md);
+  padding: 0;
+}
+
+.ui-button[data-variant='primary'] {
+  background: var(--sp-primary);
+  color: var(--sp-on-primary);
+}
+
+.ui-button[data-variant='primary']:hover:not([aria-disabled='true']) {
+  background: var(--sp-primary-hover);
+}
+
+.ui-button[data-variant='secondary'] {
+  border-color: var(--sp-border-strong);
+  background: var(--sp-surface-muted);
+  color: var(--sp-text);
+}
+
+.ui-button[data-variant='secondary']:hover:not([aria-disabled='true']),
+.ui-button[data-variant='ghost']:hover:not([aria-disabled='true']) {
+  background: var(--sp-surface-hover);
+}
+
+.ui-button[data-variant='outline'] {
+  border-color: var(--sp-border-strong);
+  background: var(--sp-surface);
+  color: var(--sp-text);
+}
+
+.ui-button[data-variant='outline']:hover:not([aria-disabled='true']) {
+  border-color: var(--sp-border-strong);
+  background: var(--sp-surface-muted);
+}
+
+.ui-button[data-variant='ghost'] {
+  background: transparent;
+  color: var(--sp-text);
+}
+
+.ui-button[data-variant='danger'] {
+  background: var(--sp-danger);
+  color: var(--sp-on-danger);
+}
+
+.ui-button[data-variant='danger']:hover:not([aria-disabled='true']) {
+  background: var(--sp-danger-hover);
+}
+
+.ui-button[aria-disabled='true'] {
+  border-color: transparent;
+  background: var(--sp-disabled-surface);
+  color: var(--sp-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.ui-button svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  stroke-width: 1.8;
+}
+
+.ui-button__spinner {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  border: 2px solid currentcolor;
+  border-inline-end-color: transparent;
+  border-radius: var(--sp-radius-round);
+  animation: ui-spin 700ms linear infinite;
+}
+
+.ui-field {
+  display: grid;
+  gap: var(--sp-space-2);
+}
+
+.ui-field__label {
+  color: var(--sp-text);
+  font-size: var(--sp-font-size-sm);
+  font-weight: var(--sp-font-weight-medium);
+}
+
+.ui-field__required {
+  margin-inline-start: var(--sp-space-1);
+  color: var(--sp-danger);
+}
+
+.ui-field__description,
+.ui-field__error {
+  font-size: var(--sp-font-size-xs);
+  line-height: var(--sp-line-height-normal);
+}
+
+.ui-field__description {
+  color: var(--sp-text-muted);
+}
+
+.ui-field__error {
+  color: var(--sp-danger);
+}
+
+.ui-input,
+.ui-select__control {
+  width: 100%;
+  min-height: var(--sp-control-md);
+  border: 1px solid var(--sp-border-strong);
+  border-radius: var(--sp-radius-md);
+  background: var(--sp-surface);
+  color: var(--sp-text);
+  box-shadow: var(--sp-shadow-sm);
+  transition:
+    border-color var(--sp-duration-fast) var(--sp-ease-standard),
+    box-shadow var(--sp-duration-fast) var(--sp-ease-standard);
+}
+
+.ui-input {
+  padding: var(--sp-space-2) var(--sp-space-3);
+}
+
+.ui-input::placeholder {
+  color: var(--sp-text-subtle);
+  opacity: 1;
+}
+
+.ui-input:hover:not(:disabled),
+.ui-select__control:hover:not(:disabled) {
+  border-color: var(--sp-border-strong);
+}
+
+.ui-input[aria-invalid='true'],
+.ui-select__control[aria-invalid='true'] {
+  border-color: var(--sp-danger);
+}
+
+.ui-input:disabled,
+.ui-select__control:disabled {
+  background: var(--sp-disabled-surface);
+  color: var(--sp-disabled);
+  cursor: not-allowed;
+}
+
+.ui-select {
+  position: relative;
+  display: inline-grid;
+  width: 100%;
+  align-items: center;
+}
+
+.ui-select__control {
+  grid-area: 1 / 1;
+  padding-block: var(--sp-space-2);
+  padding-inline-start: var(--sp-space-3);
+  padding-inline-end: var(--sp-space-10);
+  appearance: none;
+  cursor: pointer;
+}
+
+.ui-select__icon {
+  position: absolute;
+  inset-inline-end: var(--sp-space-3);
+  width: 1rem;
+  height: 1rem;
+  color: var(--sp-text-muted);
+  pointer-events: none;
+}
+
+.ui-tabs__list {
+  display: flex;
+  gap: var(--sp-space-1);
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-block-end: 1px solid var(--sp-border);
+}
+
+.ui-tabs__list[aria-orientation='vertical'] {
+  flex-direction: column;
+  overflow: visible;
+  border-block-end: 0;
+  border-inline-end: 1px solid var(--sp-border);
+}
+
+.ui-tabs__trigger {
+  position: relative;
+  min-height: var(--sp-control-md);
+  padding-inline: var(--sp-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--sp-text-muted);
+  font-weight: var(--sp-font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-tabs__trigger::after {
+  position: absolute;
+  inset-inline: var(--sp-space-2);
+  inset-block-end: -1px;
+  height: 2px;
+  background: transparent;
+  content: '';
+}
+
+.ui-tabs__trigger[data-state='active'] {
+  color: var(--sp-primary);
+}
+
+.ui-tabs__trigger[data-state='active']::after {
+  background: var(--sp-primary);
+}
+
+.ui-tabs__trigger:disabled {
+  color: var(--sp-disabled);
+  cursor: not-allowed;
+}
+
+.ui-tabs__content {
+  padding-block: var(--sp-space-4);
+  outline: none;
+}
+
+.ui-tabs__content:focus-visible {
+  border-radius: var(--sp-radius-sm);
+  outline: var(--sp-ring-size) solid var(--sp-focus);
+  outline-offset: 2px;
+}

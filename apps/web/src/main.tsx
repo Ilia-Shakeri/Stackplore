@@ -1,3 +1,5 @@
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/vazirmatn/wght.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 

@@ -6,11 +6,11 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 
 ## 1. Current state
 
-Phase 0 product, architecture, security, and governance documents are
-committed. Phase 1 provides a runnable web and API developer scaffold with
-basic tests and builds. Product workflows remain planned. Available commands
-and their verified scope are documented in
-[docs/development.md](docs/development.md).
+Phase 0 product, architecture, security, and governance documents and the
+Phase 1 developer scaffold are committed. Phase 2 provides a responsive routed
+shell, shared interface package, themes, bundled typography, and local brand
+assets. Product workflows remain planned. Available commands and their
+verified scope are documented in [docs/development.md](docs/development.md).
 
 ## 2. Delivery contract
 
@@ -201,6 +201,15 @@ Initial Phase 1 baseline:
 - Corepack 0.35.0;
 - pnpm 11.17.0;
 - Go 1.26.5.
+
+Initial Phase 2 frontend baseline:
+
+- TanStack Router 1.170.18;
+- Tailwind CSS and its Vite integration 4.3.3;
+- project-wrapped Radix primitives with exact package pins in
+  `packages/ui/package.json`;
+- Lucide React 1.27.0;
+- Fontsource Inter and Vazirmatn variable packages 5.3.0.
 
 Frontend dependency patches are exact in the workspace manifests and
 `pnpm-lock.yaml`. Go dependency patches and checksums are exact in `go.mod` and

@@ -91,6 +91,32 @@ go -C apps/api run ./cmd/server
 corepack pnpm --filter @stackplore/web dev
 ```
 
+The root web route redirects to `/overview`. Every product route currently
+shows an explicit planned or no-data state; it does not simulate provider
+results. In development only, `/design-system` exposes the shared controls and
+their states for focused browser review.
+
+## Interface development
+
+Shared interface components and semantic CSS tokens live in
+`packages/ui/src`. Feature code imports controls from `@stackplore/ui` and
+icons from `@stackplore/ui/icons`; it does not import the wrapped primitive
+packages directly. Tailwind consumes the same semantic tokens for application
+layout.
+
+The theme control supports `light`, `dark`, and `system`. Its preference is
+stored locally under `stackplore.theme`, and a small head script resolves it
+before the application renders. Inter and Vazirmatn are bundled through the
+workspace packages, so the interface makes no runtime font request. Font
+credits and shipped license copies are listed in
+[`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
+
+When changing a shared component, check keyboard behavior, visible focus,
+accessible naming, both color themes, reduced motion, and layouts at 360, 768,
+1024, 1440, and 1920 CSS pixels. Keep technical identifiers left-to-right and
+prefer logical CSS properties so Phase 3 can add right-to-left presentation
+without component forks.
+
 ## Tasks
 
 Make, PowerShell, and shell commands all delegate to the root package scripts.
@@ -119,3 +145,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run.ps1 verify
 
 `verify` checks formatting, Go and TypeScript lint rules, strict TypeScript
 types, API and web tests, and both builds. Unit tests make no network request.
+The web suite also covers direct route entry, unknown routes, exact resource
+parameters, theme persistence, mobile-drawer focus return, shared primitive
+behavior, and representative automated accessibility rules.

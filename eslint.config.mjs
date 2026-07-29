@@ -1,7 +1,7 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-const webFiles = ['apps/web/**/*.{ts,tsx}'];
+const webFiles = ['apps/web/**/*.{ts,tsx}', 'packages/ui/**/*.{ts,tsx}'];
 const strictTypeScript = tseslint.configs.strictTypeChecked.map((config) => ({
   ...config,
   files: webFiles,

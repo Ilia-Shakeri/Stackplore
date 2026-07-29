@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="264"
+  height="64"
+  viewBox="0 0 264 64"
+  fill="none"
+>
+  <title>Stackplore</title>
+  <g>
+    <path fill="#756AF2" d="M7 8h24a7 7 0 0 1 0 14H7A7 7 0 0 1 7 8Z" />
+    <path fill="#4D46B8" d="M17 25h24a7 7 0 0 1 0 14H17a7 7 0 0 1 0-14Z" />
+    <path fill="#28245F" d="M7 42h24a7 7 0 0 1 0 14H7a7 7 0 0 1 0-14Z" />
+    <path
+      stroke="#D8FBFF"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="3"
+      d="M8 15h14a9 9 0 0 1 9 9v8h9M19 32v8a9 9 0 0 1-9 9H8"
+    />
+    <circle cx="8" cy="15" r="3.5" fill="#28C7D9" />
+    <circle cx="40" cy="32" r="3.5" fill="#28C7D9" />
+    <circle cx="8" cy="49" r="3.5" fill="#28C7D9" />
+  </g>
+  <text
+    x="64"
+    y="41"
+    fill="#151B2B"
+    font-family="Inter, system-ui, sans-serif"
+    font-size="30"
+    font-weight="750"
+    letter-spacing="-1"
+  >
+    Stackplore
+  </text>
+</svg>

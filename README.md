@@ -4,10 +4,11 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Phase 1 provides a runnable developer scaffold: a React
-> smoke screen, a Go `/healthz` endpoint, pinned toolchains, and verified root
-> checks. Product workflows, providers, storage, authentication, containers,
-> deployment assets, a demo, and a published release do not exist yet.
+> **Project status:** Phase 2 provides a responsive routed shell, light, dark,
+> and system themes, locally bundled typography, original replaceable brand
+> assets, and accessible project interface primitives. Product workflows,
+> providers, storage, authentication, deployment assets, a demo, and a
+> published release do not exist yet.
 
 Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
 
@@ -31,7 +32,8 @@ These are design goals, not claims about the current repository state. Delivery 
 Phase 0 established the product definition, architecture boundaries, security
 model, delivery plan, and community standards. Phase 1 adds the pnpm workspace,
 strict TypeScript web scaffold, Go API scaffold, tests, builds, and portable
-task entry points.
+task entry points. Phase 2 adds the shared interface system, theme behavior,
+responsive navigation shell, route foundations, and local brand assets.
 
 The main project documents are:
 

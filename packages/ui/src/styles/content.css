@@ -1,0 +1,174 @@
+.ui-badge {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: var(--sp-space-1);
+  padding-inline: var(--sp-space-2);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-round);
+  background: var(--sp-surface-muted);
+  color: var(--sp-text-muted);
+  font-size: var(--sp-font-size-xs);
+  font-weight: var(--sp-font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-badge[data-tone='info'] {
+  border-color: color-mix(in srgb, var(--sp-info) 35%, transparent);
+  background: var(--sp-info-surface);
+  color: var(--sp-info);
+}
+
+.ui-badge[data-tone='success'] {
+  border-color: color-mix(in srgb, var(--sp-success) 35%, transparent);
+  background: var(--sp-success-surface);
+  color: var(--sp-success);
+}
+
+.ui-badge[data-tone='warning'] {
+  border-color: color-mix(in srgb, var(--sp-warning) 35%, transparent);
+  background: var(--sp-warning-surface);
+  color: var(--sp-warning);
+}
+
+.ui-badge[data-tone='danger'] {
+  border-color: color-mix(in srgb, var(--sp-danger) 35%, transparent);
+  background: var(--sp-danger-surface);
+  color: var(--sp-danger);
+}
+
+.ui-card {
+  overflow: hidden;
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  background: var(--sp-surface);
+  color: var(--sp-text);
+}
+
+.ui-card[data-tone='muted'] {
+  background: var(--sp-surface-muted);
+}
+
+.ui-card[data-tone='raised'] {
+  background: var(--sp-surface-raised);
+  box-shadow: var(--sp-shadow-md);
+}
+
+.ui-card__header,
+.ui-card__content,
+.ui-card__footer {
+  padding: var(--sp-space-5);
+}
+
+.ui-card__header {
+  display: grid;
+  gap: var(--sp-space-2);
+  padding-block-end: var(--sp-space-3);
+}
+
+.ui-card__title {
+  margin: 0;
+  font-size: var(--sp-font-size-lg);
+  font-weight: var(--sp-font-weight-semibold);
+  line-height: var(--sp-line-height-tight);
+}
+
+.ui-card__description {
+  margin: 0;
+  color: var(--sp-text-muted);
+  font-size: var(--sp-font-size-sm);
+  line-height: var(--sp-line-height-normal);
+}
+
+.ui-card__content {
+  padding-block-start: var(--sp-space-3);
+}
+
+.ui-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-3);
+  border-block-start: 1px solid var(--sp-border);
+}
+
+.ui-table-frame {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  background: var(--sp-surface);
+}
+
+.ui-table-frame:focus-visible {
+  outline: var(--sp-ring-size) solid var(--sp-focus);
+  outline-offset: 2px;
+}
+
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--sp-text);
+  font-size: var(--sp-font-size-sm);
+  text-align: start;
+}
+
+.ui-table__caption {
+  padding: var(--sp-space-3) var(--sp-space-4);
+  color: var(--sp-text-muted);
+  text-align: start;
+}
+
+.ui-table__head,
+.ui-table__cell {
+  padding: var(--sp-space-3) var(--sp-space-4);
+  border-block-end: 1px solid var(--sp-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.ui-table__head {
+  background: var(--sp-surface-muted);
+  color: var(--sp-text-muted);
+  font-size: var(--sp-font-size-xs);
+  font-weight: var(--sp-font-weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.ui-table__row:last-child .ui-table__cell {
+  border-block-end: 0;
+}
+
+.ui-table__body .ui-table__row:hover {
+  background: color-mix(in srgb, var(--sp-surface-hover) 55%, transparent);
+}
+
+.ui-table__footer {
+  background: var(--sp-surface-muted);
+  font-weight: var(--sp-font-weight-medium);
+}
+
+.ui-skeleton {
+  width: 100%;
+  min-height: 1rem;
+  border-radius: var(--sp-radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--sp-surface-muted) 20%,
+    var(--sp-surface-hover) 40%,
+    var(--sp-surface-muted) 60%
+  );
+  background-size: 220% 100%;
+  animation: ui-pulse 1.6s var(--sp-ease-standard) infinite;
+}
+
+.ui-skeleton[data-variant='text'] {
+  height: 0.875em;
+  border-radius: var(--sp-radius-xs);
+}
+
+.ui-skeleton[data-variant='circle'] {
+  aspect-ratio: 1;
+  border-radius: var(--sp-radius-round);
+}

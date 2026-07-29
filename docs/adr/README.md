@@ -29,6 +29,7 @@ changing the decision.
 | [ADR-0005](0005-local-sessions-and-csrf.md) | Accepted | Use local server-side sessions with synchronizer CSRF protection |
 | [ADR-0006](0006-read-only-and-guarded-mutations.md) | Accepted | Keep infrastructure read-only by default and gate narrow actions |
 | [ADR-0007](0007-deterministic-isolated-demo.md) | Accepted | Run deterministic demonstration fixtures in an isolated mode |
+| [ADR-0008](0008-project-owned-interface-system.md) | Accepted | Keep interface primitives behind one project-owned package |
 
 ## Adding a record
 
@@ -39,4 +40,3 @@ changing the decision.
 5. State measurable consequences and verification work.
 6. Add the record to this index.
 7. Link any superseded record in both directions.
-

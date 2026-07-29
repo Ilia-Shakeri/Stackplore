@@ -1,7 +1,7 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 1 — complete, awaiting maintainer commit
+- **Current phase:** Phase 2 — complete, awaiting maintainer commit
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -41,7 +41,7 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Phase 1 validation on 2026-07-28 found:
+Phase 2 validation on 2026-07-29 reconfirmed:
 
 | Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
@@ -83,7 +83,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 
 - [x] Phase 0 — Product specification and repository governance
 - [x] Phase 1 — Monorepo and developer toolchain
-- [ ] Phase 2 — Design system and application shell
+- [x] Phase 2 — Design system and application shell
 - [ ] Phase 3 — English, Persian, RTL, and localization
 - [ ] Phase 4 — Domain contracts and OpenAPI foundation
 - [ ] Phase 5 — Production-ready backend foundation
@@ -212,6 +212,28 @@ Deliver:
 - error boundary;
 - responsive sidebar, top bar, mobile navigation, and route shell;
 - component showcase when it adds verification value.
+
+Phase 2 checklist:
+
+- [x] Semantic CSS tokens use one project prefix and drive Tailwind, project
+  wrappers, shell styles, and both color themes.
+- [x] Light, dark, and system preferences resolve before paint, persist
+  locally, follow system changes, and update browser theme metadata.
+- [x] Original replaceable logo, favicon, PWA icon, wordmark, and social
+  preview sources are present and parse as safe SVG.
+- [x] Inter and Vazirmatn variable fonts bundle locally with exact package
+  pins, notices, and shipped license copies.
+- [x] Every planned Phase 2 control is exported behind the private shared
+  interface package and shown on the development-only showcase route.
+- [x] The route shell covers setup, login, product, resource detail, settings,
+  about, and not-found paths without inventing provider data.
+- [x] Direct routes, exact path parameters, unknown routes, theme state,
+  primitive behavior, accessible structure, and mobile focus behavior have
+  automated regression tests.
+- [x] Browser review at 360, 768, 1024, 1440, and 1920 CSS pixels found no
+  page-level horizontal overflow in light or dark presentation.
+- [x] The frozen bootstrap, root verification task, Go module verification,
+  production builds, and live loopback web-to-API proxy check pass.
 
 Commit:
 
