@@ -11,11 +11,14 @@ import {
 } from '@stackplore/ui/icons';
 import type { ComponentType, SVGProps } from 'react';
 
+import type { TextMessageKey } from '../../i18n';
+
 type NavigationIcon = ComponentType<SVGProps<SVGSVGElement>>;
+type MessageTranslator = (key: TextMessageKey) => string;
 
 export interface NavigationItem {
   icon: NavigationIcon;
-  label: string;
+  labelKey: TextMessageKey;
   to:
     | '/overview'
     | '/topology'
@@ -30,23 +33,23 @@ export interface NavigationItem {
 }
 
 export const primaryNavigation = [
-  { icon: LayoutDashboard, label: 'Overview', to: '/overview' },
-  { icon: Network, label: 'Topology', to: '/topology' },
-  { icon: Boxes, label: 'Resources', to: '/resources' },
-  { icon: Activity, label: 'Logs', to: '/logs' },
-  { icon: List, label: 'Events', to: '/events' },
-  { icon: Bell, label: 'Alerts', to: '/alerts' },
-  { icon: List, label: 'Audit', to: '/audit' },
+  { icon: LayoutDashboard, labelKey: 'route.overview.title', to: '/overview' },
+  { icon: Network, labelKey: 'route.topology.title', to: '/topology' },
+  { icon: Boxes, labelKey: 'route.resources.title', to: '/resources' },
+  { icon: Activity, labelKey: 'route.logs.title', to: '/logs' },
+  { icon: List, labelKey: 'route.events.title', to: '/events' },
+  { icon: Bell, labelKey: 'route.alerts.title', to: '/alerts' },
+  { icon: List, labelKey: 'route.audit.title', to: '/audit' },
 ] as const satisfies readonly NavigationItem[];
 
 export const secondaryNavigation = [
-  { icon: Settings, label: 'Settings', to: '/settings' },
-  { icon: Info, label: 'About', to: '/about' },
+  { icon: Settings, labelKey: 'route.settings.title', to: '/settings' },
+  { icon: Info, labelKey: 'route.about.title', to: '/about' },
 ] as const satisfies readonly NavigationItem[];
 
 export const developmentNavigation = {
   icon: CircleHelp,
-  label: 'Design system',
+  labelKey: 'route.designSystem.title',
   to: '/design-system',
 } as const satisfies NavigationItem;
 
@@ -55,43 +58,85 @@ export interface BreadcrumbItem {
   to?: NavigationItem['to'];
 }
 
-const fixedBreadcrumbs = new Map<string, readonly BreadcrumbItem[]>([
-  ['/overview', [{ label: 'Overview' }]],
-  ['/topology', [{ label: 'Topology' }]],
-  ['/resources', [{ label: 'Resources' }]],
-  ['/logs', [{ label: 'Logs' }]],
-  ['/events', [{ label: 'Events' }]],
-  ['/alerts', [{ label: 'Alerts' }]],
-  ['/audit', [{ label: 'Audit' }]],
-  ['/settings', [{ label: 'Settings' }]],
-  ['/settings/connections', [{ label: 'Settings', to: '/settings' }, { label: 'Connections' }]],
-  ['/settings/users', [{ label: 'Settings', to: '/settings' }, { label: 'Users' }]],
-  ['/settings/notifications', [{ label: 'Settings', to: '/settings' }, { label: 'Notifications' }]],
-  ['/settings/preferences', [{ label: 'Settings', to: '/settings' }, { label: 'Preferences' }]],
-  ['/about', [{ label: 'About' }]],
-  ['/design-system', [{ label: 'Design system' }]],
+interface BreadcrumbDefinition {
+  labelKey: TextMessageKey;
+  to?: NavigationItem['to'];
+}
+
+const fixedBreadcrumbs = new Map<string, readonly BreadcrumbDefinition[]>([
+  ['/overview', [{ labelKey: 'route.overview.title' }]],
+  ['/topology', [{ labelKey: 'route.topology.title' }]],
+  ['/resources', [{ labelKey: 'route.resources.title' }]],
+  ['/logs', [{ labelKey: 'route.logs.title' }]],
+  ['/events', [{ labelKey: 'route.events.title' }]],
+  ['/alerts', [{ labelKey: 'route.alerts.title' }]],
+  ['/audit', [{ labelKey: 'route.audit.title' }]],
+  ['/settings', [{ labelKey: 'route.settings.title' }]],
+  [
+    '/settings/connections',
+    [
+      { labelKey: 'route.settings.title', to: '/settings' },
+      { labelKey: 'route.connections.title' },
+    ],
+  ],
+  [
+    '/settings/users',
+    [{ labelKey: 'route.settings.title', to: '/settings' }, { labelKey: 'route.users.title' }],
+  ],
+  [
+    '/settings/notifications',
+    [
+      { labelKey: 'route.settings.title', to: '/settings' },
+      { labelKey: 'route.notifications.title' },
+    ],
+  ],
+  [
+    '/settings/preferences',
+    [
+      { labelKey: 'route.settings.title', to: '/settings' },
+      { labelKey: 'route.preferences.title' },
+    ],
+  ],
+  ['/about', [{ labelKey: 'route.about.title' }]],
+  ['/design-system', [{ labelKey: 'route.designSystem.title' }]],
 ]);
 
-export function getBreadcrumbs(pathname: string): readonly BreadcrumbItem[] {
+function translateBreadcrumbs(
+  breadcrumbs: readonly BreadcrumbDefinition[],
+  t: MessageTranslator,
+): readonly BreadcrumbItem[] {
+  return breadcrumbs.map((item) => ({
+    label: t(item.labelKey),
+    ...(item.to === undefined ? {} : { to: item.to }),
+  }));
+}
+
+export function getBreadcrumbs(pathname: string, t: MessageTranslator): readonly BreadcrumbItem[] {
   const fixed = fixedBreadcrumbs.get(pathname);
   if (fixed !== undefined) {
-    return fixed;
+    return translateBreadcrumbs(fixed, t);
   }
   if (pathname.startsWith('/resources/')) {
-    return [{ label: 'Resources', to: '/resources' }, { label: 'Resource detail' }];
+    return translateBreadcrumbs(
+      [
+        { labelKey: 'route.resources.title', to: '/resources' },
+        { labelKey: 'route.resourceDetail.title' },
+      ],
+      t,
+    );
   }
   return [];
 }
 
-export function getPageTitle(pathname: string): string {
+export function getPageTitle(pathname: string, t: MessageTranslator): string {
   if (pathname === '/setup') {
-    return 'Setup';
+    return t('route.setup.title');
   }
   if (pathname === '/login') {
-    return 'Sign in';
+    return t('route.login.title');
   }
   if (pathname === '/not-found') {
-    return 'Page not found';
+    return t('route.notFound.title');
   }
-  return getBreadcrumbs(pathname).at(-1)?.label ?? 'Stackplore';
+  return getBreadcrumbs(pathname, t).at(-1)?.label ?? 'Stackplore';
 }

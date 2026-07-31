@@ -8,6 +8,7 @@ param(
     'test-api',
     'test-web',
     'build',
+    'check-locales',
     'lint',
     'typecheck',
     'format',
@@ -26,6 +27,7 @@ $scriptNames = @{
   'test-api' = 'test:api'
   'test-web' = 'test:web'
   'build' = 'build'
+  'check-locales' = 'check:locales'
   'lint' = 'lint'
   'typecheck' = 'typecheck'
   'format' = 'format'

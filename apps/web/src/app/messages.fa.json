@@ -1,0 +1,10 @@
+{
+  "app.error.body": "صفحهٔ کنونی را دوباره بارگذاری کنید. هیچ عملیاتی به ارائه‌دهنده ارسال نشد.",
+  "app.error.eyebrow": "خطای برنامه",
+  "app.error.reload": "بارگذاری دوبارهٔ صفحه",
+  "app.error.title": "ادامهٔ کار در فضای کاری ممکن نیست",
+  "app.meta.description": "تمام سرویس‌های پشتهٔ خود را با Stackplore کاوش کنید.",
+  "app.toast.dismiss": "بستن اعلان",
+  "app.toast.label": "اعلان",
+  "app.toast.viewport": "اعلان‌ها"
+}

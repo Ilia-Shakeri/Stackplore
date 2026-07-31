@@ -7,9 +7,10 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 ## 1. Current state
 
 Phase 0 product, architecture, security, and governance documents and the
-Phase 1 developer scaffold are committed. Phase 2 provides a responsive routed
-shell, shared interface package, themes, bundled typography, and local brand
-assets. Product workflows remain planned. Available commands and their
+Phase 1 developer scaffold and Phase 2 interface foundation are committed.
+Phase 3 provides paired English and Persian catalogs, a persisted runtime
+language switch, bidirectional presentation, and locale formatters. Product
+workflows remain planned. Available commands and their
 verified scope are documented in [docs/development.md](docs/development.md).
 
 ## 2. Delivery contract
@@ -252,6 +253,7 @@ make test
 make test-api
 make test-web
 make build
+make check-locales
 make lint
 make typecheck
 make format
@@ -267,6 +269,7 @@ contract, demo, and deployment commands; those commands are not available yet.
 - Add English and Persian strings together.
 - Keep both locale catalogs in parity.
 - Do not hardcode production copy in components.
+- Use the shared locale provider for number, date, and plural presentation.
 - Update document language and direction at runtime.
 - Isolate technical left-to-right content in Persian layouts.
 - Keep status understandable without color.

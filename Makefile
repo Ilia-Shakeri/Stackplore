@@ -1,4 +1,4 @@
-.PHONY: bootstrap dev verify test test-api test-web build lint typecheck format format-check
+.PHONY: bootstrap dev verify test test-api test-web build check-locales lint typecheck format format-check
 
 bootstrap:
 	node scripts/bootstrap.mjs
@@ -20,6 +20,9 @@ test-web:
 
 build:
 	corepack pnpm run build
+
+check-locales:
+	corepack pnpm run check:locales
 
 lint:
 	corepack pnpm run lint

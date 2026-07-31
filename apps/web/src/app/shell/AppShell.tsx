@@ -3,12 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { useLocale } from '../../i18n';
 
 export function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const mainRef = useRef<HTMLElement>(null);
   const previousPath = useRef(pathname);
+  const { t } = useLocale();
 
   useEffect(() => {
     if (previousPath.current !== pathname) {
@@ -23,7 +25,7 @@ export function AppShell() {
       data-sidebar-collapsed={sidebarCollapsed || undefined}
     >
       <a className="skip-link" href="#main-content">
-        Skip to main content
+        {t('shell.skipToMain')}
       </a>
       <Sidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
       <div className="app-shell__body min-w-0">

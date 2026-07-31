@@ -133,7 +133,17 @@ does not repair the prior phase's tracking state.
 - Query keys are centralized by feature.
 - URL state owns shareable filters and selections.
 - Locale catalogs contain all production copy.
+- English and Persian catalogs are added and changed together inside the owning
+  feature.
+- Catalog keys, message kinds, plural forms, and named placeholders stay in
+  exact parity.
+- Plural messages include an `other` form and visible copy contains no raw
+  markup.
+- Components use the shared locale formatter for dates, numbers, and plurals
+  instead of scattered host-locale calls.
 - Technical identifiers are rendered without locale mutation.
+- Directional icons, keyboard order, overlays, and compact layouts are reviewed
+  in both directions.
 
 ## 9. Data and migrations
 

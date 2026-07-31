@@ -111,11 +111,24 @@ workspace packages, so the interface makes no runtime font request. Font
 credits and shipped license copies are listed in
 [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
 
+The language control switches between English and Persian without a reload.
+Its local preference uses `stackplore.locale`; a separate head script applies
+`lang` and `dir` before paint. Paired catalogs live beside the application,
+shell, and route features. Add both messages together, use stable namespaced
+keys, and run `corepack pnpm run check:locales` to verify key, plural, and
+placeholder parity.
+
+Visible components use the locale provider rather than direct
+`toLocaleString` calls or assembled sentence fragments. The provider exposes
+the shared number, date, and plural formatters. Technical values use the shared
+left-to-right isolation component so Persian layout never mutates resource
+names, image names, addresses, or identifiers.
+
 When changing a shared component, check keyboard behavior, visible focus,
-accessible naming, both color themes, reduced motion, and layouts at 360, 768,
-1024, 1440, and 1920 CSS pixels. Keep technical identifiers left-to-right and
-prefer logical CSS properties so Phase 3 can add right-to-left presentation
-without component forks.
+accessible naming, both color themes, both writing directions, reduced motion,
+and layouts at 360, 768, 1024, 1440, and 1920 CSS pixels. Prefer logical CSS
+properties. Directional icons and keyboard order must follow the active
+writing direction without component forks.
 
 ## Tasks
 
@@ -130,6 +143,7 @@ Make, PowerShell, and shell commands all delegate to the root package scripts.
 | API tests | `make test-api` | `corepack pnpm run test:api` | `sh scripts/run.sh test-api` |
 | Web tests | `make test-web` | `corepack pnpm run test:web` | `sh scripts/run.sh test-web` |
 | Build | `make build` | `corepack pnpm run build` | `sh scripts/run.sh build` |
+| Locale check | `make check-locales` | `corepack pnpm run check:locales` | `sh scripts/run.sh check-locales` |
 | Lint | `make lint` | `corepack pnpm run lint` | `sh scripts/run.sh lint` |
 | Type check | `make typecheck` | `corepack pnpm run typecheck` | `sh scripts/run.sh typecheck` |
 | Format | `make format` | `corepack pnpm run format` | `sh scripts/run.sh format` |
@@ -143,8 +157,10 @@ user policy:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run.ps1 verify
 ```
 
-`verify` checks formatting, Go and TypeScript lint rules, strict TypeScript
-types, API and web tests, and both builds. Unit tests make no network request.
-The web suite also covers direct route entry, unknown routes, exact resource
-parameters, theme persistence, mobile-drawer focus return, shared primitive
-behavior, and representative automated accessibility rules.
+`verify` checks formatting, catalog parity, Go and TypeScript lint rules,
+strict TypeScript types, API and web tests, and both builds. Unit tests make no
+network request. The web suite also covers English and Persian direct routes,
+runtime language and theme persistence, locale formatting, bidirectional
+keyboard behavior, unknown routes, exact isolated resource parameters,
+mobile-drawer focus return, shared primitive behavior, and representative
+automated accessibility rules.

@@ -1,0 +1,10 @@
+{
+  "app.error.body": "Reload the current page. No provider action was sent.",
+  "app.error.eyebrow": "Application error",
+  "app.error.reload": "Reload page",
+  "app.error.title": "The workspace could not continue",
+  "app.meta.description": "Explore every service in your stack with Stackplore.",
+  "app.toast.dismiss": "Dismiss notification",
+  "app.toast.label": "Notification",
+  "app.toast.viewport": "Notifications"
+}

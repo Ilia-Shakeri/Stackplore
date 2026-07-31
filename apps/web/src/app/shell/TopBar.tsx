@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { useRouterState } from '@tanstack/react-router';
 
 import { Breadcrumbs } from './Breadcrumbs';
+import { LocaleControl } from './LocaleControl';
 import { MobileNav } from './MobileNav';
 import { ThemeControl } from './ThemeControl';
 import { getPageTitle } from './navigation';
+import { useLocale } from '../../i18n';
 
 export function TopBar() {
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const pageTitle = getPageTitle(pathname);
+  const { t } = useLocale();
+  const pageTitle = getPageTitle(pathname, t);
 
   return (
     <header className="app-topbar">
@@ -23,6 +26,7 @@ export function TopBar() {
       </div>
       <Breadcrumbs />
       <div className="app-topbar__actions">
+        <LocaleControl />
         <ThemeControl />
       </div>
     </header>

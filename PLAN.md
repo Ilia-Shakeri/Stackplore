@@ -1,7 +1,7 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 2 — complete, awaiting maintainer commit
+- **Current phase:** Phase 3 — complete, awaiting maintainer commit
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -41,7 +41,7 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Phase 2 validation on 2026-07-29 reconfirmed:
+Phase 3 validation on 2026-07-31 reconfirmed:
 
 | Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
@@ -84,7 +84,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 - [x] Phase 0 — Product specification and repository governance
 - [x] Phase 1 — Monorepo and developer toolchain
 - [x] Phase 2 — Design system and application shell
-- [ ] Phase 3 — English, Persian, RTL, and localization
+- [x] Phase 3 — English, Persian, RTL, and localization
 - [ ] Phase 4 — Domain contracts and OpenAPI foundation
 - [ ] Phase 5 — Production-ready backend foundation
 - [ ] Phase 6 — SQLite storage and migrations
@@ -253,6 +253,30 @@ Deliver:
 - direction-aware primitives and typography;
 - missing-key and catalog parity checks;
 - complete shell copy in both languages.
+
+Phase 3 checklist:
+
+- [x] Feature-owned English and Persian catalogs contain 143 paired messages
+  with exact key, placeholder, plural-category, and value-kind parity.
+- [x] The runtime locale switch persists locally, synchronizes across tabs, and
+  updates document language, direction, title, and description without a
+  reload.
+- [x] A pre-paint initializer restores locale and direction before the React
+  application starts while remaining independent from the theme preference.
+- [x] Number, date, and plural helpers use explicit English and Persian locale
+  rules, including the Persian calendar and Persian digits.
+- [x] Shared direction context, logical layout, mirrored directional icons,
+  direction-aware overlays, notices, tooltips, and isolated technical text
+  support both left-to-right and right-to-left use.
+- [x] All shell routes, fallbacks, navigation, controls, and the component
+  showcase expose complete English and Persian copy.
+- [x] Catalog validation, runtime state, formatting, route, direction,
+  accessibility, and missing-key behavior have automated regression tests.
+- [x] Browser review at 320, 360, 768, 1024, 1440, and 1920 CSS pixels covered
+  Persian RTL, English LTR, light and dark presentation, mobile navigation,
+  standalone routes, and a centered dialog without page-level overflow.
+- [x] Frozen installation, root verification, Go module verification,
+  production builds, wrapper locale checks, and repository hygiene checks pass.
 
 Commit:
 

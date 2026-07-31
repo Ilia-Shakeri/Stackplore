@@ -23,12 +23,13 @@
 .ui-dialog {
   position: fixed;
   inset-block-start: 50%;
-  inset-inline-start: 50%;
+  inset-inline: 0;
   width: min(calc(100% - 2rem), var(--sp-content-md));
   max-height: min(calc(100vh - 2rem), 48rem);
   overflow: auto;
+  margin-inline: auto;
   border-radius: var(--sp-radius-lg);
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
 }
 
 .ui-dialog[data-size='sm'] {
@@ -215,7 +216,8 @@
 }
 
 .ui-dropdown__item[data-inset='true'],
-.ui-dropdown__label[data-inset='true'] {
+.ui-dropdown__label[data-inset='true'],
+.ui-dropdown__item[data-has-indicator='true'] {
   padding-inline-start: var(--sp-space-8);
 }
 

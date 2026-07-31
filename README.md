@@ -4,11 +4,12 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Phase 2 provides a responsive routed shell, light, dark,
-> and system themes, locally bundled typography, original replaceable brand
-> assets, and accessible project interface primitives. Product workflows,
-> providers, storage, authentication, deployment assets, a demo, and a
-> published release do not exist yet.
+> **Project status:** Phase 3 provides a responsive bilingual shell with
+> complete English and Persian copy, live LTR and RTL switching, persisted
+> language and theme choices, locale-aware formatting foundations, locally
+> bundled typography, and accessible project interface primitives. Product
+> workflows, providers, storage, authentication, deployment assets, a demo,
+> and a published release do not exist yet.
 
 Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
 
@@ -33,7 +34,9 @@ Phase 0 established the product definition, architecture boundaries, security
 model, delivery plan, and community standards. Phase 1 adds the pnpm workspace,
 strict TypeScript web scaffold, Go API scaffold, tests, builds, and portable
 task entry points. Phase 2 adds the shared interface system, theme behavior,
-responsive navigation shell, route foundations, and local brand assets.
+responsive navigation shell, route foundations, and local brand assets. Phase
+3 adds paired feature catalogs, live English and Persian switching, full shell
+direction changes, locale formatters, and catalog parity checks.
 
 The main project documents are:
 

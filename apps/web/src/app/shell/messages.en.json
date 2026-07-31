@@ -1,0 +1,19 @@
+{
+  "shell.brand.overview": "Stackplore overview",
+  "shell.breadcrumb.label": "Breadcrumb",
+  "shell.locale.label": "Language",
+  "shell.locale.option.en": "English",
+  "shell.locale.option.fa": "فارسی",
+  "shell.navigation.close": "Close navigation",
+  "shell.navigation.open": "Open navigation",
+  "shell.navigation.primary": "Primary navigation",
+  "shell.navigation.title": "Navigation",
+  "shell.navigation.workspace": "Workspace navigation",
+  "shell.sidebar.collapse": "Collapse sidebar",
+  "shell.sidebar.expand": "Expand sidebar",
+  "shell.skipToMain": "Skip to main content",
+  "shell.theme.dark": "Dark",
+  "shell.theme.label": "Theme",
+  "shell.theme.light": "Light",
+  "shell.theme.system": "System"
+}

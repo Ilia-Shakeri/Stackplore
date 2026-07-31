@@ -2,6 +2,12 @@ import {
   Button,
   Dialog,
   DialogContent,
+  Dropdown,
+  DropdownCheckboxItem,
+  DropdownContent,
+  DropdownRadioGroup,
+  DropdownRadioItem,
+  DropdownTrigger,
   Field,
   Input,
   Select,
@@ -154,6 +160,29 @@ describe('overlay primitive', () => {
 
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByTestId('dialog-state').textContent).toBe('closed');
+  });
+
+  it('reserves inline-start space for dropdown selection marks', () => {
+    render(
+      <Dropdown defaultOpen>
+        <DropdownTrigger>Open options</DropdownTrigger>
+        <DropdownContent>
+          <DropdownCheckboxItem checked>Show labels</DropdownCheckboxItem>
+          <DropdownRadioGroup value="comfortable">
+            <DropdownRadioItem value="comfortable">Comfortable</DropdownRadioItem>
+          </DropdownRadioGroup>
+        </DropdownContent>
+      </Dropdown>,
+    );
+
+    expect(
+      screen
+        .getByRole('menuitemcheckbox', { name: 'Show labels' })
+        .getAttribute('data-has-indicator'),
+    ).toBe('true');
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Comfortable' }).getAttribute('data-has-indicator'),
+    ).toBe('true');
   });
 });
 

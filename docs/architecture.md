@@ -1,11 +1,12 @@
 # Stackplore Architecture
 
-Status: Target architecture with Phase 2 interface foundation
-Last updated: 2026-07-29
+Status: Target architecture with Phase 3 localized interface foundation
+Last updated: 2026-07-31
 
 This document defines the intended v1 architecture for Stackplore. Phase 0
-established the design and governance documents. Phases 1 and 2 implement the
-developer scaffold and responsive interface foundation. Product services,
+established the design and governance documents. Phases 1 through 3 implement
+the developer scaffold, responsive interface foundation, and bilingual
+presentation runtime. Product services,
 provider behavior, schemas, and deployment behavior described here remain
 targets for their later phases, not claims about current functionality.
 
@@ -144,6 +145,25 @@ component state owns local interaction. A small cross-cutting UI store may be
 introduced only when real state cannot fit those three places. Provider
 conditionals belong in typed capabilities and presentation adapters, not in
 route-level data access.
+
+### Localization and direction
+
+The web application owns one locale provider for `en` and `fa`. Paired,
+feature-owned catalogs hold production copy, while a repository check enforces
+key, message-kind, plural-form, and placeholder parity. Components consume
+typed keys instead of hardcoded visible copy.
+
+The browser stores the initial preference under `stackplore.locale`. A small
+head script applies language and direction before paint; the runtime provider
+then owns live updates and feeds the same direction into shared interface
+primitives. Phase 24 may hydrate an authenticated user preference through this
+provider without changing the rendering boundary.
+
+English presentation uses `en-US`. Persian presentation uses
+`fa-IR-u-ca-persian-nu-arabext`, including the Persian calendar and native
+digits. Domain and API time values remain canonical UTC. Resource identifiers,
+image names, addresses, and other technical values are never translated or
+number-shaped and render in an isolated left-to-right element.
 
 ## HTTP and delivery model
 
@@ -544,3 +564,4 @@ The decision log is indexed in [`docs/adr/README.md`](adr/README.md).
 | [ADR-0006](adr/0006-read-only-and-guarded-mutations.md) | Read-only default with narrow guarded actions |
 | [ADR-0007](adr/0007-deterministic-isolated-demo.md) | Deterministic demo fixtures in an isolated mode |
 | [ADR-0008](adr/0008-project-owned-interface-system.md) | Project-owned interface primitives and themes |
+| [ADR-0009](adr/0009-feature-owned-localization-runtime.md) | Feature-owned catalogs and one localization runtime |

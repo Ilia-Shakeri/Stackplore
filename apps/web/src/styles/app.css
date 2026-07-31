@@ -102,8 +102,11 @@
 }
 
 .brand-logo__word {
+  display: inline;
   overflow: hidden;
+  font-family: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
   text-overflow: ellipsis;
+  unicode-bidi: isolate;
   white-space: nowrap;
 }
 
@@ -191,6 +194,16 @@
   gap: var(--sp-space-2);
 }
 
+.app-topbar__actions,
+.standalone-shell__actions {
+  flex: none;
+}
+
+.app-topbar__actions > .ui-select,
+.standalone-shell__actions > .ui-select {
+  inline-size: auto;
+}
+
 .app-topbar__title {
   overflow: hidden;
   font-size: var(--sp-font-size-sm);
@@ -211,8 +224,17 @@
   margin-block-start: var(--sp-space-8);
 }
 
+.theme-control,
+.locale-control {
+  min-inline-size: 0;
+}
+
 .theme-control {
-  min-inline-size: 7.5rem;
+  inline-size: 7.5rem;
+}
+
+.locale-control {
+  inline-size: 7rem;
 }
 
 .breadcrumbs {
@@ -359,14 +381,15 @@
 }
 
 .resource-identity dd {
-  direction: ltr;
   min-inline-size: 0;
   margin: 0;
   overflow-wrap: anywhere;
   color: var(--sp-text);
-  font-family: var(--sp-font-mono);
   font-size: var(--sp-font-size-sm);
-  unicode-bidi: isolate;
+}
+
+.resource-identity .ui-technical {
+  display: block;
 }
 
 .settings-nav {
@@ -436,6 +459,12 @@
   place-items: center;
   padding: var(--shell-page-gutter);
   outline: none;
+}
+
+.standalone-shell__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-2);
 }
 
 .standalone-shell__main .route-page {
@@ -512,6 +541,37 @@
   padding: var(--sp-space-4);
   border: 1px dashed var(--sp-border-strong);
   border-radius: var(--sp-radius-md);
+}
+
+html[dir='rtl'] .route-page__header h1,
+html[dir='rtl'] .not-found h1,
+html[dir='rtl'] .fatal-error__panel h1 {
+  letter-spacing: 0;
+}
+
+html[dir='rtl'] .route-page__eyebrow {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@media (max-width: 40rem) {
+  .standalone-shell__header .brand-logo__word {
+    display: none;
+  }
+}
+
+@media (max-width: 31.25rem) {
+  .app-topbar__title {
+    display: none;
+  }
+
+  .theme-control {
+    inline-size: 6.5rem;
+  }
+
+  .locale-control {
+    inline-size: 6rem;
+  }
 }
 
 @media (min-width: 48rem) {

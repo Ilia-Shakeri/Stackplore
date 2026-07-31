@@ -12,9 +12,12 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-:lang(fa) {
-  font-family:
+html:lang(fa) {
+  --sp-font-sans:
     'Vazirmatn Variable', 'Inter Variable', Vazirmatn, Inter, ui-sans-serif, system-ui, sans-serif;
+  --sp-line-height-tight: 1.4;
+  --sp-line-height-normal: 1.7;
+  --sp-line-height-relaxed: 1.85;
 }
 
 body {
@@ -56,8 +59,17 @@ button {
   outline-offset: 2px;
 }
 
+.ui-technical,
 [data-ui-technical] {
   direction: ltr;
   font-family: var(--sp-font-mono);
   unicode-bidi: isolate;
+}
+
+[dir='rtl'] [data-ui-mirror-inline] {
+  transform: scaleX(-1);
+}
+
+html[dir='rtl'] .ui-table__head {
+  letter-spacing: 0;
 }

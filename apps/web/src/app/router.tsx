@@ -32,6 +32,7 @@ import {
   TopologyPage,
   UsersSettingsPage,
 } from '../routes/RoutePages';
+import { useLocale } from '../i18n';
 
 const rootRoute = createRootRoute({
   component: RootRoute,
@@ -40,11 +41,12 @@ const rootRoute = createRootRoute({
 
 function RootRoute() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { t } = useLocale();
 
   useEffect(() => {
-    const pageTitle = getPageTitle(pathname);
+    const pageTitle = getPageTitle(pathname, t);
     document.title = pageTitle === 'Stackplore' ? pageTitle : `${pageTitle} | Stackplore`;
-  }, [pathname]);
+  }, [pathname, t]);
 
   return <Outlet />;
 }

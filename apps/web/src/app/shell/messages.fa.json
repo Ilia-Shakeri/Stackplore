@@ -1,0 +1,19 @@
+{
+  "shell.brand.overview": "نمای کلی Stackplore",
+  "shell.breadcrumb.label": "مسیر راهنما",
+  "shell.locale.label": "زبان",
+  "shell.locale.option.en": "English",
+  "shell.locale.option.fa": "فارسی",
+  "shell.navigation.close": "بستن ناوبری",
+  "shell.navigation.open": "باز کردن ناوبری",
+  "shell.navigation.primary": "ناوبری اصلی",
+  "shell.navigation.title": "ناوبری",
+  "shell.navigation.workspace": "ناوبری فضای کاری",
+  "shell.sidebar.collapse": "جمع‌کردن نوار کناری",
+  "shell.sidebar.expand": "گسترش نوار کناری",
+  "shell.skipToMain": "پرش به محتوای اصلی",
+  "shell.theme.dark": "تیره",
+  "shell.theme.label": "پوسته",
+  "shell.theme.light": "روشن",
+  "shell.theme.system": "سامانه"
+}

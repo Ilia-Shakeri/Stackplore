@@ -30,6 +30,7 @@ changing the decision.
 | [ADR-0006](0006-read-only-and-guarded-mutations.md) | Accepted | Keep infrastructure read-only by default and gate narrow actions |
 | [ADR-0007](0007-deterministic-isolated-demo.md) | Accepted | Run deterministic demonstration fixtures in an isolated mode |
 | [ADR-0008](0008-project-owned-interface-system.md) | Accepted | Keep interface primitives behind one project-owned package |
+| [ADR-0009](0009-feature-owned-localization-runtime.md) | Accepted | Use feature-owned catalogs and one localization runtime |
 
 ## Adding a record
 

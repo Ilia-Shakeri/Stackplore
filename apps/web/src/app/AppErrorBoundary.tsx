@@ -1,26 +1,30 @@
 import { Button, ErrorBoundary } from '@stackplore/ui';
 import type { ReactNode } from 'react';
 
+import { useLocale } from '../i18n';
+
 interface AppErrorBoundaryProps {
   children: ReactNode;
 }
 
 export function AppErrorBoundary({ children }: AppErrorBoundaryProps) {
+  const { t } = useLocale();
+
   return (
     <ErrorBoundary
       fallback={({ resetErrorBoundary }) => (
         <main className="fatal-error">
           <section className="fatal-error__panel" role="alert" aria-labelledby="fatal-error-title">
-            <p className="route-page__eyebrow">Application error</p>
-            <h1 id="fatal-error-title">The workspace could not continue</h1>
-            <p>Reload the current page. No provider action was sent.</p>
+            <p className="route-page__eyebrow">{t('app.error.eyebrow')}</p>
+            <h1 id="fatal-error-title">{t('app.error.title')}</h1>
+            <p>{t('app.error.body')}</p>
             <Button
               onClick={() => {
                 resetErrorBoundary();
                 window.location.reload();
               }}
             >
-              Reload page
+              {t('app.error.reload')}
             </Button>
           </section>
         </main>

@@ -15,9 +15,13 @@ import {
   TabsList,
   TabsTrigger,
 } from '@stackplore/ui';
-import { render } from '@testing-library/react';
+import { createMemoryHistory } from '@tanstack/react-router';
+import { render, screen } from '@testing-library/react';
 import axe from 'axe-core';
 import { describe, expect, it } from 'vitest';
+
+import { App } from '../app/App';
+import { createAppRouter } from '../app/router';
 
 describe('representative interface accessibility', () => {
   it('has no detectable axe violations', async () => {
@@ -60,6 +64,23 @@ describe('representative interface accessibility', () => {
         </Tabs>
       </main>,
     );
+
+    const results = await axe.run(container, {
+      rules: {
+        'color-contrast': { enabled: false },
+      },
+    });
+
+    expect(results.violations).toEqual([]);
+  });
+
+  it('has no detectable violations in the Persian RTL shell', async () => {
+    globalThis.localStorage.setItem('stackplore.locale', 'fa');
+    const history = createMemoryHistory({ initialEntries: ['/overview'] });
+    const router = createAppRouter(history);
+    const { container } = render(<App router={router} />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'نمای کلی' })).not.toBeNull();
 
     const results = await axe.run(container, {
       rules: {

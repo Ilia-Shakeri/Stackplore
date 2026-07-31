@@ -6,12 +6,6 @@ import { describe, expect, it } from 'vitest';
 import { App } from './App';
 import { createAppRouter } from './router';
 
-Object.defineProperty(globalThis, 'scrollTo', {
-  configurable: true,
-  value: () => undefined,
-  writable: true,
-});
-
 function renderRoute(path: string) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const router = createAppRouter(history);
@@ -62,6 +56,54 @@ describe('application shell', () => {
     expect(await screen.findByRole('heading', { level: 1, name: heading })).not.toBeNull();
   });
 
+  it.each([
+    ['/setup', 'راه‌اندازی'],
+    ['/login', 'ورود'],
+    ['/overview', 'نمای کلی'],
+    ['/topology', 'توپولوژی'],
+    ['/resources', 'منابع'],
+    ['/logs', 'گزارش‌ها'],
+    ['/events', 'رویدادها'],
+    ['/alerts', 'هشدارها'],
+    ['/audit', 'ممیزی'],
+    ['/settings', 'تنظیمات'],
+    ['/settings/connections', 'اتصال‌ها'],
+    ['/settings/users', 'کاربران'],
+    ['/settings/notifications', 'اعلان‌ها'],
+    ['/settings/preferences', 'ترجیحات'],
+    ['/about', 'درباره'],
+    ['/not-found', 'صفحه پیدا نشد'],
+  ])('renders Persian shell copy for %s', async (path, heading) => {
+    globalThis.localStorage.setItem('stackplore.locale', 'fa');
+    renderRoute(path);
+
+    expect(await screen.findByRole('heading', { level: 1, name: heading })).not.toBeNull();
+    expect(document.documentElement.lang).toBe('fa');
+    expect(document.documentElement.dir).toBe('rtl');
+  });
+
+  it('switches shell language without a reload and preserves theme state', async () => {
+    renderRoute('/overview');
+
+    const language = await screen.findByRole('combobox', { name: 'Language' });
+    fireEvent.change(language, { target: { value: 'fa' } });
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'نمای کلی' })).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'توپولوژی' })).not.toBeNull();
+    expect(screen.getByRole('combobox', { name: 'زبان' })).not.toBeNull();
+    expect(document.documentElement.lang).toBe('fa');
+    expect(document.documentElement.dir).toBe('rtl');
+    expect(document.title).toBe('نمای کلی | Stackplore');
+    expect(globalThis.localStorage.getItem('stackplore.locale')).toBe('fa');
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'پوسته' }), {
+      target: { value: 'dark' },
+    });
+
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(globalThis.localStorage.getItem('stackplore.locale')).toBe('fa');
+  });
+
   it('keeps resource route parameters exact', async () => {
     renderRoute('/resources/demo/container/service%2Fedge');
 
@@ -71,6 +113,19 @@ describe('application shell', () => {
     expect(screen.getByText('demo')).not.toBeNull();
     expect(screen.getByText('container')).not.toBeNull();
     expect(screen.getByText('service/edge')).not.toBeNull();
+  });
+
+  it('keeps technical resource identity exact and isolated in Persian', async () => {
+    globalThis.localStorage.setItem('stackplore.locale', 'fa');
+    renderRoute('/resources/demo/container/service%2Fedge');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'جزئیات منبع' })).not.toBeNull();
+
+    for (const value of ['demo', 'container', 'service/edge']) {
+      const technical = screen.getByText(value);
+      expect(technical.getAttribute('dir')).toBe('ltr');
+      expect(technical.hasAttribute('data-ui-technical')).toBe(true);
+    }
   });
 
   it('routes an unknown URL to the shell not-found view', async () => {
@@ -123,6 +178,23 @@ describe('application shell', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Topology' })).not.toBeNull();
     expect(screen.queryByRole('dialog', { name: 'Navigation' })).toBeNull();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('main'));
+    });
+  });
+
+  it('uses Persian names in mobile navigation and keeps route focus behavior', async () => {
+    const user = userEvent.setup();
+    globalThis.localStorage.setItem('stackplore.locale', 'fa');
+    renderRoute('/overview');
+
+    await user.click(await screen.findByRole('button', { name: 'باز کردن ناوبری' }));
+    const drawer = await screen.findByRole('dialog', { name: 'ناوبری' });
+
+    await user.click(within(drawer).getByRole('link', { name: 'توپولوژی' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'توپولوژی' })).not.toBeNull();
+    expect(screen.queryByRole('dialog', { name: 'ناوبری' })).toBeNull();
     await waitFor(() => {
       expect(document.activeElement).toBe(screen.getByRole('main'));
     });

@@ -59,6 +59,7 @@ export const DropdownCheckboxItem = forwardRef<
     <DropdownPrimitive.CheckboxItem
       ref={ref}
       className={cn('ui-dropdown__item', className)}
+      data-has-indicator="true"
       {...props}
     >
       <span className="ui-dropdown__indicator">
@@ -79,6 +80,7 @@ export const DropdownRadioItem = forwardRef<
     <DropdownPrimitive.RadioItem
       ref={ref}
       className={cn('ui-dropdown__item', className)}
+      data-has-indicator="true"
       {...props}
     >
       <span className="ui-dropdown__indicator">
@@ -130,7 +132,7 @@ export const DropdownSubTrigger = forwardRef<
       {...props}
     >
       {children}
-      <ChevronRight className="ui-dropdown__sub-icon" aria-hidden="true" />
+      <ChevronRight className="ui-dropdown__sub-icon" data-ui-mirror-inline aria-hidden="true" />
     </DropdownPrimitive.SubTrigger>
   );
 });

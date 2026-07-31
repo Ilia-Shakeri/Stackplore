@@ -1,18 +1,22 @@
+import { TechnicalText } from '@stackplore/ui';
 import { Link } from '@tanstack/react-router';
 
 import { PlannedPage } from './PlannedPage';
+import { useLocale, type TextMessageKey } from '../i18n';
 
 const settingsLinks = [
-  { label: 'General', to: '/settings' },
-  { label: 'Connections', to: '/settings/connections' },
-  { label: 'Users', to: '/settings/users' },
-  { label: 'Notifications', to: '/settings/notifications' },
-  { label: 'Preferences', to: '/settings/preferences' },
-] as const;
+  { labelKey: 'route.settings.general', to: '/settings' },
+  { labelKey: 'route.connections.title', to: '/settings/connections' },
+  { labelKey: 'route.users.title', to: '/settings/users' },
+  { labelKey: 'route.notifications.title', to: '/settings/notifications' },
+  { labelKey: 'route.preferences.title', to: '/settings/preferences' },
+] as const satisfies readonly { labelKey: TextMessageKey; to: string }[];
 
 function SettingsNavigation() {
+  const { t } = useLocale();
+
   return (
-    <nav className="settings-nav" aria-label="Settings sections">
+    <nav className="settings-nav" aria-label={t('route.settings.sectionsLabel')}>
       {settingsLinks.map((item) => (
         <Link
           key={item.to}
@@ -20,7 +24,7 @@ function SettingsNavigation() {
           to={item.to}
           activeOptions={{ exact: true }}
         >
-          {item.label}
+          {t(item.labelKey)}
         </Link>
       ))}
     </nav>
@@ -28,49 +32,56 @@ function SettingsNavigation() {
 }
 
 export function SetupPage() {
+  const { t } = useLocale();
+
   return (
     <PlannedPage
-      eyebrow="First-run route"
-      title="Setup"
-      description="Secure first-run setup is not available in this phase."
+      eyebrow={t('route.setup.eyebrow')}
+      title={t('route.setup.title')}
+      description={t('route.setup.description')}
     />
   );
 }
 
 export function LoginPage() {
+  const { t } = useLocale();
+
   return (
     <PlannedPage
-      eyebrow="Session route"
-      title="Sign in"
-      description="Session-backed sign-in is not available in this phase."
+      eyebrow={t('route.login.eyebrow')}
+      title={t('route.login.title')}
+      description={t('route.login.description')}
     />
   );
 }
 
 export function OverviewPage() {
+  const { t } = useLocale();
+
   return (
     <PlannedPage
-      eyebrow="Workspace"
-      title="Overview"
-      description="The responsive shell is ready for provider-backed summaries."
+      eyebrow={t('route.overview.eyebrow')}
+      title={t('route.overview.title')}
+      description={t('route.overview.description')}
     />
   );
 }
 
 export function TopologyPage() {
+  const { t } = useLocale();
+
   return (
-    <PlannedPage
-      title="Topology"
-      description="Topology discovery and relationship data are not connected yet."
-    />
+    <PlannedPage title={t('route.topology.title')} description={t('route.topology.description')} />
   );
 }
 
 export function ResourcesPage() {
+  const { t } = useLocale();
+
   return (
     <PlannedPage
-      title="Resources"
-      description="Resource inventory is waiting for provider contracts and discovery."
+      title={t('route.resources.title')}
+      description={t('route.resources.description')}
     />
   );
 }
@@ -82,23 +93,31 @@ interface ResourceDetailPageProps {
 }
 
 export function ResourceDetailPage({ id, kind, provider }: ResourceDetailPageProps) {
+  const { t } = useLocale();
+
   return (
     <PlannedPage
-      title="Resource detail"
-      description="Resource detail is waiting for provider contracts and discovery."
+      title={t('route.resourceDetail.title')}
+      description={t('route.resourceDetail.description')}
     >
-      <dl className="resource-identity" aria-label="Requested resource identity">
+      <dl className="resource-identity" aria-label={t('route.resourceDetail.identityLabel')}>
         <div>
-          <dt>Provider</dt>
-          <dd>{provider}</dd>
+          <dt>{t('route.resourceDetail.provider')}</dt>
+          <dd>
+            <TechnicalText>{provider}</TechnicalText>
+          </dd>
         </div>
         <div>
-          <dt>Kind</dt>
-          <dd>{kind}</dd>
+          <dt>{t('route.resourceDetail.kind')}</dt>
+          <dd>
+            <TechnicalText>{kind}</TechnicalText>
+          </dd>
         </div>
         <div>
-          <dt>Identifier</dt>
-          <dd>{id}</dd>
+          <dt>{t('route.resourceDetail.identifier')}</dt>
+          <dd>
+            <TechnicalText>{id}</TechnicalText>
+          </dd>
         </div>
       </dl>
     </PlannedPage>
@@ -106,92 +125,101 @@ export function ResourceDetailPage({ id, kind, provider }: ResourceDetailPagePro
 }
 
 export function LogsPage() {
-  return <PlannedPage title="Logs" description="Bounded log streams are not connected yet." />;
+  const { t } = useLocale();
+  return <PlannedPage title={t('route.logs.title')} description={t('route.logs.description')} />;
 }
 
 export function EventsPage() {
-  return <PlannedPage title="Events" description="Provider event streams are not connected yet." />;
+  const { t } = useLocale();
+  return (
+    <PlannedPage title={t('route.events.title')} description={t('route.events.description')} />
+  );
 }
 
 export function AlertsPage() {
+  const { t } = useLocale();
   return (
-    <PlannedPage title="Alerts" description="Alert rules and delivery are not available yet." />
+    <PlannedPage title={t('route.alerts.title')} description={t('route.alerts.description')} />
   );
 }
 
 export function AuditPage() {
-  return (
-    <PlannedPage title="Audit" description="Guarded operations and audit history arrive later." />
-  );
+  const { t } = useLocale();
+  return <PlannedPage title={t('route.audit.title')} description={t('route.audit.description')} />;
 }
 
 export function SettingsPage() {
+  const { t } = useLocale();
   return (
     <PlannedPage
-      title="Settings"
-      description="Account and workspace settings are not available yet."
+      title={t('route.settings.title')}
+      description={t('route.settings.description')}
       toolbar={<SettingsNavigation />}
     />
   );
 }
 
 export function ConnectionsSettingsPage() {
+  const { t } = useLocale();
   return (
     <PlannedPage
-      title="Connections"
-      description="Provider connection setup is not available yet."
+      title={t('route.connections.title')}
+      description={t('route.connections.description')}
       toolbar={<SettingsNavigation />}
     />
   );
 }
 
 export function UsersSettingsPage() {
+  const { t } = useLocale();
   return (
     <PlannedPage
-      title="Users"
-      description="User administration is not available yet."
+      title={t('route.users.title')}
+      description={t('route.users.description')}
       toolbar={<SettingsNavigation />}
     />
   );
 }
 
 export function NotificationsSettingsPage() {
+  const { t } = useLocale();
   return (
     <PlannedPage
-      title="Notifications"
-      description="Notification delivery settings are not available yet."
+      title={t('route.notifications.title')}
+      description={t('route.notifications.description')}
       toolbar={<SettingsNavigation />}
     />
   );
 }
 
 export function PreferencesSettingsPage() {
+  const { t } = useLocale();
   return (
     <PlannedPage
-      title="Preferences"
-      description="Personal display preferences beyond local theme are not available yet."
+      title={t('route.preferences.title')}
+      description={t('route.preferences.description')}
       toolbar={<SettingsNavigation />}
     />
   );
 }
 
 export function AboutPage() {
+  const { t, tPlural } = useLocale();
+
   return (
     <div className="route-page">
       <header className="route-page__header">
-        <p className="route-page__eyebrow">Stackplore</p>
-        <h1>About</h1>
-        <p>A local-first workspace for understanding infrastructure relationships.</p>
+        <p className="route-page__eyebrow">{t('route.about.eyebrow')}</p>
+        <h1>{t('route.about.title')}</h1>
+        <p>{t('route.about.description')}</p>
       </header>
 
       <section className="planned-state" aria-labelledby="about-status-title">
         <div className="planned-state__mark" aria-hidden="true" />
         <div>
-          <h2 id="about-status-title">Foundation build</h2>
-          <p>
-            The repository currently provides its application shell and design foundations. No
-            provider is connected.
-          </p>
+          <h2 id="about-status-title">{t('route.about.statusTitle')}</h2>
+          <p>{t('route.about.statusBody')}</p>
+          <p>{tPlural('route.about.languageCount', 2)}</p>
         </div>
       </section>
     </div>

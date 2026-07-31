@@ -2,6 +2,7 @@ import { Tooltip } from '@stackplore/ui';
 import { Link } from '@tanstack/react-router';
 
 import type { NavigationItem } from './navigation';
+import { useLocale } from '../../i18n';
 
 interface NavigationLinksProps {
   collapsed?: boolean;
@@ -10,10 +11,13 @@ interface NavigationLinksProps {
 }
 
 export function NavigationLinks({ collapsed = false, items, onNavigate }: NavigationLinksProps) {
+  const { direction, t } = useLocale();
+
   return (
     <ul className="shell-nav__list">
       {items.map((item) => {
         const Icon = item.icon;
+        const label = t(item.labelKey);
         const link = (
           <Link
             className="shell-nav__link ui-focus-ring"
@@ -23,7 +27,7 @@ export function NavigationLinks({ collapsed = false, items, onNavigate }: Naviga
           >
             <Icon className="shell-nav__icon" aria-hidden="true" />
             <span className={collapsed ? 'shell-nav__label ui-sr-only' : 'shell-nav__label'}>
-              {item.label}
+              {label}
             </span>
           </Link>
         );
@@ -31,7 +35,7 @@ export function NavigationLinks({ collapsed = false, items, onNavigate }: Naviga
         return (
           <li key={item.to}>
             {collapsed ? (
-              <Tooltip content={item.label} side="right">
+              <Tooltip content={label} side={direction === 'rtl' ? 'left' : 'right'}>
                 {link}
               </Tooltip>
             ) : (

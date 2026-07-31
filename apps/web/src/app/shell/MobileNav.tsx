@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { BrandLogo } from './BrandLogo';
 import { NavigationLinks } from './NavigationLinks';
 import { developmentNavigation, primaryNavigation, secondaryNavigation } from './navigation';
+import { useLocale } from '../../i18n';
 
 interface MobileNavProps {
   onOpenChange: (open: boolean) => void;
@@ -14,6 +15,7 @@ interface MobileNavProps {
 
 export function MobileNav({ onOpenChange, open, pathname }: MobileNavProps) {
   const navigationRequested = useRef(false);
+  const { t } = useLocale();
 
   useEffect(() => {
     onOpenChange(false);
@@ -30,7 +32,7 @@ export function MobileNav({ onOpenChange, open, pathname }: MobileNavProps) {
         <IconButton
           className="mobile-nav__trigger"
           variant="ghost"
-          aria-label="Open navigation"
+          aria-label={t('shell.navigation.open')}
           aria-controls="mobile-navigation"
           aria-expanded={open}
         >
@@ -39,8 +41,8 @@ export function MobileNav({ onOpenChange, open, pathname }: MobileNavProps) {
       </DrawerTrigger>
       <DrawerContent
         id="mobile-navigation"
-        title="Navigation"
-        closeLabel="Close navigation"
+        title={t('shell.navigation.title')}
+        closeLabel={t('shell.navigation.close')}
         side="start"
         size="sm"
         onCloseAutoFocus={(event) => {
@@ -55,10 +57,13 @@ export function MobileNav({ onOpenChange, open, pathname }: MobileNavProps) {
         <div className="mobile-nav__brand">
           <BrandLogo />
         </div>
-        <nav className="shell-nav" aria-label="Primary navigation">
+        <nav className="shell-nav" aria-label={t('shell.navigation.primary')}>
           <NavigationLinks items={primaryNavigation} onNavigate={closeForNavigation} />
         </nav>
-        <nav className="shell-nav mobile-nav__secondary" aria-label="Workspace navigation">
+        <nav
+          className="shell-nav mobile-nav__secondary"
+          aria-label={t('shell.navigation.workspace')}
+        >
           <NavigationLinks items={secondaryNavigation} onNavigate={closeForNavigation} />
           {import.meta.env.DEV ? (
             <div className="app-sidebar__development">

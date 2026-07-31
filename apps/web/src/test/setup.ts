@@ -18,6 +18,12 @@ Object.defineProperty(globalThis, 'matchMedia', {
   writable: true,
 });
 
+Object.defineProperty(globalThis, 'scrollTo', {
+  configurable: true,
+  value: vi.fn(),
+  writable: true,
+});
+
 class TestResizeObserver {
   disconnect() {}
 
@@ -50,7 +56,15 @@ Object.defineProperties(HTMLElement.prototype, {
 afterEach(() => {
   cleanup();
   globalThis.localStorage.clear();
+  globalThis.document.documentElement.lang = 'en';
+  globalThis.document.documentElement.dir = 'ltr';
+  delete globalThis.document.documentElement.dataset.locale;
   delete globalThis.document.documentElement.dataset.theme;
   delete globalThis.document.documentElement.dataset.themePreference;
   globalThis.document.documentElement.style.removeProperty('color-scheme');
+  globalThis.document.title = '';
+  const description = globalThis.document.querySelector<HTMLMetaElement>(
+    'meta[name="description"]',
+  );
+  description?.remove();
 });

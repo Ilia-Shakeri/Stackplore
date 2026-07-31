@@ -133,7 +133,11 @@ export function ToastProvider({
             </ToastPrimitive.Close>
           </ToastPrimitive.Root>
         ))}
-        <ToastPrimitive.Viewport className={cn('ui-toast__viewport')} label={viewportLabel} />
+        <ToastPrimitive.Viewport
+          className={cn('ui-toast__viewport')}
+          data-swipe-direction={swipeDirection}
+          label={viewportLabel}
+        />
       </ToastPrimitive.Provider>
     </ToastContext>
   );

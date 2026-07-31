@@ -82,9 +82,9 @@ for a future desktop wrapper and makes feature imports easier to couple.
 
 Phase 2 owns the initial package, semantic tokens, themes, bundled fonts,
 wrappers, responsive shell, component tests, and manual width review. Phase 3
-must verify the same boundary under English, Persian, left-to-right, and
-right-to-left behavior. Later feature phases add wrapper capability only when a
-real product flow requires it.
+adds the shared direction context and verifies the same boundary under English,
+Persian, left-to-right, and right-to-left behavior. Later feature phases add
+wrapper capability only when a real product flow requires it.
 
 Dependency updates must refresh official metadata, preserve exact manifest and
 lockfile pins, and run the full frontend verification task.
@@ -95,3 +95,4 @@ lockfile pins, and run the full frontend verification task.
 - [Project guide](../../PROJECT_GUIDE.md)
 - [Architecture overview](../architecture.md)
 - [ADR-0001: Monorepo and same origin](0001-monorepo-and-same-origin.md)
+- [ADR-0009: Localization runtime](0009-feature-owned-localization-runtime.md)
