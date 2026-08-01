@@ -2,7 +2,13 @@
 
 ## Status and purpose
 
-This document defines the security requirements for Stackplore before application code is introduced. It is a design baseline, not a claim that controls are already implemented or independently audited. Every implementation phase must preserve these requirements, add tests for the controls it introduces, and record any accepted exception.
+This document defines the security requirements and delivery boundary for
+Stackplore. Through Phase 5, validated startup configuration, safe structured
+logging, strict origin and proxy handling, bounded short HTTP requests,
+operational probes, protected process metrics, and graceful shutdown are
+implemented and tested. Authentication, storage, provider access, streams,
+notifications, deployment controls, and guarded actions remain later-phase
+requirements. No control described here is a claim of an independent audit.
 
 Security vulnerabilities should be reported through the private process in [SECURITY.md](../SECURITY.md).
 
@@ -256,7 +262,17 @@ Allowlist additions require a security review and leak-focused tests.
 
 ## Logs and redaction
 
-Application logs are structured and use an allowlist of fields. Authorization headers, cookies, session tokens, CSRF tokens, passwords, bootstrap secrets, provider credentials, webhook signatures, URL user information, request bodies, and raw environment data are never logged.
+Application logs are structured and use bounded fixed fields. The Phase 5
+logger redacts sensitive field and group names, replaces raw byte and
+unsupported values, neutralizes control and format characters, bounds text and
+keys, and omits source paths. Request logs use fixed route and method classes;
+configuration failures log the field and rule but never its rejected value.
+Authorization headers, cookies, session tokens, CSRF tokens, passwords,
+bootstrap secrets, provider credentials, webhook signatures, URL user
+information, request bodies, and raw environment data are never logged.
+Request-ID source failure uses one fixed safe fallback, increments a counter for
+every occurrence, and emits only one bounded process log for the repeated
+failure.
 
 Infrastructure logs are hostile input:
 
@@ -294,6 +310,10 @@ SSE endpoints use the existing same-origin session and never accept credentials 
 - Events carry monotonically usable identifiers. A reconnect outside the replay window receives a reset signal and must fetch a fresh snapshot.
 - Slow clients are dropped or told to resynchronize; they cannot grow server memory without bound.
 - Keepalives, write deadlines, shutdown signals, and request cancellation release resources promptly.
+- The Phase 5 versioned API path buffers its response and has a short total
+  deadline. A stream cannot merely disable that guard; its owning phase must
+  add explicit connection, idle, write, lifetime, concurrency, queue, and byte
+  ceilings first.
 - Responses use `Cache-Control: no-store`, disable intermediary buffering where supported, and are never stored by the service worker.
 - Stream payloads contain normalized, authorized data only.
 
@@ -366,9 +386,25 @@ The same rule applies to the separate audit-retention policy.
 
 ## HTTP and browser controls
 
-The deployment edge terminates TLS and forwards only from trusted proxies. The
-service validates allowed hosts and trusted forwarding headers. A non-loopback
-production profile rejects a configured public origin that is not HTTPS.
+The Phase 5 service accepts one canonical public origin. A non-loopback
+production listener or origin rejects startup unless that public origin uses
+HTTPS and at least one trusted-proxy network prefix is configured. The origin
+may contain no user information, path, query, fragment, non-canonical host, or
+redundant default port.
+
+Only a direct peer inside an explicit canonical prefix may supply forwarding
+data used for routing or client identity. Forwarding fields from an untrusted
+peer are rejected on every non-operational path and on `/metrics`; the terse
+health and readiness probes do not use forwarding identity. The standardized
+`Forwarded` field is rejected wherever forwarding data is evaluated in Phase
+5. Trusted peers may supply one bounded `X-Forwarded-Proto`, one bounded
+`X-Forwarded-Host`, and an IP-only `X-Forwarded-For` chain of at most 16 hops.
+The service walks that chain from the trusted edge toward the client and
+rejects malformed, ambiguous, or unverified network state. A non-operational
+request through a trusted peer must yield one verified untrusted client from
+that chain. Every `/api/v1` request must also resolve to the exact configured
+public scheme and authority. This is origin and proxy validation, not user
+authorization.
 
 Responses apply route-appropriate controls, including:
 
@@ -381,15 +417,35 @@ Responses apply route-appropriate controls, including:
 - HTTPS-only Strict Transport Security when the deployment is fully HTTPS;
 - no cache storage for authentication, API, log, metric, audit, export, backup, or stream responses.
 
+Phase 5 applies `Cache-Control: no-store`, a deny-all non-HTML content policy,
+same-origin resource policy, no-referrer policy, frame denial, content-type
+sniffing denial, a minimal permissions policy, and request IDs to every current
+response. It removes server, hop-by-hop, content-length, and CORS response
+fields supplied by handlers. HSTS is emitted only when the configured public
+origin is HTTPS.
+
 Dynamic content is encoded by context. Untrusted HTML is not rendered. Error responses do not expose stack traces, SQL, filesystem paths, provider credentials, or internal request bodies. Server banners and unnecessary diagnostic endpoints are disabled.
 
 `/healthz` and `/readyz` return only terse process state on the public listener.
-Detailed readiness appears under authenticated
-`/api/v1/system/readiness`. `/metrics` is disabled for
-untrusted clients by default and must be protected by an internal edge
-allowlist or explicit operational authentication. Metric names and labels never
-contain user identifiers, source identifiers, provider-native identifiers,
-resource names, log content, or other infrastructure metadata.
+Phase 5 readiness covers configuration and HTTP lifecycle, not database or
+provider health. `GET /api/v1/system/readiness` is reserved for an authenticated
+administrator, but each request reaching its handler receives `401` until Phase
+7 implements local sessions and roles. No header, query value, cookie, proxy
+assertion, or environment setting is a bypass.
+
+`/metrics` requires the exact configured public scheme and authority plus a
+verified client IP in an explicit network allowlist. Its default is IPv4 and
+IPv6 loopback; denied clients receive a plain `404`. Phase 5 has no
+operational-account alternative. Metric names and labels never contain client,
+user, source, provider-native, resource, log, or other infrastructure
+identifiers. Only fixed route, method, and status classes are used.
+
+All requests have server read, write, and idle timeouts plus an accepted-socket
+ceiling. Every non-operational path has a capped per-client token bucket.
+Versioned API requests additionally have one total request deadline, a declared
+body-length precheck, capped handler body reads, bounded buffered responses, and
+a fixed in-flight ceiling. Their panic, timeout, cancellation, overflow, and
+overload paths replace any partial result with one safe bounded problem.
 
 ## PWA cache boundary
 

@@ -16,6 +16,10 @@ Phase 4 establishes schemas before feature endpoints exist. Publishing
 speculative operations would create a false runtime contract and make later
 service work preserve behavior that was never implemented.
 
+Phase 5 introduces one versioned runtime path before local sessions and roles
+exist. The detailed readiness path must be reserved for administrators without
+inventing a temporary credential, header, or successful response.
+
 ## Decision
 
 Use `contracts/openapi.yaml` as the canonical OpenAPI 3.1 transport contract for
@@ -23,6 +27,10 @@ the versioned `/api/v1` surface.
 
 - Keep `paths` empty until an owning feature phase implements and tests an HTTP
   operation.
+- In Phase 5, publish only `GET /system/readiness`. Document the reachable
+  `400`, `401`, `413`, `429`, `500`, and `503` problems, including the closed
+  `401` handler, but no success response or security scheme. Phase 7 may add a
+  success shape only with the real local-session and administrator checks.
 - Define shared provider-neutral schemas for identity, resources, health,
   relationships, metrics, events, alerts, audit records, capabilities,
   pagination, filtering, sorting, request IDs, and problem responses.
@@ -54,8 +62,9 @@ local and automated checks apply the same rules.
 - Reviewers can see transport compatibility changes in one versioned document.
 - Browser types cannot silently drift from the committed contract.
 - Domain and provider ports remain independent from HTTP and derivation details.
-- Empty paths state the current runtime truth while shared schemas can mature
-  before endpoint phases.
+- Paths state current runtime truth: shared schemas matured before handlers,
+  and the first error-only operation records a real closed gate without
+  implying temporary access.
 - Bounded provider extension codes preserve useful values without allowing raw
   provider objects through the boundary.
 

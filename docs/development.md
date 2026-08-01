@@ -59,13 +59,50 @@ Defaults bind both services to loopback. To override them, copy
 `.env.example` to `.env` and edit only local values. The root development task
 loads `.env` when it exists.
 
-| Variable | Default | Use |
+The server recognizes only the exact names below. An unknown or wrong-case
+`STACKPLORE_*` name, duplicate process entry, blank value, surrounding space,
+non-canonical value, or out-of-range value stops startup. Errors identify only
+the field and failed rule; they do not copy its value.
+
+| Variable | Default when absent | Allowed value or range |
 | --- | --- | --- |
-| `STACKPLORE_HTTP_ADDRESS` | `127.0.0.1:8080` | Go API listener |
-| `STACKPLORE_DEV_API_ORIGIN` | `http://127.0.0.1:8080` | Vite proxy target |
+| `STACKPLORE_ENVIRONMENT` | `development` | `development`, `production`, or `test` |
+| `STACKPLORE_HTTP_ADDRESS` | `127.0.0.1:8080` | Canonical lowercase host or IP plus port `1` through `65535` |
+| `STACKPLORE_PUBLIC_ORIGIN` | `http://` plus `STACKPLORE_HTTP_ADDRESS` | One canonical `http` or `https` origin with no user information, path, query, fragment, or redundant default port |
+| `STACKPLORE_TRUSTED_PROXY_PREFIXES` | No trusted proxy | Canonical comma-separated IPv4 or IPv6 CIDR prefixes, with no spaces, duplicates, host bits, or `/0` |
+| `STACKPLORE_METRICS_ALLOWED_PREFIXES` | `127.0.0.0/8,::1/128` | Canonical comma-separated client CIDR prefixes under the same list rules |
+| `STACKPLORE_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error` |
+| `STACKPLORE_LOG_FORMAT` | `json` | `json` or `text` |
+| `STACKPLORE_HTTP_READ_HEADER_TIMEOUT` | `5s` | `1s` through `30s`; cannot exceed the read timeout |
+| `STACKPLORE_HTTP_READ_TIMEOUT` | `15s` | `1s` through `2m` |
+| `STACKPLORE_HTTP_WRITE_TIMEOUT` | `30s` | `1s` through `5m` |
+| `STACKPLORE_HTTP_IDLE_TIMEOUT` | `60s` | `1s` through `10m` |
+| `STACKPLORE_HTTP_REQUEST_TIMEOUT` | `15s` | `100ms` through `2m`; must be strictly shorter than the write timeout |
+| `STACKPLORE_HTTP_SHUTDOWN_TIMEOUT` | `15s` | `1s` through `2m` |
+| `STACKPLORE_HTTP_MAX_HEADER_BYTES` | `32768` | `4096` through `1048576` bytes |
+| `STACKPLORE_HTTP_MAX_REQUEST_BODY_BYTES` | `262144` | `1024` through `16777216` bytes for `/api/v1` request bodies |
+| `STACKPLORE_HTTP_MAX_RESPONSE_BYTES` | `16777216` | `65536` through `67108864` buffered response bytes |
+| `STACKPLORE_HTTP_MAX_CONNECTIONS` | `512` | `1` through `16384` accepted HTTP connections |
+| `STACKPLORE_HTTP_MAX_IN_FLIGHT` | `256` | `1` through `4096` active handlers |
+| `STACKPLORE_RATE_LIMIT_PER_SECOND` | `20` | `0.1` through `10000` tokens per second per verified client on non-operational paths |
+| `STACKPLORE_RATE_LIMIT_BURST` | `40` | `1` through `10000` tokens per client bucket |
+| `STACKPLORE_RATE_LIMIT_MAX_CLIENTS` | `4096` | `1` through `65536` tracked client buckets before a shared overflow bucket is used |
+| `STACKPLORE_DEV_API_ORIGIN` | `http://127.0.0.1:8080` | Canonical Vite-only `http` or `https` upstream origin under the public-origin syntax rules; not used as server trust configuration |
 
 Do not commit `.env`. The example contains no credential or private
-infrastructure value. The Phase 1 server rejects a non-loopback listener.
+infrastructure value. A non-loopback production listener or origin additionally
+requires an HTTPS public origin and at least one trusted-proxy prefix. The
+server rejects production startup before listening when either gate is absent.
+
+Forwarding headers are not a general deployment escape hatch. On
+non-operational paths and `/metrics`, a direct peer outside
+`STACKPLORE_TRUSTED_PROXY_PREFIXES` may not send `Forwarded` or any
+`X-Forwarded-*` field. The terse health and readiness probes do not use
+forwarding identity. A trusted peer still may not send `Forwarded`; it may send
+one canonical forwarded scheme, one unambiguous forwarded host, and an IP-only
+client chain of at most 16 hops. Its non-operational requests must yield one
+verified untrusted client from that chain. Every `/api/v1` request must also
+normalize to the exact configured public scheme and authority.
 
 ## Run
 
@@ -75,15 +112,21 @@ Start the API and web development servers together:
 corepack pnpm run dev
 ```
 
-The web page is available at `http://127.0.0.1:5173`. Vite proxies
-`/healthz` and future `/api` paths to the Go service, so the browser keeps one
-development origin. The API liveness response is available through either
-origin:
+The web page is available at `http://127.0.0.1:5173`. Vite proxies `/api`,
+`/healthz`, `/readyz`, and `/metrics` to the Go service and rewrites the
+upstream authority to the configured development API origin. This preserves
+the Phase 5 exact-origin gate while the browser uses one development origin.
+Probe the direct service with:
 
 ```powershell
 Invoke-WebRequest http://127.0.0.1:8080/healthz
-Invoke-WebRequest http://127.0.0.1:5173/healthz
+Invoke-WebRequest http://127.0.0.1:8080/readyz
+Invoke-WebRequest http://127.0.0.1:8080/metrics
+curl.exe -i http://127.0.0.1:8080/api/v1/system/readiness
 ```
+
+The final call returns `401` by design. Phase 5 has no user or session system,
+so no caller can receive detailed readiness yet.
 
 Run one service when focused work needs it:
 
@@ -91,6 +134,57 @@ Run one service when focused work needs it:
 go -C apps/api run ./cmd/server
 corepack pnpm --filter @stackplore/web dev
 ```
+
+### Operational endpoint meaning
+
+| Path | Current result | Gate and meaning |
+| --- | --- | --- |
+| `/healthz` | `200` and `ok` | Terse process liveness. It does not check storage, providers, or product data. |
+| `/readyz` | `503` and `not ready` before service readiness or during stop; otherwise `200` and `ready` | Terse local readiness. Phase 5 covers validated configuration and the serving lifecycle. Phase 6 adds database readiness. |
+| `/metrics` | `200` for an exact-origin, allowed verified client; plain `404` otherwise | Process-only, low-cardinality metrics. The default network allowlist permits IPv4 and IPv6 loopback. |
+| `/api/v1/system/readiness` | `401` after all outer request gates pass | Reserved for an enabled administrator. Until Phase 7, every caller is denied and no header, query value, cookie, or proxy claim is a bypass. |
+
+The closed readiness operation documents every reachable Phase 5 problem:
+`400` for invalid network metadata or public origin, `401` at the closed
+administrator handler, `413` for a declared body over the limit, `429` for a
+client-rate denial, `500` for a safely contained internal response failure, and
+`503` for boundary unavailability such as request-ID failure, cancellation, or
+in-flight overload. It has no success response.
+
+All current responses receive a safe request ID, `no-store`, and fixed security
+headers. Every non-operational request requires verified network metadata and
+passes the per-client token bucket. Versioned API requests additionally require
+the exact public origin. Those outer gates may reject a request before the
+closed readiness handler runs.
+
+If secure request-ID generation is unavailable, the operational endpoints keep
+serving with the fixed safe fallback `req_unavailable`. Other paths fail closed
+with `503`. Each failure increments a metric, while one bounded process log
+signals the repeated source fault without creating a log flood.
+
+### Deadline and lifecycle meaning
+
+The server has separate read-header, read, write, idle, request, and shutdown
+timeouts plus a ceiling on accepted connections. Current versioned handlers run
+behind an in-flight ceiling and write to a bounded response buffer. A panic,
+bad status, overflow, cancellation, or total request deadline discards the
+partial buffer and returns a safe problem. A known API `Content-Length` over
+the body ceiling returns `413` before the handler; any future body-reading
+handler is also capped while reading. Client buckets are capped; once the
+tracked-client cap is full, new clients share one bounded overflow bucket.
+Tracked identities expire after 10 minutes without a request.
+
+An interrupt or termination signal marks readiness false and requests graceful
+HTTP drain within the shutdown timeout. It then cancels base request contexts
+and force-closes the server if the drain timed out. There is no long-lived HTTP
+stream in Phase 5. A future SSE or log-tail route must define its own
+connection, idle, write, lifetime, concurrency, queue, and byte limits before
+it can receive a narrow exemption from the ordinary buffered request deadline.
+
+Phase 5 checks use deterministic unit tests and local in-process listeners.
+They do not prove a deployed TLS edge, external proxy, container image,
+orchestrator health check, or public-network installation; those deployment
+assets and live checks belong to their owning later phases.
 
 The root web route redirects to `/overview`. Every product route currently
 shows an explicit planned or no-data state; it does not simulate provider
@@ -134,9 +228,12 @@ writing direction without component forks.
 ## Contract development
 
 The canonical transport contract is [`contracts/openapi.yaml`](../contracts/openapi.yaml).
-It uses OpenAPI 3.1 and the `/api/v1` server prefix. Phase 4 defines shared
-schemas but deliberately keeps `paths` empty; no versioned feature handler is
-implemented yet.
+It uses OpenAPI 3.1 and the `/api/v1` server prefix. Phase 4 defined the shared
+schemas. Phase 5 adds only `GET /system/readiness`, matching the deliberately
+closed runtime route. It has no success shape or security scheme until the real
+session and administrator guard exist; the contract records `400`, `401`,
+`413`, `429`, `500`, and `503`, and the derived output contains request and
+problem types but no success type for this operation.
 
 After changing the contract, re-derive the committed browser types and run the
 drift gate:

@@ -1219,3 +1219,45 @@ export type To = Timestamp;
  * Direction for the operation-owned sort field.
  */
 export type SortDirection2 = SortDirection;
+
+export type GetSystemReadinessData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/system/readiness';
+};
+
+export type GetSystemReadinessErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetSystemReadinessError = GetSystemReadinessErrors[keyof GetSystemReadinessErrors];

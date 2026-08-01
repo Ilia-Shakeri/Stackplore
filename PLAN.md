@@ -1,7 +1,8 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 4 — complete, awaiting commit
+- **Current phase:** Phase 5 — complete, awaiting commit
+- **Next phase after commit:** Phase 6 — SQLite storage and migrations
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -41,7 +42,7 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Phase 4 validation on 2026-08-01 reconfirmed:
+Local tool versions used through Phase 5 on 2026-08-01:
 
 | Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
@@ -86,7 +87,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 - [x] Phase 2 — Design system and application shell
 - [x] Phase 3 — English, Persian, RTL, and localization
 - [x] Phase 4 — Domain contracts and OpenAPI foundation
-- [ ] Phase 5 — Production-ready backend foundation
+- [x] Phase 5 — Production-ready backend foundation
 - [ ] Phase 6 — SQLite storage and migrations
 - [ ] Phase 7 — Authentication, users, and authorization
 - [ ] Phase 8 — Deterministic demo provider
@@ -336,6 +337,33 @@ Deliver:
 - terse root probes, administrator-only `/api/v1/system/readiness`, and
   protected low-cardinality metrics;
 - middleware and unit tests.
+
+Phase 5 checklist:
+
+- [x] Startup configuration has exact names, canonical values, documented
+  defaults and bounds, unknown-key rejection, and no value-bearing errors.
+- [x] Non-loopback production startup requires a canonical HTTPS public origin
+  and at least one explicit trusted-proxy prefix.
+- [x] Structured logs redact sensitive fields, normalize unsafe text and keys,
+  and record only bounded request and lifecycle labels.
+- [x] The HTTP boundary assigns safe request IDs, applies fixed security and
+  no-store headers, validates public origin and forwarding data, and emits safe
+  problem responses.
+- [x] Server deadlines, accepted-connection and buffered-response limits, API
+  request-body limits, bounded in-flight work, and a capped per-client token
+  bucket for non-operational requests are enforced.
+- [x] `/healthz`, `/readyz`, and the origin-and-network-guarded `/metrics`
+  endpoint expose only bounded local process state and low-cardinality labels.
+- [x] `GET /api/v1/system/readiness` is registered and its closed handler
+  returns `401` after outer request gates until the real administrator session
+  guard arrives in Phase 7; no header, query value, cookie, or proxy assertion
+  bypasses the closed gate.
+- [x] Startup, listener failure, request cancellation, readiness transitions,
+  graceful shutdown, and forced bounded shutdown have deterministic tests.
+- [x] The first implemented versioned path is in the canonical contract and
+  its browser error types are derived reproducibly.
+- [x] Configuration, operational probes, proxy trust, request limits, stream
+  deadline boundaries, and current security limits are documented.
 
 Commit:
 

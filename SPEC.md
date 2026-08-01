@@ -4,7 +4,7 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Phase 4 domain and versioned contract foundation available
+- **Implementation status:** Phase 5 backend service foundation available
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
@@ -615,10 +615,17 @@ states.
 The API lives under `/api/v1`. The canonical OpenAPI 3.1 contract lives in
 `contracts/openapi.yaml`.
 
-Phase 4 establishes shared provider-neutral schemas and keeps the path map
-empty. This is a contract foundation, not a claim that `/api/v1` handlers
-already exist. Each later handler phase adds its paths, safe examples, limits,
-authorization, and problem responses with the implementation.
+Phase 4 established the shared provider-neutral schemas without claiming
+runtime operations. Phase 5 publishes only the implemented
+`GET /api/v1/system/readiness` path. Because local sessions and roles arrive in
+Phase 7, this route is deliberately closed and has no success response or
+security scheme yet; a valid request that passes the outer request limits
+reaches a fixed `401` problem. Root operational endpoints are outside the
+`/api/v1` contract. Its other reachable boundary problems are `400`, `413`,
+`429`, `500`, and `503`; all six outcomes are documented with shared problem
+responses. Each later handler phase adds only paths, safe examples, limits,
+authorization, and problem responses that exist in the same implementation
+phase.
 
 API groups:
 
@@ -651,8 +658,8 @@ Requirements:
 - no secret-bearing response;
 - same-origin cookies;
 - bounded request and response sizes;
-- safe request examples where a body exists and safe success and problem
-  response examples for every operation.
+- safe request examples where a body exists and safe examples for every
+  documented response outcome.
 
 SSE carries resource status, events, metrics, logs, and alerts. Streams require
 authentication, event IDs, keepalive, reconnection, bounded buffers,
@@ -767,10 +774,19 @@ raw kubeconfig content, Secret values, or complete environment dumps.
 Development uses a Vite server, Go API server, and same-origin development
 proxy.
 
+Phase 5 implements the Go listener and HTTP boundary, not the production image
+or built-web serving path. Configuration is validated before the listener is
+opened. Unknown `STACKPLORE_*` names, blank or non-canonical values, conflicting
+timeouts, and values outside documented bounds stop startup without logging the
+rejected value. The full key, default, and range table lives in
+[docs/development.md](docs/development.md).
+
 Production uses one origin. The Go process serves the API and static web build.
 TLS may terminate at a trusted edge, but a non-loopback production profile must
 reject startup unless its configured public origin is HTTPS. Only explicitly
-trusted proxy headers may establish the original scheme and host.
+trusted proxy peers may establish the original scheme, host, and client
+address. Forwarding data from any other peer is rejected. Versioned API
+requests must resolve to the exact configured public scheme and authority.
 
 The production image must:
 
@@ -786,15 +802,35 @@ The production image must:
   offline, integrity-checked restore;
 - avoid CORS complexity.
 
-The readiness endpoint covers internal readiness such as configuration and
-database access. Loss of one observed provider changes that source status but
-does not make the whole API unready.
+`/healthz` returns only process liveness. `/readyz` is `503` until the listener
+is serving, becomes `200` while local service work may be accepted, and returns
+to not-ready before shutdown. Phase 5 readiness covers validated configuration
+and service lifecycle only. Phase 6 adds required database readiness. Loss of
+one observed provider later changes that source status but does not make the
+whole API unready.
 
 Health and readiness responses expose only terse process state. Detailed
-readiness is administrator-only at `/api/v1/system/readiness`. Metrics are
-disabled for untrusted clients by default and require an internal edge
-allowlist or operational authentication. Metric names and labels cannot contain
-user, source, provider-native, resource, or log-derived identifiers.
+readiness remains administrator-only at `/api/v1/system/readiness`; Phase 5
+registers the path, and every request reaching its closed handler returns `401`
+until the Phase 7 session guard exists. No header, query value, cookie, or proxy
+assertion is a temporary bypass. `/metrics` requires both the exact configured public scheme and
+authority and a verified client-network allowlist match. Phase 5 defaults the
+allowlist to loopback clients and makes a denied endpoint look absent with
+`404`. Operational authentication remains a later option. Metric names and
+labels cannot contain user, source, provider-native, resource, or log-derived
+identifiers.
+
+All HTTP work uses server header, read, write, idle, and accepted-connection
+ceilings. Every non-operational request additionally uses client-rate and
+rate-client ceilings; the terse probes and metrics endpoint are exempt from the
+client token bucket. Versioned API work also uses a total request deadline, a
+declared-body precheck, capped handler body reads, and buffered-response and
+in-flight ceilings. A termination signal marks the service not ready and asks
+the server to drain accepted requests within the shutdown bound. It then
+cancels the base request context and forces the server closed if the bound
+expired. Future SSE and log-tail routes must define separate connection, idle,
+write, lifetime, concurrency, queue, and byte limits before they can bypass the
+ordinary buffered request deadline.
 
 The recommended Docker deployment uses a restricted authorization proxy.
 Kubernetes deployment uses namespace-scoped read-only RBAC by default, a

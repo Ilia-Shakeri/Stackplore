@@ -6,11 +6,15 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 
 ## 1. Current state
 
-Phases 0 through 3 are committed. Phase 4 adds provider-neutral domain
-contracts, focused read ports, an OpenAPI 3.1 foundation under `/api/v1`, and a
-contract-derived TypeScript client package. The API contract has no product
-paths yet, and product workflows remain planned. Available commands and their
-verified scope are documented in [docs/development.md](docs/development.md).
+Phases 0 through 4 are committed. Phase 5 adds validated process
+configuration, structured redacting logs, a bounded HTTP boundary, strict
+public-origin and proxy trust, operational probes, protected process metrics,
+and graceful lifecycle handling. The only versioned route is
+`GET /api/v1/system/readiness`; its handler stays closed with `401` after outer
+request gates until authentication and administrator authorization arrive in
+Phase 7. Storage, provider adapters, and product workflows remain planned.
+Available commands and their verified scope are documented in
+[docs/development.md](docs/development.md).
 
 ## 2. Delivery contract
 
@@ -61,7 +65,7 @@ The target layout is:
 │   │   │   ├── realtime/
 │   │   │   ├── services/
 │   │   │   ├── storage/
-│   │   │   └── telemetry/
+│   │   │   └── observability/
 │   │   ├── migrations/
 │   │   └── tests/
 │   └── web/
@@ -156,6 +160,9 @@ documentation and repository policy only.
 - Never put credentials in query strings.
 - Use event IDs, keepalive, bounded queues, explicit overflow behavior, and
   immediate cancellation.
+- Give long-lived streams their own connection, idle, write, lifetime,
+  concurrency, queue, and byte limits before exempting them from the ordinary
+  buffered request deadline.
 - Show disconnected and retry states in the interface.
 - A slow client must not block provider collection or another client.
 

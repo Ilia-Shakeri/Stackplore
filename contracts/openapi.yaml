@@ -10,7 +10,31 @@ info:
 servers:
   - url: /api/v1
     description: Same-origin version 1 API base path
-paths: {}
+paths:
+  /system/readiness:
+    get:
+      operationId: getSystemReadiness
+      summary: Inspect detailed service readiness
+      description: >-
+        Reserved for an enabled administrator. Phase 5 has no local session
+        subsystem, so after the shared HTTP boundary checks pass, this route is
+        deliberately closed and returns 401. No header, query value, cookie,
+        proxy claim, or deployment setting grants access.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
 components:
   schemas:
     Code:

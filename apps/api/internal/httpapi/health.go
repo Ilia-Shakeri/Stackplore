@@ -1,16 +1,27 @@
 package httpapi
 
-import (
-	"io"
-	"net/http"
+import "net/http"
+
+const (
+	healthBody   = "ok\n"
+	readyBody    = "ready\n"
+	notReadyBody = "not ready\n"
 )
 
-const healthBody = "ok\n"
+func health(w http.ResponseWriter, r *http.Request) {
+	writePlain(w, http.StatusOK, healthBody)
+}
 
-func health(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(http.StatusOK)
-	_, _ = io.WriteString(w, healthBody)
+func ready(readiness *Readiness) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !readiness.IsReady() {
+			writePlain(w, http.StatusServiceUnavailable, notReadyBody)
+			return
+		}
+		writePlain(w, http.StatusOK, readyBody)
+	}
+}
+
+func closedReadiness(w http.ResponseWriter, r *http.Request) {
+	writeProblem(w, r, unauthenticatedProblem)
 }

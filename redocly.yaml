@@ -2,3 +2,5 @@ extends:
   - recommended-strict
 rules:
   no-unused-components: off
+  operation-2xx-response: off
+  security-defined: off

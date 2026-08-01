@@ -34,16 +34,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Provider-neutral Go domain contracts with stable versioned identifiers,
   bounded validation, typed provider outcomes, and focused provider ports
 - Canonical OpenAPI 3.1 schema foundation under `/api/v1` with sealed
-  transport models and deliberately empty paths until runtime handlers exist
+  transport models and paths added only with tested runtime handlers
 - Contract-derived TypeScript transport types plus a small same-origin browser
   client with safe problem parsing and request-ID propagation
 - Reproducible contract policy, derived-type drift, client test, and root
   verification tasks
+- Strict startup configuration with canonical origin, listener, trusted-proxy,
+  metrics-network, logging, timeout, size, concurrency, and rate-limit bounds
+- Structured redacting process logs, safe request IDs and problems, fixed
+  security headers, panic containment, and bounded buffered responses
+- Terse `/healthz` and `/readyz` probes, origin-and-network-guarded
+  low-cardinality `/metrics`, and a deliberately closed
+  `/api/v1/system/readiness` route
+- Accepted-connection and in-flight bounds, per-client rate limiting for
+  non-operational requests, request deadlines, and signal-driven graceful
+  shutdown with a forced-stop ceiling
+- The first implemented OpenAPI path and reproducibly derived browser error
+  types for its closed Phase 5 behavior
 
 ### Project status
 
-- The repository contains the Phase 4 domain and contract foundation, a
-  runnable bilingual application shell, and verified API, browser-client, web,
-  contract, and locale checks. The versioned contract has no product paths yet.
+- The repository contains the Phase 5 service foundation, provider-neutral
+  domain and contract foundations, a runnable bilingual application shell, and
+  API, browser-client, web, contract, and locale checks. The versioned API has
+  one deliberately closed system-readiness path and no product data workflow.
 - Product workflows, provider integrations, storage, authentication, container
   images, deployment packages, a demo, and a versioned release do not exist yet.

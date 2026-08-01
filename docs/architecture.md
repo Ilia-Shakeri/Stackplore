@@ -1,15 +1,16 @@
 # Stackplore Architecture
 
-Status: Target architecture with Phase 4 domain and contract foundation
+Status: Target architecture with Phase 5 service foundation
 Last updated: 2026-08-01
 
 This document defines the intended v1 architecture for Stackplore. Phase 0
-established the design and governance documents. Phases 1 through 4 implement
+established the design and governance documents. Phases 1 through 5 implement
 the developer scaffold, responsive and bilingual interface foundation,
-provider-neutral domain contracts, focused read ports, and an empty versioned
-API schema foundation. Product service runtime, provider behavior, storage, and
-deployment behavior described here remain targets for later phases, not claims
-about current functionality.
+provider-neutral domain contracts, focused read ports, the versioned transport
+foundation, and a bounded Go service boundary with validated configuration and
+operational probes. Product workflows, provider behavior, storage,
+authentication, static production serving, and deployment assets described
+here remain targets for later phases, not claims about current functionality.
 
 ## Goals and constraints
 
@@ -150,9 +151,13 @@ route-level data access.
 ### Contract boundary
 
 `contracts/openapi.yaml` is the canonical OpenAPI 3.1 transport document.
-Phase 4 establishes shared schemas under the `/api/v1` server prefix while
-keeping `paths` empty until real handlers exist. This separates schema
-foundation from runtime endpoint claims.
+Phase 4 established shared schemas under the `/api/v1` server prefix without
+speculative operations. Phase 5 adds the first implemented path,
+`GET /system/readiness`. The operation documents only reachable Phase 5
+errors: `400`, `401`, `413`, `429`, `500`, and `503`. No success response or
+security scheme is published before the Phase 7 local session and administrator
+guard exist. This keeps the contract aligned with runtime behavior instead of
+implying a temporary authentication mechanism.
 
 The contract derivation tool writes browser transport types into one committed
 file under `packages/api-client/src/derived`. Handwritten modules in that package
@@ -209,9 +214,30 @@ separate security decision.
 HTTP handlers use consistent problem responses, request IDs, input limits,
 pagination, filtering, documented status codes, and safe error messages. The
 OpenAPI contract is changed before or with handler changes. Contract checks
-prevent undocumented routes and stale browser types. Phase 4 defines no
-`/api/v1` operation; Phase 5 and later handler phases add paths with runtime
-behavior and tests.
+prevent undocumented routes and stale browser types. Phase 5 exposes only the
+closed system-readiness operation below `/api/v1`; later handler phases add
+paths with their runtime behavior, authorization, limits, and tests.
+
+The Phase 5 HTTP boundary validates exact public scheme and authority for every
+versioned request. It trusts forwarding data only from canonical configured
+network prefixes, rejects the standardized `Forwarded` field, accepts bounded
+single-value `X-Forwarded-Proto` and `X-Forwarded-Host` fields, and resolves a
+bounded IP-only `X-Forwarded-For` chain from the trusted edge inward. An
+untrusted peer that supplies any forwarding field is rejected on
+non-operational paths and metrics. The terse probes do not use forwarding
+identity. A non-operational request through a trusted peer must yield a verified
+untrusted client from the forwarded chain.
+
+Versioned API responses are buffered until handler completion so a panic,
+deadline, invalid status, or response overflow cannot leak a partial response.
+One request deadline, maximum response body, and in-flight ceiling cover the
+current short versioned operations. A known API content length over the body
+ceiling is denied before the handler, and any future handler body read remains
+capped. A capped per-client token bucket covers every non-operational HTTP path,
+while accepted sockets have their own process-wide ceiling. This buffering is
+not a stream design: each future SSE or log-tail route must gain explicit
+connection, idle, write, lifetime, concurrency, queue, and byte limits before a
+narrowly scoped exemption is made.
 
 ## Core domain model
 
@@ -231,7 +257,7 @@ event, alert, audit, capability, query, and provider-status parts under
 `apps/api/internal/domain`. Versioned composite digests provide stable resource
 and relationship identifiers. Validation bounds identifiers, display text,
 queries, result sets, evidence, and live-read targets, and requires canonical
-UTC timestamps. User, session, notification-delivery, storage, and HTTP service
+UTC timestamps. User, session, notification-delivery, storage, and feature HTTP
 behavior remain owned by later phases.
 
 Resource identity is a stable composite of provider kind, source identifier,
@@ -492,26 +518,49 @@ redirect.
 ## Operational behavior
 
 The Go service uses `log/slog` with structured fields and a centralized
-redaction policy. Logs include request IDs and stable safe resource
-identifiers, but exclude session material, passwords, provider credentials,
-kubeconfig content, private keys, Secret values, and unfiltered payloads.
+redaction policy. JSON is the default and text is an explicit option. Sensitive
+field names are redacted, byte slices and unsupported values are not expanded,
+control and format characters are neutralized, text and keys are bounded, and
+startup errors name only the invalid field and rule. Access logs use fixed
+method and route labels with request ID, status class, and bounded duration;
+they never copy a raw URL, header, body, or configuration value.
+
+If secure request-ID generation is unavailable, operational endpoints continue
+with the fixed safe fallback ID. Other paths fail closed with `503`. The service
+increments a counter for each failure and emits only one bounded process log for
+the repeated source failure.
 
 Operational endpoints have distinct meaning:
 
-- `/healthz` reports terse process liveness;
-- `/readyz` reports terse local readiness;
-- `/metrics` is disabled for untrusted clients by default and requires an
-  internal edge allowlist or operational authentication.
+- `/healthz` returns `200` with `ok` while the process can serve HTTP;
+- `/readyz` returns `503` before service readiness and during stop, and `200`
+  only while the listener is serving;
+- `/metrics` returns process metrics only when the request resolves to the
+  exact configured public scheme and authority and its verified client IP is
+  in a configured network prefix; the Phase 5 default permits IPv4 and IPv6
+  loopback, while denial is a plain `404`.
 
-Authenticated administrators can inspect detailed readiness at
-`/api/v1/system/readiness`, which is covered by the `/api/v1` cookie path.
-Metrics use low-cardinality labels and never label by user, source,
-provider-native identifier, resource name, or log-derived value.
+The versioned `GET /api/v1/system/readiness` route is reserved for enabled
+administrators. Phase 5 has no local session subsystem, so every request that
+passes its outer request gates reaches a handler closed with `401`. No header,
+query value, cookie, trusted-edge assertion, or environment setting grants
+temporary access. Phase 7 replaces this closed gate with the real session and
+role checks and may then publish a detailed success shape.
+
+Metrics include build identity, readiness, in-flight work, completed requests,
+recovered panics, request deadlines, rate denials, overload denials, and request
+ID source failures. The only request labels are fixed route, method, and status
+classes. Metrics never label by client, user, source, provider-native
+identifier, resource name, or log-derived value.
 
 Provider availability belongs in product status APIs and does not normally make
-the process unready. SIGTERM stops new work, closes streams, cancels watches,
-drains bounded in-flight requests, closes repositories, and exits within the
-configured grace period.
+the process unready. Phase 5 readiness covers validated configuration and the
+HTTP lifecycle; database readiness joins in Phase 6. On an interrupt or
+termination signal, the service marks itself not ready and asks the HTTP server
+to drain accepted requests within the configured bound. It then cancels the
+base request context and force-closes the server if that deadline expired.
+Later composition phases must add their repository, stream, watch, and worker
+close steps to the same lifecycle.
 
 ## Deployment model
 
@@ -531,7 +580,9 @@ escalation, drops all capabilities, selects `RuntimeDefault` seccomp, and keeps
 the root filesystem read-only. Service-account token automount is off unless
 the explicit in-cluster provider profile needs its dedicated identity.
 
-Non-loopback production requires an HTTPS public origin at a trusted edge. The
+Non-loopback production startup requires one canonical HTTPS public origin and
+at least one explicit trusted-proxy network prefix. The configured origin has
+no user information, path, query, fragment, or redundant default port. The
 recommended Docker profile places a restricted authorization proxy between
 Stackplore and Docker. Direct socket mounting is for loopback development only
 and is documented as high risk. An operator-mapped remote Docker endpoint

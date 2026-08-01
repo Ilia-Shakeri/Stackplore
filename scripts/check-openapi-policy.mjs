@@ -61,6 +61,26 @@ const allowedDocumentKeys = [
   'paths',
   'servers',
 ];
+const systemReadinessPath = '/system/readiness';
+const allowedPathNames = [systemReadinessPath];
+const allowedPathItemKeys = ['get'];
+const allowedSystemReadinessOperationKeys = [
+  'description',
+  'operationId',
+  'parameters',
+  'responses',
+  'summary',
+];
+const systemReadinessDescription =
+  'Reserved for an enabled administrator. Phase 5 has no local session subsystem, so after the shared HTTP boundary checks pass, this route is deliberately closed and returns 401. No header, query value, cookie, proxy claim, or deployment setting grants access.';
+const systemReadinessResponseReferences = new Map([
+  ['400', '#/components/responses/BadRequestProblem'],
+  ['401', '#/components/responses/UnauthorizedProblem'],
+  ['413', '#/components/responses/PayloadTooLargeProblem'],
+  ['429', '#/components/responses/TooManyRequestsProblem'],
+  ['500', '#/components/responses/InternalProblem'],
+  ['503', '#/components/responses/ServiceUnavailableProblem'],
+]);
 const allowedComponentCollections = ['headers', 'parameters', 'responses', 'schemas'];
 const allowedHeaderNames = ['RequestId', 'RetryAfter'];
 const allowedParameterNames = [
@@ -302,6 +322,71 @@ const hasSafeRootSchemaShape = (schema) =>
     typeof schema.$ref === 'string' ||
     ['allOf', 'anyOf', 'oneOf'].some((keyword) => Array.isArray(schema[keyword])));
 
+const hasExactKeys = (value, expected) => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const actual = Object.keys(value).sort();
+  const sortedExpected = [...expected].sort();
+  return (
+    actual.length === sortedExpected.length &&
+    actual.every((key, index) => key === sortedExpected[index])
+  );
+};
+
+const inspectPathPolicy = (paths) => {
+  const issues = [];
+  if (!hasExactKeys(paths, allowedPathNames)) {
+    return ['paths must contain only the Phase 5 system readiness route'];
+  }
+
+  const pathItem = paths[systemReadinessPath];
+  if (!hasExactKeys(pathItem, allowedPathItemKeys)) {
+    issues.push(`${systemReadinessPath} must contain only GET`);
+    return issues;
+  }
+
+  const operation = pathItem.get;
+  if (!hasExactKeys(operation, allowedSystemReadinessOperationKeys)) {
+    issues.push(`${systemReadinessPath} GET must use the fixed Phase 5 operation shape`);
+    return issues;
+  }
+
+  if (operation.operationId !== 'getSystemReadiness') {
+    issues.push(`${systemReadinessPath} GET must keep its stable operation ID`);
+  }
+  if (operation.summary !== 'Inspect detailed service readiness') {
+    issues.push(`${systemReadinessPath} GET must keep its fixed safe summary`);
+  }
+  if (operation.description !== systemReadinessDescription) {
+    issues.push(`${systemReadinessPath} GET must state the closed Phase 5 guard`);
+  }
+
+  if (
+    !Array.isArray(operation.parameters) ||
+    operation.parameters.length !== 1 ||
+    !hasExactKeys(operation.parameters[0], ['$ref']) ||
+    operation.parameters[0].$ref !== '#/components/parameters/RequestId'
+  ) {
+    issues.push(`${systemReadinessPath} GET must accept only the shared request ID parameter`);
+  }
+
+  if (!hasExactKeys(operation.responses, [...systemReadinessResponseReferences.keys()])) {
+    issues.push(`${systemReadinessPath} GET must expose only the fixed closed-guard responses`);
+    return issues;
+  }
+
+  for (const [status, reference] of systemReadinessResponseReferences) {
+    const response = operation.responses[status];
+    if (!hasExactKeys(response, ['$ref']) || response.$ref !== reference) {
+      issues.push(`${systemReadinessPath} GET ${status} must use its fixed problem response`);
+    }
+  }
+
+  return issues;
+};
+
 const inspectComponentPolicy = (components) => {
   const issues = [];
   if (!isRecord(components)) {
@@ -310,7 +395,7 @@ const inspectComponentPolicy = (components) => {
 
   for (const name of Object.keys(components)) {
     if (!allowedComponentCollections.includes(name)) {
-      issues.push(`components.${name} is not allowed in Phase 4`);
+      issues.push(`components.${name} is not allowed in Phase 5`);
     }
   }
 
@@ -802,6 +887,69 @@ const runPolicySelfTests = () => {
     throw new Error('OpenAPI policy self-test failed to reject unsafe response shapes.');
   }
 
+  const createValidPhase5Paths = () => ({
+    '/system/readiness': {
+      get: {
+        description: systemReadinessDescription,
+        operationId: 'getSystemReadiness',
+        parameters: [{ $ref: '#/components/parameters/RequestId' }],
+        responses: {
+          400: { $ref: '#/components/responses/BadRequestProblem' },
+          401: { $ref: '#/components/responses/UnauthorizedProblem' },
+          413: { $ref: '#/components/responses/PayloadTooLargeProblem' },
+          429: { $ref: '#/components/responses/TooManyRequestsProblem' },
+          500: { $ref: '#/components/responses/InternalProblem' },
+          503: { $ref: '#/components/responses/ServiceUnavailableProblem' },
+        },
+        summary: 'Inspect detailed service readiness',
+      },
+    },
+  });
+  const validPhase5Paths = createValidPhase5Paths();
+  if (inspectPathPolicy(validPhase5Paths).length !== 0) {
+    throw new Error('OpenAPI policy self-test rejected the fixed Phase 5 route.');
+  }
+
+  const unsafePathMutations = [
+    (paths) => {
+      paths['/unexpected'] = {};
+    },
+    (paths) => {
+      paths['/system/readiness'].post = {};
+    },
+    (paths) => {
+      paths['/system/readiness'].get.responses[200] = {};
+    },
+    (paths) => {
+      paths['/system/readiness'].get.security = [];
+    },
+    (paths) => {
+      paths['/system/readiness'].get.responses[401].$ref =
+        '#/components/responses/ForbiddenProblem';
+    },
+    (paths) => {
+      paths['/system/readiness'].get.description =
+        'Reserved for an enabled administrator. The handler returns 401.';
+    },
+    (paths) => {
+      delete paths['/system/readiness'].get.responses[400];
+    },
+    (paths) => {
+      paths['/system/readiness'].get.responses[413].$ref =
+        '#/components/responses/BadRequestProblem';
+    },
+    (paths) => {
+      paths['/system/readiness'].get.responses[503].$ref = '#/components/responses/InternalProblem';
+    },
+  ];
+  for (const mutate of unsafePathMutations) {
+    const paths = createValidPhase5Paths();
+    mutate(paths);
+    if (inspectPathPolicy(paths).length === 0) {
+      throw new Error('OpenAPI policy self-test failed to reject unsafe Phase 5 paths.');
+    }
+  }
+
   const directCycle = findSchemaReferenceCycle({
     Direct: { $ref: '#/components/schemas/Direct' },
   });
@@ -891,12 +1039,13 @@ const main = async () => {
       fail('server base must be exactly /api/v1');
     }
 
-    if (!isRecord(document.paths) || Object.keys(document.paths).length !== 0) {
-      fail('Phase 4 paths must stay empty until handlers exist');
+    const pathIssues = inspectPathPolicy(document.paths);
+    if (pathIssues.length > 0) {
+      fail(pathIssues.join('; '));
     }
 
     if ('webhooks' in document) {
-      fail('webhooks are outside the Phase 4 boundary');
+      fail('webhooks are outside the Phase 5 boundary');
     }
 
     const components = document.components;

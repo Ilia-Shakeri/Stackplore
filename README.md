@@ -4,13 +4,14 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Phase 4 adds provider-neutral Go domain contracts,
-> focused provider ports, a versioned OpenAPI 3.1 schema foundation, and a
-> contract-derived TypeScript client package with reproducible policy and drift
-> checks. The versioned contract intentionally contains no paths yet, so no
-> `/api/v1` product operation exists. Product workflows, providers, storage,
-> authentication, deployment assets, a demo, and a published release do not
-> exist yet.
+> **Project status:** Phase 5 adds a hardened Go service foundation with
+> validated configuration, structured redacting logs, request IDs, strict
+> origin and proxy handling, bounded requests, operational probes, protected
+> low-cardinality metrics, and graceful shutdown. The first versioned route,
+> `GET /api/v1/system/readiness`, has a closed handler that returns `401` after
+> outer request gates until the administrator guard arrives in Phase 7. Product workflows,
+> provider integrations, storage, authentication, deployment assets, a demo,
+> and a published release do not exist yet.
 
 Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
 
@@ -40,7 +41,11 @@ responsive navigation shell, route foundations, and local brand assets. Phase
 direction changes, locale formatters, and catalog parity checks. Phase 4 adds
 provider-neutral domain and provider-port foundations, the canonical OpenAPI
 document, contract-derived browser types, a small same-origin client
-boundary, and contract validation tasks.
+boundary, and contract validation tasks. Phase 5 adds canonical startup
+configuration, safe structured logging and problems, request and response
+limits, strict public-origin and proxy trust, liveness and readiness probes,
+origin-and-network-guarded process metrics, non-operational request rate
+limiting, and bounded lifecycle handling.
 
 The main project documents are:
 
@@ -65,8 +70,9 @@ corepack pnpm run verify
 corepack pnpm run dev
 ```
 
-The development page runs at `http://127.0.0.1:5173`. The API binds only to a
-loopback address in this phase.
+The development page runs at `http://127.0.0.1:5173`. Both services bind to
+loopback by default. A non-loopback production profile starts only with a
+canonical HTTPS public origin and explicit trusted-proxy prefixes.
 
 ## Security posture
 
