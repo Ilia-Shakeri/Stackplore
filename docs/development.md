@@ -1,7 +1,8 @@
 # Development
 
-Stackplore uses one pnpm workspace for browser code and one Go module for the
-API. Root tasks keep both parts on the same check path.
+Stackplore uses one pnpm workspace for browser and shared TypeScript packages
+and one Go module for the API. Root tasks keep both parts on the same check
+path.
 
 ## Prerequisites
 
@@ -130,6 +131,35 @@ and layouts at 360, 768, 1024, 1440, and 1920 CSS pixels. Prefer logical CSS
 properties. Directional icons and keyboard order must follow the active
 writing direction without component forks.
 
+## Contract development
+
+The canonical transport contract is [`contracts/openapi.yaml`](../contracts/openapi.yaml).
+It uses OpenAPI 3.1 and the `/api/v1` server prefix. Phase 4 defines shared
+schemas but deliberately keeps `paths` empty; no versioned feature handler is
+implemented yet.
+
+After changing the contract, re-derive the committed browser types and run the
+drift gate:
+
+```powershell
+corepack pnpm run derive:api-client
+corepack pnpm run check:contracts
+corepack pnpm run test:client
+```
+
+Contract-derived output lives at
+`packages/api-client/src/derived/types.derived.ts`. Do not edit it by hand.
+`check:contracts` applies the contract linter, repository-specific policy, and
+derived-output comparison. Handwritten request policy, problem parsing, and
+request-ID handling stay outside the derived directory in
+`packages/api-client/src`.
+
+The contract derivation tool is pinned exactly at `0.99.0`. It is a stable
+pre-1.0 release, so even a minor update may change its configuration or derived
+shape. Refresh it only in a focused dependency change and review the complete
+derived diff. The contract linter is also pinned exactly so every environment
+applies the same rule set.
+
 ## Tasks
 
 Make, PowerShell, and shell commands all delegate to the root package scripts.
@@ -141,9 +171,12 @@ Make, PowerShell, and shell commands all delegate to the root package scripts.
 | Full check | `make verify` | `corepack pnpm run verify` | `sh scripts/run.sh verify` |
 | All tests | `make test` | `corepack pnpm run test` | `sh scripts/run.sh test` |
 | API tests | `make test-api` | `corepack pnpm run test:api` | `sh scripts/run.sh test-api` |
+| Client tests | `make test-client` | `corepack pnpm run test:client` | `sh scripts/run.sh test-client` |
 | Web tests | `make test-web` | `corepack pnpm run test:web` | `sh scripts/run.sh test-web` |
 | Build | `make build` | `corepack pnpm run build` | `sh scripts/run.sh build` |
 | Locale check | `make check-locales` | `corepack pnpm run check:locales` | `sh scripts/run.sh check-locales` |
+| Contract check | `make check-contracts` | `corepack pnpm run check:contracts` | `sh scripts/run.sh check-contracts` |
+| Derive API client | `make derive-api-client` | `corepack pnpm run derive:api-client` | `sh scripts/run.sh derive-api-client` |
 | Lint | `make lint` | `corepack pnpm run lint` | `sh scripts/run.sh lint` |
 | Type check | `make typecheck` | `corepack pnpm run typecheck` | `sh scripts/run.sh typecheck` |
 | Format | `make format` | `corepack pnpm run format` | `sh scripts/run.sh format` |
@@ -157,9 +190,10 @@ user policy:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run.ps1 verify
 ```
 
-`verify` checks formatting, catalog parity, Go and TypeScript lint rules,
-strict TypeScript types, API and web tests, and both builds. Unit tests make no
-network request. The web suite also covers English and Persian direct routes,
+`verify` checks formatting, catalog parity, contract policy and derived
+output, Go and TypeScript lint rules, strict TypeScript types, API, client, and
+web tests, and both builds. Unit tests make no network request. The web suite
+also covers English and Persian direct routes,
 runtime language and theme persistence, locale formatting, bidirectional
 keyboard behavior, unknown routes, exact isolated resource parameters,
 mobile-drawer focus return, shared primitive behavior, and representative

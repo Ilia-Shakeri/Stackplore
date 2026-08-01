@@ -145,6 +145,21 @@ does not repair the prior phase's tracking state.
 - Directional icons, keyboard order, overlays, and compact layouts are reviewed
   in both directions.
 
+### 8.1 Contract workflow
+
+- Change `contracts/openapi.yaml` before or with HTTP transport behavior.
+- Add operations only when the owning handler phase implements their success,
+  authorization, limit, and problem behavior.
+- Keep transport schemas provider-neutral, sealed, and free of raw provider
+  objects or unrestricted metadata.
+- Run `derive:api-client` after a contract change and commit the resulting
+  `packages/api-client/src/derived/types.derived.ts` update.
+- Never edit contract-derived client types by hand. Derived output is exempt from
+  handwritten lint rules but remains subject to format and drift checks.
+- Keep same-origin request policy, problem parsing, and request-ID handling in
+  reviewed handwritten client modules.
+- Run `check:contracts` before commit. The root `verify` task runs it too.
+
 ## 9. Data and migrations
 
 - Migrations are forward-only after release.

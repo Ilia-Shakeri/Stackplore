@@ -1,0 +1,129 @@
+import type * as Derived from './derived/types.derived';
+
+export type {
+  Alert,
+  AlertId,
+  AlertRuleId,
+  AlertState,
+  AuditActor,
+  AuditActorKind,
+  AuditEntry,
+  AuditEntryId,
+  AuditOutcome,
+  AuditTarget,
+  AvailabilityState,
+  Capability,
+  CapabilityName,
+  CapabilitySet,
+  Code,
+  Completeness,
+  Cursor,
+  Environment,
+  EnvironmentId,
+  EventId,
+  EventSeverity,
+  EvidenceCertainty,
+  EvidenceId,
+  EvidenceStatus,
+  HealthState,
+  InfrastructureEvent,
+  InfrastructureSource,
+  InvalidParameter,
+  LogEntry,
+  LogEntryId,
+  LogSeverity,
+  LogStream,
+  MetricName,
+  MetricSample,
+  MetricSampleId,
+  MetricSampleSet,
+  MetricUnit,
+  NamespacedCode,
+  ObservationStatus,
+  PageInfo,
+  Problem,
+  ProviderKind,
+  RelationshipDirection,
+  RelationshipEvidence,
+  RelationshipId,
+  RelationshipKind,
+  RelationshipProvenance,
+  RequestId,
+  Resource,
+  ResourceId,
+  ResourceIdentity,
+  ResourceSnapshot,
+  Scope,
+  ScopeKind,
+  SortDirection,
+  SourceId,
+  Timestamp,
+} from './derived/types.derived';
+
+export type HealthEvidence = Derived.HealthEvidence;
+
+export type KnownHealthSnapshot = Omit<Derived.KnownHealthSnapshot, 'evidence'> & {
+  evidence: [HealthEvidence, ...HealthEvidence[]];
+};
+
+export type DataAllowedUnknownHealthSnapshot = Derived.DataAllowedUnknownHealthSnapshot;
+
+export type NoDataUnknownHealthSnapshot = Omit<Derived.NoDataUnknownHealthSnapshot, 'evidence'> & {
+  evidence: [];
+};
+
+export type UnknownHealthSnapshot = DataAllowedUnknownHealthSnapshot | NoDataUnknownHealthSnapshot;
+
+export type HealthSnapshot = KnownHealthSnapshot | UnknownHealthSnapshot;
+
+export type DataAllowedHealthResult = Omit<Derived.DataAllowedHealthResult, 'items'> & {
+  items: HealthSnapshot[];
+};
+
+export type NoDataHealthResult = Omit<Derived.NoDataHealthResult, 'items'> & {
+  items: [];
+};
+
+export type HealthResult = DataAllowedHealthResult | NoDataHealthResult;
+
+export type Relationship = Omit<Derived.Relationship, 'evidence'> & {
+  evidence: [Derived.RelationshipEvidence, ...Derived.RelationshipEvidence[]];
+};
+
+export type DataAllowedResourcePage = Derived.DataAllowedResourcePage;
+export type NoDataResourcePage = Omit<Derived.NoDataResourcePage, 'items'> & { items: [] };
+export type ResourcePage = DataAllowedResourcePage | NoDataResourcePage;
+
+export type DataAllowedEnvironmentPage = Derived.DataAllowedEnvironmentPage;
+export type NoDataEnvironmentPage = Omit<Derived.NoDataEnvironmentPage, 'items'> & { items: [] };
+export type EnvironmentPage = DataAllowedEnvironmentPage | NoDataEnvironmentPage;
+
+export type DataAllowedRelationshipPage = Omit<Derived.DataAllowedRelationshipPage, 'items'> & {
+  items: Relationship[];
+};
+export type NoDataRelationshipPage = Omit<Derived.NoDataRelationshipPage, 'items'> & { items: [] };
+export type RelationshipPage = DataAllowedRelationshipPage | NoDataRelationshipPage;
+
+export type DataAllowedLogBatch = Derived.DataAllowedLogBatch;
+export type NoDataLogBatch = Omit<Derived.NoDataLogBatch, 'items'> & { items: [] };
+export type LogBatch = DataAllowedLogBatch | NoDataLogBatch;
+
+export type EmptyMetricSampleSet = Derived.EmptyMetricSampleSet;
+export type DataAllowedCurrentMetricSet = Derived.DataAllowedCurrentMetricSet;
+export type NoDataCurrentMetricSet = Derived.NoDataCurrentMetricSet;
+export type CurrentMetricSet = DataAllowedCurrentMetricSet | NoDataCurrentMetricSet;
+
+export type DataAllowedCurrentMetricResult = Omit<
+  Derived.DataAllowedCurrentMetricResult,
+  'items'
+> & {
+  items: CurrentMetricSet[];
+};
+export type NoDataCurrentMetricResult = Omit<Derived.NoDataCurrentMetricResult, 'items'> & {
+  items: [];
+};
+export type CurrentMetricResult = DataAllowedCurrentMetricResult | NoDataCurrentMetricResult;
+
+export type DataAllowedEventPage = Derived.DataAllowedEventPage;
+export type NoDataEventPage = Omit<Derived.NoDataEventPage, 'items'> & { items: [] };
+export type EventPage = DataAllowedEventPage | NoDataEventPage;

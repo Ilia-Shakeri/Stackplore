@@ -1,14 +1,15 @@
 # Stackplore Architecture
 
-Status: Target architecture with Phase 3 localized interface foundation
-Last updated: 2026-07-31
+Status: Target architecture with Phase 4 domain and contract foundation
+Last updated: 2026-08-01
 
 This document defines the intended v1 architecture for Stackplore. Phase 0
-established the design and governance documents. Phases 1 through 3 implement
-the developer scaffold, responsive interface foundation, and bilingual
-presentation runtime. Product services,
-provider behavior, schemas, and deployment behavior described here remain
-targets for their later phases, not claims about current functionality.
+established the design and governance documents. Phases 1 through 4 implement
+the developer scaffold, responsive and bilingual interface foundation,
+provider-neutral domain contracts, focused read ports, and an empty versioned
+API schema foundation. Product service runtime, provider behavior, storage, and
+deployment behavior described here remain targets for later phases, not claims
+about current functionality.
 
 ## Goals and constraints
 
@@ -146,6 +147,24 @@ introduced only when real state cannot fit those three places. Provider
 conditionals belong in typed capabilities and presentation adapters, not in
 route-level data access.
 
+### Contract boundary
+
+`contracts/openapi.yaml` is the canonical OpenAPI 3.1 transport document.
+Phase 4 establishes shared schemas under the `/api/v1` server prefix while
+keeping `paths` empty until real handlers exist. This separates schema
+foundation from runtime endpoint claims.
+
+The contract derivation tool writes browser transport types into one committed
+file under `packages/api-client/src/derived`. Handwritten modules in that package
+own same-origin request construction, safe problem parsing, and request-ID
+capture. Application features import the package boundary rather than derived
+files directly.
+
+Go domain types and provider ports are not derived from OpenAPI. They remain
+independent from HTTP and provider SDKs; future HTTP adapters explicitly map
+between domain and transport types. Repository checks lint contract policy and
+fail when committed browser types are stale.
+
 ### Localization and direction
 
 The web application owns one locale provider for `en` and `fa`. Paired,
@@ -190,7 +209,9 @@ separate security decision.
 HTTP handlers use consistent problem responses, request IDs, input limits,
 pagination, filtering, documented status codes, and safe error messages. The
 OpenAPI contract is changed before or with handler changes. Contract checks
-prevent undocumented routes and stale browser types.
+prevent undocumented routes and stale browser types. Phase 4 defines no
+`/api/v1` operation; Phase 5 and later handler phases add paths with runtime
+behavior and tests.
 
 ## Core domain model
 
@@ -204,6 +225,14 @@ The stable model includes:
 - `InfrastructureEvent`;
 - `AlertRule`, `Alert`, and `NotificationDelivery`;
 - `AuditEntry`.
+
+Phase 4 implements the provider-neutral resource, relationship, health, metric,
+event, alert, audit, capability, query, and provider-status parts under
+`apps/api/internal/domain`. Versioned composite digests provide stable resource
+and relationship identifiers. Validation bounds identifiers, display text,
+queries, result sets, evidence, and live-read targets, and requires canonical
+UTC timestamps. User, session, notification-delivery, storage, and HTTP service
+behavior remain owned by later phases.
 
 Resource identity is a stable composite of provider kind, source identifier,
 environment scope, resource kind, namespace or project, and provider-native
@@ -565,3 +594,4 @@ The decision log is indexed in [`docs/adr/README.md`](adr/README.md).
 | [ADR-0007](adr/0007-deterministic-isolated-demo.md) | Deterministic demo fixtures in an isolated mode |
 | [ADR-0008](adr/0008-project-owned-interface-system.md) | Project-owned interface primitives and themes |
 | [ADR-0009](adr/0009-feature-owned-localization-runtime.md) | Feature-owned catalogs and one localization runtime |
+| [ADR-0010](adr/0010-versioned-contract-and-derived-client.md) | Versioned contract and derived browser client |

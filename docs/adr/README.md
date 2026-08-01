@@ -31,6 +31,7 @@ changing the decision.
 | [ADR-0007](0007-deterministic-isolated-demo.md) | Accepted | Run deterministic demonstration fixtures in an isolated mode |
 | [ADR-0008](0008-project-owned-interface-system.md) | Accepted | Keep interface primitives behind one project-owned package |
 | [ADR-0009](0009-feature-owned-localization-runtime.md) | Accepted | Use feature-owned catalogs and one localization runtime |
+| [ADR-0010](0010-versioned-contract-and-derived-client.md) | Accepted | Version the HTTP contract and derive the browser client |
 
 ## Adding a record
 

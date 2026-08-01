@@ -1,0 +1,20 @@
+{
+  "name": "@stackplore/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "node ../../scripts/check-openapi-policy.mjs && node ../../scripts/derive-api-client.mjs --check",
+    "derive": "node ../../scripts/derive-api-client.mjs --write",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --pretty false"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}

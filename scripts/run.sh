@@ -6,11 +6,20 @@ case "${1:-}" in
   bootstrap|dev|verify|test|build|lint|typecheck|format)
     script_name="$1"
     ;;
+  check-contracts)
+    script_name="check:contracts"
+    ;;
   check-locales)
     script_name="check:locales"
     ;;
+  derive-api-client)
+    script_name="derive:api-client"
+    ;;
   test-api)
     script_name="test:api"
+    ;;
+  test-client)
+    script_name="test:client"
     ;;
   test-web)
     script_name="test:web"
@@ -19,7 +28,7 @@ case "${1:-}" in
     script_name="format:check"
     ;;
   *)
-    echo "Usage: scripts/run.sh bootstrap|dev|verify|test|test-api|test-web|build|check-locales|lint|typecheck|format|format-check" >&2
+    echo "Usage: scripts/run.sh bootstrap|dev|verify|test|test-api|test-client|test-web|build|check-locales|check-contracts|derive-api-client|lint|typecheck|format|format-check" >&2
     exit 2
     ;;
 esac

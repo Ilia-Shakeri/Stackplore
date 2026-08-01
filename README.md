@@ -4,12 +4,13 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Phase 3 provides a responsive bilingual shell with
-> complete English and Persian copy, live LTR and RTL switching, persisted
-> language and theme choices, locale-aware formatting foundations, locally
-> bundled typography, and accessible project interface primitives. Product
-> workflows, providers, storage, authentication, deployment assets, a demo,
-> and a published release do not exist yet.
+> **Project status:** Phase 4 adds provider-neutral Go domain contracts,
+> focused provider ports, a versioned OpenAPI 3.1 schema foundation, and a
+> contract-derived TypeScript client package with reproducible policy and drift
+> checks. The versioned contract intentionally contains no paths yet, so no
+> `/api/v1` product operation exists. Product workflows, providers, storage,
+> authentication, deployment assets, a demo, and a published release do not
+> exist yet.
 
 Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
 
@@ -36,7 +37,10 @@ strict TypeScript web scaffold, Go API scaffold, tests, builds, and portable
 task entry points. Phase 2 adds the shared interface system, theme behavior,
 responsive navigation shell, route foundations, and local brand assets. Phase
 3 adds paired feature catalogs, live English and Persian switching, full shell
-direction changes, locale formatters, and catalog parity checks.
+direction changes, locale formatters, and catalog parity checks. Phase 4 adds
+provider-neutral domain and provider-port foundations, the canonical OpenAPI
+document, contract-derived browser types, a small same-origin client
+boundary, and contract validation tasks.
 
 The main project documents are:
 
@@ -56,6 +60,7 @@ Use the exact Node.js, Corepack, pnpm, and Go versions in the
 
 ```sh
 node scripts/bootstrap.mjs
+corepack pnpm run check:contracts
 corepack pnpm run verify
 corepack pnpm run dev
 ```

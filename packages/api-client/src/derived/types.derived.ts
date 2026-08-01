@@ -1,0 +1,1221 @@
+export type ClientOptions = {
+  baseUrl: `${string}://${string}/api/v1` | (string & {});
+};
+
+/**
+ * Stable bounded machine code. Consumers must handle unknown valid codes.
+ */
+export type Code = string;
+
+/**
+ * Stable bounded domain code with at least two lowercase segments.
+ */
+export type NamespacedCode = string;
+
+/**
+ * Safe request correlation identifier.
+ */
+export type RequestId = string;
+
+/**
+ * UTC RFC 3339 timestamp.
+ */
+export type Timestamp = string;
+
+/**
+ * Opaque server-owned continuation cursor.
+ */
+export type Cursor = string;
+
+/**
+ * Trimmed non-empty display text with a visible base character.
+ */
+export type DisplayText = string;
+
+/**
+ * Empty or trimmed display text with a visible base character.
+ */
+export type OptionalDisplayText = string;
+
+/**
+ * Stable opaque infrastructure source identifier.
+ */
+export type SourceId = string;
+
+/**
+ * Stable opaque environment identifier.
+ */
+export type EnvironmentId = string;
+
+/**
+ * Stable opaque resource identifier.
+ */
+export type ResourceId = string;
+
+/**
+ * Stable opaque relationship identifier.
+ */
+export type RelationshipId = string;
+
+/**
+ * Stable opaque evidence identifier.
+ */
+export type EvidenceId = string;
+
+/**
+ * Stable opaque log entry identifier within its source evidence.
+ */
+export type LogEntryId = string;
+
+/**
+ * Stable opaque metric sample identifier.
+ */
+export type MetricSampleId = string;
+
+/**
+ * Stable opaque infrastructure event identifier.
+ */
+export type EventId = string;
+
+/**
+ * Stable opaque alert rule identifier.
+ */
+export type AlertRuleId = string;
+
+/**
+ * Stable opaque alert identifier.
+ */
+export type AlertId = string;
+
+/**
+ * Stable opaque audit entry identifier.
+ */
+export type AuditEntryId = string;
+
+/**
+ * Supported infrastructure provider family.
+ */
+export type ProviderKind = 'demo' | 'docker' | 'kubernetes';
+
+/**
+ * Normalized provider scope family.
+ */
+export type ScopeKind = 'global' | 'project' | 'namespace';
+
+/**
+ * Current support and access state, separate from resource health.
+ */
+export type AvailabilityState =
+  'available' | 'stale' | 'unavailable' | 'unsupported' | 'permission_denied';
+
+/**
+ * Normalized resource health state.
+ */
+export type HealthState = 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+
+/**
+ * Result carried by one bounded item of health evidence.
+ */
+export type EvidenceStatus = 'positive' | 'negative' | 'unknown';
+
+/**
+ * Direction represented by a relationship.
+ */
+export type RelationshipDirection = 'source_to_target' | 'bidirectional' | 'undirected';
+
+/**
+ * Normalized relationship meaning shared by all providers.
+ */
+export type RelationshipKind =
+  'owns' | 'selects' | 'routes_to' | 'depends_on' | 'mounts' | 'references' | 'member_of';
+
+/**
+ * Reviewed source of relationship evidence.
+ */
+export type RelationshipProvenance =
+  | 'ownership'
+  | 'selector'
+  | 'route'
+  | 'annotation'
+  | 'declared_dependency'
+  | 'storage_reference'
+  | 'network_membership'
+  | 'endpoint';
+
+/**
+ * Whether evidence is explicit or inferred.
+ */
+export type EvidenceCertainty = 'explicit' | 'inferred';
+
+/**
+ * Fixed normalized metric name for version 1.
+ */
+export type MetricName =
+  | 'cpu.usage.cores'
+  | 'memory.usage.bytes'
+  | 'network.receive.bytes_total'
+  | 'network.send.bytes_total'
+  | 'restart.count'
+  | 'cpu.request.cores'
+  | 'cpu.limit.cores'
+  | 'memory.request.bytes'
+  | 'memory.limit.bytes';
+
+/**
+ * Normalized unit for a metric value.
+ */
+export type MetricUnit = 'cores' | 'bytes' | 'count';
+
+/**
+ * Fixed observation capability set for version 1.
+ */
+export type CapabilityName =
+  | 'inventory.list'
+  | 'inventory.detail'
+  | 'health.read'
+  | 'topology.read'
+  | 'log.read'
+  | 'log.tail'
+  | 'metric.current'
+  | 'event.history'
+  | 'event.watch';
+
+/**
+ * Provider stream that supplied a log entry.
+ */
+export type LogStream = 'stdout' | 'stderr' | 'system' | 'unknown';
+
+/**
+ * Detected log severity when one can be determined.
+ */
+export type LogSeverity = 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical' | 'unknown';
+
+/**
+ * Normalized infrastructure event severity.
+ */
+export type EventSeverity = 'debug' | 'info' | 'warning' | 'error' | 'critical';
+
+/**
+ * Alert lifecycle state.
+ */
+export type AlertState = 'pending' | 'firing' | 'acknowledged' | 'resolved';
+
+/**
+ * Kind of principal responsible for an audited event.
+ */
+export type AuditActorKind = 'user' | 'system' | 'operator';
+
+/**
+ * Safe normalized audit outcome.
+ */
+export type AuditOutcome = 'intent' | 'success' | 'failure' | 'denied' | 'uncertain';
+
+/**
+ * Direction for one operation-owned sort field.
+ */
+export type SortDirection = 'asc' | 'desc';
+
+/**
+ * Whether a bounded provider read returned every allowed result.
+ */
+export type Completeness = 'complete' | 'partial';
+
+/**
+ * Complete provider data that is currently available.
+ */
+export type AvailableCompleteObservation = {
+  state: 'available';
+  completeness: 'complete';
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+};
+
+/**
+ * Partial provider data that is currently available.
+ */
+export type AvailablePartialObservation = {
+  state: 'available';
+  completeness: 'partial';
+  observed_at: Timestamp;
+  reason_code: NamespacedCode;
+};
+
+/**
+ * Complete or partial provider data that is no longer current.
+ */
+export type StaleObservation = {
+  state: 'stale';
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code: NamespacedCode;
+};
+
+/**
+ * Provider data that cannot be returned for a known safe reason.
+ */
+export type UnavailableObservation = {
+  state: 'unavailable' | 'unsupported' | 'permission_denied';
+  completeness: 'complete';
+  observed_at: Timestamp;
+  reason_code: NamespacedCode;
+};
+
+/**
+ * Valid availability and completeness state for one bounded provider read.
+ */
+export type ObservationStatus =
+  | AvailableCompleteObservation
+  | AvailablePartialObservation
+  | StaleObservation
+  | UnavailableObservation;
+
+/**
+ * Safe non-secret configured infrastructure source.
+ */
+export type InfrastructureSource = {
+  id: SourceId;
+  provider: ProviderKind;
+  /**
+   * Human-selected safe source name.
+   */
+  display_name: DisplayText;
+  /**
+   * Whether all source evidence is synthetic demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Provider-neutral infrastructure environment.
+ */
+export type Environment = {
+  id: EnvironmentId;
+  source_id: SourceId;
+  provider: ProviderKind;
+  /**
+   * Safe display name that is not part of identity.
+   */
+  display_name: DisplayText;
+  status: ObservationStatus;
+  /**
+   * Whether the environment comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Provider-neutral global scope with no identity name.
+ */
+export type GlobalScope = {
+  kind: 'global';
+  name: '';
+};
+
+/**
+ * Provider-neutral project or namespace scope.
+ */
+export type NamedScope = {
+  kind: 'project' | 'namespace';
+  /**
+   * Safe project or namespace identity name.
+   */
+  name: DisplayText;
+};
+
+/**
+ * Valid provider-neutral namespace, project, or global scope.
+ */
+export type Scope = GlobalScope | NamedScope;
+
+/**
+ * Safe public identity for a provider-neutral resource.
+ */
+export type ResourceIdentity = {
+  id: ResourceId;
+  provider: ProviderKind;
+  source_id: SourceId;
+  environment_id: EnvironmentId;
+  scope: Scope;
+  kind: NamespacedCode;
+};
+
+/**
+ * Provider-neutral resource with no raw provider payload.
+ */
+export type Resource = {
+  identity: ResourceIdentity;
+  /**
+   * Safe display name that is not part of identity.
+   */
+  display_name: DisplayText;
+  /**
+   * Whether the resource comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * One resource and the availability of its observed state.
+ */
+export type ResourceSnapshot = {
+  resource: Resource;
+  status: ObservationStatus;
+};
+
+/**
+ * One bounded, safe fact used to calculate health.
+ */
+export type HealthEvidence = {
+  id: EvidenceId;
+  code: NamespacedCode;
+  source_code: NamespacedCode;
+  status: EvidenceStatus;
+  observed_at: Timestamp;
+  /**
+   * Whether the evidence comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Known health backed by evidence from readable provider data.
+ */
+export type KnownHealthSnapshot = {
+  resource_id: ResourceId;
+  state: 'healthy' | 'degraded' | 'unhealthy';
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+  /**
+   * Reviewed evidence only; raw provider objects are forbidden.
+   */
+  evidence: Array<HealthEvidence>;
+};
+
+/**
+ * Unknown health from readable provider data, with optional reviewed evidence.
+ */
+export type DataAllowedUnknownHealthSnapshot = {
+  resource_id: ResourceId;
+  state: 'unknown';
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+  /**
+   * Reviewed evidence only; raw provider objects are forbidden.
+   */
+  evidence: Array<HealthEvidence>;
+};
+
+/**
+ * Unknown health when provider data is unavailable, unsupported, or denied.
+ */
+export type NoDataUnknownHealthSnapshot = {
+  resource_id: ResourceId;
+  state: 'unknown';
+  status: UnavailableObservation;
+  /**
+   * Empty because the provider state does not allow data.
+   */
+  evidence: Array<HealthEvidence>;
+};
+
+/**
+ * Unknown health split by whether the provider state allows data.
+ */
+export type UnknownHealthSnapshot = DataAllowedUnknownHealthSnapshot | NoDataUnknownHealthSnapshot;
+
+/**
+ * Health at one observed point, separate from data availability.
+ */
+export type HealthSnapshot = KnownHealthSnapshot | UnknownHealthSnapshot;
+
+/**
+ * Bounded health snapshots from a data-allowed provider read.
+ */
+export type DataAllowedHealthResult = {
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+  items: Array<HealthSnapshot>;
+};
+
+/**
+ * Empty health result when provider data is not allowed.
+ */
+export type NoDataHealthResult = {
+  status: UnavailableObservation;
+  items: Array<HealthSnapshot>;
+};
+
+/**
+ * Health result split by whether the provider status allows data.
+ */
+export type HealthResult = DataAllowedHealthResult | NoDataHealthResult;
+
+/**
+ * Provenance and confidence for one relationship fact.
+ */
+export type RelationshipEvidence = {
+  id: EvidenceId;
+  provider: ProviderKind;
+  source_id: SourceId;
+  provenance: RelationshipProvenance;
+  certainty: EvidenceCertainty;
+  /**
+   * Normalized confidence from zero through one.
+   */
+  confidence: number;
+  observed_at: Timestamp;
+  /**
+   * Whether the evidence comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Typed edge retaining all bounded evidence.
+ */
+export type Relationship = {
+  id: RelationshipId;
+  source_resource_id: ResourceId;
+  target_resource_id: ResourceId;
+  type: RelationshipKind;
+  direction: RelationshipDirection;
+  /**
+   * Unique evidence retained when equivalent edges are coalesced.
+   */
+  evidence: Array<RelationshipEvidence>;
+  observed_at: Timestamp;
+};
+
+/**
+ * Page state with a required opaque continuation cursor.
+ */
+export type MorePageInfo = {
+  /**
+   * Applied page limit.
+   */
+  limit: number;
+  has_more: true;
+  next_cursor: Cursor;
+};
+
+/**
+ * Final page state with no continuation cursor.
+ */
+export type FinalPageInfo = {
+  /**
+   * Applied page limit.
+   */
+  limit: number;
+  has_more: false;
+};
+
+/**
+ * Valid opaque cursor pagination state with no implied total count.
+ */
+export type PageInfo = MorePageInfo | FinalPageInfo;
+
+/**
+ * Bounded resource page from a data-allowed provider read.
+ */
+export type DataAllowedResourcePage = {
+  /**
+   * Resources in requested sort order with ascending resource ID as the stable tie-break.
+   */
+  items: Array<ResourceSnapshot>;
+  page: PageInfo;
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+};
+
+/**
+ * Empty final resource page when provider data is not allowed.
+ */
+export type NoDataResourcePage = {
+  items: Array<ResourceSnapshot>;
+  page: FinalPageInfo;
+  status: UnavailableObservation;
+};
+
+/**
+ * Resource page split by whether the provider status allows data.
+ */
+export type ResourcePage = DataAllowedResourcePage | NoDataResourcePage;
+
+/**
+ * Bounded environment page from a data-allowed provider read.
+ */
+export type DataAllowedEnvironmentPage = {
+  /**
+   * Environments ordered by environment ID ascending.
+   */
+  items: Array<Environment>;
+  page: PageInfo;
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+};
+
+/**
+ * Empty final environment page when provider data is not allowed.
+ */
+export type NoDataEnvironmentPage = {
+  items: Array<Environment>;
+  page: FinalPageInfo;
+  status: UnavailableObservation;
+};
+
+/**
+ * Environment page split by whether the provider status allows data.
+ */
+export type EnvironmentPage = DataAllowedEnvironmentPage | NoDataEnvironmentPage;
+
+/**
+ * Bounded relationship page from a data-allowed provider read.
+ */
+export type DataAllowedRelationshipPage = {
+  /**
+   * Relationships ordered by relationship ID ascending.
+   */
+  items: Array<Relationship>;
+  page: PageInfo;
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+};
+
+/**
+ * Empty final relationship page when provider data is not allowed.
+ */
+export type NoDataRelationshipPage = {
+  items: Array<Relationship>;
+  page: FinalPageInfo;
+  status: UnavailableObservation;
+};
+
+/**
+ * Relationship page split by whether the provider status allows data.
+ */
+export type RelationshipPage = DataAllowedRelationshipPage | NoDataRelationshipPage;
+
+/**
+ * Bounded, redaction-aware provider log entry.
+ */
+export type LogEntry = {
+  id: LogEntryId;
+  resource_id: ResourceId;
+  /**
+   * Safe container name when the resource has multiple log targets.
+   */
+  container?: OptionalDisplayText;
+  timestamp: Timestamp;
+  /**
+   * Monotonic order within one bounded read or stream scope.
+   */
+  sequence: number;
+  stream: LogStream;
+  severity: LogSeverity;
+  /**
+   * Safe one-line log text after configured redaction and a 64 KiB byte cap.
+   */
+  message: string;
+  /**
+   * Whether the source line exceeded the safe retained byte bound.
+   */
+  truncated: boolean;
+  /**
+   * Whether one or more values were removed.
+   */
+  redacted: boolean;
+  /**
+   * Whether the entry comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Bounded log page from a data-allowed provider read.
+ */
+export type DataAllowedLogBatch = {
+  /**
+   * Log entries ordered by sequence ascending.
+   */
+  items: Array<LogEntry>;
+  page: PageInfo;
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+};
+
+/**
+ * Empty final log page when provider data is not allowed.
+ */
+export type NoDataLogBatch = {
+  items: Array<LogEntry>;
+  page: FinalPageInfo;
+  status: UnavailableObservation;
+};
+
+/**
+ * Log page split by whether the provider status allows data.
+ */
+export type LogBatch = DataAllowedLogBatch | NoDataLogBatch;
+
+export type MetricSample = (
+  | {
+      name: 'cpu.usage.cores';
+      unit: 'cores';
+      value?: number;
+    }
+  | {
+      name: 'memory.usage.bytes';
+      unit: 'bytes';
+      value?: number;
+    }
+  | {
+      name: 'network.receive.bytes_total';
+      unit: 'bytes';
+      value?: number;
+    }
+  | {
+      name: 'network.send.bytes_total';
+      unit: 'bytes';
+      value?: number;
+    }
+  | {
+      name: 'restart.count';
+      unit: 'count';
+      value?: number;
+    }
+  | {
+      name: 'cpu.request.cores';
+      unit: 'cores';
+      value?: number;
+    }
+  | {
+      name: 'cpu.limit.cores';
+      unit: 'cores';
+      value?: number;
+    }
+  | {
+      name: 'memory.request.bytes';
+      unit: 'bytes';
+      value?: number;
+    }
+  | {
+      name: 'memory.limit.bytes';
+      unit: 'bytes';
+      value?: number;
+    }
+) & {
+  id: MetricSampleId;
+  resource_id: ResourceId;
+  name: MetricName;
+  unit: MetricUnit;
+  /**
+   * Finite normalized value. Non-finite values are invalid JSON.
+   */
+  value: number;
+  sampled_at: Timestamp;
+  /**
+   * Observation interval when the metric needs one.
+   */
+  interval_seconds?: number;
+  /**
+   * Whether the sample comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+export type CpuUsageMetricSample = MetricSample & {
+  name: 'cpu.usage.cores';
+  unit: 'cores';
+};
+
+export type MemoryUsageMetricSample = MetricSample & {
+  name: 'memory.usage.bytes';
+  unit: 'bytes';
+};
+
+export type NetworkReceiveMetricSample = MetricSample & {
+  name: 'network.receive.bytes_total';
+  unit: 'bytes';
+};
+
+export type NetworkSendMetricSample = MetricSample & {
+  name: 'network.send.bytes_total';
+  unit: 'bytes';
+};
+
+export type RestartCountMetricSample = MetricSample & {
+  name: 'restart.count';
+  unit: 'count';
+};
+
+export type CpuRequestMetricSample = MetricSample & {
+  name: 'cpu.request.cores';
+  unit: 'cores';
+};
+
+export type CpuLimitMetricSample = MetricSample & {
+  name: 'cpu.limit.cores';
+  unit: 'cores';
+};
+
+export type MemoryRequestMetricSample = MetricSample & {
+  name: 'memory.request.bytes';
+  unit: 'bytes';
+};
+
+export type MemoryLimitMetricSample = MetricSample & {
+  name: 'memory.limit.bytes';
+  unit: 'bytes';
+};
+
+/**
+ * Unique current metric samples keyed by their fixed normalized names.
+ */
+export type MetricSampleSet = {
+  'cpu.usage.cores'?: CpuUsageMetricSample;
+  'memory.usage.bytes'?: MemoryUsageMetricSample;
+  'network.receive.bytes_total'?: NetworkReceiveMetricSample;
+  'network.send.bytes_total'?: NetworkSendMetricSample;
+  'restart.count'?: RestartCountMetricSample;
+  'cpu.request.cores'?: CpuRequestMetricSample;
+  'cpu.limit.cores'?: CpuLimitMetricSample;
+  'memory.request.bytes'?: MemoryRequestMetricSample;
+  'memory.limit.bytes'?: MemoryLimitMetricSample;
+};
+
+/**
+ * Bounded current metric samples from a data-allowed resource read.
+ */
+export type DataAllowedCurrentMetricSet = {
+  resource_id: ResourceId;
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+  samples: MetricSampleSet;
+};
+
+/**
+ * Empty metric sample set used when provider data is not allowed.
+ */
+export type EmptyMetricSampleSet = {
+  [key: string]: never;
+};
+
+/**
+ * Empty current metric set when resource data is not allowed.
+ */
+export type NoDataCurrentMetricSet = {
+  resource_id: ResourceId;
+  status: UnavailableObservation;
+  samples: EmptyMetricSampleSet;
+};
+
+/**
+ * Resource metric set split by whether its status allows data.
+ */
+export type CurrentMetricSet = DataAllowedCurrentMetricSet | NoDataCurrentMetricSet;
+
+/**
+ * Bounded current metrics from a data-allowed provider read.
+ */
+export type DataAllowedCurrentMetricResult = {
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+  items: Array<CurrentMetricSet>;
+};
+
+/**
+ * Empty current metric result when provider data is not allowed.
+ */
+export type NoDataCurrentMetricResult = {
+  status: UnavailableObservation;
+  items: Array<CurrentMetricSet>;
+};
+
+/**
+ * Current metric result split by whether the provider status allows data.
+ */
+export type CurrentMetricResult = DataAllowedCurrentMetricResult | NoDataCurrentMetricResult;
+
+/**
+ * Safe provider-neutral infrastructure timeline event.
+ */
+export type InfrastructureEvent = {
+  id: EventId;
+  source_id: SourceId;
+  environment_id?: EnvironmentId;
+  resource_id?: ResourceId;
+  provider: ProviderKind;
+  kind: NamespacedCode;
+  severity: EventSeverity;
+  occurred_at: Timestamp;
+  observed_at: Timestamp;
+  summary_code: NamespacedCode;
+  /**
+   * Bounded event summary after safe filtering.
+   */
+  message?: OptionalDisplayText;
+  /**
+   * Whether the event comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Bounded event page from a data-allowed provider read.
+ */
+export type DataAllowedEventPage = {
+  /**
+   * Events ordered by occurrence time descending, then event ID ascending.
+   */
+  items: Array<InfrastructureEvent>;
+  page: PageInfo;
+  status: AvailableCompleteObservation | AvailablePartialObservation | StaleObservation;
+};
+
+/**
+ * Empty final event page when provider data is not allowed.
+ */
+export type NoDataEventPage = {
+  items: Array<InfrastructureEvent>;
+  page: FinalPageInfo;
+  status: UnavailableObservation;
+};
+
+/**
+ * Event page split by whether the provider status allows data.
+ */
+export type EventPage = DataAllowedEventPage | NoDataEventPage;
+
+/**
+ * Pending or firing alert with no lifecycle completion time.
+ */
+export type ActiveAlert = {
+  id: AlertId;
+  rule_id: AlertRuleId;
+  source_id: SourceId;
+  environment_id?: EnvironmentId;
+  resource_id?: ResourceId;
+  state: 'pending' | 'firing';
+  severity: EventSeverity;
+  started_at: Timestamp;
+  updated_at: Timestamp;
+  evidence_from: Timestamp;
+  evidence_to: Timestamp;
+  summary_code: NamespacedCode;
+  /**
+   * Whether the alert comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Acknowledged alert with no resolution time.
+ */
+export type AcknowledgedAlert = {
+  id: AlertId;
+  rule_id: AlertRuleId;
+  source_id: SourceId;
+  environment_id?: EnvironmentId;
+  resource_id?: ResourceId;
+  state: 'acknowledged';
+  severity: EventSeverity;
+  started_at: Timestamp;
+  updated_at: Timestamp;
+  acknowledged_at: Timestamp;
+  evidence_from: Timestamp;
+  evidence_to: Timestamp;
+  summary_code: NamespacedCode;
+  /**
+   * Whether the alert comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Resolved alert with an optional prior acknowledgement.
+ */
+export type ResolvedAlert = {
+  id: AlertId;
+  rule_id: AlertRuleId;
+  source_id: SourceId;
+  environment_id?: EnvironmentId;
+  resource_id?: ResourceId;
+  state: 'resolved';
+  severity: EventSeverity;
+  started_at: Timestamp;
+  updated_at: Timestamp;
+  acknowledged_at?: Timestamp;
+  resolved_at: Timestamp;
+  evidence_from: Timestamp;
+  evidence_to: Timestamp;
+  summary_code: NamespacedCode;
+  /**
+   * Whether the alert comes from demonstration data.
+   */
+  synthetic: boolean;
+};
+
+/**
+ * Valid provider-neutral alert lifecycle state and evidence window.
+ */
+export type Alert = ActiveAlert | AcknowledgedAlert | ResolvedAlert;
+
+/**
+ * Safe audited user reference with no session data.
+ */
+export type UserAuditActor = {
+  kind: 'user';
+  /**
+   * Opaque user identifier.
+   */
+  id: string;
+};
+
+/**
+ * Safe local operator reference with no session data.
+ */
+export type OperatorAuditActor = {
+  kind: 'operator';
+  /**
+   * Opaque operator identifier when one exists.
+   */
+  id?: string;
+};
+
+/**
+ * System actor with no human identifier.
+ */
+export type SystemAuditActor = {
+  kind: 'system';
+};
+
+/**
+ * Valid safe actor reference with no session data.
+ */
+export type AuditActor = UserAuditActor | OperatorAuditActor | SystemAuditActor;
+
+/**
+ * Safe typed target reference.
+ */
+export type AuditTarget = {
+  kind: NamespacedCode;
+  /**
+   * Opaque target identifier when one exists.
+   */
+  id?: string;
+};
+
+/**
+ * Safe audit fact with no credential or session material.
+ */
+export type AuditEntry = {
+  id: AuditEntryId;
+  occurred_at: Timestamp;
+  actor: AuditActor;
+  action: NamespacedCode;
+  target: AuditTarget;
+  outcome: AuditOutcome;
+  request_id: RequestId;
+  summary_code: NamespacedCode;
+};
+
+/**
+ * Current inventory list capability status.
+ */
+export type InventoryListCapability = {
+  name: 'inventory.list';
+  status: ObservationStatus;
+};
+
+/**
+ * Current inventory detail capability status.
+ */
+export type InventoryDetailCapability = {
+  name: 'inventory.detail';
+  status: ObservationStatus;
+};
+
+/**
+ * Current health read capability status.
+ */
+export type HealthReadCapability = {
+  name: 'health.read';
+  status: ObservationStatus;
+};
+
+/**
+ * Current topology read capability status.
+ */
+export type TopologyReadCapability = {
+  name: 'topology.read';
+  status: ObservationStatus;
+};
+
+/**
+ * Current log read capability status.
+ */
+export type LogReadCapability = {
+  name: 'log.read';
+  status: ObservationStatus;
+};
+
+/**
+ * Current log tail capability status.
+ */
+export type LogTailCapability = {
+  name: 'log.tail';
+  status: ObservationStatus;
+};
+
+/**
+ * Current metric read capability status.
+ */
+export type MetricCurrentCapability = {
+  name: 'metric.current';
+  status: ObservationStatus;
+};
+
+/**
+ * Current event history capability status.
+ */
+export type EventHistoryCapability = {
+  name: 'event.history';
+  status: ObservationStatus;
+};
+
+/**
+ * Current event watch capability status.
+ */
+export type EventWatchCapability = {
+  name: 'event.watch';
+  status: ObservationStatus;
+};
+
+/**
+ * Current status of one known observation capability.
+ */
+export type Capability =
+  | InventoryListCapability
+  | InventoryDetailCapability
+  | HealthReadCapability
+  | TopologyReadCapability
+  | LogReadCapability
+  | LogTailCapability
+  | MetricCurrentCapability
+  | EventHistoryCapability
+  | EventWatchCapability;
+
+/**
+ * Bounded observation capabilities for one source.
+ */
+export type CapabilitySet = {
+  provider: ProviderKind;
+  source_id: SourceId;
+  items: [
+    InventoryListCapability,
+    InventoryDetailCapability,
+    HealthReadCapability,
+    TopologyReadCapability,
+    LogReadCapability,
+    LogTailCapability,
+    MetricCurrentCapability,
+    EventHistoryCapability,
+    EventWatchCapability,
+  ];
+};
+
+/**
+ * Safe field failure that never repeats a rejected value.
+ */
+export type InvalidParameter = {
+  /**
+   * Request section containing the invalid field.
+   */
+  location: 'query' | 'path' | 'header' | 'body';
+  /**
+   * Bounded field name or JSON pointer.
+   */
+  name: DisplayText;
+  code: Code;
+};
+
+/**
+ * Safe consistent failure body.
+ */
+export type Problem = {
+  /**
+   * Stable problem type URI with no request data.
+   */
+  type: string;
+  /**
+   * Fixed safe summary for the problem class.
+   */
+  title: DisplayText;
+  /**
+   * HTTP status repeated for safe parsing.
+   */
+  status: number;
+  code: Code;
+  request_id: RequestId;
+  /**
+   * Optional fixed safe detail with no rejected value.
+   */
+  detail?: OptionalDisplayText;
+  invalid_parameters?: Array<InvalidParameter>;
+};
+
+/**
+ * Optional safe caller correlation identifier. Invalid values are replaced.
+ */
+export type RequestId2 = RequestId;
+
+/**
+ * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+ */
+export type Cursor2 = Cursor;
+
+/**
+ * Requested result count, capped by the server.
+ */
+export type Limit = number;
+
+/**
+ * Bounded plain-text search term, never a query expression.
+ */
+export type Search = OptionalDisplayText;
+
+/**
+ * Repeated values use OR semantics.
+ */
+export type ProviderFilter = Array<ProviderKind>;
+
+/**
+ * Repeated values use OR semantics.
+ */
+export type SourceFilter = Array<SourceId>;
+
+/**
+ * Repeated values use OR semantics.
+ */
+export type EnvironmentFilter = Array<EnvironmentId>;
+
+/**
+ * Repeated bounded resource kind codes use OR semantics.
+ */
+export type ResourceKindFilter = Array<NamespacedCode>;
+
+/**
+ * Repeated values use OR semantics.
+ */
+export type HealthFilter = Array<HealthState>;
+
+/**
+ * Repeated values use OR semantics.
+ */
+export type AvailabilityFilter = Array<AvailabilityState>;
+
+/**
+ * Inclusive UTC start of a bounded time range.
+ */
+export type From = Timestamp;
+
+/**
+ * Exclusive UTC end of a bounded time range.
+ */
+export type To = Timestamp;
+
+/**
+ * Direction for the operation-owned sort field.
+ */
+export type SortDirection2 = SortDirection;

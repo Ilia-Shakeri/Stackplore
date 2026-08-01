@@ -1,0 +1,2304 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: Stackplore API
+  version: 0.0.0
+  description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+servers:
+  - url: /api/v1
+    description: Same-origin version 1 API base path
+paths: {}
+components:
+  schemas:
+    Code:
+      type: string
+      description: Stable bounded machine code. Consumers must handle unknown valid codes.
+      minLength: 1
+      maxLength: 64
+      pattern: ^[a-z][a-z0-9._-]{0,63}$
+      examples:
+        - validation_failed
+    NamespacedCode:
+      type: string
+      description: Stable bounded domain code with at least two lowercase segments.
+      minLength: 3
+      maxLength: 96
+      pattern: ^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$
+      examples:
+        - resource.unavailable
+    RequestId:
+      type: string
+      description: Safe request correlation identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - req_demo_01
+    Timestamp:
+      type: string
+      format: date-time
+      description: UTC RFC 3339 timestamp.
+      minLength: 20
+      maxLength: 30
+      pattern: ^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?Z$
+      examples:
+        - 2026-01-02T03:04:05Z
+    Cursor:
+      type: string
+      description: Opaque server-owned continuation cursor.
+      minLength: 1
+      maxLength: 1024
+      pattern: ^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?$
+      examples:
+        - bmV4dA
+    DisplayText:
+      type: string
+      description: Trimmed non-empty display text with a visible base character.
+      minLength: 1
+      maxLength: 256
+      pattern: '^(?=\P{White_Space})(?!.*\p{White_Space}$)(?=.*[\p{L}\p{N}\p{P}\p{S}])(?:[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]|\u200C|\u200D)+$'
+    OptionalDisplayText:
+      type: string
+      description: Empty or trimmed display text with a visible base character.
+      maxLength: 8192
+      pattern: '^(?:$|(?=\P{White_Space})(?!.*\p{White_Space}$)(?=.*[\p{L}\p{N}\p{P}\p{S}])(?:[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]|\u200C|\u200D)+)$'
+    SourceId:
+      type: string
+      description: Stable opaque infrastructure source identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - src_demo_01
+    EnvironmentId:
+      type: string
+      description: Stable opaque environment identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - env_demo_01
+    ResourceId:
+      type: string
+      description: Stable opaque resource identifier.
+      minLength: 46
+      maxLength: 46
+      pattern: ^r1_[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$
+      examples:
+        - r1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    RelationshipId:
+      type: string
+      description: Stable opaque relationship identifier.
+      minLength: 48
+      maxLength: 48
+      pattern: ^rel1_[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$
+      examples:
+        - rel1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    EvidenceId:
+      type: string
+      description: Stable opaque evidence identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - evidence_demo_01
+    LogEntryId:
+      type: string
+      description: Stable opaque log entry identifier within its source evidence.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - log_demo_01
+    MetricSampleId:
+      type: string
+      description: Stable opaque metric sample identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - metric_demo_01
+    EventId:
+      type: string
+      description: Stable opaque infrastructure event identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - event_demo_01
+    AlertRuleId:
+      type: string
+      description: Stable opaque alert rule identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - rule_demo_01
+    AlertId:
+      type: string
+      description: Stable opaque alert identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - alert_demo_01
+    AuditEntryId:
+      type: string
+      description: Stable opaque audit entry identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - audit_demo_01
+    ProviderKind:
+      type: string
+      description: Supported infrastructure provider family.
+      enum:
+        - demo
+        - docker
+        - kubernetes
+    ScopeKind:
+      type: string
+      description: Normalized provider scope family.
+      enum:
+        - global
+        - project
+        - namespace
+    AvailabilityState:
+      type: string
+      description: Current support and access state, separate from resource health.
+      enum:
+        - available
+        - stale
+        - unavailable
+        - unsupported
+        - permission_denied
+    HealthState:
+      type: string
+      description: Normalized resource health state.
+      enum:
+        - healthy
+        - degraded
+        - unhealthy
+        - unknown
+    EvidenceStatus:
+      type: string
+      description: Result carried by one bounded item of health evidence.
+      enum:
+        - positive
+        - negative
+        - unknown
+    RelationshipDirection:
+      type: string
+      description: Direction represented by a relationship.
+      enum:
+        - source_to_target
+        - bidirectional
+        - undirected
+    RelationshipKind:
+      type: string
+      description: Normalized relationship meaning shared by all providers.
+      enum:
+        - owns
+        - selects
+        - routes_to
+        - depends_on
+        - mounts
+        - references
+        - member_of
+    RelationshipProvenance:
+      type: string
+      description: Reviewed source of relationship evidence.
+      enum:
+        - ownership
+        - selector
+        - route
+        - annotation
+        - declared_dependency
+        - storage_reference
+        - network_membership
+        - endpoint
+    EvidenceCertainty:
+      type: string
+      description: Whether evidence is explicit or inferred.
+      enum:
+        - explicit
+        - inferred
+    MetricName:
+      type: string
+      description: Fixed normalized metric name for version 1.
+      enum:
+        - cpu.usage.cores
+        - memory.usage.bytes
+        - network.receive.bytes_total
+        - network.send.bytes_total
+        - restart.count
+        - cpu.request.cores
+        - cpu.limit.cores
+        - memory.request.bytes
+        - memory.limit.bytes
+    MetricUnit:
+      type: string
+      description: Normalized unit for a metric value.
+      enum:
+        - cores
+        - bytes
+        - count
+    CapabilityName:
+      type: string
+      description: Fixed observation capability set for version 1.
+      enum:
+        - inventory.list
+        - inventory.detail
+        - health.read
+        - topology.read
+        - log.read
+        - log.tail
+        - metric.current
+        - event.history
+        - event.watch
+    LogStream:
+      type: string
+      description: Provider stream that supplied a log entry.
+      enum:
+        - stdout
+        - stderr
+        - system
+        - unknown
+    LogSeverity:
+      type: string
+      description: Detected log severity when one can be determined.
+      enum:
+        - trace
+        - debug
+        - info
+        - warning
+        - error
+        - critical
+        - unknown
+    EventSeverity:
+      type: string
+      description: Normalized infrastructure event severity.
+      enum:
+        - debug
+        - info
+        - warning
+        - error
+        - critical
+    AlertState:
+      type: string
+      description: Alert lifecycle state.
+      enum:
+        - pending
+        - firing
+        - acknowledged
+        - resolved
+    AuditActorKind:
+      type: string
+      description: Kind of principal responsible for an audited event.
+      enum:
+        - user
+        - system
+        - operator
+    AuditOutcome:
+      type: string
+      description: Safe normalized audit outcome.
+      enum:
+        - intent
+        - success
+        - failure
+        - denied
+        - uncertain
+    SortDirection:
+      type: string
+      description: Direction for one operation-owned sort field.
+      enum:
+        - asc
+        - desc
+    Completeness:
+      type: string
+      description: Whether a bounded provider read returned every allowed result.
+      enum:
+        - complete
+        - partial
+    AvailableCompleteObservation:
+      type: object
+      description: Complete provider data that is currently available.
+      additionalProperties: false
+      required:
+        - state
+        - completeness
+        - observed_at
+      properties:
+        state:
+          type: string
+          const: available
+        completeness:
+          type: string
+          const: complete
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+    AvailablePartialObservation:
+      type: object
+      description: Partial provider data that is currently available.
+      additionalProperties: false
+      required:
+        - state
+        - completeness
+        - observed_at
+        - reason_code
+      properties:
+        state:
+          type: string
+          const: available
+        completeness:
+          type: string
+          const: partial
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+    StaleObservation:
+      type: object
+      description: Complete or partial provider data that is no longer current.
+      additionalProperties: false
+      required:
+        - state
+        - completeness
+        - observed_at
+        - reason_code
+      properties:
+        state:
+          type: string
+          const: stale
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+    UnavailableObservation:
+      type: object
+      description: Provider data that cannot be returned for a known safe reason.
+      additionalProperties: false
+      required:
+        - state
+        - completeness
+        - observed_at
+        - reason_code
+      properties:
+        state:
+          type: string
+          enum:
+            - unavailable
+            - unsupported
+            - permission_denied
+        completeness:
+          type: string
+          const: complete
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+    ObservationStatus:
+      description: Valid availability and completeness state for one bounded provider read.
+      oneOf:
+        - $ref: '#/components/schemas/AvailableCompleteObservation'
+        - $ref: '#/components/schemas/AvailablePartialObservation'
+        - $ref: '#/components/schemas/StaleObservation'
+        - $ref: '#/components/schemas/UnavailableObservation'
+    InfrastructureSource:
+      type: object
+      description: Safe non-secret configured infrastructure source.
+      additionalProperties: false
+      required:
+        - id
+        - provider
+        - display_name
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/SourceId'
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+          description: Human-selected safe source name.
+        synthetic:
+          type: boolean
+          description: Whether all source evidence is synthetic demonstration data.
+    Environment:
+      type: object
+      description: Provider-neutral infrastructure environment.
+      additionalProperties: false
+      required:
+        - id
+        - source_id
+        - provider
+        - display_name
+        - status
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/EnvironmentId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+          description: Safe display name that is not part of identity.
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+        synthetic:
+          type: boolean
+          description: Whether the environment comes from demonstration data.
+    GlobalScope:
+      type: object
+      description: Provider-neutral global scope with no identity name.
+      additionalProperties: false
+      required:
+        - kind
+        - name
+      properties:
+        kind:
+          type: string
+          const: global
+        name:
+          type: string
+          const: ''
+    NamedScope:
+      type: object
+      description: Provider-neutral project or namespace scope.
+      additionalProperties: false
+      required:
+        - kind
+        - name
+      properties:
+        kind:
+          type: string
+          enum:
+            - project
+            - namespace
+        name:
+          $ref: '#/components/schemas/DisplayText'
+          description: Safe project or namespace identity name.
+    Scope:
+      description: Valid provider-neutral namespace, project, or global scope.
+      oneOf:
+        - $ref: '#/components/schemas/GlobalScope'
+        - $ref: '#/components/schemas/NamedScope'
+    ResourceIdentity:
+      type: object
+      description: Safe public identity for a provider-neutral resource.
+      additionalProperties: false
+      required:
+        - id
+        - provider
+        - source_id
+        - environment_id
+        - scope
+        - kind
+      properties:
+        id:
+          $ref: '#/components/schemas/ResourceId'
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        scope:
+          $ref: '#/components/schemas/Scope'
+        kind:
+          $ref: '#/components/schemas/NamespacedCode'
+    Resource:
+      type: object
+      description: Provider-neutral resource with no raw provider payload.
+      additionalProperties: false
+      required:
+        - identity
+        - display_name
+        - synthetic
+      properties:
+        identity:
+          $ref: '#/components/schemas/ResourceIdentity'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+          description: Safe display name that is not part of identity.
+        synthetic:
+          type: boolean
+          description: Whether the resource comes from demonstration data.
+    ResourceSnapshot:
+      type: object
+      description: One resource and the availability of its observed state.
+      additionalProperties: false
+      required:
+        - resource
+        - status
+      properties:
+        resource:
+          $ref: '#/components/schemas/Resource'
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    HealthEvidence:
+      type: object
+      description: One bounded, safe fact used to calculate health.
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - source_code
+        - status
+        - observed_at
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/EvidenceId'
+        code:
+          $ref: '#/components/schemas/NamespacedCode'
+        source_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        status:
+          $ref: '#/components/schemas/EvidenceStatus'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        synthetic:
+          type: boolean
+          description: Whether the evidence comes from demonstration data.
+    KnownHealthSnapshot:
+      type: object
+      description: Known health backed by evidence from readable provider data.
+      additionalProperties: false
+      required:
+        - resource_id
+        - state
+        - status
+        - evidence
+      properties:
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          type: string
+          enum:
+            - healthy
+            - degraded
+            - unhealthy
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+        evidence:
+          type: array
+          description: Reviewed evidence only; raw provider objects are forbidden.
+          minItems: 1
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/HealthEvidence'
+    DataAllowedUnknownHealthSnapshot:
+      type: object
+      description: Unknown health from readable provider data, with optional reviewed evidence.
+      additionalProperties: false
+      required:
+        - resource_id
+        - state
+        - status
+        - evidence
+      properties:
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          type: string
+          const: unknown
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+        evidence:
+          type: array
+          description: Reviewed evidence only; raw provider objects are forbidden.
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/HealthEvidence'
+    NoDataUnknownHealthSnapshot:
+      type: object
+      description: Unknown health when provider data is unavailable, unsupported, or denied.
+      additionalProperties: false
+      required:
+        - resource_id
+        - state
+        - status
+        - evidence
+      properties:
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          type: string
+          const: unknown
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+        evidence:
+          type: array
+          description: Empty because the provider state does not allow data.
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/HealthEvidence'
+    UnknownHealthSnapshot:
+      description: Unknown health split by whether the provider state allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedUnknownHealthSnapshot'
+        - $ref: '#/components/schemas/NoDataUnknownHealthSnapshot'
+    HealthSnapshot:
+      description: Health at one observed point, separate from data availability.
+      oneOf:
+        - $ref: '#/components/schemas/KnownHealthSnapshot'
+        - $ref: '#/components/schemas/UnknownHealthSnapshot'
+    DataAllowedHealthResult:
+      type: object
+      description: Bounded health snapshots from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - status
+        - items
+      properties:
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/HealthSnapshot'
+    NoDataHealthResult:
+      type: object
+      description: Empty health result when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - status
+        - items
+      properties:
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/HealthSnapshot'
+    HealthResult:
+      description: Health result split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedHealthResult'
+        - $ref: '#/components/schemas/NoDataHealthResult'
+    RelationshipEvidence:
+      type: object
+      description: Provenance and confidence for one relationship fact.
+      additionalProperties: false
+      required:
+        - id
+        - provider
+        - source_id
+        - provenance
+        - certainty
+        - confidence
+        - observed_at
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/EvidenceId'
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        provenance:
+          $ref: '#/components/schemas/RelationshipProvenance'
+        certainty:
+          $ref: '#/components/schemas/EvidenceCertainty'
+        confidence:
+          type: number
+          description: Normalized confidence from zero through one.
+          minimum: 0
+          maximum: 1
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        synthetic:
+          type: boolean
+          description: Whether the evidence comes from demonstration data.
+    Relationship:
+      type: object
+      description: Typed edge retaining all bounded evidence.
+      additionalProperties: false
+      required:
+        - id
+        - source_resource_id
+        - target_resource_id
+        - type
+        - direction
+        - evidence
+        - observed_at
+      properties:
+        id:
+          $ref: '#/components/schemas/RelationshipId'
+        source_resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        target_resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        type:
+          $ref: '#/components/schemas/RelationshipKind'
+        direction:
+          $ref: '#/components/schemas/RelationshipDirection'
+        evidence:
+          type: array
+          description: Unique evidence retained when equivalent edges are coalesced.
+          minItems: 1
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/RelationshipEvidence'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+    MorePageInfo:
+      type: object
+      description: Page state with a required opaque continuation cursor.
+      additionalProperties: false
+      required:
+        - limit
+        - has_more
+        - next_cursor
+      properties:
+        limit:
+          type: integer
+          description: Applied page limit.
+          minimum: 1
+          maximum: 200
+        has_more:
+          type: boolean
+          const: true
+        next_cursor:
+          $ref: '#/components/schemas/Cursor'
+    FinalPageInfo:
+      type: object
+      description: Final page state with no continuation cursor.
+      additionalProperties: false
+      required:
+        - limit
+        - has_more
+      properties:
+        limit:
+          type: integer
+          description: Applied page limit.
+          minimum: 1
+          maximum: 200
+        has_more:
+          type: boolean
+          const: false
+    PageInfo:
+      description: Valid opaque cursor pagination state with no implied total count.
+      oneOf:
+        - $ref: '#/components/schemas/MorePageInfo'
+        - $ref: '#/components/schemas/FinalPageInfo'
+    DataAllowedResourcePage:
+      type: object
+      description: Bounded resource page from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          description: Resources in requested sort order with ascending resource ID as the stable tie-break.
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ResourceSnapshot'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+    NoDataResourcePage:
+      type: object
+      description: Empty final resource page when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/ResourceSnapshot'
+        page:
+          $ref: '#/components/schemas/FinalPageInfo'
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+    ResourcePage:
+      description: Resource page split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedResourcePage'
+        - $ref: '#/components/schemas/NoDataResourcePage'
+    DataAllowedEnvironmentPage:
+      type: object
+      description: Bounded environment page from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          description: Environments ordered by environment ID ascending.
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/Environment'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+    NoDataEnvironmentPage:
+      type: object
+      description: Empty final environment page when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/Environment'
+        page:
+          $ref: '#/components/schemas/FinalPageInfo'
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+    EnvironmentPage:
+      description: Environment page split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedEnvironmentPage'
+        - $ref: '#/components/schemas/NoDataEnvironmentPage'
+    DataAllowedRelationshipPage:
+      type: object
+      description: Bounded relationship page from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          description: Relationships ordered by relationship ID ascending.
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/Relationship'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+    NoDataRelationshipPage:
+      type: object
+      description: Empty final relationship page when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/Relationship'
+        page:
+          $ref: '#/components/schemas/FinalPageInfo'
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+    RelationshipPage:
+      description: Relationship page split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedRelationshipPage'
+        - $ref: '#/components/schemas/NoDataRelationshipPage'
+    LogEntry:
+      type: object
+      description: Bounded, redaction-aware provider log entry.
+      additionalProperties: false
+      required:
+        - id
+        - resource_id
+        - timestamp
+        - sequence
+        - stream
+        - severity
+        - message
+        - truncated
+        - redacted
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/LogEntryId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        container:
+          $ref: '#/components/schemas/OptionalDisplayText'
+          description: Safe container name when the resource has multiple log targets.
+          maxLength: 256
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+        sequence:
+          type: integer
+          description: Monotonic order within one bounded read or stream scope.
+          minimum: 0
+          maximum: 9007199254740991
+        stream:
+          $ref: '#/components/schemas/LogStream'
+        severity:
+          $ref: '#/components/schemas/LogSeverity'
+        message:
+          type: string
+          description: Safe one-line log text after configured redaction and a 64 KiB byte cap.
+          maxLength: 16384
+          pattern: '^(?:[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]|\u200C|\u200D)*$'
+        truncated:
+          type: boolean
+          description: Whether the source line exceeded the safe retained byte bound.
+        redacted:
+          type: boolean
+          description: Whether one or more values were removed.
+        synthetic:
+          type: boolean
+          description: Whether the entry comes from demonstration data.
+    DataAllowedLogBatch:
+      type: object
+      description: Bounded log page from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          description: Log entries ordered by sequence ascending.
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/LogEntry'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+    NoDataLogBatch:
+      type: object
+      description: Empty final log page when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/LogEntry'
+        page:
+          $ref: '#/components/schemas/FinalPageInfo'
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+    LogBatch:
+      description: Log page split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedLogBatch'
+        - $ref: '#/components/schemas/NoDataLogBatch'
+    MetricSample:
+      type: object
+      description: One normalized finite metric value.
+      additionalProperties: false
+      required:
+        - id
+        - resource_id
+        - name
+        - unit
+        - value
+        - sampled_at
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricSampleId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        name:
+          $ref: '#/components/schemas/MetricName'
+        unit:
+          $ref: '#/components/schemas/MetricUnit'
+        value:
+          type: number
+          description: Finite normalized value. Non-finite values are invalid JSON.
+          minimum: 0
+          maximum: 9007199254740991
+        sampled_at:
+          $ref: '#/components/schemas/Timestamp'
+        interval_seconds:
+          type: integer
+          description: Observation interval when the metric needs one.
+          minimum: 1
+          maximum: 86400
+        synthetic:
+          type: boolean
+          description: Whether the sample comes from demonstration data.
+      oneOf:
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: cpu.usage.cores
+            unit:
+              type: string
+              const: cores
+            value:
+              type: number
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: memory.usage.bytes
+            unit:
+              type: string
+              const: bytes
+            value:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: network.receive.bytes_total
+            unit:
+              type: string
+              const: bytes
+            value:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: network.send.bytes_total
+            unit:
+              type: string
+              const: bytes
+            value:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: restart.count
+            unit:
+              type: string
+              const: count
+            value:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: cpu.request.cores
+            unit:
+              type: string
+              const: cores
+            value:
+              type: number
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: cpu.limit.cores
+            unit:
+              type: string
+              const: cores
+            value:
+              type: number
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: memory.request.bytes
+            unit:
+              type: string
+              const: bytes
+            value:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: memory.limit.bytes
+            unit:
+              type: string
+              const: bytes
+            value:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+    CpuUsageMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: cpu.usage.cores
+            unit:
+              type: string
+              const: cores
+    MemoryUsageMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: memory.usage.bytes
+            unit:
+              type: string
+              const: bytes
+    NetworkReceiveMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: network.receive.bytes_total
+            unit:
+              type: string
+              const: bytes
+    NetworkSendMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: network.send.bytes_total
+            unit:
+              type: string
+              const: bytes
+    RestartCountMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: restart.count
+            unit:
+              type: string
+              const: count
+    CpuRequestMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: cpu.request.cores
+            unit:
+              type: string
+              const: cores
+    CpuLimitMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: cpu.limit.cores
+            unit:
+              type: string
+              const: cores
+    MemoryRequestMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: memory.request.bytes
+            unit:
+              type: string
+              const: bytes
+    MemoryLimitMetricSample:
+      allOf:
+        - $ref: '#/components/schemas/MetricSample'
+        - required:
+            - name
+            - unit
+          properties:
+            name:
+              type: string
+              const: memory.limit.bytes
+            unit:
+              type: string
+              const: bytes
+    MetricSampleSet:
+      type: object
+      description: Unique current metric samples keyed by their fixed normalized names.
+      additionalProperties: false
+      properties:
+        cpu.usage.cores:
+          $ref: '#/components/schemas/CpuUsageMetricSample'
+        memory.usage.bytes:
+          $ref: '#/components/schemas/MemoryUsageMetricSample'
+        network.receive.bytes_total:
+          $ref: '#/components/schemas/NetworkReceiveMetricSample'
+        network.send.bytes_total:
+          $ref: '#/components/schemas/NetworkSendMetricSample'
+        restart.count:
+          $ref: '#/components/schemas/RestartCountMetricSample'
+        cpu.request.cores:
+          $ref: '#/components/schemas/CpuRequestMetricSample'
+        cpu.limit.cores:
+          $ref: '#/components/schemas/CpuLimitMetricSample'
+        memory.request.bytes:
+          $ref: '#/components/schemas/MemoryRequestMetricSample'
+        memory.limit.bytes:
+          $ref: '#/components/schemas/MemoryLimitMetricSample'
+    DataAllowedCurrentMetricSet:
+      type: object
+      description: Bounded current metric samples from a data-allowed resource read.
+      additionalProperties: false
+      required:
+        - resource_id
+        - status
+        - samples
+      properties:
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+        samples:
+          $ref: '#/components/schemas/MetricSampleSet'
+    EmptyMetricSampleSet:
+      type: object
+      description: Empty metric sample set used when provider data is not allowed.
+      additionalProperties: false
+      maxProperties: 0
+    NoDataCurrentMetricSet:
+      type: object
+      description: Empty current metric set when resource data is not allowed.
+      additionalProperties: false
+      required:
+        - resource_id
+        - status
+        - samples
+      properties:
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+        samples:
+          $ref: '#/components/schemas/EmptyMetricSampleSet'
+    CurrentMetricSet:
+      description: Resource metric set split by whether its status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedCurrentMetricSet'
+        - $ref: '#/components/schemas/NoDataCurrentMetricSet'
+    DataAllowedCurrentMetricResult:
+      type: object
+      description: Bounded current metrics from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - status
+        - items
+      properties:
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/CurrentMetricSet'
+    NoDataCurrentMetricResult:
+      type: object
+      description: Empty current metric result when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - status
+        - items
+      properties:
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/CurrentMetricSet'
+    CurrentMetricResult:
+      description: Current metric result split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedCurrentMetricResult'
+        - $ref: '#/components/schemas/NoDataCurrentMetricResult'
+    InfrastructureEvent:
+      type: object
+      description: Safe provider-neutral infrastructure timeline event.
+      additionalProperties: false
+      required:
+        - id
+        - source_id
+        - provider
+        - kind
+        - severity
+        - occurred_at
+        - observed_at
+        - summary_code
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/EventId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        kind:
+          $ref: '#/components/schemas/NamespacedCode'
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        occurred_at:
+          $ref: '#/components/schemas/Timestamp'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        message:
+          $ref: '#/components/schemas/OptionalDisplayText'
+          description: Bounded event summary after safe filtering.
+        synthetic:
+          type: boolean
+          description: Whether the event comes from demonstration data.
+    DataAllowedEventPage:
+      type: object
+      description: Bounded event page from a data-allowed provider read.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          description: Events ordered by occurrence time descending, then event ID ascending.
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/InfrastructureEvent'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        status:
+          oneOf:
+            - $ref: '#/components/schemas/AvailableCompleteObservation'
+            - $ref: '#/components/schemas/AvailablePartialObservation'
+            - $ref: '#/components/schemas/StaleObservation'
+    NoDataEventPage:
+      type: object
+      description: Empty final event page when provider data is not allowed.
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - status
+      properties:
+        items:
+          type: array
+          maxItems: 0
+          items:
+            $ref: '#/components/schemas/InfrastructureEvent'
+        page:
+          $ref: '#/components/schemas/FinalPageInfo'
+        status:
+          $ref: '#/components/schemas/UnavailableObservation'
+    EventPage:
+      description: Event page split by whether the provider status allows data.
+      oneOf:
+        - $ref: '#/components/schemas/DataAllowedEventPage'
+        - $ref: '#/components/schemas/NoDataEventPage'
+    ActiveAlert:
+      type: object
+      description: Pending or firing alert with no lifecycle completion time.
+      additionalProperties: false
+      required:
+        - id
+        - rule_id
+        - source_id
+        - state
+        - severity
+        - started_at
+        - updated_at
+        - evidence_from
+        - evidence_to
+        - summary_code
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/AlertId'
+        rule_id:
+          $ref: '#/components/schemas/AlertRuleId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          type: string
+          enum:
+            - pending
+            - firing
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        started_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        evidence_from:
+          $ref: '#/components/schemas/Timestamp'
+        evidence_to:
+          $ref: '#/components/schemas/Timestamp'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        synthetic:
+          type: boolean
+          description: Whether the alert comes from demonstration data.
+    AcknowledgedAlert:
+      type: object
+      description: Acknowledged alert with no resolution time.
+      additionalProperties: false
+      required:
+        - id
+        - rule_id
+        - source_id
+        - state
+        - severity
+        - started_at
+        - updated_at
+        - acknowledged_at
+        - evidence_from
+        - evidence_to
+        - summary_code
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/AlertId'
+        rule_id:
+          $ref: '#/components/schemas/AlertRuleId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          type: string
+          const: acknowledged
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        started_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        acknowledged_at:
+          $ref: '#/components/schemas/Timestamp'
+        evidence_from:
+          $ref: '#/components/schemas/Timestamp'
+        evidence_to:
+          $ref: '#/components/schemas/Timestamp'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        synthetic:
+          type: boolean
+          description: Whether the alert comes from demonstration data.
+    ResolvedAlert:
+      type: object
+      description: Resolved alert with an optional prior acknowledgement.
+      additionalProperties: false
+      required:
+        - id
+        - rule_id
+        - source_id
+        - state
+        - severity
+        - started_at
+        - updated_at
+        - resolved_at
+        - evidence_from
+        - evidence_to
+        - summary_code
+        - synthetic
+      properties:
+        id:
+          $ref: '#/components/schemas/AlertId'
+        rule_id:
+          $ref: '#/components/schemas/AlertRuleId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          type: string
+          const: resolved
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        started_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        acknowledged_at:
+          $ref: '#/components/schemas/Timestamp'
+        resolved_at:
+          $ref: '#/components/schemas/Timestamp'
+        evidence_from:
+          $ref: '#/components/schemas/Timestamp'
+        evidence_to:
+          $ref: '#/components/schemas/Timestamp'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        synthetic:
+          type: boolean
+          description: Whether the alert comes from demonstration data.
+    Alert:
+      description: Valid provider-neutral alert lifecycle state and evidence window.
+      oneOf:
+        - $ref: '#/components/schemas/ActiveAlert'
+        - $ref: '#/components/schemas/AcknowledgedAlert'
+        - $ref: '#/components/schemas/ResolvedAlert'
+    UserAuditActor:
+      type: object
+      description: Safe audited user reference with no session data.
+      additionalProperties: false
+      required:
+        - kind
+        - id
+      properties:
+        kind:
+          type: string
+          const: user
+        id:
+          type: string
+          description: Opaque user identifier.
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+    OperatorAuditActor:
+      type: object
+      description: Safe local operator reference with no session data.
+      additionalProperties: false
+      required:
+        - kind
+      properties:
+        kind:
+          type: string
+          const: operator
+        id:
+          type: string
+          description: Opaque operator identifier when one exists.
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+    SystemAuditActor:
+      type: object
+      description: System actor with no human identifier.
+      additionalProperties: false
+      required:
+        - kind
+      properties:
+        kind:
+          type: string
+          const: system
+    AuditActor:
+      description: Valid safe actor reference with no session data.
+      oneOf:
+        - $ref: '#/components/schemas/UserAuditActor'
+        - $ref: '#/components/schemas/OperatorAuditActor'
+        - $ref: '#/components/schemas/SystemAuditActor'
+    AuditTarget:
+      type: object
+      description: Safe typed target reference.
+      additionalProperties: false
+      required:
+        - kind
+      properties:
+        kind:
+          $ref: '#/components/schemas/NamespacedCode'
+        id:
+          type: string
+          description: Opaque target identifier when one exists.
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+    AuditEntry:
+      type: object
+      description: Safe audit fact with no credential or session material.
+      additionalProperties: false
+      required:
+        - id
+        - occurred_at
+        - actor
+        - action
+        - target
+        - outcome
+        - request_id
+        - summary_code
+      properties:
+        id:
+          $ref: '#/components/schemas/AuditEntryId'
+        occurred_at:
+          $ref: '#/components/schemas/Timestamp'
+        actor:
+          $ref: '#/components/schemas/AuditActor'
+        action:
+          $ref: '#/components/schemas/NamespacedCode'
+        target:
+          $ref: '#/components/schemas/AuditTarget'
+        outcome:
+          $ref: '#/components/schemas/AuditOutcome'
+        request_id:
+          $ref: '#/components/schemas/RequestId'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+    InventoryListCapability:
+      type: object
+      description: Current inventory list capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: inventory.list
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    InventoryDetailCapability:
+      type: object
+      description: Current inventory detail capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: inventory.detail
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    HealthReadCapability:
+      type: object
+      description: Current health read capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: health.read
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    TopologyReadCapability:
+      type: object
+      description: Current topology read capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: topology.read
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    LogReadCapability:
+      type: object
+      description: Current log read capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: log.read
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    LogTailCapability:
+      type: object
+      description: Current log tail capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: log.tail
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    MetricCurrentCapability:
+      type: object
+      description: Current metric read capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: metric.current
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    EventHistoryCapability:
+      type: object
+      description: Current event history capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: event.history
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    EventWatchCapability:
+      type: object
+      description: Current event watch capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: event.watch
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
+    Capability:
+      description: Current status of one known observation capability.
+      oneOf:
+        - $ref: '#/components/schemas/InventoryListCapability'
+        - $ref: '#/components/schemas/InventoryDetailCapability'
+        - $ref: '#/components/schemas/HealthReadCapability'
+        - $ref: '#/components/schemas/TopologyReadCapability'
+        - $ref: '#/components/schemas/LogReadCapability'
+        - $ref: '#/components/schemas/LogTailCapability'
+        - $ref: '#/components/schemas/MetricCurrentCapability'
+        - $ref: '#/components/schemas/EventHistoryCapability'
+        - $ref: '#/components/schemas/EventWatchCapability'
+    CapabilitySet:
+      type: object
+      description: Bounded observation capabilities for one source.
+      additionalProperties: false
+      required:
+        - provider
+        - source_id
+        - items
+      properties:
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        items:
+          type: array
+          minItems: 9
+          maxItems: 9
+          prefixItems:
+            - $ref: '#/components/schemas/InventoryListCapability'
+            - $ref: '#/components/schemas/InventoryDetailCapability'
+            - $ref: '#/components/schemas/HealthReadCapability'
+            - $ref: '#/components/schemas/TopologyReadCapability'
+            - $ref: '#/components/schemas/LogReadCapability'
+            - $ref: '#/components/schemas/LogTailCapability'
+            - $ref: '#/components/schemas/MetricCurrentCapability'
+            - $ref: '#/components/schemas/EventHistoryCapability'
+            - $ref: '#/components/schemas/EventWatchCapability'
+          items: false
+    InvalidParameter:
+      type: object
+      description: Safe field failure that never repeats a rejected value.
+      additionalProperties: false
+      required:
+        - location
+        - name
+        - code
+      properties:
+        location:
+          type: string
+          description: Request section containing the invalid field.
+          enum:
+            - query
+            - path
+            - header
+            - body
+        name:
+          $ref: '#/components/schemas/DisplayText'
+          description: Bounded field name or JSON pointer.
+          maxLength: 128
+        code:
+          $ref: '#/components/schemas/Code'
+    Problem:
+      type: object
+      description: Safe consistent failure body.
+      additionalProperties: false
+      required:
+        - type
+        - title
+        - status
+        - code
+        - request_id
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Stable problem type URI with no request data.
+          minLength: 1
+          maxLength: 256
+          pattern: ^urn:stackplore:problem:[a-z][a-z0-9._-]{0,63}$
+        title:
+          $ref: '#/components/schemas/DisplayText'
+          description: Fixed safe summary for the problem class.
+          maxLength: 128
+        status:
+          type: integer
+          description: HTTP status repeated for safe parsing.
+          minimum: 400
+          maximum: 599
+        code:
+          $ref: '#/components/schemas/Code'
+        request_id:
+          $ref: '#/components/schemas/RequestId'
+        detail:
+          $ref: '#/components/schemas/OptionalDisplayText'
+          description: Optional fixed safe detail with no rejected value.
+          maxLength: 1024
+        invalid_parameters:
+          type: array
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/InvalidParameter'
+  parameters:
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      description: Optional safe caller correlation identifier. Invalid values are replaced.
+      schema:
+        $ref: '#/components/schemas/RequestId'
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+      schema:
+        $ref: '#/components/schemas/Cursor'
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Requested result count, capped by the server.
+      schema:
+        type: integer
+        default: 50
+        minimum: 1
+        maximum: 200
+    Search:
+      name: q
+      in: query
+      required: false
+      description: Bounded plain-text search term, never a query expression.
+      schema:
+        $ref: '#/components/schemas/OptionalDisplayText'
+        maxLength: 200
+    ProviderFilter:
+      name: provider
+      in: query
+      required: false
+      description: Repeated values use OR semantics.
+      style: form
+      explode: true
+      schema:
+        type: array
+        uniqueItems: true
+        maxItems: 3
+        items:
+          $ref: '#/components/schemas/ProviderKind'
+    SourceFilter:
+      name: source_id
+      in: query
+      required: false
+      description: Repeated values use OR semantics.
+      style: form
+      explode: true
+      schema:
+        type: array
+        uniqueItems: true
+        maxItems: 64
+        items:
+          $ref: '#/components/schemas/SourceId'
+    EnvironmentFilter:
+      name: environment_id
+      in: query
+      required: false
+      description: Repeated values use OR semantics.
+      style: form
+      explode: true
+      schema:
+        type: array
+        uniqueItems: true
+        maxItems: 64
+        items:
+          $ref: '#/components/schemas/EnvironmentId'
+    ResourceKindFilter:
+      name: kind
+      in: query
+      required: false
+      description: Repeated bounded resource kind codes use OR semantics.
+      style: form
+      explode: true
+      schema:
+        type: array
+        uniqueItems: true
+        maxItems: 64
+        items:
+          $ref: '#/components/schemas/NamespacedCode'
+    HealthFilter:
+      name: health
+      in: query
+      required: false
+      description: Repeated values use OR semantics.
+      style: form
+      explode: true
+      schema:
+        type: array
+        uniqueItems: true
+        maxItems: 4
+        items:
+          $ref: '#/components/schemas/HealthState'
+    AvailabilityFilter:
+      name: availability
+      in: query
+      required: false
+      description: Repeated values use OR semantics.
+      style: form
+      explode: true
+      schema:
+        type: array
+        uniqueItems: true
+        maxItems: 5
+        items:
+          $ref: '#/components/schemas/AvailabilityState'
+    From:
+      name: from
+      in: query
+      required: false
+      description: Inclusive UTC start of a bounded time range.
+      schema:
+        $ref: '#/components/schemas/Timestamp'
+    To:
+      name: to
+      in: query
+      required: false
+      description: Exclusive UTC end of a bounded time range.
+      schema:
+        $ref: '#/components/schemas/Timestamp'
+    SortDirection:
+      name: direction
+      in: query
+      required: false
+      description: Direction for the operation-owned sort field.
+      schema:
+        $ref: '#/components/schemas/SortDirection'
+  headers:
+    RequestId:
+      description: Server-selected safe request correlation identifier.
+      required: true
+      schema:
+        $ref: '#/components/schemas/RequestId'
+    RetryAfter:
+      description: Whole seconds before a bounded retry may be attempted.
+      required: true
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 86400
+  responses:
+    BadRequestProblem:
+      description: The request is malformed or fails strict validation.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            validationFailed:
+              summary: Invalid request field
+              value:
+                type: urn:stackplore:problem:validation_failed
+                title: Invalid request
+                status: 400
+                code: validation_failed
+                request_id: req_demo_01
+                invalid_parameters:
+                  - location: query
+                    name: limit
+                    code: out_of_range
+    UnauthorizedProblem:
+      description: A valid local session is required.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            unauthorized:
+              summary: Session required
+              value:
+                type: urn:stackplore:problem:unauthenticated
+                title: Sign in required
+                status: 401
+                code: unauthenticated
+                request_id: req_demo_01
+    ForbiddenProblem:
+      description: The current principal cannot perform the request.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            forbidden:
+              summary: Request denied
+              value:
+                type: urn:stackplore:problem:forbidden
+                title: Request not allowed
+                status: 403
+                code: forbidden
+                request_id: req_demo_01
+    NotFoundProblem:
+      description: The requested safe identifier does not exist.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            notFound:
+              summary: Resource not found
+              value:
+                type: urn:stackplore:problem:not_found
+                title: Not found
+                status: 404
+                code: not_found
+                request_id: req_demo_01
+    ConflictProblem:
+      description: The request conflicts with the current stable state.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            conflict:
+              summary: Stable state conflict
+              value:
+                type: urn:stackplore:problem:conflict
+                title: Request conflict
+                status: 409
+                code: conflict
+                request_id: req_demo_01
+    PayloadTooLargeProblem:
+      description: The bounded request body limit was exceeded.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            payloadTooLarge:
+              summary: Request body too large
+              value:
+                type: urn:stackplore:problem:payload_too_large
+                title: Request too large
+                status: 413
+                code: payload_too_large
+                request_id: req_demo_01
+    UnsupportedMediaTypeProblem:
+      description: The request body media type is not supported.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            unsupportedMediaType:
+              summary: Unsupported request body
+              value:
+                type: urn:stackplore:problem:unsupported_media_type
+                title: Unsupported media type
+                status: 415
+                code: unsupported_media_type
+                request_id: req_demo_01
+    TooManyRequestsProblem:
+      description: A bounded request rate was exceeded.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            tooManyRequests:
+              summary: Retry after a bounded delay
+              value:
+                type: urn:stackplore:problem:rate_limited
+                title: Too many requests
+                status: 429
+                code: rate_limited
+                request_id: req_demo_01
+    InternalProblem:
+      description: The request failed without exposing internal detail.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            internal:
+              summary: Safe internal failure
+              value:
+                type: urn:stackplore:problem:internal
+                title: Request failed
+                status: 500
+                code: internal
+                request_id: req_demo_01
+    ServiceUnavailableProblem:
+      description: The service cannot complete the request now.
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            unavailable:
+              summary: Service unavailable
+              value:
+                type: urn:stackplore:problem:unavailable
+                title: Service unavailable
+                status: 503
+                code: unavailable
+                request_id: req_demo_01

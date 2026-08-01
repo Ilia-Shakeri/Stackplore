@@ -6,9 +6,12 @@ param(
     'verify',
     'test',
     'test-api',
+    'test-client',
     'test-web',
     'build',
     'check-locales',
+    'check-contracts',
+    'derive-api-client',
     'lint',
     'typecheck',
     'format',
@@ -25,9 +28,12 @@ $scriptNames = @{
   'verify' = 'verify'
   'test' = 'test'
   'test-api' = 'test:api'
+  'test-client' = 'test:client'
   'test-web' = 'test:web'
   'build' = 'build'
   'check-locales' = 'check:locales'
+  'check-contracts' = 'check:contracts'
+  'derive-api-client' = 'derive:api-client'
   'lint' = 'lint'
   'typecheck' = 'typecheck'
   'format' = 'format'

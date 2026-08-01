@@ -1,0 +1,4 @@
+extends:
+  - recommended-strict
+rules:
+  no-unused-components: off

@@ -4,7 +4,7 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Phase 3 bilingual application shell available
+- **Implementation status:** Phase 4 domain and versioned contract foundation available
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
@@ -612,8 +612,13 @@ states.
 
 ## 8. HTTP and realtime contracts
 
-The API lives under `/api/v1`. The canonical contract lives in
-`contracts/openapi.yaml` once Phase 4 begins.
+The API lives under `/api/v1`. The canonical OpenAPI 3.1 contract lives in
+`contracts/openapi.yaml`.
+
+Phase 4 establishes shared provider-neutral schemas and keeps the path map
+empty. This is a contract foundation, not a claim that `/api/v1` handlers
+already exist. Each later handler phase adds its paths, safe examples, limits,
+authorization, and problem responses with the implementation.
 
 API groups:
 

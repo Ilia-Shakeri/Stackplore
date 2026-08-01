@@ -1,7 +1,7 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 3 — complete, awaiting maintainer commit
+- **Current phase:** Phase 4 — complete, awaiting commit
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -41,7 +41,7 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Phase 3 validation on 2026-07-31 reconfirmed:
+Phase 4 validation on 2026-08-01 reconfirmed:
 
 | Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
@@ -50,7 +50,7 @@ Phase 3 validation on 2026-07-31 reconfirmed:
 | Corepack | 0.34.6 | 1 | Bundled 0.35.0 verified through the pinned Node.js archive |
 | pnpm | Missing | 1 | 11.17.0 verified through repo-local Corepack cache |
 | Go | Missing | 1 | 1.26.5 verified from a checksummed repo-local archive |
-| Make | Missing | 1 | PowerShell, POSIX shell, and direct root equivalents verified |
+| Make | Missing | 1 | PowerShell and direct root tasks verified; POSIX wrapper reviewed only |
 | Docker and Compose | Missing | 28 | Require local or external validation host |
 | kubectl | Missing | 29 | Require cluster validation host |
 | Helm | Missing | 29 | Install only with explicit approval |
@@ -85,7 +85,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 - [x] Phase 1 — Monorepo and developer toolchain
 - [x] Phase 2 — Design system and application shell
 - [x] Phase 3 — English, Persian, RTL, and localization
-- [ ] Phase 4 — Domain contracts and OpenAPI foundation
+- [x] Phase 4 — Domain contracts and OpenAPI foundation
 - [ ] Phase 5 — Production-ready backend foundation
 - [ ] Phase 6 — SQLite storage and migrations
 - [ ] Phase 7 — Authentication, users, and authorization
@@ -296,6 +296,23 @@ Deliver:
 - consistent problem, pagination, filter, and sorting models;
 - typed frontend API package;
 - reproducible contract validation.
+
+Phase 4 checklist:
+
+- [x] Provider-neutral domain models use bounded validation and stable,
+  versioned identifiers.
+- [x] Focused read ports define bounded queries, typed outcomes, stable page
+  order, and explicit stream ownership.
+- [x] The OpenAPI 3.1 document uses only `/api/v1`, sealed and bounded schemas,
+  safe problem responses, and an intentionally empty path map.
+- [x] Browser transport types derive reproducibly from the canonical contract,
+  and the drift gate rejects stale output.
+- [x] The browser client enforces same-origin paths, bounded bodies, request
+  identifiers, safe problem parsing, and no hidden retry.
+- [x] Root tasks and portable wrappers expose contract derivation, drift checks,
+  and client tests.
+- [x] Domain, client, contract, locale, web, lint, type, test, and build gates
+  pass with repository hygiene checks.
 
 Commit:
 

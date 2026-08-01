@@ -31,10 +31,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Locale-aware number, Persian-calendar date, and plural formatting foundations
 - Direction-aware shared primitives, technical-text isolation, and complete
   bilingual shell copy
+- Provider-neutral Go domain contracts with stable versioned identifiers,
+  bounded validation, typed provider outcomes, and focused provider ports
+- Canonical OpenAPI 3.1 schema foundation under `/api/v1` with sealed
+  transport models and deliberately empty paths until runtime handlers exist
+- Contract-derived TypeScript transport types plus a small same-origin browser
+  client with safe problem parsing and request-ID propagation
+- Reproducible contract policy, derived-type drift, client test, and root
+  verification tasks
 
 ### Project status
 
-- The repository contains a runnable Phase 3 bilingual application shell,
-  shared interface package, locale checks, and verified web and API checks.
+- The repository contains the Phase 4 domain and contract foundation, a
+  runnable bilingual application shell, and verified API, browser-client, web,
+  contract, and locale checks. The versioned contract has no product paths yet.
 - Product workflows, provider integrations, storage, authentication, container
   images, deployment packages, a demo, and a versioned release do not exist yet.

@@ -1,20 +1,24 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-const webFiles = ['apps/web/**/*.{ts,tsx}', 'packages/ui/**/*.{ts,tsx}'];
+const typescriptFiles = [
+  'apps/web/**/*.{ts,tsx}',
+  'packages/ui/**/*.{ts,tsx}',
+  'packages/api-client/src/**/*.ts',
+];
 const strictTypeScript = tseslint.configs.strictTypeChecked.map((config) => ({
   ...config,
-  files: webFiles,
+  files: typescriptFiles,
 }));
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**'],
+    ignores: ['**/dist/**', '**/node_modules/**', 'packages/api-client/src/derived/**'],
   },
   eslint.configs.recommended,
   ...strictTypeScript,
   {
-    files: webFiles,
+    files: typescriptFiles,
     languageOptions: {
       parserOptions: {
         projectService: true,

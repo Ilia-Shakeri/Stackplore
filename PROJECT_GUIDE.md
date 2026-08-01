@@ -6,11 +6,10 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 
 ## 1. Current state
 
-Phase 0 product, architecture, security, and governance documents and the
-Phase 1 developer scaffold and Phase 2 interface foundation are committed.
-Phase 3 provides paired English and Persian catalogs, a persisted runtime
-language switch, bidirectional presentation, and locale formatters. Product
-workflows remain planned. Available commands and their
+Phases 0 through 3 are committed. Phase 4 adds provider-neutral domain
+contracts, focused read ports, an OpenAPI 3.1 foundation under `/api/v1`, and a
+contract-derived TypeScript client package. The API contract has no product
+paths yet, and product workflows remain planned. Available commands and their
 verified scope are documented in [docs/development.md](docs/development.md).
 
 ## 2. Delivery contract
@@ -127,10 +126,15 @@ documentation and repository policy only.
 ### 4.3 Contract
 
 - The versioned HTTP API starts at `/api/v1`.
-- `contracts/openapi.yaml` is the canonical transport contract after Phase 4.
+- `contracts/openapi.yaml` is the canonical OpenAPI 3.1 transport contract.
 - Backend DTOs and the TypeScript client must agree with the contract.
 - Provider-neutral fields stay stable.
-- Provider details live only in typed and size-bounded metadata.
+- Transport objects are sealed. Provider details live only in reviewed,
+  size-bounded fields; raw provider metadata never crosses the boundary.
+- Add a path only with the phase that implements and tests that operation.
+- Use closed enums for controlled application states and bounded open codes
+  only where provider values must remain forward-compatible.
+- Do not hand-edit `packages/api-client/src/derived/types.derived.ts`.
 - Contract-derived output must be reproducible from a documented command.
 - A verification check fails when committed contract output is stale.
 
@@ -251,9 +255,12 @@ make dev
 make verify
 make test
 make test-api
+make test-client
 make test-web
 make build
 make check-locales
+make check-contracts
+make derive-api-client
 make lint
 make typecheck
 make format
@@ -261,8 +268,8 @@ make format-check
 ```
 
 Direct PowerShell and POSIX shell equivalents are in
-[docs/development.md](docs/development.md). Later phases own end-to-end,
-contract, demo, and deployment commands; those commands are not available yet.
+[docs/development.md](docs/development.md). Later phases own end-to-end, demo,
+and deployment commands; those commands are not available yet.
 
 ## 9. Internationalization and accessibility
 
