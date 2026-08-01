@@ -16,16 +16,28 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
 )
+
+const databaseHealthInterval = 5 * time.Second
 
 var (
 	errHTTPBoundary = errors.New("HTTP boundary could not start")
 	errListen       = errors.New("HTTP listener could not start")
 	errServe        = errors.New("HTTP service stopped unexpectedly")
 	errShutdown     = errors.New("HTTP service shutdown timed out")
+	errStorageStart = errors.New("storage could not start")
+	errStorageStop  = errors.New("storage could not stop cleanly")
 )
 
 type listenerFactory func(network string, address string) (net.Listener, error)
+
+type databaseRuntime interface {
+	Health(context.Context) error
+	Close() error
+}
+
+type databaseFactory func(context.Context, storage.Options) (databaseRuntime, error)
 
 func main() {
 	os.Exit(realMain())
@@ -58,30 +70,104 @@ func realMain() int {
 }
 
 func run(ctx context.Context, settings config.Config, logger *slog.Logger, listen listenerFactory) error {
-	if ctx == nil || logger == nil || listen == nil {
+	return runWithStorage(ctx, settings, logger, listen, openDatabase)
+}
+
+func openDatabase(ctx context.Context, options storage.Options) (databaseRuntime, error) {
+	return storage.Open(ctx, options)
+}
+
+func runWithStorage(
+	ctx context.Context,
+	settings config.Config,
+	logger *slog.Logger,
+	listen listenerFactory,
+	open databaseFactory,
+) error {
+	if ctx == nil || logger == nil || listen == nil || open == nil || config.Validate(settings) != nil {
 		return errHTTPBoundary
+	}
+	if ctx.Err() != nil {
+		return nil
+	}
+
+	database, err := open(ctx, storage.Options{
+		DataDirectory: settings.DataDirectory,
+		BusyTimeout:   settings.DatabaseBusyTimeout,
+	})
+	if err != nil || database == nil {
+		return errStorageStart
+	}
+	closeDatabase := func(primary error) error {
+		if err := database.Close(); err != nil {
+			return errors.Join(primary, errStorageStop)
+		}
+		return primary
 	}
 
 	readiness := httpapi.NewReadiness()
+	readiness.SetDatabaseReady(true)
 	server, err := newHTTPServer(settings, logger, readiness)
 	if err != nil {
-		return err
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(err)
 	}
 	listener, err := listen("tcp", settings.HTTPAddress)
 	if err != nil {
-		return errListen
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errListen)
 	}
 	listener, err = newLimitedListener(listener, settings.MaxConnections)
 	if err != nil {
-		return errHTTPBoundary
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errHTTPBoundary)
 	}
+
+	monitorContext, stopMonitor := context.WithCancel(context.Background())
+	monitorDone := make(chan struct{})
+	go func() {
+		defer close(monitorDone)
+		monitorDatabase(monitorContext, database, readiness, databaseHealthInterval, settings.DatabaseBusyTimeout)
+	}()
 
 	logger.Info("service listener ready", "environment", string(settings.Environment))
 	err = serveServer(ctx, server, listener, readiness, settings.ShutdownTimeout)
+	stopMonitor()
+	<-monitorDone
+	readiness.SetDatabaseReady(false)
+	err = closeDatabase(err)
 	if err == nil {
 		logger.Info("service stopped", "reason", "graceful_shutdown")
 	}
 	return err
+}
+
+func monitorDatabase(
+	ctx context.Context,
+	database databaseRuntime,
+	readiness *httpapi.Readiness,
+	interval time.Duration,
+	checkTimeout time.Duration,
+) {
+	if ctx == nil || database == nil || readiness == nil || interval <= 0 || checkTimeout <= 0 {
+		if readiness != nil {
+			readiness.SetDatabaseReady(false)
+		}
+		return
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			checkContext, cancel := context.WithTimeout(ctx, checkTimeout)
+			err := database.Health(checkContext)
+			cancel()
+			readiness.SetDatabaseReady(err == nil)
+		}
+	}
 }
 
 func newHTTPServer(settings config.Config, logger *slog.Logger, readiness *httpapi.Readiness) (*http.Server, error) {
@@ -143,20 +229,20 @@ func serveServer(
 	server.BaseContext = func(net.Listener) context.Context { return baseContext }
 
 	serveDone := make(chan error, 1)
-	readiness.SetReady(true)
+	readiness.SetServiceReady(true)
 	go func() {
 		serveDone <- server.Serve(listener)
 	}()
 
 	select {
 	case err := <-serveDone:
-		readiness.SetReady(false)
+		readiness.SetServiceReady(false)
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
 		return errServe
 	case <-ctx.Done():
-		readiness.SetReady(false)
+		readiness.SetServiceReady(false)
 
 		shutdownContext, cancelShutdown := context.WithTimeout(context.Background(), shutdownTimeout)
 		shutdownErr := server.Shutdown(shutdownContext)
@@ -197,6 +283,10 @@ func lifecycleReason(err error) string {
 		return "listener"
 	case errors.Is(err, errShutdown):
 		return "shutdown_timeout"
+	case errors.Is(err, errStorageStart):
+		return "storage_start"
+	case errors.Is(err, errStorageStop):
+		return "storage_stop"
 	default:
 		return "unexpected_stop"
 	}

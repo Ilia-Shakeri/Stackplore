@@ -84,7 +84,8 @@ func TestHealthAndReadinessLifecycle(t *testing.T) {
 		t.Fatalf("not-ready response = (%d, %q)", notReadyResponse.Code, notReadyResponse.Body.String())
 	}
 
-	readiness.SetReady(true)
+	readiness.SetDatabaseReady(true)
+	readiness.SetServiceReady(true)
 	readyResponse := serve(handler, makeRequest(http.MethodGet, "/readyz", "192.0.2.10:4000"))
 	if readyResponse.Code != http.StatusOK || readyResponse.Body.String() != readyBody {
 		t.Fatalf("ready response = (%d, %q)", readyResponse.Code, readyResponse.Body.String())

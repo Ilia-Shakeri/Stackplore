@@ -10,12 +10,14 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
 )
 
 type mapGetter map[string]string
@@ -39,6 +41,7 @@ func defaultSettings(t *testing.T) config.Config {
 	if err != nil {
 		t.Fatalf("config.Load() error = %v", err)
 	}
+	settings.DataDirectory = t.TempDir()
 	return settings
 }
 
@@ -76,6 +79,7 @@ func TestServeServerReadinessAndGracefulStop(t *testing.T) {
 	t.Parallel()
 	settings := defaultSettings(t)
 	readiness := httpapi.NewReadiness()
+	readiness.SetDatabaseReady(true)
 	server, err := newHTTPServer(settings, discardLogger(t), readiness)
 	if err != nil {
 		t.Fatalf("newHTTPServer() error = %v", err)
@@ -154,6 +158,7 @@ func TestServeServerDrainsActiveRequestBeforeCancel(t *testing.T) {
 		}
 	})}
 	readiness := httpapi.NewReadiness()
+	readiness.SetDatabaseReady(true)
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
@@ -219,9 +224,73 @@ func TestRunFailsClosedBeforeListening(t *testing.T) {
 	}
 }
 
+func TestRunSealsStorageStartFailureBeforeListening(t *testing.T) {
+	t.Parallel()
+	settings := defaultSettings(t)
+	marker := errors.New("raw storage failure")
+	listened := false
+	err := runWithStorage(
+		context.Background(),
+		settings,
+		discardLogger(t),
+		func(string, string) (net.Listener, error) {
+			listened = true
+			return nil, errors.New("unexpected listen")
+		},
+		func(context.Context, storage.Options) (databaseRuntime, error) {
+			return nil, marker
+		},
+	)
+	if !errors.Is(err, errStorageStart) || errors.Is(err, marker) || listened {
+		t.Errorf("runWithStorage() = (%v, listened %t); want sealed storage failure", err, listened)
+	}
+}
+
+func TestRunClosesStorageAfterListenerFailure(t *testing.T) {
+	t.Parallel()
+	settings := defaultSettings(t)
+	database := &fakeDatabase{}
+	err := runWithStorage(
+		context.Background(),
+		settings,
+		discardLogger(t),
+		func(string, string) (net.Listener, error) { return nil, errors.New("raw listen failure") },
+		func(context.Context, storage.Options) (databaseRuntime, error) { return database, nil },
+	)
+	if !errors.Is(err, errListen) || !database.closed.Load() {
+		t.Errorf("runWithStorage() = %v, closed = %t; want listener error after storage close", err, database.closed.Load())
+	}
+}
+
+func TestDatabaseMonitorTracksLossAndRecovery(t *testing.T) {
+	t.Parallel()
+	readiness := httpapi.NewReadiness()
+	readiness.SetDatabaseReady(true)
+	readiness.SetServiceReady(true)
+	database := &fakeDatabase{}
+	database.available.Store(false)
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		monitorDatabase(ctx, database, readiness, time.Millisecond, 10*time.Millisecond)
+		close(done)
+	}()
+
+	waitFor(t, func() bool { return !readiness.IsReady() })
+	database.available.Store(true)
+	waitFor(t, readiness.IsReady)
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("database monitor did not stop")
+	}
+}
+
 func TestServeServerSealsAcceptFailure(t *testing.T) {
 	t.Parallel()
 	readiness := httpapi.NewReadiness()
+	readiness.SetDatabaseReady(true)
 	server := &http.Server{Handler: http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})}
 	err := serveServer(context.Background(), server, failingListener{}, readiness, time.Second)
 	if !errors.Is(err, errServe) {
@@ -246,6 +315,7 @@ func TestServeServerForcesBoundedStop(t *testing.T) {
 		<-release
 	})}
 	readiness := httpapi.NewReadiness()
+	readiness.SetDatabaseReady(true)
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
@@ -317,6 +387,8 @@ func TestLifecycleReasonIsClosed(t *testing.T) {
 		{errHTTPBoundary, "http_boundary"},
 		{errListen, "listener"},
 		{errShutdown, "shutdown_timeout"},
+		{errStorageStart, "storage_start"},
+		{errStorageStop, "storage_stop"},
 		{errServe, "unexpected_stop"},
 		{errors.New("raw secret-canary"), "unexpected_stop"},
 	}
@@ -348,3 +420,20 @@ type testAddress string
 
 func (address testAddress) Network() string { return "test" }
 func (address testAddress) String() string  { return string(address) }
+
+type fakeDatabase struct {
+	available atomic.Bool
+	closed    atomic.Bool
+}
+
+func (database *fakeDatabase) Health(context.Context) error {
+	if !database.available.Load() {
+		return errors.New("database unavailable")
+	}
+	return nil
+}
+
+func (database *fakeDatabase) Close() error {
+	database.closed.Store(true)
+	return nil
+}

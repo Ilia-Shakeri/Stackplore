@@ -73,6 +73,8 @@ the field and failed rule; they do not copy its value.
 | `STACKPLORE_METRICS_ALLOWED_PREFIXES` | `127.0.0.0/8,::1/128` | Canonical comma-separated client CIDR prefixes under the same list rules |
 | `STACKPLORE_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error` |
 | `STACKPLORE_LOG_FORMAT` | `json` | `json` or `text` |
+| `STACKPLORE_DATA_DIRECTORY` | `data` | Canonical non-root local path with no symlink component; relative only in development and test, absolute in production |
+| `STACKPLORE_DATABASE_BUSY_TIMEOUT` | `5s` | `100ms` through `30s`, exactly representable in whole milliseconds |
 | `STACKPLORE_HTTP_READ_HEADER_TIMEOUT` | `5s` | `1s` through `30s`; cannot exceed the read timeout |
 | `STACKPLORE_HTTP_READ_TIMEOUT` | `15s` | `1s` through `2m` |
 | `STACKPLORE_HTTP_WRITE_TIMEOUT` | `30s` | `1s` through `5m` |
@@ -125,8 +127,8 @@ Invoke-WebRequest http://127.0.0.1:8080/metrics
 curl.exe -i http://127.0.0.1:8080/api/v1/system/readiness
 ```
 
-The final call returns `401` by design. Phase 5 has no user or session system,
-so no caller can receive detailed readiness yet.
+The final call returns `401` by design. Phase 6 still has no user or session
+workflow, so no caller can receive detailed readiness yet.
 
 Run one service when focused work needs it:
 
@@ -140,7 +142,7 @@ corepack pnpm --filter @stackplore/web dev
 | Path | Current result | Gate and meaning |
 | --- | --- | --- |
 | `/healthz` | `200` and `ok` | Terse process liveness. It does not check storage, providers, or product data. |
-| `/readyz` | `503` and `not ready` before service readiness or during stop; otherwise `200` and `ready` | Terse local readiness. Phase 5 covers validated configuration and the serving lifecycle. Phase 6 adds database readiness. |
+| `/readyz` | `503` and `not ready` before storage and service readiness, after storage health loss, or during stop; otherwise `200` and `ready` | Terse local readiness. It requires validated configuration, a current complete migration ledger, valid installation metadata, a responsive database, and the serving lifecycle. |
 | `/metrics` | `200` for an exact-origin, allowed verified client; plain `404` otherwise | Process-only, low-cardinality metrics. The default network allowlist permits IPv4 and IPv6 loopback. |
 | `/api/v1/system/readiness` | `401` after all outer request gates pass | Reserved for an enabled administrator. Until Phase 7, every caller is denied and no header, query value, cookie, or proxy claim is a bypass. |
 
@@ -176,20 +178,39 @@ Tracked identities expire after 10 minutes without a request.
 
 An interrupt or termination signal marks readiness false and requests graceful
 HTTP drain within the shutdown timeout. It then cancels base request contexts
-and force-closes the server if the drain timed out. There is no long-lived HTTP
-stream in Phase 5. A future SSE or log-tail route must define its own
+and force-closes the server if the drain timed out. After HTTP drain, it closes
+SQLite and releases the process-ownership lock. There is no long-lived HTTP
+stream in Phase 6. A future SSE or log-tail route must define its own
 connection, idle, write, lifetime, concurrency, queue, and byte limits before
 it can receive a narrow exemption from the ordinary buffered request deadline.
 
-Phase 5 checks use deterministic unit tests and local in-process listeners.
-They do not prove a deployed TLS edge, external proxy, container image,
-orchestrator health check, or public-network installation; those deployment
-assets and live checks belong to their owning later phases.
+Through Phase 6, checks use deterministic unit tests, local in-process
+listeners, and temporary local SQLite databases. They cover migration history,
+repository transactions, retention bounds, second-process ownership,
+contention, backup, restore, and readiness transitions. They do not prove a
+deployed TLS edge, external proxy, container image, orchestrator health check,
+network filesystem, or public-network installation; those deployment assets
+and live checks belong to their owning later phases.
 
 The root web route redirects to `/overview`. Every product route currently
 shows an explicit planned or no-data state; it does not simulate provider
 results. In development only, `/design-system` exposes the shared controls and
 their states for focused browser review.
+
+## Local storage operations
+
+The API owns `<data-directory>/stackplore.db` and permits exactly one active API
+process for that data directory. Startup takes the ownership lock, verifies the
+database identity and complete migration ledger, applies embedded forward
+migrations, and seeds installation metadata before the listener becomes ready.
+WAL, foreign keys, full synchronous durability, a bounded busy timeout, and a
+fixed connection cap are set by the storage adapter.
+
+Do not copy `stackplore.db` while the service is live. Use the local online
+backup command, and stop the API before any restore. Exact PowerShell and POSIX
+commands, path rules, ACL and mode limits, restore validation, and interrupted
+restore recovery are in
+[Local SQLite Backup and Restore](operations/backup-restore.md).
 
 ## Interface development
 

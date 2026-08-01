@@ -1,8 +1,8 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 5 — complete, awaiting commit
-- **Next phase after commit:** Phase 6 — SQLite storage and migrations
+- **Current phase:** Phase 6 — complete, awaiting commit
+- **Next phase after commit:** Phase 7 — Authentication, users, and authorization
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -42,7 +42,7 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Local tool versions used through Phase 5 on 2026-08-01:
+Local tool versions used through Phase 6 on 2026-08-02:
 
 | Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
@@ -88,7 +88,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 - [x] Phase 3 — English, Persian, RTL, and localization
 - [x] Phase 4 — Domain contracts and OpenAPI foundation
 - [x] Phase 5 — Production-ready backend foundation
-- [ ] Phase 6 — SQLite storage and migrations
+- [x] Phase 6 — SQLite storage and migrations
 - [ ] Phase 7 — Authentication, users, and authorization
 - [ ] Phase 8 — Deterministic demo provider
 - [ ] Phase 9 — Overview dashboard
@@ -386,6 +386,38 @@ Deliver:
 - local operator-only SQLite online-backup command;
 - offline restore, integrity, permission, and session-revocation procedure;
 - second-process, backup, and restore tests.
+
+Phase 6 checklist:
+
+- [x] The pure-Go SQLite adapter uses a fixed local database, WAL, foreign keys,
+  full synchronous durability, a whole-millisecond bounded busy timeout, and
+  one exclusive API-process ownership lock.
+- [x] Embedded, ordered migrations keep a checked full ledger and cover empty,
+  upgrade, changed-history, foreign-database, and partial-failure paths.
+- [x] Strict indexed tables cover installation, user and session, source,
+  resource and health history, metrics, events, alerts, notifications, and
+  audit data without storing raw credential material.
+- [x] Focused metric, event, and audit repository adapters keep SQL and driver
+  types behind domain-owned ports, bound each write batch, and support atomic
+  multi-repository work.
+- [x] Fixed retention helpers prune only metric samples, health history,
+  infrastructure events, and terminal notification deliveries in bounded
+  batches; generic pruning cannot remove audit or identity records.
+- [x] Startup opens and migrates storage before the listener, `/readyz` includes
+  ongoing full-ledger database health, and shutdown drains HTTP before closing
+  the database and releasing ownership.
+- [x] The local backup command uses SQLite online backup while the service is
+  live, verifies the completed single-file result, and never overwrites an
+  existing destination.
+- [x] Offline restore validates identity, migration history, integrity, foreign
+  keys, and private local paths; upgrades a known older schema; and revokes
+  sessions and pending authorization grants before installation.
+- [x] Owner and maintenance locks, durable restore markers, and recovery tests
+  make second-process, concurrent maintenance, and interrupted restore paths
+  fail closed.
+- [x] The operator procedure documents exact commands, local-filesystem and
+  permission rules, platform ACL limits, crash recovery, and WAL-sidecar
+  evidence handling.
 
 Commit:
 

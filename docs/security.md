@@ -3,12 +3,14 @@
 ## Status and purpose
 
 This document defines the security requirements and delivery boundary for
-Stackplore. Through Phase 5, validated startup configuration, safe structured
+Stackplore. Through Phase 6, validated startup configuration, safe structured
 logging, strict origin and proxy handling, bounded short HTTP requests,
 operational probes, protected process metrics, and graceful shutdown are
-implemented and tested. Authentication, storage, provider access, streams,
-notifications, deployment controls, and guarded actions remain later-phase
-requirements. No control described here is a claim of an independent audit.
+implemented and tested. Local SQLite identity, migrations, process ownership,
+repository boundaries, readiness, backup, and restore are also implemented.
+Authentication behavior, provider access, streams, notifications, deployment
+controls, and guarded actions remain later-phase requirements. No control
+described here is a claim of an independent audit.
 
 Security vulnerabilities should be reported through the private process in [SECURITY.md](../SECURITY.md).
 
@@ -287,18 +289,40 @@ Tests must seed recognizable secret canaries across headers, query strings, meta
 
 ## SQLite security and reliability
 
-SQLite stores authentication state, configuration, history, and audit records and must be treated as sensitive.
+SQLite stores authentication state, configuration, history, and audit records
+and must be treated as sensitive. Phase 6 implements these controls:
 
-- The database and backup directory use restrictive operating-system permissions.
-- SQL uses parameters; identifiers and sort expressions come from fixed allowlists.
-- Schema changes are versioned, transactional where supported, and checked before serving traffic.
-- WAL mode, a busy timeout, short transactions, and one controlled writer path limit lock contention.
-- The initial deployment supports one active API process per database. Shared-network filesystems and active-active use are unsupported.
-- History, events, sessions, idempotency records, and audit data have explicit quotas and retention policies.
-- Disk-space checks and bounded pruning prevent unbounded growth.
-- Integrity checks and a tested SQLite backup operation are part of maintenance.
+- one fixed database in a private non-root data directory, with symlink,
+  non-regular-file, multi-link database file, UNC or device path-form, and
+  unsafe POSIX permission rejection; mapped drives and POSIX mount types are
+  not detectable, so the operator must keep the directory on a local
+  filesystem;
+- one exclusive API-process ownership lock and separate shared or exclusive
+  maintenance locking; shared-network filesystems and active-active use are
+  unsupported;
+- checked application identity, a complete checksummed migration ledger,
+  embedded ordered migrations, and database health before readiness;
+- WAL, full synchronous durability, foreign keys on every connection, a bounded
+  busy timeout, short transactions, bounded repository write batches, and
+  parameterized fixed statements;
+- strict tables and explicit indexes for identity, sources, observations,
+  alerts, notifications, and audit records;
+- bounded generic pruning limited to metrics, health history, infrastructure
+  events, and terminal notification deliveries; it cannot delete audit or
+  identity rows;
+- a tested local online-backup command and staged offline restore with full
+  integrity, foreign-key, migration, and restored-credential checks.
 
-Copying a live database file without the SQLite backup mechanism is not a supported backup. Encryption at rest is an operator responsibility in the initial architecture; use encrypted storage when local-disk disclosure is in scope.
+Feature phases still own data-volume quotas, session lifecycle policy, a
+separate audit retention and summary workflow, and disk-space response. Windows
+file mode bits do not prove NTFS ACL privacy; operators must review and restrict
+ACLs. Exact permission and maintenance guidance is in
+[Local SQLite Backup and Restore](operations/backup-restore.md).
+
+Copying a live database file without the SQLite backup mechanism is not a
+supported backup. Encryption at rest is an operator responsibility in the
+initial architecture; use encrypted storage when local-disk disclosure is in
+scope.
 
 ## Server-sent events
 
@@ -371,9 +395,9 @@ bounded batches and writes a summary record containing the cutoff and count.
 Generic cleanup cannot invoke or widen this lifecycle.
 
 Generic cleanup can prune only explicitly named retention classes: metric
-samples, infrastructure events, resolved notification deliveries, and expired
-idempotency records. It cannot delete users, active sessions, sources, current
-settings, or audit records. Configuration export is administrator-only,
+samples, health history, infrastructure events, and terminal notification
+deliveries. It cannot delete users, sessions, sources, current settings, or
+audit records. Configuration export is administrator-only,
 requires recent authentication, uses an explicit field allowlist and response
 size cap, sets `Cache-Control: no-store`, records an audit event, masks
 reference identifiers and provider hosts, and excludes every credential value.
@@ -427,11 +451,11 @@ origin is HTTPS.
 Dynamic content is encoded by context. Untrusted HTML is not rendered. Error responses do not expose stack traces, SQL, filesystem paths, provider credentials, or internal request bodies. Server banners and unnecessary diagnostic endpoints are disabled.
 
 `/healthz` and `/readyz` return only terse process state on the public listener.
-Phase 5 readiness covers configuration and HTTP lifecycle, not database or
-provider health. `GET /api/v1/system/readiness` is reserved for an authenticated
-administrator, but each request reaching its handler receives `401` until Phase
-7 implements local sessions and roles. No header, query value, cookie, proxy
-assertion, or environment setting is a bypass.
+Phase 6 readiness covers configuration, required local database health, and the
+HTTP lifecycle, not provider health. `GET /api/v1/system/readiness` is reserved
+for an authenticated administrator, but each request reaching its handler
+receives `401` until Phase 7 implements local sessions and roles. No header,
+query value, cookie, proxy assertion, or environment setting is a bypass.
 
 `/metrics` requires the exact configured public scheme and authority plus a
 verified client IP in an explicit network allowlist. Its default is IPv4 and
@@ -483,14 +507,20 @@ No signature, provenance, scan, or audit claim is made until the corresponding r
 
 ## Backup, restore, and incident limits
 
-V1 exposes no browser or HTTP backup or restore path. A local operator-only
-command uses the SQLite online-backup mechanism, accepts an explicit
-operator-owned destination, refuses unsafe file permissions, and emits no
-database contents to standard output. Backups are encrypted and access-
-controlled outside the application. Restore is an offline procedure: the
-service is stopped, the candidate is integrity-checked in isolation, files are
-replaced with restrictive permissions, and all restored sessions are revoked
-before service resumes. Both procedures are tested before release.
+V1 exposes no browser or HTTP backup or restore path. Phase 6 implements a local
+operator-only command that uses the SQLite online-backup mechanism, requires a
+new absolute destination in a private local parent, and emits no database
+contents to standard output. Restore requires the API to be offline and an
+absolute private local source. It validates and stages the candidate, applies
+known missing migrations, checks integrity and foreign keys, and revokes all
+restored sessions before installation. Durable markers make service startup and
+backup fail closed after an interrupted restore until recovery finishes.
+
+The application does not encrypt backup artifacts or prove Windows ACL
+privacy. Operators supply encryption and access control, preserve a corrupt
+database with its complete WAL sidecar set, and rerun the same restore command
+after interruption rather than deleting recovery files. The exact procedure is
+[Local SQLite Backup and Restore](operations/backup-restore.md).
 
 An incident runbook should cover:
 

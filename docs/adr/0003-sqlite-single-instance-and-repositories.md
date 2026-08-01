@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-07-28
+- Implementation: Phase 6
 - Owners: Project maintainers
 
 ## Context
@@ -22,8 +23,8 @@ SSE state.
 Use SQLite as the v1 system of record and support exactly one active API process
 per database.
 
-Use `modernc.org/sqlite` as the pure-Go driver candidate, subject to an explicit
-compatibility check when storage is implemented. Pin the selected release in
+Use `modernc.org/sqlite` as the pure-Go driver. Phase 6 confirms the required
+WAL, backup, and cancellation behavior and pins the selected release in
 `go.mod`.
 
 Access persistence through focused repository ports owned by the domain or
@@ -108,18 +109,26 @@ retention creates an avoidable disk-exhaustion failure.
 
 ## Implementation and verification
 
-Later phases must:
+Phase 6 implements and tests:
 
-- verify driver compatibility, WAL behavior, busy timeout, and cancellation;
-- run migrations against empty and previous-version databases;
-- run repository contract tests against real temporary SQLite databases;
-- test contention, rollback, foreign keys, pruning, and bounded queries;
-- test session-token digest storage and audit field filtering;
-- test that a second process cannot acquire database ownership;
-- test Kubernetes render output for one replica and `Recreate`;
-- document consistent backup, restore, retention, and disk-full recovery;
-- make readiness fail on migration or required local database failure;
-- reject or document any deployment configuration above one replica.
+- driver compatibility, WAL, full synchronous durability, foreign keys, a
+  whole-millisecond bounded busy timeout, online backup, and cancellation;
+- exclusive process ownership plus shared and exclusive maintenance locks;
+- empty, previous-version, changed-ledger, unknown-history, and failed migration
+  paths with a complete checksummed ledger;
+- real temporary-database repository contracts for bounded metric, event, and
+  audit writes, rollback, conflicts, and atomic multi-repository work;
+- fixed bounded pruning that excludes audit and identity records;
+- second-process rejection, lock contention, backup validation, offline restore,
+  restored-session revocation, and interrupted-restore recovery;
+- readiness failure on startup migration or required local database failure;
+- the platform-aware
+  [local backup and restore procedure](../operations/backup-restore.md).
+
+Later phases still must test authentication-specific session digest behavior
+and audit filtering, add feature-owned quota and disk-full policy, verify
+Kubernetes output for one replica and `Recreate`, and reject or document every
+deployment configuration above one replica.
 
 ## References
 

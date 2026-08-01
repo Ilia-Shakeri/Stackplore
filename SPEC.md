@@ -4,7 +4,8 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Phase 5 backend service foundation available
+- **Implementation status:** Phase 6 local storage foundation available;
+  awaiting maintainer commit
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
@@ -529,10 +530,10 @@ Settings cover:
 
 Cleanup must show scope and impact, require confirmation, create an audit event,
 and warn about backup needs. Generic cleanup may prune only named,
-retention-eligible history such as metric samples, infrastructure events,
-resolved notification deliveries, and expired idempotency records. It cannot
-delete users, active sessions, sources, current settings, or audit records.
-Those records follow separate, explicit lifecycle rules.
+retention-eligible history such as metric samples, health history,
+infrastructure events, and terminal notification deliveries. It cannot delete
+users, sessions, sources, current settings, or audit records. Those records
+follow separate, explicit lifecycle rules.
 
 Lowering a retention setting does not silently expire existing rows. If the
 new value would make stored data newly eligible, it uses the same preview,
@@ -774,11 +775,13 @@ raw kubeconfig content, Secret values, or complete environment dumps.
 Development uses a Vite server, Go API server, and same-origin development
 proxy.
 
-Phase 5 implements the Go listener and HTTP boundary, not the production image
-or built-web serving path. Configuration is validated before the listener is
-opened. Unknown `STACKPLORE_*` names, blank or non-canonical values, conflicting
-timeouts, and values outside documented bounds stop startup without logging the
-rejected value. The full key, default, and range table lives in
+Through Phase 6, the Go listener opens the local database, verifies and applies
+embedded migrations, and becomes ready before accepting product work. The
+production image and built-web serving path do not exist yet. Configuration is
+validated before the listener is opened. Unknown `STACKPLORE_*` names, blank or
+non-canonical values, conflicting timeouts, and values outside documented
+bounds stop startup without logging the rejected value. The full key, default,
+and range table lives in
 [docs/development.md](docs/development.md).
 
 Production uses one origin. The Go process serves the API and static web build.
@@ -802,12 +805,18 @@ The production image must:
   offline, integrity-checked restore;
 - avoid CORS complexity.
 
-`/healthz` returns only process liveness. `/readyz` is `503` until the listener
-is serving, becomes `200` while local service work may be accepted, and returns
-to not-ready before shutdown. Phase 5 readiness covers validated configuration
-and service lifecycle only. Phase 6 adds required database readiness. Loss of
-one observed provider later changes that source status but does not make the
-whole API unready.
+`/healthz` returns only process liveness. `/readyz` is `503` until the database
+has passed identity, migration-ledger, integrity, and installation checks and
+the listener is serving. It becomes `200` while local service work may be
+accepted, returns to not-ready when storage health is lost, and returns to
+not-ready before shutdown. Loss of one observed provider later changes that
+source status but does not make the whole API unready.
+
+Phase 6 supplies a local online-backup command and an offline restore command.
+The restore validates and upgrades a known schema, checks integrity and foreign
+keys, and revokes restored sessions before installation. Exact operator steps
+and platform permission limits are in
+[the backup and restore procedure](docs/operations/backup-restore.md).
 
 Health and readiness responses expose only terse process state. Detailed
 readiness remains administrator-only at `/api/v1/system/readiness`; Phase 5

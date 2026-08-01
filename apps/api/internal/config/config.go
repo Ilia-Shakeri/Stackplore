@@ -10,9 +10,12 @@ import (
 	"net/netip"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -39,6 +42,8 @@ const (
 	ratePerSecondKey          = prefix + "RATE_LIMIT_PER_SECOND"
 	rateBurstKey              = prefix + "RATE_LIMIT_BURST"
 	rateMaxClientsKey         = prefix + "RATE_LIMIT_MAX_CLIENTS"
+	dataDirectoryKey          = prefix + "DATA_DIRECTORY"
+	databaseBusyTimeoutKey    = prefix + "DATABASE_BUSY_TIMEOUT"
 
 	// This variable belongs to the browser development process and is allowed
 	// in the shared process environment without becoming server configuration.
@@ -59,37 +64,42 @@ const (
 	defaultRatePerSecond        = 20.0
 	defaultRateBurst            = 40
 	defaultRateMaxClients       = 4096
+	defaultDataDirectory        = "data"
+	defaultDatabaseBusyTimeout  = 5 * time.Second
 )
 
 const (
-	minimumReadHeaderTimeout = time.Second
-	maximumReadHeaderTimeout = 30 * time.Second
-	minimumReadTimeout       = time.Second
-	maximumReadTimeout       = 2 * time.Minute
-	minimumWriteTimeout      = time.Second
-	maximumWriteTimeout      = 5 * time.Minute
-	minimumIdleTimeout       = time.Second
-	maximumIdleTimeout       = 10 * time.Minute
-	minimumRequestTimeout    = 100 * time.Millisecond
-	maximumRequestTimeout    = 2 * time.Minute
-	minimumShutdownTimeout   = time.Second
-	maximumShutdownTimeout   = 2 * time.Minute
-	minimumMaxHeaderBytes    = 4 * 1024
-	maximumMaxHeaderBytes    = 1024 * 1024
-	minimumRequestBodyBytes  = 1024
-	maximumRequestBodyBytes  = 16 * 1024 * 1024
-	minimumResponseBytes     = 64 * 1024
-	maximumResponseBytes     = 64 * 1024 * 1024
-	minimumMaxConnections    = 1
-	maximumMaxConnections    = 16_384
-	minimumMaxInFlight       = 1
-	maximumMaxInFlight       = 4096
-	minimumRatePerSecond     = 0.1
-	maximumRatePerSecond     = 10_000.0
-	minimumRateBurst         = 1
-	maximumRateBurst         = 10_000
-	minimumRateMaxClients    = 1
-	maximumRateMaxClients    = 65_536
+	minimumReadHeaderTimeout   = time.Second
+	maximumReadHeaderTimeout   = 30 * time.Second
+	minimumReadTimeout         = time.Second
+	maximumReadTimeout         = 2 * time.Minute
+	minimumWriteTimeout        = time.Second
+	maximumWriteTimeout        = 5 * time.Minute
+	minimumIdleTimeout         = time.Second
+	maximumIdleTimeout         = 10 * time.Minute
+	minimumRequestTimeout      = 100 * time.Millisecond
+	maximumRequestTimeout      = 2 * time.Minute
+	minimumShutdownTimeout     = time.Second
+	maximumShutdownTimeout     = 2 * time.Minute
+	minimumMaxHeaderBytes      = 4 * 1024
+	maximumMaxHeaderBytes      = 1024 * 1024
+	minimumRequestBodyBytes    = 1024
+	maximumRequestBodyBytes    = 16 * 1024 * 1024
+	minimumResponseBytes       = 64 * 1024
+	maximumResponseBytes       = 64 * 1024 * 1024
+	minimumMaxConnections      = 1
+	maximumMaxConnections      = 16_384
+	minimumMaxInFlight         = 1
+	maximumMaxInFlight         = 4096
+	minimumRatePerSecond       = 0.1
+	maximumRatePerSecond       = 10_000.0
+	minimumRateBurst           = 1
+	maximumRateBurst           = 10_000
+	minimumRateMaxClients      = 1
+	maximumRateMaxClients      = 65_536
+	maximumDataDirectoryBytes  = 4096
+	minimumDatabaseBusyTimeout = 100 * time.Millisecond
+	maximumDatabaseBusyTimeout = 30 * time.Second
 )
 
 // Environment selects runtime validation rules.
@@ -136,6 +146,9 @@ type Config struct {
 	RatePerSecond  float64
 	RateBurst      int
 	RateMaxClients int
+
+	DataDirectory       string
+	DatabaseBusyTimeout time.Duration
 }
 
 // Getter makes environment access explicit and replaceable in tests.
@@ -206,6 +219,9 @@ func Load(getter Getter) (Config, error) {
 	if result.LogFormat, err = loadLogFormat(getter, result.LogFormat); err != nil {
 		return Config{}, err
 	}
+	if result.DataDirectory, err = loadDataDirectory(getter, result.DataDirectory); err != nil {
+		return Config{}, err
+	}
 
 	durationFields := []struct {
 		key     string
@@ -219,6 +235,7 @@ func Load(getter Getter) (Config, error) {
 		{idleTimeoutKey, &result.IdleTimeout, minimumIdleTimeout, maximumIdleTimeout},
 		{requestTimeoutKey, &result.RequestTimeout, minimumRequestTimeout, maximumRequestTimeout},
 		{shutdownTimeoutKey, &result.ShutdownTimeout, minimumShutdownTimeout, maximumShutdownTimeout},
+		{databaseBusyTimeoutKey, &result.DatabaseBusyTimeout, minimumDatabaseBusyTimeout, maximumDatabaseBusyTimeout},
 	}
 	for _, field := range durationFields {
 		*field.target, err = loadDuration(getter, field.key, *field.target, field.minimum, field.maximum)
@@ -304,6 +321,9 @@ func Validate(result Config) error {
 	if result.LogFormat != LogFormatJSON && result.LogFormat != LogFormatText {
 		return invalid(logFormatKey, "is invalid")
 	}
+	if err := validateDataDirectory(result.DataDirectory, result.Environment); err != nil {
+		return err
+	}
 
 	durations := []struct {
 		key     string
@@ -317,11 +337,15 @@ func Validate(result Config) error {
 		{idleTimeoutKey, result.IdleTimeout, minimumIdleTimeout, maximumIdleTimeout},
 		{requestTimeoutKey, result.RequestTimeout, minimumRequestTimeout, maximumRequestTimeout},
 		{shutdownTimeoutKey, result.ShutdownTimeout, minimumShutdownTimeout, maximumShutdownTimeout},
+		{databaseBusyTimeoutKey, result.DatabaseBusyTimeout, minimumDatabaseBusyTimeout, maximumDatabaseBusyTimeout},
 	}
 	for _, field := range durations {
 		if field.value < field.minimum || field.value > field.maximum {
 			return invalid(field.key, "is outside the allowed range")
 		}
+	}
+	if result.DatabaseBusyTimeout%time.Millisecond != 0 {
+		return invalid(databaseBusyTimeoutKey, "must use whole milliseconds")
 	}
 	if result.MaxHeaderBytes < minimumMaxHeaderBytes || result.MaxHeaderBytes > maximumMaxHeaderBytes {
 		return invalid(maxHeaderBytesKey, "is outside the allowed range")
@@ -386,6 +410,8 @@ func defaultConfig() Config {
 		RatePerSecond:          defaultRatePerSecond,
 		RateBurst:              defaultRateBurst,
 		RateMaxClients:         defaultRateMaxClients,
+		DataDirectory:          defaultDataDirectory,
+		DatabaseBusyTimeout:    defaultDatabaseBusyTimeout,
 	}
 }
 
@@ -397,7 +423,7 @@ func validateEnvironmentKeys(entries []string) error {
 		readTimeoutKey: {}, writeTimeoutKey: {}, idleTimeoutKey: {},
 		requestTimeoutKey: {}, shutdownTimeoutKey: {}, maxHeaderBytesKey: {},
 		maxRequestBodyBytesKey: {}, maximumResponseBytesKey: {}, maxConnectionsKey: {}, maxInFlightKey: {}, ratePerSecondKey: {}, rateBurstKey: {},
-		rateMaxClientsKey: {}, developmentAPIOriginKey: {},
+		rateMaxClientsKey: {}, dataDirectoryKey: {}, databaseBusyTimeoutKey: {}, developmentAPIOriginKey: {},
 	}
 	seen := make(map[string]struct{}, len(allowed))
 	for _, entry := range entries {
@@ -543,6 +569,100 @@ func loadLogFormat(getter Getter, fallback LogFormat) (LogFormat, error) {
 	default:
 		return "", invalid(logFormatKey, "is invalid")
 	}
+}
+
+func loadDataDirectory(getter Getter, fallback string) (string, error) {
+	value, present, err := readValue(getter, dataDirectoryKey)
+	if err != nil || !present {
+		return fallback, err
+	}
+	if err := validateDataDirectory(value, EnvironmentDevelopment); err != nil {
+		return "", err
+	}
+	return value, nil
+}
+
+func validateDataDirectory(value string, environment Environment) error {
+	if value == "" ||
+		len(value) > maximumDataDirectoryBytes ||
+		!utf8.ValidString(value) ||
+		filepath.Clean(value) != value ||
+		value == "." ||
+		isRootDirectory(value) ||
+		isUNCOrDevicePath(value) ||
+		hasWindowsDeviceName(value) {
+		return invalid(dataDirectoryKey, "is invalid")
+	}
+	for _, character := range value {
+		if unicode.IsControl(character) {
+			return invalid(dataDirectoryKey, "is invalid")
+		}
+	}
+
+	absolute := filepath.IsAbs(value)
+	if !absolute && !filepath.IsLocal(value) {
+		return invalid(dataDirectoryKey, "is invalid")
+	}
+	if environment == EnvironmentProduction && !absolute {
+		return invalid(dataDirectoryKey, "must be absolute in production")
+	}
+	return nil
+}
+
+func isRootDirectory(value string) bool {
+	if len(value) == 3 && value[1] == ':' && (value[2] == '/' || value[2] == '\\') {
+		first := value[0]
+		return first >= 'A' && first <= 'Z' || first >= 'a' && first <= 'z'
+	}
+	volume := filepath.VolumeName(value)
+	remainder := strings.TrimPrefix(value, volume)
+	if remainder == "" {
+		return filepath.IsAbs(value)
+	}
+	for _, character := range remainder {
+		if character != '/' && character != '\\' {
+			return false
+		}
+	}
+	return true
+}
+
+func isUNCOrDevicePath(value string) bool {
+	upper := strings.ToUpper(value)
+	return strings.HasPrefix(value, `\\`) ||
+		strings.HasPrefix(value, "//") ||
+		strings.HasPrefix(upper, `\??\`) ||
+		strings.HasPrefix(upper, `\DEVICE\`) ||
+		strings.HasPrefix(upper, `\GLOBALROOT\`)
+}
+
+func hasWindowsDeviceName(value string) bool {
+	components := strings.FieldsFunc(value, func(character rune) bool {
+		return character == '/' || character == '\\'
+	})
+	for _, component := range components {
+		component = strings.TrimRight(component, ". ")
+		base, _, _ := strings.Cut(component, ".")
+		upper := strings.ToUpper(base)
+		switch upper {
+		case "CON", "PRN", "AUX", "NUL", "CLOCK$", "CONIN$", "CONOUT$":
+			return true
+		}
+		characters := []rune(upper)
+		if len(characters) == 4 &&
+			(string(characters[:3]) == "COM" || string(characters[:3]) == "LPT") &&
+			isWindowsDeviceDigit(characters[3]) {
+			return true
+		}
+	}
+	return false
+}
+
+func isWindowsDeviceDigit(character rune) bool {
+	return character >= '1' && character <= '9' ||
+		character == '\u00b9' ||
+		character == '\u00b2' ||
+		character == '\u00b3'
 }
 
 func loadDuration(getter Getter, key string, fallback, minimum, maximum time.Duration) (time.Duration, error) {

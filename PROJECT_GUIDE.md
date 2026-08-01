@@ -6,13 +6,15 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 
 ## 1. Current state
 
-Phases 0 through 4 are committed. Phase 5 adds validated process
-configuration, structured redacting logs, a bounded HTTP boundary, strict
-public-origin and proxy trust, operational probes, protected process metrics,
-and graceful lifecycle handling. The only versioned route is
+Phases 0 through 5 are committed. Phase 6 adds the local SQLite system of
+record, embedded checked migrations, one-process ownership, repository and
+transaction boundaries, retention helpers, database readiness, online backup,
+and offline restore. It is complete and awaiting maintainer commit. The only
+versioned route is
 `GET /api/v1/system/readiness`; its handler stays closed with `401` after outer
 request gates until authentication and administrator authorization arrive in
-Phase 7. Storage, provider adapters, and product workflows remain planned.
+Phase 7. Authentication, provider adapters, and product workflows remain
+planned.
 Available commands and their verified scope are documented in
 [docs/development.md](docs/development.md).
 
@@ -151,6 +153,8 @@ documentation and repository policy only.
 - Run embedded forward-only migrations before serving requests.
 - Put retention behind services, not ad hoc SQL in handlers.
 - Use SQLite's online backup mechanism rather than copying a live database file.
+- Keep restore offline, fail closed on recovery artifacts, and follow
+  [the local backup and restore procedure](docs/operations/backup-restore.md).
 - Never persist provider credentials or Secret values.
 
 ### 4.5 Realtime

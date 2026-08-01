@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/netip"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -28,6 +29,13 @@ func getter(values map[string]string) mapGetter {
 		entries = append(entries, key+"="+value)
 	}
 	return mapGetter{values: values, entries: entries}
+}
+
+func productionDataDirectory() string {
+	if filepath.Separator == '\\' {
+		return `C:\stackplore\data`
+	}
+	return "/var/lib/stackplore"
 }
 
 func TestLoadDefaults(t *testing.T) {
@@ -69,6 +77,9 @@ func TestLoadDefaults(t *testing.T) {
 	if got.RatePerSecond != 20 || got.RateBurst != 40 || got.RateMaxClients != 4096 {
 		t.Errorf("rate limits = (%v, %d, %d); want defaults", got.RatePerSecond, got.RateBurst, got.RateMaxClients)
 	}
+	if got.DataDirectory != "data" || got.DatabaseBusyTimeout != 5*time.Second {
+		t.Errorf("database = (%q, %s); want data and 5s", got.DataDirectory, got.DatabaseBusyTimeout)
+	}
 }
 
 func TestLoadAllFields(t *testing.T) {
@@ -96,6 +107,8 @@ func TestLoadAllFields(t *testing.T) {
 		ratePerSecondKey:          "12.5",
 		rateBurstKey:              "25",
 		rateMaxClientsKey:         "2048",
+		dataDirectoryKey:          productionDataDirectory(),
+		databaseBusyTimeoutKey:    "10s",
 		developmentAPIOriginKey:   "http://127.0.0.1:8080",
 	}))
 	if err != nil {
@@ -113,6 +126,9 @@ func TestLoadAllFields(t *testing.T) {
 	}
 	if got.MaxHeaderBytes != 65536 || got.MaxRequestBodyBytes != 1048576 || got.MaximumResponseBytes != 2097152 || got.MaxConnections != 1024 || got.MaxInFlight != 128 || got.RatePerSecond != 12.5 || got.RateBurst != 25 || got.RateMaxClients != 2048 {
 		t.Error("configured bounds were not preserved")
+	}
+	if got.DataDirectory != productionDataDirectory() || got.DatabaseBusyTimeout != 10*time.Second {
+		t.Error("configured database values were not preserved")
 	}
 	if want := []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("2001:db8::/32")}; !reflect.DeepEqual(got.TrustedProxyPrefixes, want) {
 		t.Errorf("TrustedProxyPrefixes = %v; want %v", got.TrustedProxyPrefixes, want)
@@ -215,6 +231,26 @@ func TestLoadRejectsInvalidFieldValues(t *testing.T) {
 		{"burst too large", rateBurstKey, "10001"},
 		{"clients zero", rateMaxClientsKey, "0"},
 		{"clients too large", rateMaxClientsKey, "65537"},
+		{"data directory blank", dataDirectoryKey, ""},
+		{"data directory dot", dataDirectoryKey, "."},
+		{"data directory not clean", dataDirectoryKey, "data/../data"},
+		{"data directory trailing separator", dataDirectoryKey, "data/"},
+		{"data directory parent escape", dataDirectoryKey, "../data"},
+		{"data directory host root", dataDirectoryKey, string(filepath.Separator)},
+		{"data directory drive root", dataDirectoryKey, `C:\`},
+		{"data directory UNC", dataDirectoryKey, `\\server\share\data`},
+		{"data directory device namespace", dataDirectoryKey, `\\.\PhysicalDrive0`},
+		{"data directory device name", dataDirectoryKey, "NUL"},
+		{"data directory nested device", dataDirectoryKey, "data/CON.txt"},
+		{"data directory superscript device", dataDirectoryKey, "data/COM\u00b9.txt"},
+		{"data directory control", dataDirectoryKey, "data/\u0001child"},
+		{"data directory NUL", dataDirectoryKey, "data\x00child"},
+		{"data directory invalid UTF-8", dataDirectoryKey, string([]byte{'d', 'a', 't', 'a', 0xff})},
+		{"data directory too long", dataDirectoryKey, strings.Repeat("d", maximumDataDirectoryBytes+1)},
+		{"busy timeout malformed", databaseBusyTimeoutKey, "soon"},
+		{"busy timeout too short", databaseBusyTimeoutKey, "99ms"},
+		{"busy timeout sub-millisecond", databaseBusyTimeoutKey, "100ms1ns"},
+		{"busy timeout too long", databaseBusyTimeoutKey, "30s1ns"},
 	}
 
 	for _, test := range tests {
@@ -253,6 +289,10 @@ func TestLoadAcceptsDocumentedBounds(t *testing.T) {
 		{"maximum burst", map[string]string{rateBurstKey: "10000"}},
 		{"minimum clients", map[string]string{rateMaxClientsKey: "1"}},
 		{"maximum clients", map[string]string{rateMaxClientsKey: "65536"}},
+		{"maximum data directory bytes", map[string]string{dataDirectoryKey: strings.Repeat("d", maximumDataDirectoryBytes)}},
+		{"Unicode data directory", map[string]string{dataDirectoryKey: "dâtâ"}},
+		{"minimum busy timeout", map[string]string{databaseBusyTimeoutKey: "100ms"}},
+		{"maximum busy timeout", map[string]string{databaseBusyTimeoutKey: "30s"}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -292,6 +332,10 @@ func TestValidateRejectsForgedTypedConfig(t *testing.T) {
 		{"request body", func(value *Config) { value.MaxRequestBodyBytes = 0 }},
 		{"response body", func(value *Config) { value.MaximumResponseBytes = 0 }},
 		{"rate", func(value *Config) { value.RatePerSecond = 0 }},
+		{"data directory", func(value *Config) { value.DataDirectory = "../data" }},
+		{"production relative data directory", func(value *Config) { value.Environment = EnvironmentProduction }},
+		{"database busy timeout", func(value *Config) { value.DatabaseBusyTimeout = 0 }},
+		{"database busy timeout precision", func(value *Config) { value.DatabaseBusyTimeout = 100*time.Millisecond + time.Nanosecond }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -358,32 +402,36 @@ func TestProductionExposureRules(t *testing.T) {
 		{
 			name: "loopback needs no edge",
 			values: map[string]string{
-				environmentKey: "production",
+				environmentKey:   "production",
+				dataDirectoryKey: productionDataDirectory(),
 			},
 		},
 		{
 			name: "remote listener requires HTTPS",
 			values: map[string]string{
-				environmentKey:  "production",
-				httpAddressKey:  "0.0.0.0:8080",
-				publicOriginKey: "http://stackplore.example",
+				environmentKey:   "production",
+				httpAddressKey:   "0.0.0.0:8080",
+				publicOriginKey:  "http://stackplore.example",
+				dataDirectoryKey: productionDataDirectory(),
 			},
 			field: publicOriginKey, wantErr: true,
 		},
 		{
 			name: "remote origin requires HTTPS",
 			values: map[string]string{
-				environmentKey:  "production",
-				publicOriginKey: "http://stackplore.example",
+				environmentKey:   "production",
+				publicOriginKey:  "http://stackplore.example",
+				dataDirectoryKey: productionDataDirectory(),
 			},
 			field: publicOriginKey, wantErr: true,
 		},
 		{
 			name: "remote exposure requires proxy",
 			values: map[string]string{
-				environmentKey:  "production",
-				httpAddressKey:  "0.0.0.0:8080",
-				publicOriginKey: "https://stackplore.example",
+				environmentKey:   "production",
+				httpAddressKey:   "0.0.0.0:8080",
+				publicOriginKey:  "https://stackplore.example",
+				dataDirectoryKey: productionDataDirectory(),
 			},
 			field: trustedProxyPrefixesKey, wantErr: true,
 		},
@@ -394,6 +442,7 @@ func TestProductionExposureRules(t *testing.T) {
 				httpAddressKey:          "0.0.0.0:8080",
 				publicOriginKey:         "https://stackplore.example",
 				trustedProxyPrefixesKey: "10.0.0.0/8",
+				dataDirectoryKey:        productionDataDirectory(),
 			},
 		},
 		{
@@ -410,6 +459,60 @@ func TestProductionExposureRules(t *testing.T) {
 			_, err := Load(getter(test.values))
 			if test.wantErr {
 				assertFieldError(t, err, test.field)
+				return
+			}
+			if err != nil {
+				t.Fatalf("Load() error = %v", err)
+			}
+		})
+	}
+}
+
+func TestDataDirectoryEnvironmentRules(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		values  map[string]string
+		wantErr bool
+	}{
+		{
+			name: "production rejects relative",
+			values: map[string]string{
+				environmentKey:   "production",
+				dataDirectoryKey: "data",
+			},
+			wantErr: true,
+		},
+		{
+			name: "production accepts absolute",
+			values: map[string]string{
+				environmentKey:   "production",
+				dataDirectoryKey: productionDataDirectory(),
+			},
+		},
+		{
+			name: "development accepts relative",
+			values: map[string]string{
+				environmentKey:   "development",
+				dataDirectoryKey: "local-data",
+			},
+		},
+		{
+			name: "test accepts relative",
+			values: map[string]string{
+				environmentKey:   "test",
+				dataDirectoryKey: "test-data",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			_, err := Load(getter(test.values))
+			if test.wantErr {
+				assertFieldError(t, err, dataDirectoryKey)
 				return
 			}
 			if err != nil {
@@ -442,6 +545,14 @@ func TestLoadRejectsUnknownAndDuplicateVariables(t *testing.T) {
 				entries: []string{prefix + "HTTP_MAX_INFLIGHT=256"},
 			},
 			field: prefix + "HTTP_MAX_INFLIGHT",
+		},
+		{
+			name: "data directory typo",
+			getter: mapGetter{
+				values:  map[string]string{prefix + "DATA_DIR": "data"},
+				entries: []string{prefix + "DATA_DIR=data"},
+			},
+			field: prefix + "DATA_DIR",
 		},
 		{
 			name: "wrong case",
@@ -478,6 +589,8 @@ func TestErrorsNeverContainValues(t *testing.T) {
 		getter(map[string]string{publicOriginKey: marker}),
 		getter(map[string]string{trustedProxyPrefixesKey: marker}),
 		getter(map[string]string{logLevelKey: marker}),
+		getter(map[string]string{dataDirectoryKey: marker + "\x00"}),
+		getter(map[string]string{databaseBusyTimeoutKey: marker}),
 		getter(map[string]string{readTimeoutKey: marker}),
 		getter(map[string]string{maxHeaderBytesKey: marker}),
 		getter(map[string]string{maximumResponseBytesKey: marker}),

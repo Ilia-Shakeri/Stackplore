@@ -51,12 +51,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
   shutdown with a forced-stop ceiling
 - The first implemented OpenAPI path and reproducibly derived browser error
   types for its closed Phase 5 behavior
+- Pure-Go SQLite storage with WAL, foreign keys, a bounded busy timeout,
+  exclusive process ownership, checked embedded migrations, and database-backed
+  readiness
+- Strict indexed schema for installation, identity, source, observation,
+  alert, notification, and audit state plus bounded non-audit retention helpers
+- Domain-owned metric, event, and audit repository ports with atomic bounded
+  SQLite adapters and transaction handling
+- Local operator command for live SQLite online backup and offline,
+  integrity-checked restore with schema upgrade and restored-session revocation
+- Fail-closed restore markers, maintenance locking, private local-path checks,
+  second-process coverage, and a platform-aware backup and restore procedure
 
 ### Project status
 
-- The repository contains the Phase 5 service foundation, provider-neutral
+- The repository contains the Phase 6 local storage foundation, Phase 5 service
+  foundation, provider-neutral
   domain and contract foundations, a runnable bilingual application shell, and
   API, browser-client, web, contract, and locale checks. The versioned API has
   one deliberately closed system-readiness path and no product data workflow.
-- Product workflows, provider integrations, storage, authentication, container
+- Product workflows, provider integrations, authentication, container
   images, deployment packages, a demo, and a versioned release do not exist yet.

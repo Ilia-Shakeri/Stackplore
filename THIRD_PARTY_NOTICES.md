@@ -3,6 +3,36 @@
 Stackplore bundles the following font packages for local, offline use. Their
 licenses remain separate from the project's Apache License 2.0.
 
+The Go service also links the storage components listed below. Their licenses
+remain separate from the project's Apache License 2.0.
+
+## modernc.org/sqlite
+
+- Module: `modernc.org/sqlite` version `1.55.0`
+- Source: <https://gitlab.com/cznic/sqlite/-/tree/v1.55.0>
+- License: BSD 3-Clause
+- License copy:
+  [apps/api/licenses/modernc-sqlite-BSD-3-Clause.txt](apps/api/licenses/modernc-sqlite-BSD-3-Clause.txt)
+- Bundled SQLite core: public domain
+- SQLite notice:
+  [apps/api/licenses/sqlite-public-domain.txt](apps/api/licenses/sqlite-public-domain.txt)
+
+## gofrs/flock
+
+- Module: `github.com/gofrs/flock` version `0.13.0`
+- Source: <https://github.com/gofrs/flock/tree/v0.13.0>
+- License: BSD 3-Clause
+- License copy:
+  [apps/api/licenses/gofrs-flock-BSD-3-Clause.txt](apps/api/licenses/gofrs-flock-BSD-3-Clause.txt)
+
+## golang.org/x/sys
+
+- Module: `golang.org/x/sys` version `0.46.0`
+- Source: <https://go.googlesource.com/sys/+/refs/tags/v0.46.0>
+- License: BSD 3-Clause
+- License copy:
+  [apps/api/licenses/golang-x-sys-BSD-3-Clause.txt](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt)
+
 ## Inter
 
 - Package: `@fontsource-variable/inter` version `5.3.0`

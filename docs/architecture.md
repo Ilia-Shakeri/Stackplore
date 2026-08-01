@@ -1,16 +1,17 @@
 # Stackplore Architecture
 
-Status: Target architecture with Phase 5 service foundation
-Last updated: 2026-08-01
+Status: Target architecture with Phase 6 local storage foundation
+Last updated: 2026-08-02
 
 This document defines the intended v1 architecture for Stackplore. Phase 0
-established the design and governance documents. Phases 1 through 5 implement
+established the design and governance documents. Phases 1 through 6 implement
 the developer scaffold, responsive and bilingual interface foundation,
 provider-neutral domain contracts, focused read ports, the versioned transport
 foundation, and a bounded Go service boundary with validated configuration and
-operational probes. Product workflows, provider behavior, storage,
-authentication, static production serving, and deployment assets described
-here remain targets for later phases, not claims about current functionality.
+operational probes, plus local SQLite storage and migration foundations.
+Product workflows, provider behavior, authentication, static production
+serving, and deployment assets described here remain targets for later phases,
+not claims about current functionality.
 
 ## Goals and constraints
 
@@ -257,8 +258,9 @@ event, alert, audit, capability, query, and provider-status parts under
 `apps/api/internal/domain`. Versioned composite digests provide stable resource
 and relationship identifiers. Validation bounds identifiers, display text,
 queries, result sets, evidence, and live-read targets, and requires canonical
-UTC timestamps. User, session, notification-delivery, storage, and feature HTTP
-behavior remain owned by later phases.
+UTC timestamps. Phase 6 adds the persistence schema plus bounded repository
+adapters for metric, event, and audit writes. User, session,
+notification-delivery, and feature HTTP behavior remain owned by later phases.
 
 Resource identity is a stable composite of provider kind, source identifier,
 environment scope, resource kind, namespace or project, and provider-native
@@ -327,24 +329,38 @@ server.
 
 ## Storage architecture
 
-SQLite is the v1 system of record. The intended driver candidate is
-`modernc.org/sqlite`, subject to compatibility confirmation in the storage
-phase. V1 runs exactly one active API instance against a data file. Multiple
-replicas and network filesystem sharing are unsupported.
+SQLite is the v1 system of record. Phase 6 selects and pins the pure-Go
+`modernc.org/sqlite` driver. V1 runs exactly one active API instance against the
+fixed `stackplore.db` file. Startup takes an exclusive process-ownership lock
+before opening or migrating the database. A second API process, multiple
+replicas, and network filesystem sharing are unsupported.
 
-Storage behavior includes:
+Phase 6 implements:
 
-- embedded, ordered, forward schema migrations before readiness;
+- embedded, ordered, forward schema migrations with a checked full ledger and
+  application identity before readiness;
 - foreign keys enabled for every connection;
-- WAL mode and a bounded busy timeout;
-- short write transactions and a controlled writer path;
-- repository interfaces at domain boundaries;
-- retention and batch pruning for samples, events, sessions, and deliveries;
-- a separate audit quota, minimum retention, bounded pruning worker, and
-  cutoff-and-count summary record;
-- bounded query ranges and indexed access paths;
+- WAL mode, full synchronous durability, and a bounded busy timeout;
+- short write transactions, bounded batches, and an atomic unit-of-work path;
+- domain-owned metric, event, and audit repository interfaces whose SQLite
+  adapters do not expose SQL or driver types;
+- fixed bounded pruning for metric samples, health history, infrastructure
+  events, and terminal notification deliveries; audit and identity rows are not
+  generic cleanup targets;
+- explicit indexes for later bounded feature access paths;
 - consistent UTC timestamps with locale formatting confined to presentation;
-- documented, tested backup and restore procedures before release.
+- a shared maintenance lock for live online backup and an exclusive maintenance
+  lock for offline restore;
+- checked single-file backup plus staged, migration-aware restore that revokes
+  restored sessions and pending authorization grants;
+- storage-aware readiness, close-time checkpointing, and ownership release
+  after HTTP drain.
+
+The embedded schema covers installation metadata, users and sessions, sources,
+resources and observation history, alerts, notification delivery, and audit
+records. This schema does not make their product or authorization workflows
+available. Separate audit quotas and pruning policy, session lifecycle cleanup,
+disk-space policy, and feature queries remain with their owning later phases.
 
 Raw passwords and raw session tokens are never stored. Connection records
 prefer mounted file paths or environment references over credential material.
@@ -354,6 +370,10 @@ dumps do not belong in SQLite.
 Repository ports express domain operations and transaction needs, not SQL
 queries. This leaves room for a future PostgreSQL adapter without changing
 domain services or HTTP contracts.
+
+Local backup and restore path, permission, lock, validation, and crash-recovery
+rules are documented in
+[Local SQLite Backup and Restore](operations/backup-restore.md).
 
 ## Authentication and request security
 
@@ -533,16 +553,18 @@ the repeated source failure.
 Operational endpoints have distinct meaning:
 
 - `/healthz` returns `200` with `ok` while the process can serve HTTP;
-- `/readyz` returns `503` before service readiness and during stop, and `200`
-  only while the listener is serving;
+- `/readyz` returns `503` before database and service readiness, after an
+  observed required database failure, and during stop; it returns `200` only
+  while storage health and the serving lifecycle are ready;
 - `/metrics` returns process metrics only when the request resolves to the
   exact configured public scheme and authority and its verified client IP is
   in a configured network prefix; the Phase 5 default permits IPv4 and IPv6
   loopback, while denial is a plain `404`.
 
 The versioned `GET /api/v1/system/readiness` route is reserved for enabled
-administrators. Phase 5 has no local session subsystem, so every request that
-passes its outer request gates reaches a handler closed with `401`. No header,
+administrators. Through Phase 6 there is no local session subsystem, so every
+request that passes its outer request gates reaches a handler closed with
+`401`. No header,
 query value, cookie, trusted-edge assertion, or environment setting grants
 temporary access. Phase 7 replaces this closed gate with the real session and
 role checks and may then publish a detailed success shape.
@@ -554,13 +576,16 @@ classes. Metrics never label by client, user, source, provider-native
 identifier, resource name, or log-derived value.
 
 Provider availability belongs in product status APIs and does not normally make
-the process unready. Phase 5 readiness covers validated configuration and the
-HTTP lifecycle; database readiness joins in Phase 6. On an interrupt or
-termination signal, the service marks itself not ready and asks the HTTP server
-to drain accepted requests within the configured bound. It then cancels the
-base request context and force-closes the server if that deadline expired.
-Later composition phases must add their repository, stream, watch, and worker
-close steps to the same lifecycle.
+the process unready. Phase 6 readiness requires validated configuration, a
+healthy database, a complete current migration ledger, valid installation
+metadata, and the HTTP lifecycle. A bounded monitor marks the service not ready
+after required database health is lost and ready again only after a successful
+check. On an interrupt or termination signal, the service marks itself not
+ready and asks the HTTP server to drain accepted requests within the configured
+bound. It then cancels the base request context, force-closes the server if that
+deadline expired, closes the database, and releases ownership. Later
+composition phases must add their stream, watch, and worker close steps to the
+same lifecycle.
 
 ## Deployment model
 
@@ -596,8 +621,9 @@ cluster-administrator access or Secret read permission.
 The release deployment runs exactly one API process. Kubernetes uses one
 replica with a `Recreate` update strategy, and process startup acquires an
 exclusive database ownership lock before migrations or background work.
-Backup uses a local operator-only SQLite online-backup command; restore is
-offline and revokes restored sessions.
+Backup uses the implemented local operator-only SQLite online-backup command;
+restore is offline, fail-closed across interruption, and revokes restored
+sessions. Deployment packaging for those commands remains in later phases.
 
 ## Scaling and availability limits
 
@@ -616,10 +642,13 @@ transport, migration ownership, and session behavior.
 
 ## Verification expectations
 
-Later phases must prove the design with:
+Phase 6 proves migration, storage-policy, repository-transaction, bounded
+retention, process-ownership, contention, backup, restore, and storage-readiness
+behavior against temporary local databases. Later phases must prove the
+remaining design with:
 
 - domain tests against fake ports;
-- repository contract and migration tests;
+- feature repository query and lifecycle tests;
 - provider fixture tests plus clearly labeled optional live checks;
 - auth, role, CSRF, rate-limit, redaction, and action-gate tests;
 - SSE replay, overflow, cancellation, and reconnect tests;
