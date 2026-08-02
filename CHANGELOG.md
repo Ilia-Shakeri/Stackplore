@@ -62,13 +62,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
   integrity-checked restore with schema upgrade and restored-session revocation
 - Fail-closed restore markers, maintenance locking, private local-path checks,
   second-process coverage, and a platform-aware backup and restore procedure
+- Atomic first-run administrator setup with permanent closure and a short-lived,
+  one-use operator proof when setup is exposed beyond loopback
+- Versioned Argon2id credentials, non-enumerating durable login throttles,
+  opaque server-side sessions, exact-origin CSRF checks, expiry, rotation, and
+  revocation
+- Administrator and viewer authorization, one-use recent-auth grants,
+  final-administrator protection, password rotation and reset, and audited
+  local account recovery
+- Canonical authentication and user-administration HTTP contracts, derived
+  browser types, setup and login screens, session-aware navigation, and a
+  responsive bilingual user-management interface
 
 ### Project status
 
-- The repository contains the Phase 6 local storage foundation, Phase 5 service
-  foundation, provider-neutral
-  domain and contract foundations, a runnable bilingual application shell, and
-  API, browser-client, web, contract, and locale checks. The versioned API has
-  one deliberately closed system-readiness path and no product data workflow.
-- Product workflows, provider integrations, authentication, container
-  images, deployment packages, a demo, and a versioned release do not exist yet.
+- The repository contains the Phase 7 local account, session, authorization,
+  and user-management flows; the Phase 6 storage foundation; the Phase 5
+  service foundation; provider-neutral domain and contract foundations; and a
+  runnable bilingual application shell with API, browser-client, web,
+  contract, and locale checks. The versioned API has protected authentication,
+  user-administration, and system-readiness paths but no product data workflow.
+- Product workflows, provider integrations, container images, deployment
+  packages, a demo, and a versioned release do not exist yet.

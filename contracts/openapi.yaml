@@ -11,18 +11,252 @@ servers:
   - url: /api/v1
     description: Same-origin version 1 API base path
 paths:
-  /system/readiness:
+  /setup/status:
     get:
-      operationId: getSystemReadiness
-      summary: Inspect detailed service readiness
-      description: >-
-        Reserved for an enabled administrator. Phase 5 has no local session
-        subsystem, so after the shared HTTP boundary checks pass, this route is
-        deliberately closed and returns 401. No header, query value, cookie,
-        proxy claim, or deployment setting grants access.
+      operationId: getSetupStatus
+      summary: Inspect first-run setup availability
+      description: Returns only the state needed to choose setup or sign-in. It grants no setup authority.
+      security: []
       parameters:
         - $ref: '#/components/parameters/RequestId'
       responses:
+        '200':
+          description: Current bounded network setup state.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetupStatus'
+              examples:
+                setupRequired:
+                  summary: First administrator setup is available
+                  value:
+                    state: required
+                    bootstrap_proof_required: false
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /setup:
+    post:
+      operationId: createFirstAdministrator
+      summary: Complete first-run administrator setup
+      description: >-
+        Atomically creates the only permitted first administrator and permanently closes network
+        setup. Requires a one-use pre-auth proof, exact same-origin request metadata, and the
+        operator bootstrap proof when the setup status requires one. The pre-auth cookie uses
+        HttpOnly, SameSite=Lax, Path=/api/v1, no Domain attribute, and Secure on HTTPS.
+      security:
+        - PreauthBrowserProof: []
+          PreauthRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetupRequest'
+            examples:
+              localSetup:
+                summary: Create the first local administrator
+                value:
+                  login_name: operator
+                  display_name: Operations
+                  password: correct-horse-demo
+      responses:
+        '201':
+          description: Setup completed and a new local session was issued.
+          headers:
+            Set-Cookie:
+              description: >-
+                Opaque host-only session cookie. Uses HttpOnly, SameSite=Lax, Path=/api/v1, no
+                Domain attribute, and Secure on HTTPS. The consumed pre-auth cookie is cleared.
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 1024
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionContext'
+              examples:
+                firstAdministrator:
+                  $ref: '#/components/examples/AdministratorSession'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /auth/preflight:
+    post:
+      operationId: createPreauthProof
+      summary: Create a bounded pre-auth proof
+      description: >-
+        Creates a short-lived one-use proof for setup or sign-in. The proof grants no account or
+        setup authority. The opaque cookie uses HttpOnly, SameSite=Lax, Path=/api/v1, no Domain
+        attribute, and Secure on HTTPS. Exact same-origin request metadata is required.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreauthRequest'
+            examples:
+              signInProof:
+                summary: Request a sign-in proof
+                value:
+                  purpose: login
+      responses:
+        '201':
+          description: A bounded pre-auth proof was issued.
+          headers:
+            Set-Cookie:
+              description: Opaque one-use host-only pre-auth cookie with the attributes above.
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 1024
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreauthResponse'
+              examples:
+                issued:
+                  summary: One-use proof issued
+                  value:
+                    preauth_proof: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+                    expires_at: 2026-01-02T03:09:05Z
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /auth/login:
+    post:
+      operationId: login
+      summary: Start a local user session
+      description: >-
+        Consumes the pre-auth cookie and X-Stackplore-Preauth proof. Unknown users, a wrong
+        password, and disabled users receive the same bounded rejection. Exact same-origin request
+        metadata is required.
+      security:
+        - PreauthBrowserProof: []
+          PreauthRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              localSignIn:
+                summary: Sign in with a local account
+                value:
+                  login_name: operator
+                  password: correct-horse-demo
+      responses:
+        '200':
+          description: A new local session was issued.
+          headers:
+            Set-Cookie:
+              description: >-
+                Opaque host-only session cookie. Uses HttpOnly, SameSite=Lax, Path=/api/v1, no
+                Domain attribute, and Secure on HTTPS. The consumed pre-auth cookie is cleared.
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 1024
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionContext'
+              examples:
+                administrator:
+                  $ref: '#/components/examples/AdministratorSession'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/SignInRejectedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /auth/session:
+    get:
+      operationId: getCurrentSession
+      summary: Resolve the current local session
+      description: Resolves the current enabled user and current installation-wide role on every call.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Current safe session context with no session identifier.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionContext'
+              examples:
+                administrator:
+                  $ref: '#/components/examples/AdministratorSession'
         '400':
           $ref: '#/components/responses/BadRequestProblem'
         '401':
@@ -35,8 +269,877 @@ paths:
           $ref: '#/components/responses/InternalProblem'
         '503':
           $ref: '#/components/responses/ServiceUnavailableProblem'
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke the current local session
+      description: Requires exact same-origin metadata and the session-bound X-Stackplore-CSRF proof.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '204':
+          description: Current session revoked and its browser cookie cleared.
+          headers:
+            Set-Cookie:
+              description: Clears the session cookie with the same host-only path and policy attributes.
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 1024
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /auth/recent-grants:
+    post:
+      operationId: createRecentAuthGrant
+      summary: Reauthenticate for one high-risk change
+      description: >-
+        Verifies the current password and returns one short-lived, one-use proof bound to the
+        current user, current session, and exact purpose. Exact same-origin metadata and the
+        session-bound X-Stackplore-CSRF proof are required.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecentAuthRequest'
+            examples:
+              passwordChange:
+                summary: Reauthenticate for a password change
+                value:
+                  current_password: correct-horse-demo
+                  purpose: account.password_change
+      responses:
+        '201':
+          description: A one-use recent-authentication proof was issued.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecentAuthResponse'
+              examples:
+                issued:
+                  summary: One-use proof issued
+                  value:
+                    recent_auth_proof: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+                    purpose: account.password_change
+                    expires_at: 2026-01-02T03:09:05Z
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /auth/password:
+    patch:
+      operationId: changeOwnPassword
+      summary: Change the current user's password
+      description: >-
+        Consumes an account.password_change recent-authentication proof, rotates the current
+        session, and revokes every other session and grant for the current user.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnPassphraseChangeRequest'
+            examples:
+              passwordChange:
+                summary: Set a new local password
+                value:
+                  new_password: another-correct-horse
+      responses:
+        '200':
+          description: Password changed and the current session rotated.
+          headers:
+            Set-Cookie:
+              description: Replaces the current opaque session cookie using the fixed session policy.
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 1024
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionContext'
+              examples:
+                rotated:
+                  $ref: '#/components/examples/AdministratorSession'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /users:
+    get:
+      operationId: listUsers
+      summary: List local users
+      description: Requires the current enabled user to have the administrator role.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/UserRoleFilter'
+        - $ref: '#/components/parameters/UserEnabledFilter'
+      responses:
+        '200':
+          description: Bounded page of local users in canonical login order.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+              examples:
+                firstPage:
+                  summary: One enabled administrator
+                  value:
+                    items:
+                      - id: usr_demo_01
+                        login_name: operator
+                        display_name: Operations
+                        role: administrator
+                        enabled: true
+                        created_at: 2026-01-02T03:04:05Z
+                        updated_at: 2026-01-02T03:04:05Z
+                        version: 1
+                    page:
+                      limit: 50
+                      has_more: false
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+    post:
+      operationId: createUser
+      summary: Create a local user
+      description: >-
+        Requires an administrator and consumes a user.create recent-authentication proof in the
+        same transaction as the user and audit records.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              viewer:
+                summary: Create an enabled viewer
+                value:
+                  login_name: viewer01
+                  display_name: On-call Viewer
+                  role: viewer
+                  password: correct-horse-viewer
+      responses:
+        '201':
+          $ref: '#/components/responses/UserCreated'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /users/{user_id}:
+    get:
+      operationId: getUser
+      summary: Inspect one local user
+      description: Requires the current enabled user to have the administrator role.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserFound'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+    patch:
+      operationId: updateUser
+      summary: Change one local user
+      description: >-
+        Requires an administrator, If-Match, and a user.update recent-authentication proof. Role,
+        login, or enabled-state changes revoke every session and grant for the target user. The
+        last enabled administrator cannot be disabled or demoted.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            examples:
+              disableViewer:
+                summary: Disable a local viewer
+                value:
+                  enabled: false
+      responses:
+        '200':
+          $ref: '#/components/responses/UserFound'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+    delete:
+      operationId: deleteUser
+      summary: Delete one local user
+      description: >-
+        Requires an administrator, If-Match, and a user.delete recent-authentication proof. The
+        last enabled administrator cannot be deleted. Every target session and grant is revoked.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          $ref: '#/components/responses/MutationAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /users/{user_id}/password-reset:
+    post:
+      operationId: resetUserPassword
+      summary: Reset one local user's password
+      description: >-
+        Requires an administrator, If-Match, and a user.password_reset recent-authentication
+        proof. Every session and grant for the target user is revoked.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassphraseRequest'
+            examples:
+              administratorReset:
+                summary: Set a replacement local password
+                value:
+                  new_password: replacement-correct-horse
+      responses:
+        '204':
+          $ref: '#/components/responses/MutationAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /users/{user_id}/sessions:
+    delete:
+      operationId: revokeUserSessions
+      summary: Revoke every session for one local user
+      description: >-
+        Requires an administrator and a user.sessions_revoke recent-authentication proof. No
+        session identifier is accepted or returned.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          $ref: '#/components/responses/MutationAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /system/readiness:
+    get:
+      operationId: getSystemReadiness
+      summary: Inspect detailed service readiness
+      description: >-
+        Returns bounded configuration, database, and service checks. Requires the current enabled
+        user to have the administrator role.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Detailed bounded service readiness.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemReadiness'
+              examples:
+                ready:
+                  summary: Service ready
+                  value:
+                    state: ready
+                    checks:
+                      - name: configuration
+                        state: ready
+                      - name: database
+                        state: ready
+                      - name: service
+                        state: ready
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
 components:
+  securitySchemes:
+    BrowserSession:
+      type: apiKey
+      in: cookie
+      name: stackplore_session
+      description: >-
+        Opaque host-only local session cookie. The server sets HttpOnly, SameSite=Lax,
+        Path=/api/v1, no Domain attribute, and Secure when the public origin uses HTTPS.
+    PreauthBrowserProof:
+      type: apiKey
+      in: cookie
+      name: stackplore_preauth
+      description: Opaque short-lived, one-use, host-only pre-auth cookie.
+    PreauthRequestProof:
+      type: apiKey
+      in: header
+      name: X-Stackplore-Preauth
+      description: Separate one-use proof bound to the pre-auth cookie and exact purpose.
+    CSRFRequestProof:
+      type: apiKey
+      in: header
+      name: X-Stackplore-CSRF
+      description: Session-bound proof required with exact same-origin metadata on unsafe requests.
+    RecentAuthProof:
+      type: apiKey
+      in: header
+      name: X-Stackplore-Recent-Auth
+      description: Short-lived, one-use proof bound to user, session, and exact high-risk purpose.
+  examples:
+    AdministratorSession:
+      summary: Safe administrator session context
+      value:
+        user:
+          id: usr_demo_01
+          login_name: operator
+          display_name: Operations
+          role: administrator
+          enabled: true
+          created_at: 2026-01-02T03:04:05Z
+          updated_at: 2026-01-02T03:04:05Z
+          version: 1
+        csrf_proof: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        idle_expires_at: 2026-01-02T03:34:05Z
+        absolute_expires_at: 2026-01-02T15:04:05Z
   schemas:
+    UserId:
+      type: string
+      description: Stable opaque local user identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - usr_demo_01
+    LoginName:
+      type: string
+      description: Trimmed local login name compared by its lowercase ASCII canonical form.
+      minLength: 3
+      maxLength: 64
+      pattern: '^[A-Za-z0-9](?:[A-Za-z0-9._-]{1,62}[A-Za-z0-9])$'
+      examples:
+        - operator
+    Passphrase:
+      type: string
+      format: password
+      description: Input-only local passphrase of 12 to 128 UTF-8 bytes. The server and browser enforce the byte minimum; the schema maxLength is a separate safe transport character ceiling. The value is neither trimmed nor normalized.
+      maxLength: 128
+    Proof:
+      type: string
+      description: Short-lived opaque proof kept only in browser memory.
+      minLength: 43
+      maxLength: 43
+      pattern: ^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$
+    UserRole:
+      type: string
+      description: Installation-wide version 1 role.
+      enum:
+        - administrator
+        - viewer
+    User:
+      type: object
+      description: Safe local user state with no credential or session material.
+      additionalProperties: false
+      required:
+        - id
+        - login_name
+        - display_name
+        - role
+        - enabled
+        - created_at
+        - updated_at
+        - version
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+        login_name:
+          $ref: '#/components/schemas/LoginName'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+        role:
+          $ref: '#/components/schemas/UserRole'
+        enabled:
+          type: boolean
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        version:
+          type: integer
+          description: Optimistic concurrency version used to build the quoted If-Match value.
+          minimum: 1
+          maximum: 9007199254740991
+    SetupState:
+      type: string
+      description: Permanently closed or currently available first-run network setup state.
+      enum:
+        - required
+        - closed
+    SetupStatus:
+      type: object
+      description: Minimum public state needed to choose setup or sign-in.
+      additionalProperties: false
+      required:
+        - state
+        - bootstrap_proof_required
+      properties:
+        state:
+          $ref: '#/components/schemas/SetupState'
+        bootstrap_proof_required:
+          type: boolean
+    PreauthPurpose:
+      type: string
+      description: Exact operation that may consume one pre-auth proof.
+      enum:
+        - login
+        - setup
+    PreauthRequest:
+      type: object
+      description: Request for a bounded pre-auth proof.
+      additionalProperties: false
+      required:
+        - purpose
+      properties:
+        purpose:
+          $ref: '#/components/schemas/PreauthPurpose'
+    PreauthResponse:
+      type: object
+      description: One-use proof returned separately from its HttpOnly cookie.
+      additionalProperties: false
+      required:
+        - preauth_proof
+        - expires_at
+      properties:
+        preauth_proof:
+          $ref: '#/components/schemas/Proof'
+        expires_at:
+          $ref: '#/components/schemas/Timestamp'
+    SetupRequest:
+      type: object
+      description: First-administrator fields plus the optional operator bootstrap proof.
+      additionalProperties: false
+      required:
+        - login_name
+        - display_name
+        - password
+      properties:
+        login_name:
+          $ref: '#/components/schemas/LoginName'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+        password:
+          $ref: '#/components/schemas/Passphrase'
+        bootstrap_proof:
+          $ref: '#/components/schemas/Proof'
+          description: Operator-supplied one-use proof required only when setup status says so.
+    LoginRequest:
+      type: object
+      description: Local sign-in fields with no setup or role input.
+      additionalProperties: false
+      required:
+        - login_name
+        - password
+      properties:
+        login_name:
+          $ref: '#/components/schemas/LoginName'
+        password:
+          $ref: '#/components/schemas/Passphrase'
+    SessionContext:
+      type: object
+      description: Safe current-user state plus a session-bound CSRF proof with no session identifier.
+      additionalProperties: false
+      required:
+        - user
+        - csrf_proof
+        - idle_expires_at
+        - absolute_expires_at
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        csrf_proof:
+          $ref: '#/components/schemas/Proof'
+        idle_expires_at:
+          $ref: '#/components/schemas/Timestamp'
+        absolute_expires_at:
+          $ref: '#/components/schemas/Timestamp'
+    RecentAuthPurpose:
+      type: string
+      description: Exact Phase 7 high-risk change bound to a one-use proof.
+      enum:
+        - account.password_change
+        - user.create
+        - user.update
+        - user.delete
+        - user.password_reset
+        - user.sessions_revoke
+    RecentAuthRequest:
+      type: object
+      description: Current-password proof request for one exact high-risk purpose.
+      additionalProperties: false
+      required:
+        - current_password
+        - purpose
+      properties:
+        current_password:
+          $ref: '#/components/schemas/Passphrase'
+        purpose:
+          $ref: '#/components/schemas/RecentAuthPurpose'
+    RecentAuthResponse:
+      type: object
+      description: One-use proof bound to the current user, session, and purpose.
+      additionalProperties: false
+      required:
+        - recent_auth_proof
+        - purpose
+        - expires_at
+      properties:
+        recent_auth_proof:
+          $ref: '#/components/schemas/Proof'
+        purpose:
+          $ref: '#/components/schemas/RecentAuthPurpose'
+        expires_at:
+          $ref: '#/components/schemas/Timestamp'
+    OwnPassphraseChangeRequest:
+      type: object
+      description: Input-only new password for the current user.
+      additionalProperties: false
+      required:
+        - new_password
+      properties:
+        new_password:
+          $ref: '#/components/schemas/Passphrase'
+    CreateUserRequest:
+      type: object
+      description: Fields for one new enabled local user.
+      additionalProperties: false
+      required:
+        - login_name
+        - display_name
+        - role
+        - password
+      properties:
+        login_name:
+          $ref: '#/components/schemas/LoginName'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+        role:
+          $ref: '#/components/schemas/UserRole'
+        password:
+          $ref: '#/components/schemas/Passphrase'
+    UpdateUserRequest:
+      type: object
+      description: One or more reviewed local user fields.
+      additionalProperties: false
+      minProperties: 1
+      maxProperties: 4
+      properties:
+        login_name:
+          $ref: '#/components/schemas/LoginName'
+        display_name:
+          $ref: '#/components/schemas/DisplayText'
+        role:
+          $ref: '#/components/schemas/UserRole'
+        enabled:
+          type: boolean
+    ResetPassphraseRequest:
+      type: object
+      description: Input-only replacement password for one managed local user.
+      additionalProperties: false
+      required:
+        - new_password
+      properties:
+        new_password:
+          $ref: '#/components/schemas/Passphrase'
+    UserPage:
+      type: object
+      description: Bounded administrator-only user page with no total-count disclosure.
+      additionalProperties: false
+      required:
+        - items
+        - page
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ReadinessState:
+      type: string
+      description: Current bounded readiness state.
+      enum:
+        - ready
+        - not_ready
+    ConfigurationReadinessCheck:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - state
+      properties:
+        name:
+          type: string
+          const: configuration
+        state:
+          $ref: '#/components/schemas/ReadinessState'
+    DatabaseReadinessCheck:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - state
+      properties:
+        name:
+          type: string
+          const: database
+        state:
+          $ref: '#/components/schemas/ReadinessState'
+    ServiceReadinessCheck:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - state
+      properties:
+        name:
+          type: string
+          const: service
+        state:
+          $ref: '#/components/schemas/ReadinessState'
+    SystemReadiness:
+      type: object
+      description: Administrator-only detailed readiness with a fixed check order.
+      additionalProperties: false
+      required:
+        - state
+        - checks
+      properties:
+        state:
+          $ref: '#/components/schemas/ReadinessState'
+        checks:
+          type: array
+          minItems: 3
+          maxItems: 3
+          prefixItems:
+            - $ref: '#/components/schemas/ConfigurationReadinessCheck'
+            - $ref: '#/components/schemas/DatabaseReadinessCheck'
+            - $ref: '#/components/schemas/ServiceReadinessCheck'
+          items: false
     Code:
       type: string
       description: Stable bounded machine code. Consumers must handle unknown valid codes.
@@ -2000,6 +3103,23 @@ components:
       description: Optional safe caller correlation identifier. Invalid values are replaced.
       schema:
         $ref: '#/components/schemas/RequestId'
+    UserId:
+      name: user_id
+      in: path
+      required: true
+      description: Stable opaque local user identifier.
+      schema:
+        $ref: '#/components/schemas/UserId'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: Strong quoted decimal form of the last observed user version.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 18
+        pattern: '^"[1-9][0-9]{0,15}"$'
     Cursor:
       name: cursor
       in: query
@@ -2025,6 +3145,20 @@ components:
       schema:
         $ref: '#/components/schemas/OptionalDisplayText'
         maxLength: 200
+    UserRoleFilter:
+      name: role
+      in: query
+      required: false
+      description: Exact installation-wide role filter.
+      schema:
+        $ref: '#/components/schemas/UserRole'
+    UserEnabledFilter:
+      name: enabled
+      in: query
+      required: false
+      description: Exact enabled-state filter.
+      schema:
+        type: boolean
     ProviderFilter:
       name: provider
       in: query
@@ -2125,6 +3259,19 @@ components:
       schema:
         $ref: '#/components/schemas/SortDirection'
   headers:
+    BrowserStateUpdate:
+      description: >-
+        Optional host-only authentication cookie update. Setup or sign-in may clear a consumed
+        pre-auth cookie. A route that reaches session authentication may repeat the opaque session
+        cookie at the server-confirmed idle deadline, replace it after rotation, or clear it when
+        the session is no longer valid. Each cookie uses HttpOnly, SameSite=Lax, Path=/api/v1, no
+        Domain attribute, and Secure on HTTPS. A request rejected before either authentication
+        boundary may omit this header.
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 1024
     RequestId:
       description: Server-selected safe request correlation identifier.
       required: true
@@ -2137,10 +3284,77 @@ components:
         type: integer
         minimum: 0
         maximum: 86400
+    EntityTag:
+      description: Strong quoted decimal form of the returned user version.
+      required: true
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 18
+        pattern: '^"[1-9][0-9]{0,15}"$'
   responses:
+    UserCreated:
+      description: Local user created.
+      headers:
+        ETag:
+          $ref: '#/components/headers/EntityTag'
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+          examples:
+            viewer:
+              summary: New enabled viewer
+              value:
+                id: usr_demo_02
+                login_name: viewer01
+                display_name: On-call Viewer
+                role: viewer
+                enabled: true
+                created_at: 2026-01-02T03:04:05Z
+                updated_at: 2026-01-02T03:04:05Z
+                version: 1
+    UserFound:
+      description: Current safe local user state.
+      headers:
+        ETag:
+          $ref: '#/components/headers/EntityTag'
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+          examples:
+            administrator:
+              summary: Enabled administrator
+              value:
+                id: usr_demo_01
+                login_name: operator
+                display_name: Operations
+                role: administrator
+                enabled: true
+                created_at: 2026-01-02T03:04:05Z
+                updated_at: 2026-01-02T03:04:05Z
+                version: 1
+    MutationAccepted:
+      description: The authenticated local state change completed.
+      headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
     BadRequestProblem:
       description: The request is malformed or fails strict validation.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2163,6 +3377,8 @@ components:
     UnauthorizedProblem:
       description: A valid local session is required.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2178,9 +3394,31 @@ components:
                 status: 401
                 code: unauthenticated
                 request_id: req_demo_01
+    SignInRejectedProblem:
+      description: Local sign-in failed without disclosing account existence or state.
+      headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            rejected:
+              summary: Generic local sign-in rejection
+              value:
+                type: urn:stackplore:problem:invalid_credentials
+                title: Sign in failed
+                status: 401
+                code: invalid_credentials
+                request_id: req_demo_01
     ForbiddenProblem:
       description: The current principal cannot perform the request.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2199,6 +3437,8 @@ components:
     NotFoundProblem:
       description: The requested safe identifier does not exist.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2217,6 +3457,8 @@ components:
     ConflictProblem:
       description: The request conflicts with the current stable state.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2235,6 +3477,8 @@ components:
     PayloadTooLargeProblem:
       description: The bounded request body limit was exceeded.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2253,6 +3497,8 @@ components:
     UnsupportedMediaTypeProblem:
       description: The request body media type is not supported.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2271,6 +3517,8 @@ components:
     TooManyRequestsProblem:
       description: A bounded request rate was exceeded.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
         Retry-After:
@@ -2291,6 +3539,8 @@ components:
     InternalProblem:
       description: The request failed without exposing internal detail.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
       content:
@@ -2309,6 +3559,8 @@ components:
     ServiceUnavailableProblem:
       description: The service cannot complete the request now.
       headers:
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
         X-Request-ID:
           $ref: '#/components/headers/RequestId'
         Retry-After:

@@ -5,6 +5,7 @@ import { Breadcrumbs } from './Breadcrumbs';
 import { LocaleControl } from './LocaleControl';
 import { MobileNav } from './MobileNav';
 import { ThemeControl } from './ThemeControl';
+import { UserMenu } from '../../features/auth/UserMenu';
 import { getPageTitle } from './navigation';
 import { useLocale } from '../../i18n';
 
@@ -28,6 +29,7 @@ export function TopBar() {
       <div className="app-topbar__actions">
         <LocaleControl />
         <ThemeControl />
+        <UserMenu />
       </div>
     </header>
   );

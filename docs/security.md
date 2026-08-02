@@ -3,14 +3,16 @@
 ## Status and purpose
 
 This document defines the security requirements and delivery boundary for
-Stackplore. Through Phase 6, validated startup configuration, safe structured
+Stackplore. Through Phase 7, validated startup configuration, safe structured
 logging, strict origin and proxy handling, bounded short HTTP requests,
 operational probes, protected process metrics, and graceful shutdown are
 implemented and tested. Local SQLite identity, migrations, process ownership,
 repository boundaries, readiness, backup, and restore are also implemented.
-Authentication behavior, provider access, streams, notifications, deployment
-controls, and guarded actions remain later-phase requirements. No control
-described here is a claim of an independent audit.
+Local accounts, first-run setup, login throttles, server-side sessions, CSRF,
+roles, user administration, and offline administrator recovery are live.
+Provider access, streams, notifications, deployment controls, and guarded
+infrastructure actions remain later-phase requirements. No control described
+here is a claim of an independent audit.
 
 Security vulnerabilities should be reported through the private process in [SECURITY.md](../SECURITY.md).
 
@@ -21,7 +23,7 @@ Stackplore must:
 - expose only the minimum infrastructure data needed for its documented views;
 - keep credentials, sensitive provider configuration, and secret values out of
   response bodies, client-readable storage, logs, events, exports, and audit
-  details; the raw session token appears only in a protected `Set-Cookie`
+  details; the raw session token appears only in protected `Set-Cookie`
   header;
 - require server-side authorization for every protected read and mutation;
 - make infrastructure-changing actions explicit, narrow, reviewable, and attributable;
@@ -72,8 +74,12 @@ Initial administrator creation is a security-sensitive state transition:
 - network setup is available only while the user table is empty;
 - the empty-state check and first administrator insert occur in one serialized database transaction;
 - exactly one competing request may succeed, and all later requests fail closed;
-- deployments exposed beyond loopback must require an operator-supplied,
-  short-lived, one-use bootstrap proof or an equivalent out-of-band gate;
+- deployments whose listener or public origin is beyond loopback require a
+  canonical unpadded base64url proof of 32 random bytes paired with a canonical
+  UTC expiry no more than one hour in the future;
+- the pair is loaded only from `STACKPLORE_SETUP_BOOTSTRAP_PROOF` and
+  `STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT`; the in-process gate keeps a digest,
+  permits one successful use, and never persists the raw proof;
 - successful setup permanently closes the network bootstrap path;
 - setup attempts are rate-limited and recorded without storing passwords or bootstrap secrets;
 - responses do not disclose more setup state than required by the first-run interface.
@@ -82,14 +88,29 @@ This prevents two simultaneous requests from both claiming initial ownership.
 The last enabled administrator cannot be disabled, deleted, or demoted. A local
 operator-only recovery command may reset or create an administrator after
 filesystem-level access; it never reopens network setup, revokes affected
-sessions, and emits a safe recovery record.
+sessions, and emits a safe recovery record. Exact operation steps are in
+[First-Run Setup and Account Recovery](operations/account-recovery.md).
 
 ### Passwords and login
 
-- Passwords are hashed with Argon2id using versioned parameters selected from current guidance.
-- Password length and resource limits prevent trivial passwords and hash-cost denial of service.
+- Passwords are 12 through 128 UTF-8 bytes and are never trimmed or normalized.
+- New records use Argon2id version 19, 65,536 KiB memory, time cost 3,
+  parallelism 1, a 16-byte salt, and a 32-byte result. Records retain their
+  parameters and successful verification can trigger an approved rehash.
+- At most two password hashes run concurrently in one process. The request
+  context bounds queue wait, and verifier inputs have separate defensive
+  parameter ceilings.
 - Login responses are generic for unknown users, wrong passwords, disabled accounts, and invalid sessions.
-- Per-account and per-source rate limits use bounded storage and do not allow a client to lock out arbitrary users indefinitely.
+- Ten failed logins from one verified source within five minutes block that
+  source for five minutes. Five failures for one canonical account within 15
+  minutes block that account for 15 minutes. Successful login clears both.
+- Five failed current-password checks for one authenticated user within 15
+  minutes block recent authentication for that user for 15 minutes. A
+  successful check clears that user throttle.
+- Five rejected bootstrap proofs from one setup source within 15 minutes block
+  that source for 15 minutes. Throttle keys are keyed digests, expire after one
+  hour, are pruned on later failures, and are capped at 4,096 direct keys per
+  scope plus one fail-closed overflow bucket.
 - Password changes and account recovery rotate or revoke sessions as defined
   below.
 - There is no default password, shipped credential, or hidden authentication bypass.
@@ -97,11 +118,20 @@ sessions, and emits a safe recovery record.
 ### Sessions
 
 - Session tokens contain at least 256 bits of cryptographically secure randomness.
-- Only a keyed or cryptographic hash of each token is stored; a raw token is
-  returned once through `Set-Cookie` and never in a response body.
-- Cookies use `Secure`, `HttpOnly`, an appropriate `SameSite` mode, path
-  `/api/v1`, and no broad domain attribute.
-- Sessions have idle and absolute expiration, rotate after authentication and privilege changes, and are revoked on logout.
+- Only a keyed or cryptographic hash of each token is stored. A raw token is
+  sent only through `Set-Cookie`, never in a response body; the same token may
+  be repeated when the browser cookie is renewed to a server-confirmed idle
+  deadline.
+- Cookies use `HttpOnly`, `SameSite=Lax`, path `/api/v1`, no broad domain
+  attribute, and `Secure` whenever the configured public origin is HTTPS.
+- Sessions have a 30-minute sliding idle expiry and a 12-hour absolute expiry.
+  The server persists idle activity at most once per minute and renews the
+  browser cookie after authenticated service results, including denied or
+  conflicting protected work that may have touched the session, without
+  extending the absolute bound. The browser hides authenticated state at its
+  last confirmed deadline.
+- Sessions rotate after login, first setup, and self-password change and are
+  revoked on logout.
 - Privilege changes are checked against current server-side state, not only data captured when the session was created.
 - Role and enabled-state changes revoke every session for the affected user.
 - Authentication material is never stored in browser local storage, placed in URLs, or sent in SSE query strings.
@@ -116,7 +146,9 @@ Before a session exists, an auth preflight endpoint creates a short-lived
 server-side nonce record, sets an HttpOnly SameSite pre-auth cookie, and returns
 a separate header token bound to that record. Login and first-run setup require
 the cookie, header token, and valid `Origin`, then consume the nonce. Pre-auth
-material grants no account or setup authority and is rate- and storage-bounded.
+material grants no account or setup authority, expires after five minutes, and
+is capped at 4,096 live records. The raw cookie and header proofs are distinct,
+one-use, and stored only as keyed digests.
 
 The normal deployment is one origin. Cross-origin credentialed access is disabled unless a future, documented deployment mode defines an exact allowlist and test coverage.
 Every non-loopback production profile requires an HTTPS configured public
@@ -162,7 +194,7 @@ hash path, then stores a short-lived, one-use server-side grant bound to user,
 current session, and exact purpose. The protected operation consumes the grant
 atomically. Session revocation and password, role, or enabled-state changes
 remove every outstanding grant. Tests cover expiry, replay, wrong purpose,
-wrong user, and wrong session.
+wrong user, and wrong session. A grant expires after five minutes.
 
 A successful self password change rotates the current session and revokes every
 other session and grant for that user. An administrative reset revokes every
@@ -290,7 +322,7 @@ Tests must seed recognizable secret canaries across headers, query strings, meta
 ## SQLite security and reliability
 
 SQLite stores authentication state, configuration, history, and audit records
-and must be treated as sensitive. Phase 6 implements these controls:
+and must be treated as sensitive. Phases 6 and 7 implement these controls:
 
 - one fixed database in a private non-root data directory, with symlink,
   non-regular-file, multi-link database file, UNC or device path-form, and
@@ -313,8 +345,25 @@ and must be treated as sensitive. Phase 6 implements these controls:
 - a tested local online-backup command and staged offline restore with full
   integrity, foreign-key, migration, and restored-credential checks.
 
-Feature phases still own data-volume quotas, session lifecycle policy, a
-separate audit retention and summary workflow, and disk-space response. Windows
+The data directory also contains `.stackplore.auth-key`, a 32-byte random key
+used for keyed authentication digests and signed user cursors. Storage creates
+it as a private, regular, single-link file and rechecks its content during
+health probes. A malformed, linked, symlinked, or POSIX-permission-exposed key
+file blocks startup or makes storage not ready; Windows ACL privacy remains an
+operator check. If the file is absent, the next storage open creates a fresh
+key; existing session, pre-authentication,
+recent-auth, throttle, and cursor digests made with the old key become unusable,
+while password hashes remain valid. Replacing a valid key has the same bearer
+state effect and is not a session-preserving repair.
+
+The supported SQLite online backup intentionally contains only the database.
+Restore revokes or deletes active bearer proof state before installation, so a
+database-only restore can keep the target data directory's key or let a fresh
+directory create a new one. Never expose the key, copy one from another live
+installation, or treat it as a substitute for the supported database backup.
+
+Feature phases still own product data-volume quotas, a separate audit retention
+and summary workflow, and disk-space response. Windows
 file mode bits do not prove NTFS ACL privacy; operators must review and restrict
 ACLs. Exact permission and maintenance guidance is in
 [Local SQLite Backup and Restore](operations/backup-restore.md).
@@ -451,11 +500,13 @@ origin is HTTPS.
 Dynamic content is encoded by context. Untrusted HTML is not rendered. Error responses do not expose stack traces, SQL, filesystem paths, provider credentials, or internal request bodies. Server banners and unnecessary diagnostic endpoints are disabled.
 
 `/healthz` and `/readyz` return only terse process state on the public listener.
-Phase 6 readiness covers configuration, required local database health, and the
+Current readiness covers configuration, required local database health, and the
 HTTP lifecycle, not provider health. `GET /api/v1/system/readiness` is reserved
-for an authenticated administrator, but each request reaching its handler
-receives `401` until Phase 7 implements local sessions and roles. No header,
-query value, cookie, proxy assertion, or environment setting is a bypass.
+for an enabled administrator. A missing or expired session receives `401`, a
+current non-administrator receives `403`, and an administrator receives the
+bounded detailed result. Outer origin, request, concurrency, and rate gates
+still run first. No header, query value, proxy assertion, or environment
+setting bypasses the session and live role check.
 
 `/metrics` requires the exact configured public scheme and authority plus a
 verified client IP in an explicit network allowlist. Its default is IPv4 and

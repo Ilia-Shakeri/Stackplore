@@ -27,11 +27,19 @@ remain separate from the project's Apache License 2.0.
 
 ## golang.org/x/sys
 
-- Module: `golang.org/x/sys` version `0.46.0`
-- Source: <https://go.googlesource.com/sys/+/refs/tags/v0.46.0>
+- Module: `golang.org/x/sys` version `0.47.0`
+- Source: <https://go.googlesource.com/sys/+/refs/tags/v0.47.0>
 - License: BSD 3-Clause
 - License copy:
   [apps/api/licenses/golang-x-sys-BSD-3-Clause.txt](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt)
+
+## golang.org/x/crypto
+
+- Module: `golang.org/x/crypto` version `0.54.0`
+- Source: <https://go.googlesource.com/crypto/+/refs/tags/v0.54.0>
+- License: BSD 3-Clause
+- License copy:
+  [apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt)
 
 ## Inter
 

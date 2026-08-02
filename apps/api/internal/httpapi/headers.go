@@ -83,6 +83,8 @@ func applyFixedHeaders(header http.Header, path string, status int, requestID st
 	case path == "/api/v1" || strings.HasPrefix(path, "/api/v1/"):
 		if status >= 400 {
 			header.Set("Content-Type", "application/problem+json")
+		} else if status == http.StatusNoContent {
+			header.Del("Content-Type")
 		} else {
 			header.Set("Content-Type", "application/json")
 		}

@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
@@ -57,7 +58,7 @@ func discardLogger(t *testing.T) *slog.Logger {
 func TestHTTPServerUsesValidatedBounds(t *testing.T) {
 	t.Parallel()
 	settings := defaultSettings(t)
-	server, err := newHTTPServer(settings, discardLogger(t), httpapi.NewReadiness())
+	server, err := newHTTPServer(settings, discardLogger(t), httpapi.NewReadiness(), testAuthentication(t, settings))
 	if err != nil {
 		t.Fatalf("newHTTPServer() error = %v", err)
 	}
@@ -80,7 +81,7 @@ func TestServeServerReadinessAndGracefulStop(t *testing.T) {
 	settings := defaultSettings(t)
 	readiness := httpapi.NewReadiness()
 	readiness.SetDatabaseReady(true)
-	server, err := newHTTPServer(settings, discardLogger(t), readiness)
+	server, err := newHTTPServer(settings, discardLogger(t), readiness, testAuthentication(t, settings))
 	if err != nil {
 		t.Fatalf("newHTTPServer() error = %v", err)
 	}
@@ -262,6 +263,114 @@ func TestRunClosesStorageAfterListenerFailure(t *testing.T) {
 	}
 }
 
+func TestOpenRemoteSetupFailsBeforeListenerWithoutLiveProof(t *testing.T) {
+	t.Parallel()
+	settings, err := config.Load(mapGetter{"STACKPLORE_HTTP_ADDRESS": "0.0.0.0:8080"})
+	if err != nil {
+		t.Fatalf("config.Load() error = %v", err)
+	}
+	database := &fakeDatabase{setupRequired: true}
+	listened := false
+	err = runWithStorage(
+		context.Background(),
+		settings,
+		discardLogger(t),
+		func(string, string) (net.Listener, error) {
+			listened = true
+			return nil, errors.New("listener must stay closed")
+		},
+		func(context.Context, storage.Options) (databaseRuntime, error) { return database, nil },
+	)
+	if !errors.Is(err, errAuthStart) || listened || !database.closed.Load() {
+		t.Errorf("runWithStorage() = (%v, listened %t, closed %t); want sealed auth stop", err, listened, database.closed.Load())
+	}
+}
+
+func TestClosedRemoteSetupStartsWithoutProof(t *testing.T) {
+	t.Parallel()
+	settings, err := config.Load(mapGetter{"STACKPLORE_HTTP_ADDRESS": "0.0.0.0:8080"})
+	if err != nil {
+		t.Fatalf("config.Load() error = %v", err)
+	}
+	database := &fakeDatabase{setupRequired: false}
+	err = runWithStorage(
+		context.Background(),
+		settings,
+		discardLogger(t),
+		func(string, string) (net.Listener, error) { return nil, errors.New("raw listener failure") },
+		func(context.Context, storage.Options) (databaseRuntime, error) { return database, nil },
+	)
+	if !errors.Is(err, errListen) || errors.Is(err, errAuthStart) || !database.closed.Load() {
+		t.Errorf("runWithStorage() = (%v, closed %t); want listener stop after closed setup boot", err, database.closed.Load())
+	}
+}
+
+func TestBootstrapGateNeedsLiveProofAndBurnsAfterSuccess(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC().Truncate(time.Second)
+	proof := "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	settings, err := config.Load(mapGetter{
+		"STACKPLORE_HTTP_ADDRESS":               "0.0.0.0:8080",
+		"STACKPLORE_SETUP_BOOTSTRAP_PROOF":      proof,
+		"STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT": now.Add(30 * time.Minute).Format(time.RFC3339),
+	})
+	if err != nil {
+		t.Fatalf("config.Load() error = %v", err)
+	}
+	gate, required, err := buildBootstrapGate(settings, true, now)
+	if err != nil || !required || gate == nil {
+		t.Fatalf("buildBootstrapGate() = (%v, %t, %v)", gate, required, err)
+	}
+	uses := 0
+	if err := gate.Use(context.Background(), proof, func(context.Context) error {
+		uses++
+		return nil
+	}); err != nil {
+		t.Fatalf("first gate use error = %v", err)
+	}
+	if err := gate.Use(context.Background(), proof, func(context.Context) error {
+		uses++
+		return nil
+	}); !errors.Is(err, auth.ErrBootstrapDenied) {
+		t.Fatalf("second gate use error = %v; want denial", err)
+	}
+	if uses != 1 {
+		t.Errorf("gate callback uses = %d; want 1", uses)
+	}
+
+	expired, err := config.Load(mapGetter{
+		"STACKPLORE_HTTP_ADDRESS":               "0.0.0.0:8080",
+		"STACKPLORE_SETUP_BOOTSTRAP_PROOF":      proof,
+		"STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT": now.Add(-time.Minute).Format(time.RFC3339),
+	})
+	if err != nil {
+		t.Fatalf("config.Load(expired) error = %v", err)
+	}
+	if gate, required, err := buildBootstrapGate(expired, true, now); gate != nil || !required || !errors.Is(err, errAuthStart) {
+		t.Errorf("expired buildBootstrapGate() = (%v, %t, %v); want sealed stop", gate, required, err)
+	}
+	if gate, required, err := buildBootstrapGate(expired, false, now); gate != nil || !required || err != nil {
+		t.Errorf("closed expired buildBootstrapGate() = (%v, %t, %v); want no gate", gate, required, err)
+	}
+	if gate, required, err := buildBootstrapGate(config.Config{HTTPAddress: "0.0.0.0:8080"}, false, now); gate != nil || !required || err != nil {
+		t.Errorf("closed buildBootstrapGate() = (%v, %t, %v); want no gate", gate, required, err)
+	}
+}
+
+func TestAuthenticationBuildClearsCopiedDigestKey(t *testing.T) {
+	t.Parallel()
+	settings := defaultSettings(t)
+	database := &fakeDatabase{}
+	if _, err := buildAuthentication(context.Background(), settings, database, time.Now); err != nil {
+		t.Fatalf("buildAuthentication() error = %v", err)
+	}
+	for index, value := range database.authKey {
+		if value != 0 {
+			t.Fatalf("digest key byte %d stayed live", index)
+		}
+	}
+}
+
 func TestDatabaseMonitorTracksLossAndRecovery(t *testing.T) {
 	t.Parallel()
 	readiness := httpapi.NewReadiness()
@@ -387,6 +496,7 @@ func TestLifecycleReasonIsClosed(t *testing.T) {
 		{errHTTPBoundary, "http_boundary"},
 		{errListen, "listener"},
 		{errShutdown, "shutdown_timeout"},
+		{errAuthStart, "authentication_start"},
 		{errStorageStart, "storage_start"},
 		{errStorageStop, "storage_stop"},
 		{errServe, "unexpected_stop"},
@@ -422,8 +532,27 @@ func (address testAddress) Network() string { return "test" }
 func (address testAddress) String() string  { return string(address) }
 
 type fakeDatabase struct {
-	available atomic.Bool
-	closed    atomic.Bool
+	auth.Repository
+	available     atomic.Bool
+	closed        atomic.Bool
+	setupRequired bool
+	setupErr      error
+	authKey       []byte
+	authKeyErr    error
+}
+
+func (database *fakeDatabase) SetupRequired(context.Context) (bool, error) {
+	return database.setupRequired, database.setupErr
+}
+
+func (database *fakeDatabase) AuthDigestKey() (string, []byte, error) {
+	if database.authKeyErr != nil {
+		return "", nil, database.authKeyErr
+	}
+	if database.authKey == nil {
+		database.authKey = bytes.Repeat([]byte{7}, auth.DigestKeyBytes)
+	}
+	return "key_test", database.authKey, nil
 }
 
 func (database *fakeDatabase) Health(context.Context) error {
@@ -436,4 +565,13 @@ func (database *fakeDatabase) Health(context.Context) error {
 func (database *fakeDatabase) Close() error {
 	database.closed.Store(true)
 	return nil
+}
+
+func testAuthentication(t *testing.T, settings config.Config) *auth.Service {
+	t.Helper()
+	service, err := buildAuthentication(context.Background(), settings, &fakeDatabase{}, time.Now)
+	if err != nil {
+		t.Fatalf("buildAuthentication() error = %v", err)
+	}
+	return service
 }

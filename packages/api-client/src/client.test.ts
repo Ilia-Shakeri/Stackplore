@@ -9,6 +9,7 @@ import {
 } from './index';
 
 const requestId = 'req_demo_01';
+const proof = 'A'.repeat(43);
 
 const jsonResponse = (
   value: unknown,
@@ -79,6 +80,121 @@ describe('API client', () => {
     const headers = new Headers(init?.headers);
     expect(headers.get('Content-Type')).toBe('application/json');
     expect(headers.get('If-Match')).toBe('version_demo_01');
+  });
+
+  it('adds sealed pre-authentication protection only through its typed field', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValue(
+      new Response(null, { headers: { 'X-Request-ID': requestId }, status: 204 }),
+    );
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+
+    await client.request({
+      method: 'POST',
+      path: '/auth/login',
+      protection: { kind: 'preauth', token: proof },
+    });
+
+    const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(headers.get('X-Stackplore-Preauth')).toBe(proof);
+    expect(headers.has('X-Stackplore-CSRF')).toBe(false);
+    expect(headers.has('X-Stackplore-Recent-Auth')).toBe(false);
+  });
+
+  it('adds sealed session and recent-authentication protection together', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValue(
+      new Response(null, { headers: { 'X-Request-ID': requestId }, status: 204 }),
+    );
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+
+    await client.request({
+      method: 'PATCH',
+      path: '/users/user_demo_01',
+      protection: {
+        csrfToken: proof,
+        kind: 'session',
+        recentAuthToken: proof,
+      },
+    });
+
+    const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(headers.get('X-Stackplore-CSRF')).toBe(proof);
+    expect(headers.get('X-Stackplore-Recent-Auth')).toBe(proof);
+    expect(headers.has('X-Stackplore-Preauth')).toBe(false);
+  });
+
+  it('rejects direct protection headers through the generic header map', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+
+    for (const name of ['X-Stackplore-Preauth', 'X-Stackplore-CSRF', 'X-Stackplore-Recent-Auth']) {
+      await expect(
+        client.request({ headers: { [name]: 'private_demo_01' }, path: '/resources' }),
+      ).rejects.toMatchObject({ code: 'invalid_request' });
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed, mixed, extra, and safe-method protection without leaking values', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+    const privateToken = 'private_token_must_not_escape';
+    const hiddenExtra = Object.defineProperty({ kind: 'preauth', token: proof }, 'hidden', {
+      value: privateToken,
+    });
+    const symbolExtra = {
+      kind: 'preauth',
+      token: proof,
+      [Symbol('private')]: privateToken,
+    };
+    const invalidProtection = [
+      { method: 'GET', protection: { kind: 'preauth', token: privateToken } },
+      { method: 'POST', protection: { kind: 'preauth', token: '' } },
+      { method: 'POST', protection: { kind: 'preauth', token: 'bad token' } },
+      { method: 'POST', protection: { kind: 'preauth', token: 'B'.repeat(43) } },
+      { method: 'POST', protection: { kind: 'preauth', token: 'x'.repeat(1025) } },
+      {
+        method: 'POST',
+        protection: { csrfToken: proof, kind: 'preauth', token: privateToken },
+      },
+      {
+        method: 'POST',
+        protection: { csrfToken: proof, extra: privateToken, kind: 'session' },
+      },
+      { method: 'POST', protection: { kind: 'unknown', token: privateToken } },
+      { method: 'POST', protection: hiddenExtra },
+      { method: 'POST', protection: symbolExtra },
+    ];
+
+    for (const value of invalidProtection) {
+      const error = await client
+        .request({ path: '/auth/login', ...value } as never)
+        .catch((reason: unknown) => reason);
+      expect(error).toMatchObject({ code: 'invalid_request' });
+      expect((error as Error).message).not.toContain(privateToken);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('wraps a protection getter fault without exposing source text', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+    const privateText = 'private protection getter detail';
+    const protection = Object.defineProperty({ kind: 'preauth' }, 'token', {
+      enumerable: true,
+      get: () => {
+        throw new Error(privateText);
+      },
+    });
+
+    const error = await client
+      .request({ method: 'POST', path: '/auth/login', protection } as never)
+      .catch((reason: unknown) => reason);
+
+    expect(error).toMatchObject({ code: 'invalid_request' });
+    expect((error as Error).message).not.toContain(privateText);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('requires a valid response request identifier on success and no-content replies', async () => {

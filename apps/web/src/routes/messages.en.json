@@ -17,7 +17,7 @@
   "route.designSystem.title": "Design system",
   "route.events.description": "Provider event streams are not connected yet.",
   "route.events.title": "Events",
-  "route.login.description": "Session-backed sign-in is not available in this phase.",
+  "route.login.description": "Sign in with a local account.",
   "route.login.eyebrow": "Session route",
   "route.login.title": "Sign in",
   "route.logs.description": "Bounded log streams are not connected yet.",
@@ -47,11 +47,11 @@
   "route.settings.general": "General",
   "route.settings.sectionsLabel": "Settings sections",
   "route.settings.title": "Settings",
-  "route.setup.description": "Secure first-run setup is not available in this phase.",
+  "route.setup.description": "Create the first local administrator.",
   "route.setup.eyebrow": "First-run route",
   "route.setup.title": "Setup",
   "route.topology.description": "Topology discovery and relationship data are not connected yet.",
   "route.topology.title": "Topology",
-  "route.users.description": "User administration is not available yet.",
+  "route.users.description": "Manage local accounts, roles, access status, passwords, and active sessions.",
   "route.users.title": "Users"
 }

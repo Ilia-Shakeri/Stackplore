@@ -3,6 +3,210 @@ export type ClientOptions = {
 };
 
 /**
+ * Stable opaque local user identifier.
+ */
+export type UserId = string;
+
+/**
+ * Trimmed local login name compared by its lowercase ASCII canonical form.
+ */
+export type LoginName = string;
+
+/**
+ * Input-only local passphrase of 12 to 128 UTF-8 bytes. The server and browser enforce the byte minimum; the schema maxLength is a separate safe transport character ceiling. The value is neither trimmed nor normalized.
+ */
+export type Passphrase = string;
+
+/**
+ * Short-lived opaque proof kept only in browser memory.
+ */
+export type Proof = string;
+
+/**
+ * Installation-wide version 1 role.
+ */
+export type UserRole = 'administrator' | 'viewer';
+
+/**
+ * Safe local user state with no credential or session material.
+ */
+export type User = {
+  id: UserId;
+  login_name: LoginName;
+  display_name: DisplayText;
+  role: UserRole;
+  enabled: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  /**
+   * Optimistic concurrency version used to build the quoted If-Match value.
+   */
+  version: number;
+};
+
+/**
+ * Permanently closed or currently available first-run network setup state.
+ */
+export type SetupState = 'required' | 'closed';
+
+/**
+ * Minimum public state needed to choose setup or sign-in.
+ */
+export type SetupStatus = {
+  state: SetupState;
+  bootstrap_proof_required: boolean;
+};
+
+/**
+ * Exact operation that may consume one pre-auth proof.
+ */
+export type PreauthPurpose = 'login' | 'setup';
+
+/**
+ * Request for a bounded pre-auth proof.
+ */
+export type PreauthRequest = {
+  purpose: PreauthPurpose;
+};
+
+/**
+ * One-use proof returned separately from its HttpOnly cookie.
+ */
+export type PreauthResponse = {
+  preauth_proof: Proof;
+  expires_at: Timestamp;
+};
+
+/**
+ * First-administrator fields plus the optional operator bootstrap proof.
+ */
+export type SetupRequest = {
+  login_name: LoginName;
+  display_name: DisplayText;
+  password: Passphrase;
+  /**
+   * Operator-supplied one-use proof required only when setup status says so.
+   */
+  bootstrap_proof?: Proof;
+};
+
+/**
+ * Local sign-in fields with no setup or role input.
+ */
+export type LoginRequest = {
+  login_name: LoginName;
+  password: Passphrase;
+};
+
+/**
+ * Safe current-user state plus a session-bound CSRF proof with no session identifier.
+ */
+export type SessionContext = {
+  user: User;
+  csrf_proof: Proof;
+  idle_expires_at: Timestamp;
+  absolute_expires_at: Timestamp;
+};
+
+/**
+ * Exact Phase 7 high-risk change bound to a one-use proof.
+ */
+export type RecentAuthPurpose =
+  | 'account.password_change'
+  | 'user.create'
+  | 'user.update'
+  | 'user.delete'
+  | 'user.password_reset'
+  | 'user.sessions_revoke';
+
+/**
+ * Current-password proof request for one exact high-risk purpose.
+ */
+export type RecentAuthRequest = {
+  current_password: Passphrase;
+  purpose: RecentAuthPurpose;
+};
+
+/**
+ * One-use proof bound to the current user, session, and purpose.
+ */
+export type RecentAuthResponse = {
+  recent_auth_proof: Proof;
+  purpose: RecentAuthPurpose;
+  expires_at: Timestamp;
+};
+
+/**
+ * Input-only new password for the current user.
+ */
+export type OwnPassphraseChangeRequest = {
+  new_password: Passphrase;
+};
+
+/**
+ * Fields for one new enabled local user.
+ */
+export type CreateUserRequest = {
+  login_name: LoginName;
+  display_name: DisplayText;
+  role: UserRole;
+  password: Passphrase;
+};
+
+/**
+ * One or more reviewed local user fields.
+ */
+export type UpdateUserRequest = {
+  login_name?: LoginName;
+  display_name?: DisplayText;
+  role?: UserRole;
+  enabled?: boolean;
+};
+
+/**
+ * Input-only replacement password for one managed local user.
+ */
+export type ResetPassphraseRequest = {
+  new_password: Passphrase;
+};
+
+/**
+ * Bounded administrator-only user page with no total-count disclosure.
+ */
+export type UserPage = {
+  items: Array<User>;
+  page: PageInfo;
+};
+
+/**
+ * Current bounded readiness state.
+ */
+export type ReadinessState = 'ready' | 'not_ready';
+
+export type ConfigurationReadinessCheck = {
+  name: 'configuration';
+  state: ReadinessState;
+};
+
+export type DatabaseReadinessCheck = {
+  name: 'database';
+  state: ReadinessState;
+};
+
+export type ServiceReadinessCheck = {
+  name: 'service';
+  state: ReadinessState;
+};
+
+/**
+ * Administrator-only detailed readiness with a fixed check order.
+ */
+export type SystemReadiness = {
+  state: ReadinessState;
+  checks: [ConfigurationReadinessCheck, DatabaseReadinessCheck, ServiceReadinessCheck];
+};
+
+/**
  * Stable bounded machine code. Consumers must handle unknown valid codes.
  */
 export type Code = string;
@@ -1161,6 +1365,16 @@ export type Problem = {
 export type RequestId2 = RequestId;
 
 /**
+ * Stable opaque local user identifier.
+ */
+export type UserId2 = UserId;
+
+/**
+ * Strong quoted decimal form of the last observed user version.
+ */
+export type IfMatch = string;
+
+/**
  * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
  */
 export type Cursor2 = Cursor;
@@ -1174,6 +1388,16 @@ export type Limit = number;
  * Bounded plain-text search term, never a query expression.
  */
 export type Search = OptionalDisplayText;
+
+/**
+ * Exact installation-wide role filter.
+ */
+export type UserRoleFilter = UserRole;
+
+/**
+ * Exact enabled-state filter.
+ */
+export type UserEnabledFilter = boolean;
 
 /**
  * Repeated values use OR semantics.
@@ -1220,7 +1444,7 @@ export type To = Timestamp;
  */
 export type SortDirection2 = SortDirection;
 
-export type GetSystemReadinessData = {
+export type GetSetupStatusData = {
   body?: never;
   headers?: {
     /**
@@ -1230,10 +1454,241 @@ export type GetSystemReadinessData = {
   };
   path?: never;
   query?: never;
-  url: '/system/readiness';
+  url: '/setup/status';
 };
 
-export type GetSystemReadinessErrors = {
+export type GetSetupStatusErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetSetupStatusError = GetSetupStatusErrors[keyof GetSetupStatusErrors];
+
+export type GetSetupStatusResponses = {
+  /**
+   * Current bounded network setup state.
+   */
+  200: SetupStatus;
+};
+
+export type GetSetupStatusResponse = GetSetupStatusResponses[keyof GetSetupStatusResponses];
+
+export type CreateFirstAdministratorData = {
+  body: SetupRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/setup';
+};
+
+export type CreateFirstAdministratorErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CreateFirstAdministratorError =
+  CreateFirstAdministratorErrors[keyof CreateFirstAdministratorErrors];
+
+export type CreateFirstAdministratorResponses = {
+  /**
+   * Setup completed and a new local session was issued.
+   */
+  201: SessionContext;
+};
+
+export type CreateFirstAdministratorResponse =
+  CreateFirstAdministratorResponses[keyof CreateFirstAdministratorResponses];
+
+export type CreatePreauthProofData = {
+  body: PreauthRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/auth/preflight';
+};
+
+export type CreatePreauthProofErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CreatePreauthProofError = CreatePreauthProofErrors[keyof CreatePreauthProofErrors];
+
+export type CreatePreauthProofResponses = {
+  /**
+   * A bounded pre-auth proof was issued.
+   */
+  201: PreauthResponse;
+};
+
+export type CreatePreauthProofResponse =
+  CreatePreauthProofResponses[keyof CreatePreauthProofResponses];
+
+export type LoginData = {
+  body: LoginRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/auth/login';
+};
+
+export type LoginErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * Local sign-in failed without disclosing account existence or state.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type LoginError = LoginErrors[keyof LoginErrors];
+
+export type LoginResponses = {
+  /**
+   * A new local session was issued.
+   */
+  200: SessionContext;
+};
+
+export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type GetCurrentSessionData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/auth/session';
+};
+
+export type GetCurrentSessionErrors = {
   /**
    * The request is malformed or fails strict validation.
    */
@@ -1260,4 +1715,739 @@ export type GetSystemReadinessErrors = {
   503: Problem;
 };
 
+export type GetCurrentSessionError = GetCurrentSessionErrors[keyof GetCurrentSessionErrors];
+
+export type GetCurrentSessionResponses = {
+  /**
+   * Current safe session context with no session identifier.
+   */
+  200: SessionContext;
+};
+
+export type GetCurrentSessionResponse =
+  GetCurrentSessionResponses[keyof GetCurrentSessionResponses];
+
+export type LogoutData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/auth/logout';
+};
+
+export type LogoutErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type LogoutError = LogoutErrors[keyof LogoutErrors];
+
+export type LogoutResponses = {
+  /**
+   * Current session revoked and its browser cookie cleared.
+   */
+  204: void;
+};
+
+export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
+
+export type CreateRecentAuthGrantData = {
+  body: RecentAuthRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/auth/recent-grants';
+};
+
+export type CreateRecentAuthGrantErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CreateRecentAuthGrantError =
+  CreateRecentAuthGrantErrors[keyof CreateRecentAuthGrantErrors];
+
+export type CreateRecentAuthGrantResponses = {
+  /**
+   * A one-use recent-authentication proof was issued.
+   */
+  201: RecentAuthResponse;
+};
+
+export type CreateRecentAuthGrantResponse =
+  CreateRecentAuthGrantResponses[keyof CreateRecentAuthGrantResponses];
+
+export type ChangeOwnPasswordData = {
+  body: OwnPassphraseChangeRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/auth/password';
+};
+
+export type ChangeOwnPasswordErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ChangeOwnPasswordError = ChangeOwnPasswordErrors[keyof ChangeOwnPasswordErrors];
+
+export type ChangeOwnPasswordResponses = {
+  /**
+   * Password changed and the current session rotated.
+   */
+  200: SessionContext;
+};
+
+export type ChangeOwnPasswordResponse =
+  ChangeOwnPasswordResponses[keyof ChangeOwnPasswordResponses];
+
+export type ListUsersData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+    /**
+     * Bounded plain-text search term, never a query expression.
+     */
+    q?: OptionalDisplayText;
+    /**
+     * Exact installation-wide role filter.
+     */
+    role?: UserRole;
+    /**
+     * Exact enabled-state filter.
+     */
+    enabled?: boolean;
+  };
+  url: '/users';
+};
+
+export type ListUsersErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListUsersError = ListUsersErrors[keyof ListUsersErrors];
+
+export type ListUsersResponses = {
+  /**
+   * Bounded page of local users in canonical login order.
+   */
+  200: UserPage;
+};
+
+export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
+
+export type CreateUserData = {
+  body: CreateUserRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/users';
+};
+
+export type CreateUserErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CreateUserError = CreateUserErrors[keyof CreateUserErrors];
+
+export type CreateUserResponses = {
+  /**
+   * Local user created.
+   */
+  201: User;
+};
+
+export type CreateUserResponse = CreateUserResponses[keyof CreateUserResponses];
+
+export type DeleteUserData = {
+  body?: never;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed user version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    /**
+     * Stable opaque local user identifier.
+     */
+    user_id: UserId;
+  };
+  query?: never;
+  url: '/users/{user_id}';
+};
+
+export type DeleteUserErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type DeleteUserError = DeleteUserErrors[keyof DeleteUserErrors];
+
+export type DeleteUserResponses = {
+  /**
+   * The authenticated local state change completed.
+   */
+  204: void;
+};
+
+export type DeleteUserResponse = DeleteUserResponses[keyof DeleteUserResponses];
+
+export type GetUserData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * Stable opaque local user identifier.
+     */
+    user_id: UserId;
+  };
+  query?: never;
+  url: '/users/{user_id}';
+};
+
+export type GetUserErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetUserError = GetUserErrors[keyof GetUserErrors];
+
+export type GetUserResponses = {
+  /**
+   * Current safe local user state.
+   */
+  200: User;
+};
+
+export type GetUserResponse = GetUserResponses[keyof GetUserResponses];
+
+export type UpdateUserData = {
+  body: UpdateUserRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed user version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    /**
+     * Stable opaque local user identifier.
+     */
+    user_id: UserId;
+  };
+  query?: never;
+  url: '/users/{user_id}';
+};
+
+export type UpdateUserErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type UpdateUserError = UpdateUserErrors[keyof UpdateUserErrors];
+
+export type UpdateUserResponses = {
+  /**
+   * Current safe local user state.
+   */
+  200: User;
+};
+
+export type UpdateUserResponse = UpdateUserResponses[keyof UpdateUserResponses];
+
+export type ResetUserPasswordData = {
+  body: ResetPassphraseRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed user version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    /**
+     * Stable opaque local user identifier.
+     */
+    user_id: UserId;
+  };
+  query?: never;
+  url: '/users/{user_id}/password-reset';
+};
+
+export type ResetUserPasswordErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ResetUserPasswordError = ResetUserPasswordErrors[keyof ResetUserPasswordErrors];
+
+export type ResetUserPasswordResponses = {
+  /**
+   * The authenticated local state change completed.
+   */
+  204: void;
+};
+
+export type ResetUserPasswordResponse =
+  ResetUserPasswordResponses[keyof ResetUserPasswordResponses];
+
+export type RevokeUserSessionsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * Stable opaque local user identifier.
+     */
+    user_id: UserId;
+  };
+  query?: never;
+  url: '/users/{user_id}/sessions';
+};
+
+export type RevokeUserSessionsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type RevokeUserSessionsError = RevokeUserSessionsErrors[keyof RevokeUserSessionsErrors];
+
+export type RevokeUserSessionsResponses = {
+  /**
+   * The authenticated local state change completed.
+   */
+  204: void;
+};
+
+export type RevokeUserSessionsResponse =
+  RevokeUserSessionsResponses[keyof RevokeUserSessionsResponses];
+
+export type GetSystemReadinessData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/system/readiness';
+};
+
+export type GetSystemReadinessErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
 export type GetSystemReadinessError = GetSystemReadinessErrors[keyof GetSystemReadinessErrors];
+
+export type GetSystemReadinessResponses = {
+  /**
+   * Detailed bounded service readiness.
+   */
+  200: SystemReadiness;
+};
+
+export type GetSystemReadinessResponse =
+  GetSystemReadinessResponses[keyof GetSystemReadinessResponses];

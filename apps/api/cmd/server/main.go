@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"io"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
@@ -26,6 +28,7 @@ var (
 	errListen       = errors.New("HTTP listener could not start")
 	errServe        = errors.New("HTTP service stopped unexpectedly")
 	errShutdown     = errors.New("HTTP service shutdown timed out")
+	errAuthStart    = errors.New("authentication could not start")
 	errStorageStart = errors.New("storage could not start")
 	errStorageStop  = errors.New("storage could not stop cleanly")
 )
@@ -33,6 +36,8 @@ var (
 type listenerFactory func(network string, address string) (net.Listener, error)
 
 type databaseRuntime interface {
+	auth.Repository
+	AuthDigestKey() (string, []byte, error)
 	Health(context.Context) error
 	Close() error
 }
@@ -107,7 +112,18 @@ func runWithStorage(
 
 	readiness := httpapi.NewReadiness()
 	readiness.SetDatabaseReady(true)
-	server, err := newHTTPServer(settings, logger, readiness)
+	authentication, err := buildAuthentication(ctx, settings, database, time.Now)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errAuthStart)
+	}
+	authenticationStatus, err := authentication.SetupStatus(ctx)
+	if err != nil || authenticationStatus.Required && authenticationStatus.BootstrapProofRequired &&
+		!settings.SetupBootstrapExpiresAt.After(time.Now().UTC()) {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errAuthStart)
+	}
+	server, err := newHTTPServer(settings, logger, readiness, authentication)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(err)
@@ -142,6 +158,73 @@ func runWithStorage(
 	return err
 }
 
+func buildAuthentication(
+	ctx context.Context,
+	settings config.Config,
+	database databaseRuntime,
+	now func() time.Time,
+) (*auth.Service, error) {
+	if ctx == nil || ctx.Err() != nil || database == nil || now == nil {
+		return nil, errAuthStart
+	}
+	setupRequired, err := database.SetupRequired(ctx)
+	if err != nil {
+		return nil, errAuthStart
+	}
+	bootstrapGate, bootstrapRequired, err := buildBootstrapGate(settings, setupRequired, now())
+	if err != nil {
+		return nil, errAuthStart
+	}
+
+	keyID, digestKey, err := database.AuthDigestKey()
+	if err != nil {
+		clear(digestKey)
+		return nil, errAuthStart
+	}
+	defer clear(digestKey)
+	hasher, err := auth.NewPasswordHasher(auth.DefaultPasswordPolicy())
+	if err != nil {
+		return nil, errAuthStart
+	}
+	service, err := auth.NewService(auth.ServiceOptions{
+		Repository:        database,
+		PasswordHasher:    hasher,
+		DigestKey:         digestKey,
+		DigestKeyID:       keyID,
+		BootstrapRequired: bootstrapRequired,
+		BootstrapGate:     bootstrapGate,
+		Now:               now,
+	})
+	if err != nil {
+		return nil, errAuthStart
+	}
+	return service, nil
+}
+
+func buildBootstrapGate(
+	settings config.Config,
+	setupRequired bool,
+	now time.Time,
+) (*auth.BootstrapGate, bool, error) {
+	bootstrapRequired := config.SetupBootstrapRequired(settings)
+	if !setupRequired || !bootstrapRequired {
+		return nil, bootstrapRequired, nil
+	}
+	proof := settings.SetupBootstrapProof.Bytes()
+	defer clear(proof)
+	if len(proof) != auth.DigestKeyBytes || now.IsZero() || !settings.SetupBootstrapExpiresAt.After(now.UTC()) {
+		return nil, bootstrapRequired, errAuthStart
+	}
+	encoded := make([]byte, base64.RawURLEncoding.EncodedLen(len(proof)))
+	base64.RawURLEncoding.Encode(encoded, proof)
+	defer clear(encoded)
+	gate, err := auth.NewBootstrapGate(string(encoded), settings.SetupBootstrapExpiresAt)
+	if err != nil {
+		return nil, bootstrapRequired, errAuthStart
+	}
+	return gate, bootstrapRequired, nil
+}
+
 func monitorDatabase(
 	ctx context.Context,
 	database databaseRuntime,
@@ -170,13 +253,19 @@ func monitorDatabase(
 	}
 }
 
-func newHTTPServer(settings config.Config, logger *slog.Logger, readiness *httpapi.Readiness) (*http.Server, error) {
-	if config.Validate(settings) != nil || logger == nil || readiness == nil {
+func newHTTPServer(
+	settings config.Config,
+	logger *slog.Logger,
+	readiness *httpapi.Readiness,
+	authentication *auth.Service,
+) (*http.Server, error) {
+	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil {
 		return nil, errHTTPBoundary
 	}
 	handler, err := httpapi.NewHandler(httpapi.Options{
 		Logger:                 logger,
 		Readiness:              readiness,
+		Authentication:         authentication,
 		PublicOrigin:           httpapi.Origin{Scheme: settings.PublicOrigin.Scheme, Authority: settings.PublicOrigin.Host},
 		TrustedProxyPrefixes:   settings.TrustedProxyPrefixes,
 		MetricsAllowedPrefixes: settings.MetricsAllowedPrefixes,
@@ -283,6 +372,8 @@ func lifecycleReason(err error) string {
 		return "listener"
 	case errors.Is(err, errShutdown):
 		return "shutdown_timeout"
+	case errors.Is(err, errAuthStart):
+		return "authentication_start"
 	case errors.Is(err, errStorageStart):
 		return "storage_start"
 	case errors.Is(err, errStorageStop):

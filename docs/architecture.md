@@ -1,17 +1,17 @@
 # Stackplore Architecture
 
-Status: Target architecture with Phase 6 local storage foundation
+Status: Target architecture with Phase 7 local authentication foundation
 Last updated: 2026-08-02
 
 This document defines the intended v1 architecture for Stackplore. Phase 0
-established the design and governance documents. Phases 1 through 6 implement
+established the design and governance documents. Phases 1 through 7 implement
 the developer scaffold, responsive and bilingual interface foundation,
 provider-neutral domain contracts, focused read ports, the versioned transport
 foundation, and a bounded Go service boundary with validated configuration and
-operational probes, plus local SQLite storage and migration foundations.
-Product workflows, provider behavior, authentication, static production
-serving, and deployment assets described here remain targets for later phases,
-not claims about current functionality.
+operational probes, plus local SQLite storage, migrations, local accounts,
+sessions, authorization, and user administration. Product workflows, provider
+behavior, static production serving, and deployment assets described here
+remain targets for later phases, not claims about current functionality.
 
 ## Goals and constraints
 
@@ -153,12 +153,12 @@ route-level data access.
 
 `contracts/openapi.yaml` is the canonical OpenAPI 3.1 transport document.
 Phase 4 established shared schemas under the `/api/v1` server prefix without
-speculative operations. Phase 5 adds the first implemented path,
-`GET /system/readiness`. The operation documents only reachable Phase 5
-errors: `400`, `401`, `413`, `429`, `500`, and `503`. No success response or
-security scheme is published before the Phase 7 local session and administrator
-guard exist. This keeps the contract aligned with runtime behavior instead of
-implying a temporary authentication mechanism.
+speculative operations, and Phase 5 added the first readiness path. Phase 7
+defines 13 path forms and 16 implemented operations for setup, authentication,
+password rotation, user administration, session revocation, and detailed
+administrator readiness. Browser-session, CSRF, pre-auth, and recent-auth
+schemes match the live cookie and header boundary. Fixed success and problem
+responses keep the contract aligned with runtime behavior.
 
 The contract derivation tool writes browser transport types into one committed
 file under `packages/api-client/src/derived`. Handwritten modules in that package
@@ -385,6 +385,13 @@ sessions. Every authorized request resolves the current user enabled state and
 role; password, role, enabled-state, and recovery changes revoke that user's
 sessions.
 
+New passwords are 12 through 128 UTF-8 bytes. Argon2id version 19 uses 65,536
+KiB, time cost 3, parallelism 1, a 16-byte salt, and a 32-byte result, with at
+most two concurrent hashes per process. Session, pre-auth, and recent-auth
+proofs are canonical unpadded base64url encodings of 32 random bytes. The
+database stores keyed digests under a private installation key rather than raw
+proofs.
+
 Authenticated state-changing requests require all of:
 
 - an authenticated, unexpired session;
@@ -396,17 +403,28 @@ Authenticated state-changing requests require all of:
 Login and first-run setup have no session yet. An auth preflight issues a
 bounded, short-lived server nonce, an HttpOnly SameSite pre-auth cookie, and a
 separate bound header token. Login or setup requires that cookie, token, and a
-valid `Origin`, then consumes the nonce.
+valid `Origin`, then consumes the nonce. Pre-auth state expires after five
+minutes and has a 4,096-record cap.
 
-Cookie policy uses HttpOnly, SameSite, path `/api/v1`, and Secure under HTTPS.
-Login and setup endpoints have request and account-aware rate limits. The first
+Cookie policy uses HttpOnly, SameSite=Lax, path `/api/v1`, no Domain attribute,
+and Secure under HTTPS. Sessions use a 30-minute sliding idle bound, a 12-hour
+absolute bound, and at most one persisted touch per minute. Authenticated
+service results renew the cookie only within the absolute bound, including
+denied or conflicting work after a session touch.
+
+Login has durable source- and account-aware limits, rejected remote bootstrap
+proofs have a durable setup-source limit, and current-password checks have a
+durable per-user limit. Each throttle scope has a 4,096-key cap and a shared
+fail-closed overflow bucket. The first
 administrator is created through a transaction that succeeds only while no
 user exists. Setup then closes permanently. When a deployment is reachable
-beyond loopback, setup also requires a short-lived, one-use bootstrap proof
-configured through an operator-controlled out-of-band channel. The proof is
-compared safely and never enters persistent storage, logs, errors, or audit
-metadata. The last enabled administrator cannot be disabled, deleted, or
-demoted. Local operator recovery never reopens network setup.
+beyond loopback, setup also requires a canonical 32-byte, short-lived, one-use
+bootstrap proof with a UTC expiry no more than one hour ahead, configured
+through an operator-controlled out-of-band channel. The proof is compared
+safely and never enters persistent storage, logs, errors, or audit metadata.
+The last enabled administrator cannot be disabled, deleted, or demoted. Local
+operator recovery never reopens network setup. Recent-auth grants expire after
+five minutes and bind one exact purpose, user, and session.
 
 A non-loopback production profile requires an HTTPS configured public origin
 and accepts forwarding headers only from explicit trusted proxy addresses.
@@ -421,7 +439,8 @@ account, configuration, and full audit data remain administrator-only; v1 does
 not provide source-level or tenant isolation.
 
 See [ADR-0005](adr/0005-local-sessions-and-csrf.md) and the
-[security model](security.md).
+[security model](security.md). Exact bootstrap and recovery steps are in
+[First-Run Setup and Account Recovery](operations/account-recovery.md).
 
 ## Realtime architecture
 
@@ -562,12 +581,10 @@ Operational endpoints have distinct meaning:
   loopback, while denial is a plain `404`.
 
 The versioned `GET /api/v1/system/readiness` route is reserved for enabled
-administrators. Through Phase 6 there is no local session subsystem, so every
-request that passes its outer request gates reaches a handler closed with
-`401`. No header,
-query value, cookie, trusted-edge assertion, or environment setting grants
-temporary access. Phase 7 replaces this closed gate with the real session and
-role checks and may then publish a detailed success shape.
+administrators. A missing or expired session receives `401`, a live viewer
+receives `403`, and a live administrator receives the bounded detailed result.
+No header, query value, trusted-edge assertion, or environment setting grants
+temporary access or substitutes for the server-side session and current role.
 
 Metrics include build identity, readiness, in-flight work, completed requests,
 recovered panics, request deadlines, rate denials, overload denials, and request
@@ -644,13 +661,17 @@ transport, migration ownership, and session behavior.
 
 Phase 6 proves migration, storage-policy, repository-transaction, bounded
 retention, process-ownership, contention, backup, restore, and storage-readiness
-behavior against temporary local databases. Later phases must prove the
-remaining design with:
+behavior against temporary local databases. Phase 7 proves setup races,
+password-cost bounds, login enumeration and throttles, session expiry and
+revocation, cookie and CSRF policy, recent-auth replay defense, role changes,
+final-administrator protection, local recovery, user administration, contract
+compatibility, bilingual browser flows, and accessibility. Later phases must
+prove the remaining design with:
 
 - domain tests against fake ports;
 - feature repository query and lifecycle tests;
 - provider fixture tests plus clearly labeled optional live checks;
-- auth, role, CSRF, rate-limit, redaction, and action-gate tests;
+- provider authorization, redaction, and action-gate tests;
 - SSE replay, overflow, cancellation, and reconnect tests;
 - OpenAPI validation and browser-client compatibility checks;
 - English, Persian, RTL, accessibility, and browser journey tests;

@@ -1,57 +1,54 @@
 import { TechnicalText } from '@stackplore/ui';
 import { Link } from '@tanstack/react-router';
+import { lazy, Suspense } from 'react';
 
 import { PlannedPage } from './PlannedPage';
+import { useAuth } from '../features/auth/auth-context';
 import { useLocale, type TextMessageKey } from '../i18n';
 
+const UserAdminPage = lazy(() =>
+  import('../features/users/UserAdminPage').then((module) => ({
+    default: module.UserAdminPage,
+  })),
+);
+
 const settingsLinks = [
-  { labelKey: 'route.settings.general', to: '/settings' },
-  { labelKey: 'route.connections.title', to: '/settings/connections' },
-  { labelKey: 'route.users.title', to: '/settings/users' },
-  { labelKey: 'route.notifications.title', to: '/settings/notifications' },
+  { administratorOnly: true, labelKey: 'route.settings.general', to: '/settings' },
+  { administratorOnly: true, labelKey: 'route.connections.title', to: '/settings/connections' },
+  { administratorOnly: true, labelKey: 'route.users.title', to: '/settings/users' },
+  {
+    administratorOnly: true,
+    labelKey: 'route.notifications.title',
+    to: '/settings/notifications',
+  },
   { labelKey: 'route.preferences.title', to: '/settings/preferences' },
-] as const satisfies readonly { labelKey: TextMessageKey; to: string }[];
+] as const satisfies readonly {
+  administratorOnly?: boolean;
+  labelKey: TextMessageKey;
+  to: string;
+}[];
 
 function SettingsNavigation() {
+  const { snapshot } = useAuth();
   const { t } = useLocale();
+  const administrator =
+    snapshot.status === 'authenticated' && snapshot.user.role === 'administrator';
 
   return (
     <nav className="settings-nav" aria-label={t('route.settings.sectionsLabel')}>
-      {settingsLinks.map((item) => (
-        <Link
-          key={item.to}
-          className="settings-nav__link ui-focus-ring"
-          to={item.to}
-          activeOptions={{ exact: true }}
-        >
-          {t(item.labelKey)}
-        </Link>
-      ))}
+      {settingsLinks
+        .filter((item) => !('administratorOnly' in item) || administrator)
+        .map((item) => (
+          <Link
+            key={item.to}
+            className="settings-nav__link ui-focus-ring"
+            to={item.to}
+            activeOptions={{ exact: true }}
+          >
+            {t(item.labelKey)}
+          </Link>
+        ))}
     </nav>
-  );
-}
-
-export function SetupPage() {
-  const { t } = useLocale();
-
-  return (
-    <PlannedPage
-      eyebrow={t('route.setup.eyebrow')}
-      title={t('route.setup.title')}
-      description={t('route.setup.description')}
-    />
-  );
-}
-
-export function LoginPage() {
-  const { t } = useLocale();
-
-  return (
-    <PlannedPage
-      eyebrow={t('route.login.eyebrow')}
-      title={t('route.login.title')}
-      description={t('route.login.description')}
-    />
   );
 }
 
@@ -173,11 +170,24 @@ export function ConnectionsSettingsPage() {
 export function UsersSettingsPage() {
   const { t } = useLocale();
   return (
-    <PlannedPage
-      title={t('route.users.title')}
-      description={t('route.users.description')}
-      toolbar={<SettingsNavigation />}
-    />
+    <Suspense
+      fallback={
+        <div className="route-page users-page min-w-0">
+          <header className="route-page__header">
+            <p className="route-page__eyebrow">{t('users.page.eyebrow')}</p>
+            <h1>{t('route.users.title')}</h1>
+            <p>{t('route.users.description')}</p>
+          </header>
+          <SettingsNavigation />
+          <section className="users-state" aria-live="polite">
+            <h2>{t('users.loading.title')}</h2>
+            <p>{t('users.loading.body')}</p>
+          </section>
+        </div>
+      }
+    >
+      <UserAdminPage toolbar={<SettingsNavigation />} />
+    </Suspense>
   );
 }
 

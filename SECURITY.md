@@ -2,7 +2,9 @@
 
 ## Project status
 
-Stackplore has no released version yet. The repository is in its initial design phase, so there is currently no supported release range or production-security claim.
+Stackplore has no released version yet. The repository has a prerelease
+implementation through Phase 7, but there is currently no supported release
+range or production-security claim.
 
 This policy will be updated with supported versions and release-specific guidance before the first release.
 

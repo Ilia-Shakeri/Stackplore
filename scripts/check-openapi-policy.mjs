@@ -61,34 +61,199 @@ const allowedDocumentKeys = [
   'paths',
   'servers',
 ];
-const systemReadinessPath = '/system/readiness';
-const allowedPathNames = [systemReadinessPath];
-const allowedPathItemKeys = ['get'];
-const allowedSystemReadinessOperationKeys = [
+const browserSession = ['BrowserSession'];
+const sessionMutation = ['BrowserSession', 'CSRFRequestProof'];
+const highRiskMutation = ['BrowserSession', 'CSRFRequestProof', 'RecentAuthProof'];
+const preauthMutation = ['PreauthBrowserProof', 'PreauthRequestProof'];
+const routePolicies = new Map([
+  [
+    '/setup/status',
+    {
+      get: {
+        operationId: 'getSetupStatus',
+        requestBody: false,
+        responses: ['200', '400', '413', '429', '500', '503'],
+        security: [],
+      },
+    },
+  ],
+  [
+    '/setup',
+    {
+      post: {
+        operationId: 'createFirstAdministrator',
+        requestBody: true,
+        responses: ['201', '400', '403', '409', '413', '415', '429', '500', '503'],
+        security: preauthMutation,
+      },
+    },
+  ],
+  [
+    '/auth/preflight',
+    {
+      post: {
+        operationId: 'createPreauthProof',
+        requestBody: true,
+        responses: ['201', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+        security: [],
+      },
+    },
+  ],
+  [
+    '/auth/login',
+    {
+      post: {
+        operationId: 'login',
+        requestBody: true,
+        responses: ['200', '400', '401', '403', '413', '415', '429', '500', '503'],
+        security: preauthMutation,
+      },
+    },
+  ],
+  [
+    '/auth/session',
+    {
+      get: {
+        operationId: 'getCurrentSession',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/auth/logout',
+    {
+      post: {
+        operationId: 'logout',
+        requestBody: false,
+        responses: ['204', '400', '401', '403', '413', '429', '500', '503'],
+        security: sessionMutation,
+      },
+    },
+  ],
+  [
+    '/auth/recent-grants',
+    {
+      post: {
+        operationId: 'createRecentAuthGrant',
+        requestBody: true,
+        responses: ['201', '400', '401', '403', '413', '415', '429', '500', '503'],
+        security: sessionMutation,
+      },
+    },
+  ],
+  [
+    '/auth/password',
+    {
+      patch: {
+        operationId: 'changeOwnPassword',
+        requestBody: true,
+        responses: ['200', '400', '401', '403', '413', '415', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
+    '/users',
+    {
+      get: {
+        operationId: 'listUsers',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+      post: {
+        operationId: 'createUser',
+        requestBody: true,
+        responses: ['201', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
+    '/users/{user_id}',
+    {
+      delete: {
+        operationId: 'deleteUser',
+        requestBody: false,
+        responses: ['204', '400', '401', '403', '404', '409', '413', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+      get: {
+        operationId: 'getUser',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+      patch: {
+        operationId: 'updateUser',
+        requestBody: true,
+        responses: ['200', '400', '401', '403', '404', '409', '413', '415', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
+    '/users/{user_id}/password-reset',
+    {
+      post: {
+        operationId: 'resetUserPassword',
+        requestBody: true,
+        responses: ['204', '400', '401', '403', '404', '409', '413', '415', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
+    '/users/{user_id}/sessions',
+    {
+      delete: {
+        operationId: 'revokeUserSessions',
+        requestBody: false,
+        responses: ['204', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
+    '/system/readiness',
+    {
+      get: {
+        operationId: 'getSystemReadiness',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+]);
+const allowedPathNames = [...routePolicies.keys()];
+const allowedOperationKeys = [
   'description',
   'operationId',
   'parameters',
   'responses',
+  'security',
   'summary',
 ];
-const systemReadinessDescription =
-  'Reserved for an enabled administrator. Phase 5 has no local session subsystem, so after the shared HTTP boundary checks pass, this route is deliberately closed and returns 401. No header, query value, cookie, proxy claim, or deployment setting grants access.';
-const systemReadinessResponseReferences = new Map([
-  ['400', '#/components/responses/BadRequestProblem'],
-  ['401', '#/components/responses/UnauthorizedProblem'],
-  ['413', '#/components/responses/PayloadTooLargeProblem'],
-  ['429', '#/components/responses/TooManyRequestsProblem'],
-  ['500', '#/components/responses/InternalProblem'],
-  ['503', '#/components/responses/ServiceUnavailableProblem'],
-]);
-const allowedComponentCollections = ['headers', 'parameters', 'responses', 'schemas'];
-const allowedHeaderNames = ['RequestId', 'RetryAfter'];
+const allowedComponentCollections = [
+  'examples',
+  'headers',
+  'parameters',
+  'responses',
+  'schemas',
+  'securitySchemes',
+];
+const allowedExampleNames = ['AdministratorSession'];
+const allowedHeaderNames = ['BrowserStateUpdate', 'EntityTag', 'RequestId', 'RetryAfter'];
 const allowedParameterNames = [
   'AvailabilityFilter',
   'Cursor',
   'EnvironmentFilter',
   'From',
   'HealthFilter',
+  'IfMatch',
   'Limit',
   'ProviderFilter',
   'RequestId',
@@ -97,6 +262,9 @@ const allowedParameterNames = [
   'SortDirection',
   'SourceFilter',
   'To',
+  'UserEnabledFilter',
+  'UserId',
+  'UserRoleFilter',
 ];
 const allowedResponseNames = [
   'BadRequestProblem',
@@ -106,11 +274,16 @@ const allowedResponseNames = [
   'NotFoundProblem',
   'PayloadTooLargeProblem',
   'ServiceUnavailableProblem',
+  'SignInRejectedProblem',
   'TooManyRequestsProblem',
   'UnauthorizedProblem',
   'UnsupportedMediaTypeProblem',
+  'MutationAccepted',
+  'UserCreated',
+  'UserFound',
 ];
 const retryableResponseNames = new Set(['ServiceUnavailableProblem', 'TooManyRequestsProblem']);
+const successResponseNames = new Set(['MutationAccepted', 'UserCreated', 'UserFound']);
 const allowedResponseKeys = ['content', 'description', 'headers'];
 const problemMediaType = 'application/problem+json';
 const allowedSchemaNames = [
@@ -132,6 +305,7 @@ const allowedSchemaNames = [
   'Capability',
   'CapabilityName',
   'CapabilitySet',
+  'ConfigurationReadinessCheck',
   'Code',
   'Completeness',
   'CpuLimitMetricSample',
@@ -139,6 +313,7 @@ const allowedSchemaNames = [
   'CpuUsageMetricSample',
   'CurrentMetricResult',
   'CurrentMetricSet',
+  'CreateUserRequest',
   'Cursor',
   'DataAllowedCurrentMetricResult',
   'DataAllowedCurrentMetricSet',
@@ -149,6 +324,7 @@ const allowedSchemaNames = [
   'DataAllowedRelationshipPage',
   'DataAllowedResourcePage',
   'DataAllowedUnknownHealthSnapshot',
+  'DatabaseReadinessCheck',
   'DisplayText',
   'EmptyMetricSampleSet',
   'Environment',
@@ -175,6 +351,8 @@ const allowedSchemaNames = [
   'InventoryListCapability',
   'InvalidParameter',
   'KnownHealthSnapshot',
+  'LoginName',
+  'LoginRequest',
   'LogBatch',
   'LogEntry',
   'LogEntryId',
@@ -209,7 +387,13 @@ const allowedSchemaNames = [
   'OperatorAuditActor',
   'OptionalDisplayText',
   'PageInfo',
+  'Passphrase',
+  'OwnPassphraseChangeRequest',
+  'PreauthPurpose',
+  'PreauthRequest',
+  'PreauthResponse',
   'Problem',
+  'Proof',
   'ProviderKind',
   'Relationship',
   'RelationshipDirection',
@@ -219,6 +403,11 @@ const allowedSchemaNames = [
   'RelationshipPage',
   'RelationshipProvenance',
   'RequestId',
+  'ResetPassphraseRequest',
+  'ReadinessState',
+  'RecentAuthPurpose',
+  'RecentAuthRequest',
+  'RecentAuthResponse',
   'ResolvedAlert',
   'Resource',
   'ResourceId',
@@ -228,15 +417,33 @@ const allowedSchemaNames = [
   'RestartCountMetricSample',
   'Scope',
   'ScopeKind',
+  'ServiceReadinessCheck',
+  'SessionContext',
+  'SetupRequest',
+  'SetupState',
+  'SetupStatus',
   'SortDirection',
   'SourceId',
   'StaleObservation',
   'SystemAuditActor',
+  'SystemReadiness',
   'Timestamp',
   'TopologyReadCapability',
   'UnavailableObservation',
   'UnknownHealthSnapshot',
+  'UpdateUserRequest',
+  'User',
   'UserAuditActor',
+  'UserId',
+  'UserPage',
+  'UserRole',
+];
+const allowedSecuritySchemeNames = [
+  'BrowserSession',
+  'CSRFRequestProof',
+  'PreauthBrowserProof',
+  'PreauthRequestProof',
+  'RecentAuthProof',
 ];
 const forbiddenPropertyFragments = [
   'accesskey',
@@ -255,7 +462,14 @@ const forbiddenPropertyFragments = [
   'sessiontoken',
   'token',
 ];
-const sensitiveInputFieldAllowlist = new Set([]);
+const sensitiveInputFieldAllowlist = new Set([
+  'CreateUserRequest:password',
+  'LoginRequest:password',
+  'OwnPassphraseChangeRequest:new_password',
+  'RecentAuthRequest:current_password',
+  'ResetPassphraseRequest:new_password',
+  'SetupRequest:password',
+]);
 const schemaAssertionKeywords = new Set([
   '$ref',
   'additionalProperties',
@@ -338,49 +552,71 @@ const hasExactKeys = (value, expected) => {
 const inspectPathPolicy = (paths) => {
   const issues = [];
   if (!hasExactKeys(paths, allowedPathNames)) {
-    return ['paths must contain only the Phase 5 system readiness route'];
+    return ['paths must contain only the Phase 7 authentication and user routes'];
   }
 
-  const pathItem = paths[systemReadinessPath];
-  if (!hasExactKeys(pathItem, allowedPathItemKeys)) {
-    issues.push(`${systemReadinessPath} must contain only GET`);
-    return issues;
-  }
+  const operationIds = new Set();
+  for (const [path, methodPolicies] of routePolicies) {
+    const pathItem = paths[path];
+    if (!hasExactKeys(pathItem, Object.keys(methodPolicies))) {
+      issues.push(`${path} must keep its fixed Phase 7 methods`);
+      continue;
+    }
 
-  const operation = pathItem.get;
-  if (!hasExactKeys(operation, allowedSystemReadinessOperationKeys)) {
-    issues.push(`${systemReadinessPath} GET must use the fixed Phase 5 operation shape`);
-    return issues;
-  }
+    for (const [method, policy] of Object.entries(methodPolicies)) {
+      const operation = pathItem[method];
+      const expectedKeys = policy.requestBody
+        ? [...allowedOperationKeys, 'requestBody']
+        : allowedOperationKeys;
+      if (!hasExactKeys(operation, expectedKeys)) {
+        issues.push(`${path} ${method.toUpperCase()} must keep its fixed operation shape`);
+        continue;
+      }
+      if (operation.operationId !== policy.operationId || operationIds.has(operation.operationId)) {
+        issues.push(`${path} ${method.toUpperCase()} must keep its unique operation ID`);
+      }
+      operationIds.add(operation.operationId);
+      if (
+        typeof operation.summary !== 'string' ||
+        operation.summary.length === 0 ||
+        typeof operation.description !== 'string' ||
+        operation.description.length === 0
+      ) {
+        issues.push(`${path} ${method.toUpperCase()} must have bounded descriptive text`);
+      }
+      if (
+        !Array.isArray(operation.parameters) ||
+        operation.parameters.length === 0 ||
+        operation.parameters[0]?.$ref !== '#/components/parameters/RequestId'
+      ) {
+        issues.push(`${path} ${method.toUpperCase()} must begin with the shared request ID`);
+      }
+      if (!hasExactKeys(operation.responses, policy.responses)) {
+        issues.push(`${path} ${method.toUpperCase()} must keep its fixed response statuses`);
+      }
 
-  if (operation.operationId !== 'getSystemReadiness') {
-    issues.push(`${systemReadinessPath} GET must keep its stable operation ID`);
-  }
-  if (operation.summary !== 'Inspect detailed service readiness') {
-    issues.push(`${systemReadinessPath} GET must keep its fixed safe summary`);
-  }
-  if (operation.description !== systemReadinessDescription) {
-    issues.push(`${systemReadinessPath} GET must state the closed Phase 5 guard`);
-  }
+      if (policy.security.length === 0) {
+        if (!Array.isArray(operation.security) || operation.security.length !== 0) {
+          issues.push(`${path} ${method.toUpperCase()} must be explicitly public`);
+        }
+      } else if (
+        !Array.isArray(operation.security) ||
+        operation.security.length !== 1 ||
+        !hasExactKeys(operation.security[0], policy.security) ||
+        Object.values(operation.security[0]).some(
+          (scopes) => !Array.isArray(scopes) || scopes.length !== 0,
+        )
+      ) {
+        issues.push(`${path} ${method.toUpperCase()} must keep its fixed proof set`);
+      }
 
-  if (
-    !Array.isArray(operation.parameters) ||
-    operation.parameters.length !== 1 ||
-    !hasExactKeys(operation.parameters[0], ['$ref']) ||
-    operation.parameters[0].$ref !== '#/components/parameters/RequestId'
-  ) {
-    issues.push(`${systemReadinessPath} GET must accept only the shared request ID parameter`);
-  }
-
-  if (!hasExactKeys(operation.responses, [...systemReadinessResponseReferences.keys()])) {
-    issues.push(`${systemReadinessPath} GET must expose only the fixed closed-guard responses`);
-    return issues;
-  }
-
-  for (const [status, reference] of systemReadinessResponseReferences) {
-    const response = operation.responses[status];
-    if (!hasExactKeys(response, ['$ref']) || response.$ref !== reference) {
-      issues.push(`${systemReadinessPath} GET ${status} must use its fixed problem response`);
+      if (
+        policy.requestBody &&
+        (operation.requestBody?.required !== true ||
+          !hasExactKeys(operation.requestBody?.content, ['application/json']))
+      ) {
+        issues.push(`${path} ${method.toUpperCase()} must require one JSON body`);
+      }
     }
   }
 
@@ -395,7 +631,7 @@ const inspectComponentPolicy = (components) => {
 
   for (const name of Object.keys(components)) {
     if (!allowedComponentCollections.includes(name)) {
-      issues.push(`components.${name} is not allowed in Phase 5`);
+      issues.push(`components.${name} is not allowed in Phase 7`);
     }
   }
 
@@ -448,9 +684,12 @@ const inspectComponentPolicy = (components) => {
       if (!isRecord(response.headers)) {
         issues.push(`${responseLocation}.headers must be an object`);
       } else {
-        const expectedHeaders = retryableResponseNames.has(responseName)
-          ? ['Retry-After', 'X-Request-ID']
-          : ['X-Request-ID'];
+        const expectedHeaders =
+          responseName === 'UserCreated' || responseName === 'UserFound'
+            ? ['ETag', 'Set-Cookie', 'X-Request-ID']
+            : retryableResponseNames.has(responseName)
+              ? ['Retry-After', 'Set-Cookie', 'X-Request-ID']
+              : ['Set-Cookie', 'X-Request-ID'];
         const actualHeaders = Object.keys(response.headers).sort();
         if (
           actualHeaders.length !== expectedHeaders.length ||
@@ -460,10 +699,26 @@ const inspectComponentPolicy = (components) => {
         }
 
         for (const headerName of actualHeaders) {
-          if (isForbiddenPropertyName(headerName)) {
+          if (headerName !== 'Set-Cookie' && isForbiddenPropertyName(headerName)) {
             issues.push(`${responseLocation}.headers.${headerName} uses an unsafe name`);
           }
         }
+      }
+
+      if (successResponseNames.has(responseName)) {
+        if (responseName === 'MutationAccepted') {
+          if ('content' in response) {
+            issues.push(`${responseLocation} must not return a body`);
+          }
+        } else if (
+          !isRecord(response.content) ||
+          Object.keys(response.content).length !== 1 ||
+          !isRecord(response.content['application/json']) ||
+          !hasExactKeys(response.content['application/json'], ['examples', 'schema'])
+        ) {
+          issues.push(`${responseLocation}.content must use one documented JSON body`);
+        }
+        continue;
       }
 
       if (
@@ -887,27 +1142,42 @@ const runPolicySelfTests = () => {
     throw new Error('OpenAPI policy self-test failed to reject unsafe response shapes.');
   }
 
-  const createValidPhase5Paths = () => ({
-    '/system/readiness': {
-      get: {
-        description: systemReadinessDescription,
-        operationId: 'getSystemReadiness',
-        parameters: [{ $ref: '#/components/parameters/RequestId' }],
-        responses: {
-          400: { $ref: '#/components/responses/BadRequestProblem' },
-          401: { $ref: '#/components/responses/UnauthorizedProblem' },
-          413: { $ref: '#/components/responses/PayloadTooLargeProblem' },
-          429: { $ref: '#/components/responses/TooManyRequestsProblem' },
-          500: { $ref: '#/components/responses/InternalProblem' },
-          503: { $ref: '#/components/responses/ServiceUnavailableProblem' },
-        },
-        summary: 'Inspect detailed service readiness',
-      },
-    },
-  });
-  const validPhase5Paths = createValidPhase5Paths();
-  if (inspectPathPolicy(validPhase5Paths).length !== 0) {
-    throw new Error('OpenAPI policy self-test rejected the fixed Phase 5 route.');
+  const createValidPhase7Paths = () =>
+    Object.fromEntries(
+      [...routePolicies].map(([path, methods]) => [
+        path,
+        Object.fromEntries(
+          Object.entries(methods).map(([method, policy]) => {
+            const operation = {
+              description: 'Bounded Phase 7 operation.',
+              operationId: policy.operationId,
+              parameters: [{ $ref: '#/components/parameters/RequestId' }],
+              responses: Object.fromEntries(
+                policy.responses.map((status) => [
+                  status,
+                  { $ref: '#/components/responses/BadRequestProblem' },
+                ]),
+              ),
+              security:
+                policy.security.length === 0
+                  ? []
+                  : [Object.fromEntries(policy.security.map((name) => [name, []]))],
+              summary: 'Bounded operation',
+            };
+            if (policy.requestBody) {
+              operation.requestBody = {
+                content: { 'application/json': {} },
+                required: true,
+              };
+            }
+            return [method, operation];
+          }),
+        ),
+      ]),
+    );
+  const validPhase7Paths = createValidPhase7Paths();
+  if (inspectPathPolicy(validPhase7Paths).length !== 0) {
+    throw new Error('OpenAPI policy self-test rejected the fixed Phase 7 routes.');
   }
 
   const unsafePathMutations = [
@@ -915,38 +1185,26 @@ const runPolicySelfTests = () => {
       paths['/unexpected'] = {};
     },
     (paths) => {
-      paths['/system/readiness'].post = {};
+      paths['/setup'].put = {};
     },
     (paths) => {
-      paths['/system/readiness'].get.responses[200] = {};
+      delete paths['/setup'].post.responses[201];
     },
     (paths) => {
       paths['/system/readiness'].get.security = [];
     },
     (paths) => {
-      paths['/system/readiness'].get.responses[401].$ref =
-        '#/components/responses/ForbiddenProblem';
+      delete paths['/auth/login'].post.requestBody;
     },
     (paths) => {
-      paths['/system/readiness'].get.description =
-        'Reserved for an enabled administrator. The handler returns 401.';
-    },
-    (paths) => {
-      delete paths['/system/readiness'].get.responses[400];
-    },
-    (paths) => {
-      paths['/system/readiness'].get.responses[413].$ref =
-        '#/components/responses/BadRequestProblem';
-    },
-    (paths) => {
-      paths['/system/readiness'].get.responses[503].$ref = '#/components/responses/InternalProblem';
+      paths['/users'].post.operationId = 'listUsers';
     },
   ];
   for (const mutate of unsafePathMutations) {
-    const paths = createValidPhase5Paths();
+    const paths = createValidPhase7Paths();
     mutate(paths);
     if (inspectPathPolicy(paths).length === 0) {
-      throw new Error('OpenAPI policy self-test failed to reject unsafe Phase 5 paths.');
+      throw new Error('OpenAPI policy self-test failed to reject unsafe Phase 7 paths.');
     }
   }
 
@@ -1043,9 +1301,22 @@ const main = async () => {
     if (pathIssues.length > 0) {
       fail(pathIssues.join('; '));
     }
+    for (const [path, method, status] of [
+      ['/auth/session', 'get', '200'],
+      ['/auth/recent-grants', 'post', '201'],
+      ['/users', 'get', '200'],
+      ['/system/readiness', 'get', '200'],
+    ]) {
+      if (
+        document.paths?.[path]?.[method]?.responses?.[status]?.headers?.['Set-Cookie']?.$ref !==
+        '#/components/headers/BrowserStateUpdate'
+      ) {
+        fail(`${path} ${method.toUpperCase()} must document session cookie renewal`);
+      }
+    }
 
     if ('webhooks' in document) {
-      fail('webhooks are outside the Phase 5 boundary');
+      fail('webhooks are outside the Phase 7 boundary');
     }
 
     const components = document.components;
@@ -1070,6 +1341,32 @@ const main = async () => {
       allowedResponseNames,
       'components.responses',
     );
+    assertExactValues(Object.keys(components.examples), allowedExampleNames, 'components.examples');
+    assertExactValues(
+      Object.keys(components.securitySchemes),
+      allowedSecuritySchemeNames,
+      'components.securitySchemes',
+    );
+    const expectedSecuritySchemes = new Map([
+      ['BrowserSession', ['cookie', 'stackplore_session']],
+      ['CSRFRequestProof', ['header', 'X-Stackplore-CSRF']],
+      ['PreauthBrowserProof', ['cookie', 'stackplore_preauth']],
+      ['PreauthRequestProof', ['header', 'X-Stackplore-Preauth']],
+      ['RecentAuthProof', ['header', 'X-Stackplore-Recent-Auth']],
+    ]);
+    for (const [name, [location, wireName]] of expectedSecuritySchemes) {
+      const scheme = components.securitySchemes[name];
+      if (
+        !isRecord(scheme) ||
+        scheme.type !== 'apiKey' ||
+        scheme.in !== location ||
+        scheme.name !== wireName ||
+        typeof scheme.description !== 'string' ||
+        scheme.description.length === 0
+      ) {
+        fail(`components.securitySchemes.${name} must keep its exact proof contract`);
+      }
+    }
 
     const referenceCycle = findSchemaReferenceCycle(components.schemas);
     if (referenceCycle !== null) {
@@ -1162,6 +1459,19 @@ const main = async () => {
       ],
       ['MetricUnit', ['cores', 'bytes', 'count']],
       ['ProviderKind', ['demo', 'docker', 'kubernetes']],
+      ['PreauthPurpose', ['login', 'setup']],
+      ['ReadinessState', ['ready', 'not_ready']],
+      [
+        'RecentAuthPurpose',
+        [
+          'account.password_change',
+          'user.create',
+          'user.update',
+          'user.delete',
+          'user.password_reset',
+          'user.sessions_revoke',
+        ],
+      ],
       ['RelationshipDirection', ['source_to_target', 'bidirectional', 'undirected']],
       [
         'RelationshipKind',
@@ -1181,7 +1491,9 @@ const main = async () => {
         ],
       ],
       ['ScopeKind', ['global', 'project', 'namespace']],
+      ['SetupState', ['required', 'closed']],
       ['SortDirection', ['asc', 'desc']],
+      ['UserRole', ['administrator', 'viewer']],
     ]);
     for (const [name, expected] of fixedEnums) {
       const schema = components.schemas[name];
@@ -1220,6 +1532,11 @@ const main = async () => {
       components.schemas.OptionalDisplayText,
       { maximumLength: 8192, pattern: optionalDisplayTextPattern },
       'OptionalDisplayText',
+    );
+    assertExactStringSchema(
+      components.schemas.Passphrase,
+      { format: 'password', maximumLength: 128 },
+      'Passphrase',
     );
     for (const name of ['ResourceId', 'RelationshipId']) {
       const schema = components.schemas[name];
@@ -1424,6 +1741,31 @@ const main = async () => {
       fail('components.responses is required');
     }
     for (const [name, response] of Object.entries(responses)) {
+      if (response?.headers?.['Set-Cookie']?.$ref !== '#/components/headers/BrowserStateUpdate') {
+        fail(`${name} must document optional authentication cookie updates`);
+      }
+      if (successResponseNames.has(name)) {
+        if (response?.headers?.['X-Request-ID']?.$ref !== '#/components/headers/RequestId') {
+          fail(`${name} must return X-Request-ID`);
+        }
+        if (name === 'MutationAccepted') {
+          if ('content' in response) {
+            fail('MutationAccepted must have no response body');
+          }
+          continue;
+        }
+        const successMedia = response?.content?.['application/json'];
+        if (
+          !isRecord(successMedia) ||
+          successMedia.schema?.$ref !== '#/components/schemas/User' ||
+          !isRecord(successMedia.examples) ||
+          Object.keys(successMedia.examples).length === 0 ||
+          response?.headers?.ETag?.$ref !== '#/components/headers/EntityTag'
+        ) {
+          fail(`${name} must return one documented versioned user`);
+        }
+        continue;
+      }
       const media = response?.content?.['application/problem+json'];
       if (
         !isRecord(media) ||

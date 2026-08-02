@@ -4,14 +4,13 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Phase 6 adds the local SQLite system of record, embedded
-> migrations, one-process ownership, repository and transaction boundaries,
-> database-backed readiness, bounded retention helpers, live local backup, and
-> offline restore. The first versioned route,
-> `GET /api/v1/system/readiness`, remains closed with `401` until the
-> administrator guard arrives in Phase 7. Product workflows, provider
-> integrations, authentication, deployment assets, a demo, and a published
-> release do not exist yet. Phase 6 is complete and awaiting maintainer commit.
+> **Project status:** Phase 7 adds atomic first-run administrator setup, local
+> Argon2id accounts, durable login throttles, opaque server-side sessions, CSRF
+> protection, administrator and viewer roles, local recovery, and bilingual
+> login, setup, and user-management flows. Detailed system readiness is now
+> available only to an enabled administrator. Product workflows, provider
+> integrations, deployment assets, a demo, and a published release do not
+> exist yet. Phase 7 is complete and awaiting maintainer commit.
 
 Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
 
@@ -49,8 +48,11 @@ limiting, and bounded lifecycle handling.
 Phase 6 adds a pure-Go SQLite adapter with WAL, foreign keys, a bounded busy
 timeout, exclusive process ownership, embedded forward migrations, focused
 metric, event, and audit repositories, storage health in `/readyz`, and tested
-local backup and offline restore commands. The schema is ready for later
-features; no product workflow uses it yet.
+local backup and offline restore commands. Phase 7 adds the local account and
+session service, exact same-origin request protection, permanently closed
+first-run setup, administrator user management, local recovery, a versioned
+authentication API and typed browser client, and responsive English and Persian
+account flows. Provider-backed product workflows do not exist yet.
 
 The main project documents are:
 
@@ -62,6 +64,7 @@ The main project documents are:
 - [Architecture decisions](docs/adr/)
 - [Development guide](docs/development.md)
 - [Local backup and restore](docs/operations/backup-restore.md)
+- [First-run setup and account recovery](docs/operations/account-recovery.md)
 - [Change history](CHANGELOG.md)
 
 ## Development

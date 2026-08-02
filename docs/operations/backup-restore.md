@@ -10,7 +10,17 @@ with the same validated `STACKPLORE_*` environment used by the API service.
   requires an absolute path. Network shares, UNC paths, device paths, and one
   data directory shared by several machines or API processes are unsupported.
 - The database name is fixed as `stackplore.db`. The same directory contains
-  `.stackplore.owner.lock` and `.stackplore.maintenance.lock`.
+  `.stackplore.owner.lock`, `.stackplore.maintenance.lock`, and the private
+  32-byte `.stackplore.auth-key` digest key.
+- The online database backup does not copy `.stackplore.auth-key`. A same-data-
+  directory restore keeps the current key. A fresh data directory creates a
+  new key on first service start; restored sessions and short-lived proofs are
+  already invalidated by restore. Do not copy a key from another live
+  installation or expose it with a backup.
+- A missing key is regenerated and makes bearer state produced by the old key
+  unusable. A malformed, symlinked, linked, or POSIX-permission-exposed key
+  file blocks storage startup. Windows operators must verify its ACL. Password
+  hashes do not depend on this key.
 - The main database and single-file restore source must each have exactly one
   filesystem link. Do not hard-link them across data or backup directories.
 - SQLite may create `stackplore.db-wal`, `stackplore.db-shm`, or
@@ -144,7 +154,10 @@ and increments the restore generation before installing `stackplore.db`.
 
 After exit status `0`, start the API and require `GET /readyz` to return `200`
 before reopening access. Every session from the backup is invalid by design;
-users must authenticate again after Phase 7 supplies that workflow.
+each user must sign in again. Verify that `.stackplore.auth-key` is still a
+32-byte regular file with a private POSIX mode or Windows ACL when reusing a
+data directory; on a fresh data directory, the service creates it during
+startup.
 
 ## Interrupted restore and WAL evidence
 

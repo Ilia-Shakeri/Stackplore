@@ -17,7 +17,7 @@
   "route.designSystem.title": "سامانهٔ طراحی",
   "route.events.description": "جریان‌های رویداد ارائه‌دهنده هنوز متصل نشده‌اند.",
   "route.events.title": "رویدادها",
-  "route.login.description": "ورود مبتنی بر نشست در این مرحله در دسترس نیست.",
+  "route.login.description": "با حساب محلی خود وارد شوید.",
   "route.login.eyebrow": "مسیر نشست",
   "route.login.title": "ورود",
   "route.logs.description": "جریان‌های محدود لاگ هنوز به برنامه متصل نشده‌اند.",
@@ -47,11 +47,11 @@
   "route.settings.general": "عمومی",
   "route.settings.sectionsLabel": "بخش‌های تنظیمات",
   "route.settings.title": "تنظیمات",
-  "route.setup.description": "راه‌اندازی امن در نخستین اجرا، در این مرحله در دسترس نیست.",
+  "route.setup.description": "نخستین مدیر محلی را بسازید.",
   "route.setup.eyebrow": "مسیر نخستین اجرا",
   "route.setup.title": "راه‌اندازی",
   "route.topology.description": "قابلیت کشف توپولوژی و داده‌های رابطه‌ها هنوز به برنامه متصل نشده‌اند.",
   "route.topology.title": "توپولوژی",
-  "route.users.description": "مدیریت کاربران هنوز در دسترس نیست.",
+  "route.users.description": "حساب‌های محلی، نقش‌ها، وضعیت دسترسی، گذرواژه‌ها و نشست‌های فعال را مدیریت کنید.",
   "route.users.title": "کاربران"
 }

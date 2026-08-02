@@ -1,8 +1,8 @@
 # Stackplore Delivery Plan
 
 - **Target:** 1.0.0
-- **Current phase:** Phase 6 — complete, awaiting commit
-- **Next phase after commit:** Phase 7 — Authentication, users, and authorization
+- **Current phase:** Phase 7 — complete, awaiting commit
+- **Next phase after commit:** Phase 8 — Deterministic demo provider
 - **Delivery model:** One numbered phase, one reviewed commit
 
 This plan is ordered. A later phase does not begin until the current phase is
@@ -42,7 +42,7 @@ provider tests and live provider validation are reported separately.
 
 ## Current tool notes
 
-Local tool versions used through Phase 6 on 2026-08-02:
+Local tool versions used through Phase 7 on 2026-08-02:
 
 | Tool | System state | First required phase | Validation state |
 | --- | --- | --- | --- |
@@ -89,7 +89,7 @@ Exact dependency patches are pinned when their owning phase first adds them.
 - [x] Phase 4 — Domain contracts and OpenAPI foundation
 - [x] Phase 5 — Production-ready backend foundation
 - [x] Phase 6 — SQLite storage and migrations
-- [ ] Phase 7 — Authentication, users, and authorization
+- [x] Phase 7 — Authentication, users, and authorization
 - [ ] Phase 8 — Deterministic demo provider
 - [ ] Phase 9 — Overview dashboard
 - [ ] Phase 10 — Interactive topology explorer
@@ -354,10 +354,10 @@ Phase 5 checklist:
   bucket for non-operational requests are enforced.
 - [x] `/healthz`, `/readyz`, and the origin-and-network-guarded `/metrics`
   endpoint expose only bounded local process state and low-cardinality labels.
-- [x] `GET /api/v1/system/readiness` is registered and its closed handler
-  returns `401` after outer request gates until the real administrator session
-  guard arrives in Phase 7; no header, query value, cookie, or proxy assertion
-  bypasses the closed gate.
+- [x] `GET /api/v1/system/readiness` was registered in Phase 5 with a closed
+  `401` handler after outer request gates. Phase 7 now replaces that handler
+  with the real administrator session guard; no header, query value, bootstrap
+  proof, or proxy assertion bypasses it.
 - [x] Startup, listener failure, request cancellation, readiness transitions,
   graceful shutdown, and forced bounded shutdown have deterministic tests.
 - [x] The first implemented versioned path is in the canonical contract and
@@ -448,6 +448,34 @@ Deliver:
 - self-password session rotation plus other-session revocation, and full target
   session revocation after administrator reset;
 - authentication audit events and security tests.
+
+Phase 7 checklist:
+
+- [x] Empty-installation setup is atomic, closes permanently after the first
+  administrator, and requires a short-lived one-use bootstrap proof when setup
+  is reachable beyond loopback.
+- [x] Passwords use versioned Argon2id records with bounded input, memory-hard
+  work, automatic rehash support, and a process-wide concurrency ceiling.
+- [x] Login is non-enumerating and protected by durable source and account
+  throttles; logout, idle and absolute expiry, rotation, and revocation are
+  enforced by server-side session records.
+- [x] Session, pre-auth, recent-auth, and bootstrap tokens are random, bounded,
+  one-way digested where persisted, purpose-bound where applicable, and never
+  stored or logged in raw form.
+- [x] Unsafe routes require an exact-origin request, synchronizer CSRF proof,
+  live enabled-user and role lookup, and one-use recent authentication for
+  high-risk account changes.
+- [x] Administrator and viewer policy, stale-write protection, the final
+  enabled-administrator rule, self-password rotation, target-session
+  revocation, and local recovery are enforced transactionally.
+- [x] The versioned contract, derived browser client, setup and login screens,
+  session-aware route guards, user menu, and bilingual user administration
+  interface match the implemented HTTP boundary.
+- [x] Setup races, proof replay, login enumeration, throttles, cookie flags,
+  CSRF failures, expiry, revocation, role changes, recovery, user-management
+  conflicts, accessibility, and full setup-to-login flow have regression tests.
+- [x] Password-cost measurements, bootstrap operation, local recovery, session
+  behavior, and current readiness access are documented.
 
 Commit:
 

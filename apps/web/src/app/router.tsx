@@ -1,8 +1,9 @@
+import { createApiClient } from '@stackplore/api-client';
 import {
   Navigate,
   Outlet,
   type RouterHistory,
-  createRootRoute,
+  createRootRouteWithContext,
   createRoute,
   createRouter,
   useRouterState,
@@ -20,7 +21,6 @@ import {
   AuditPage,
   ConnectionsSettingsPage,
   EventsPage,
-  LoginPage,
   LogsPage,
   NotificationsSettingsPage,
   OverviewPage,
@@ -28,18 +28,35 @@ import {
   ResourceDetailPage,
   ResourcesPage,
   SettingsPage,
-  SetupPage,
   TopologyPage,
   UsersSettingsPage,
 } from '../routes/RoutePages';
+import { AuthBootPage } from '../features/auth/AuthBootPage';
+import { LoginPage } from '../features/auth/LoginPage';
+import { SetupPage } from '../features/auth/SetupPage';
+import { createAuthApi } from '../features/auth/auth-api';
+import { AuthProvider, useAuth } from '../features/auth/auth-context';
+import { AuthStore } from '../features/auth/auth-store';
+import { createUsersApi, type UsersApi } from '../features/users/users-api';
+import { UsersProvider } from '../features/users/users-context';
 import { useLocale } from '../i18n';
 
-const rootRoute = createRootRoute({
+interface RouterContext {
+  readonly auth: AuthStore;
+  readonly users: UsersApi;
+}
+
+const defaultApiClient = createApiClient();
+const defaultAuthStore = new AuthStore(createAuthApi(defaultApiClient));
+const defaultUsersApi = createUsersApi(defaultApiClient, defaultAuthStore);
+
+const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: RootRoute,
   notFoundComponent: () => <Navigate to="/not-found" replace />,
 });
 
 function RootRoute() {
+  const { auth, users } = rootRoute.useRouteContext();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { t } = useLocale();
 
@@ -48,14 +65,31 @@ function RootRoute() {
     document.title = pageTitle === 'Stackplore' ? pageTitle : `${pageTitle} | Stackplore`;
   }, [pathname, t]);
 
-  return <Outlet />;
+  return (
+    <AuthProvider store={auth}>
+      <UsersProvider api={users}>
+        <Outlet />
+      </UsersProvider>
+    </AuthProvider>
+  );
 }
 
 const rootIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: () => <Navigate to="/overview" replace />,
+  component: RootIndexRoute,
 });
+
+function RootIndexRoute() {
+  const { snapshot } = useAuth();
+  if (snapshot.status === 'loading' || snapshot.status === 'unavailable') {
+    return <AuthBootPage />;
+  }
+  if (snapshot.status === 'setup_required') {
+    return <Navigate to="/setup" replace />;
+  }
+  return <Navigate to={snapshot.status === 'authenticated' ? '/overview' : '/login'} replace />;
+}
 
 const standaloneRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -66,20 +100,102 @@ const standaloneRoute = createRoute({
 const setupRoute = createRoute({
   getParentRoute: () => standaloneRoute,
   path: '/setup',
-  component: SetupPage,
+  component: SetupRoute,
 });
+
+function SetupRoute() {
+  const { snapshot } = useAuth();
+  if (snapshot.status === 'loading' || snapshot.status === 'unavailable') {
+    return <AuthBootPage />;
+  }
+  if (snapshot.status === 'authenticated') {
+    return <Navigate to="/overview" replace />;
+  }
+  if (snapshot.status === 'unauthenticated') {
+    return <Navigate to="/login" replace />;
+  }
+  return <SetupPage />;
+}
+
+export function sanitizeNextPath(value: unknown): string | undefined {
+  if (
+    typeof value !== 'string' ||
+    value.length === 0 ||
+    value.length > 2048 ||
+    !value.startsWith('/') ||
+    value.startsWith('//') ||
+    value.includes('\\') ||
+    /[\p{Cc}\p{Zl}\p{Zp}]/u.test(value)
+  ) {
+    return undefined;
+  }
+  const path = value.split(/[?#]/u, 1)[0];
+  if (path === '/login' || path === '/setup') {
+    return undefined;
+  }
+  return value;
+}
 
 const loginRoute = createRoute({
   getParentRoute: () => standaloneRoute,
   path: '/login',
-  component: LoginPage,
+  validateSearch: (search: Record<string, unknown>) => {
+    const next = sanitizeNextPath(search.next);
+    return next === undefined ? {} : { next };
+  },
+  component: LoginRoute,
 });
+
+function LoginRoute() {
+  const search = loginRoute.useSearch();
+  const { snapshot } = useAuth();
+  if (snapshot.status === 'loading' || snapshot.status === 'unavailable') {
+    return <AuthBootPage />;
+  }
+  if (snapshot.status === 'setup_required') {
+    return <Navigate to="/setup" replace />;
+  }
+  if (snapshot.status === 'authenticated') {
+    return <Navigate to="/overview" replace />;
+  }
+  return <LoginPage {...(search.next === undefined ? {} : { next: search.next })} />;
+}
 
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
-  component: AppShell,
+  component: AuthenticatedAppRoute,
 });
+
+function AuthenticatedAppRoute() {
+  const href = useRouterState({ select: (state) => state.location.href });
+  const { snapshot } = useAuth();
+  if (snapshot.status === 'loading' || snapshot.status === 'unavailable') {
+    return <AuthBootPage />;
+  }
+  if (snapshot.status === 'setup_required') {
+    return <Navigate to="/setup" replace />;
+  }
+  if (snapshot.status === 'unauthenticated') {
+    const next = sanitizeNextPath(href);
+    return <Navigate to="/login" search={next === undefined ? {} : { next }} replace />;
+  }
+  return <AppShell />;
+}
+
+const administratorRoute = createRoute({
+  getParentRoute: () => appRoute,
+  id: 'administrator',
+  component: AdministratorRoute,
+});
+
+function AdministratorRoute() {
+  const { snapshot } = useAuth();
+  if (snapshot.status !== 'authenticated' || snapshot.user.role !== 'administrator') {
+    return <Navigate to="/overview" replace />;
+  }
+  return <Outlet />;
+}
 
 const overviewRoute = createRoute({
   getParentRoute: () => appRoute,
@@ -129,7 +245,7 @@ const alertsRoute = createRoute({
 });
 
 const auditRoute = createRoute({
-  getParentRoute: () => appRoute,
+  getParentRoute: () => administratorRoute,
   path: '/audit',
   component: AuditPage,
 });
@@ -137,23 +253,31 @@ const auditRoute = createRoute({
 const settingsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/settings',
-  component: SettingsPage,
+  component: SettingsEntryRoute,
 });
 
+function SettingsEntryRoute() {
+  const { snapshot } = useAuth();
+  if (snapshot.status === 'authenticated' && snapshot.user.role === 'viewer') {
+    return <Navigate to="/settings/preferences" replace />;
+  }
+  return <SettingsPage />;
+}
+
 const settingsConnectionsRoute = createRoute({
-  getParentRoute: () => appRoute,
+  getParentRoute: () => administratorRoute,
   path: '/settings/connections',
   component: ConnectionsSettingsPage,
 });
 
 const settingsUsersRoute = createRoute({
-  getParentRoute: () => appRoute,
+  getParentRoute: () => administratorRoute,
   path: '/settings/users',
   component: UsersSettingsPage,
 });
 
 const settingsNotificationsRoute = createRoute({
-  getParentRoute: () => appRoute,
+  getParentRoute: () => administratorRoute,
   path: '/settings/notifications',
   component: NotificationsSettingsPage,
 });
@@ -194,20 +318,29 @@ const routeTree = rootRoute.addChildren([
     logsRoute,
     eventsRoute,
     alertsRoute,
-    auditRoute,
     settingsRoute,
-    settingsConnectionsRoute,
-    settingsUsersRoute,
-    settingsNotificationsRoute,
     settingsPreferencesRoute,
     aboutRoute,
     notFoundRoute,
     designSystemRoute,
+    administratorRoute.addChildren([
+      auditRoute,
+      settingsConnectionsRoute,
+      settingsUsersRoute,
+      settingsNotificationsRoute,
+    ]),
   ]),
 ]);
 
-export function createAppRouter(history?: RouterHistory) {
+export function createAppRouter(
+  history?: RouterHistory,
+  auth: AuthStore = defaultAuthStore,
+  users: UsersApi = auth === defaultAuthStore
+    ? defaultUsersApi
+    : createUsersApi(createApiClient(), auth),
+) {
   return createRouter({
+    context: { auth, users },
     routeTree,
     defaultPreload: 'intent',
     scrollRestoration: history === undefined,

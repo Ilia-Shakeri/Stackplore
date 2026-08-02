@@ -2,6 +2,10 @@ import appEn from '../app/messages.en.json';
 import appFa from '../app/messages.fa.json';
 import shellEn from '../app/shell/messages.en.json';
 import shellFa from '../app/shell/messages.fa.json';
+import authEn from '../features/auth/messages.en.json';
+import authFa from '../features/auth/messages.fa.json';
+import usersEn from '../features/users/messages.en.json';
+import usersFa from '../features/users/messages.fa.json';
 import designSystemEn from '../routes/design-system.messages.en.json';
 import designSystemFa from '../routes/design-system.messages.fa.json';
 import routesEn from '../routes/messages.en.json';
@@ -11,6 +15,8 @@ import type { Locale } from './locale';
 const enCatalog = {
   ...appEn,
   ...shellEn,
+  ...authEn,
+  ...usersEn,
   ...routesEn,
   ...designSystemEn,
 } as const;
@@ -29,6 +35,8 @@ export type PluralMessageKey = Exclude<MessageKey, TextMessageKey>;
 const faCatalog = {
   ...appFa,
   ...shellFa,
+  ...authFa,
+  ...usersFa,
   ...routesFa,
   ...designSystemFa,
 } as const;

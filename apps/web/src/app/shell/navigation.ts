@@ -11,6 +11,7 @@ import {
 } from '@stackplore/ui/icons';
 import type { ComponentType, SVGProps } from 'react';
 
+import type { UserRole } from '../../features/auth/auth-api';
 import type { TextMessageKey } from '../../i18n';
 
 type NavigationIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -28,11 +29,12 @@ export interface NavigationItem {
     | '/alerts'
     | '/audit'
     | '/settings'
+    | '/settings/preferences'
     | '/about'
     | '/design-system';
 }
 
-export const primaryNavigation = [
+const primaryNavigation = [
   { icon: LayoutDashboard, labelKey: 'route.overview.title', to: '/overview' },
   { icon: Network, labelKey: 'route.topology.title', to: '/topology' },
   { icon: Boxes, labelKey: 'route.resources.title', to: '/resources' },
@@ -46,6 +48,21 @@ export const secondaryNavigation = [
   { icon: Settings, labelKey: 'route.settings.title', to: '/settings' },
   { icon: Info, labelKey: 'route.about.title', to: '/about' },
 ] as const satisfies readonly NavigationItem[];
+
+const viewerSecondaryNavigation = [
+  { icon: Settings, labelKey: 'route.settings.title', to: '/settings/preferences' },
+  { icon: Info, labelKey: 'route.about.title', to: '/about' },
+] as const satisfies readonly NavigationItem[];
+
+export function getPrimaryNavigation(role: UserRole): readonly NavigationItem[] {
+  return role === 'administrator'
+    ? primaryNavigation
+    : primaryNavigation.filter((item) => item.to !== '/audit');
+}
+
+export function getSecondaryNavigation(role: UserRole): readonly NavigationItem[] {
+  return role === 'administrator' ? secondaryNavigation : viewerSecondaryNavigation;
+}
 
 export const developmentNavigation = {
   icon: CircleHelp,

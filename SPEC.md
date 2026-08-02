@@ -4,7 +4,7 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Phase 6 local storage foundation available;
+- **Implementation status:** Phase 7 local authentication foundation available;
   awaiting maintainer commit
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
@@ -617,16 +617,17 @@ The API lives under `/api/v1`. The canonical OpenAPI 3.1 contract lives in
 `contracts/openapi.yaml`.
 
 Phase 4 established the shared provider-neutral schemas without claiming
-runtime operations. Phase 5 publishes only the implemented
-`GET /api/v1/system/readiness` path. Because local sessions and roles arrive in
-Phase 7, this route is deliberately closed and has no success response or
-security scheme yet; a valid request that passes the outer request limits
-reaches a fixed `401` problem. Root operational endpoints are outside the
-`/api/v1` contract. Its other reachable boundary problems are `400`, `413`,
-`429`, `500`, and `503`; all six outcomes are documented with shared problem
-responses. Each later handler phase adds only paths, safe examples, limits,
-authorization, and problem responses that exist in the same implementation
-phase.
+runtime operations. Phase 5 first published
+`GET /api/v1/system/readiness` as a closed error-only gate. Phase 7 replaces
+that temporary gate with the real local-session administrator check and extends
+the contract to 13 implemented path forms and 16 operations for
+pre-authentication, setup, sessions, password changes, recent-auth grants, user
+administration, and detailed readiness. The contract declares the actual
+session-cookie and CSRF schemes. Detailed readiness returns success only for an
+enabled administrator, `401` without a valid session, and `403` for an enabled
+viewer. Root operational endpoints remain outside the `/api/v1` contract.
+Each later handler phase adds only paths, safe examples, limits, authorization,
+and problem responses that exist in the same implementation phase.
 
 API groups:
 
@@ -775,13 +776,13 @@ raw kubeconfig content, Secret values, or complete environment dumps.
 Development uses a Vite server, Go API server, and same-origin development
 proxy.
 
-Through Phase 6, the Go listener opens the local database, verifies and applies
-embedded migrations, and becomes ready before accepting product work. The
-production image and built-web serving path do not exist yet. Configuration is
-validated before the listener is opened. Unknown `STACKPLORE_*` names, blank or
-non-canonical values, conflicting timeouts, and values outside documented
-bounds stop startup without logging the rejected value. The full key, default,
-and range table lives in
+Through Phase 7, the Go listener opens the local database, verifies and applies
+embedded migrations, initializes the local authentication boundary, and
+becomes ready before accepting product work. The production image and built-web
+serving path do not exist yet. Configuration is validated before the listener
+is opened. Unknown `STACKPLORE_*` names, blank or non-canonical values,
+conflicting timeouts, and values outside documented bounds stop startup without
+logging the rejected value. The full key, default, and range table lives in
 [docs/development.md](docs/development.md).
 
 Production uses one origin. The Go process serves the API and static web build.
@@ -819,15 +820,15 @@ and platform permission limits are in
 [the backup and restore procedure](docs/operations/backup-restore.md).
 
 Health and readiness responses expose only terse process state. Detailed
-readiness remains administrator-only at `/api/v1/system/readiness`; Phase 5
-registers the path, and every request reaching its closed handler returns `401`
-until the Phase 7 session guard exists. No header, query value, cookie, or proxy
-assertion is a temporary bypass. `/metrics` requires both the exact configured public scheme and
-authority and a verified client-network allowlist match. Phase 5 defaults the
-allowlist to loopback clients and makes a denied endpoint look absent with
-`404`. Operational authentication remains a later option. Metric names and
-labels cannot contain user, source, provider-native, resource, or log-derived
-identifiers.
+readiness is administrator-only at `/api/v1/system/readiness`; Phase 7 enforces
+the live session, enabled-account, and administrator-role checks. No header,
+query value, bootstrap proof, or proxy assertion bypasses that guard.
+`/metrics` requires both the exact configured public scheme and authority and a
+verified client-network allowlist match. Phase 5 defaults the allowlist to
+loopback clients and makes a denied endpoint look absent with `404`.
+Operational authentication for `/metrics` remains a later option. Metric names
+and labels cannot contain user, source, provider-native, resource, or
+log-derived identifiers.
 
 All HTTP work uses server header, read, write, idle, and accepted-connection
 ceilings. Every non-operational request additionally uses client-rate and

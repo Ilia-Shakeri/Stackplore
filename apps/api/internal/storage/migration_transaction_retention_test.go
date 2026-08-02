@@ -88,7 +88,7 @@ func TestEmbeddedMigrationsUpgradeCommittedFirstVersion(t *testing.T) {
 	}
 	defer store.Close()
 	var migrationCount int
-	if err := store.db.QueryRowContext(ctx, "SELECT count(*) FROM schema_migrations").Scan(&migrationCount); err != nil || migrationCount != 3 {
+	if err := store.db.QueryRowContext(ctx, "SELECT count(*) FROM schema_migrations").Scan(&migrationCount); err != nil || migrationCount != len(store.expectedMigrations) {
 		t.Fatalf("migration count = %d, error = %v", migrationCount, err)
 	}
 	var installationID string
@@ -102,6 +102,7 @@ func TestEmbeddedMigrationsUpgradeCommittedFirstVersion(t *testing.T) {
 		"alerts",
 		"notification_deliveries",
 		"audit_entries",
+		"authentication_throttles",
 	}
 	for _, table := range wantedTables {
 		var count int

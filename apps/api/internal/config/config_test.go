@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/netip"
 	"path/filepath"
@@ -36,6 +37,16 @@ func productionDataDirectory() string {
 		return `C:\stackplore\data`
 	}
 	return "/var/lib/stackplore"
+}
+
+func bootstrapEnvironment(values map[string]string) map[string]string {
+	result := make(map[string]string, len(values)+2)
+	for key, value := range values {
+		result[key] = value
+	}
+	result[setupBootstrapProofKey] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	result[setupBootstrapExpiryKey] = time.Now().UTC().Add(30 * time.Minute).Truncate(time.Second).Format(time.RFC3339)
+	return result
 }
 
 func TestLoadDefaults(t *testing.T) {
@@ -82,10 +93,60 @@ func TestLoadDefaults(t *testing.T) {
 	}
 }
 
+func TestSetupBootstrapIsBoundedAndRedacted(t *testing.T) {
+	values := bootstrapEnvironment(map[string]string{})
+	got, err := Load(getter(values))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !SetupBootstrapRequired(got) || !got.SetupBootstrapProof.Present() || len(got.SetupBootstrapProof.Bytes()) != 32 {
+		t.Fatal("configured bootstrap proof was not preserved")
+	}
+	if formatted := fmt.Sprintf("%+v", got); strings.Contains(formatted, values[setupBootstrapProofKey]) {
+		t.Fatal("formatted configuration disclosed bootstrap proof")
+	}
+
+	copyOne := got.SetupBootstrapProof.Bytes()
+	copyOne[0] = 1
+	if got.SetupBootstrapProof.Bytes()[0] != 0 {
+		t.Fatal("bootstrap proof returned shared storage")
+	}
+}
+
+func TestRemoteSetupMarksBootstrapProofRequired(t *testing.T) {
+	got, err := Load(getter(map[string]string{httpAddressKey: "0.0.0.0:8080"}))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !SetupBootstrapRequired(got) || got.SetupBootstrapProof.Present() {
+		t.Fatal("remote setup requirement was not preserved")
+	}
+}
+
+func TestSetupBootstrapRejectsInvalidPairsAndLifetime(t *testing.T) {
+	future := time.Now().UTC().Add(30 * time.Minute).Truncate(time.Second).Format(time.RFC3339)
+	tests := []struct {
+		name   string
+		values map[string]string
+		field  string
+	}{
+		{"proof alone", map[string]string{setupBootstrapProofKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}, setupBootstrapExpiryKey},
+		{"expiry alone", map[string]string{setupBootstrapExpiryKey: future}, setupBootstrapProofKey},
+		{"bad proof", map[string]string{setupBootstrapProofKey: strings.Repeat("x", 43), setupBootstrapExpiryKey: future}, setupBootstrapProofKey},
+		{"too long", map[string]string{setupBootstrapProofKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", setupBootstrapExpiryKey: time.Now().UTC().Add(2 * time.Hour).Truncate(time.Second).Format(time.RFC3339)}, setupBootstrapExpiryKey},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := Load(getter(test.values))
+			assertFieldError(t, err, test.field)
+		})
+	}
+}
+
 func TestLoadAllFields(t *testing.T) {
 	t.Parallel()
 
-	got, err := Load(getter(map[string]string{
+	got, err := Load(getter(bootstrapEnvironment(map[string]string{
 		environmentKey:            "production",
 		httpAddressKey:            "0.0.0.0:8443",
 		publicOriginKey:           "https://stackplore.example:8443",
@@ -110,7 +171,7 @@ func TestLoadAllFields(t *testing.T) {
 		dataDirectoryKey:          productionDataDirectory(),
 		databaseBusyTimeoutKey:    "10s",
 		developmentAPIOriginKey:   "http://127.0.0.1:8080",
-	}))
+	})))
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
@@ -336,6 +397,7 @@ func TestValidateRejectsForgedTypedConfig(t *testing.T) {
 		{"production relative data directory", func(value *Config) { value.Environment = EnvironmentProduction }},
 		{"database busy timeout", func(value *Config) { value.DatabaseBusyTimeout = 0 }},
 		{"database busy timeout precision", func(value *Config) { value.DatabaseBusyTimeout = 100*time.Millisecond + time.Nanosecond }},
+		{"bootstrap expiry without proof", func(value *Config) { value.SetupBootstrapExpiresAt = time.Now().UTC().Truncate(time.Second) }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -437,19 +499,19 @@ func TestProductionExposureRules(t *testing.T) {
 		},
 		{
 			name: "remote exposure with edge",
-			values: map[string]string{
+			values: bootstrapEnvironment(map[string]string{
 				environmentKey:          "production",
 				httpAddressKey:          "0.0.0.0:8080",
 				publicOriginKey:         "https://stackplore.example",
 				trustedProxyPrefixesKey: "10.0.0.0/8",
 				dataDirectoryKey:        productionDataDirectory(),
-			},
+			}),
 		},
 		{
-			name: "development may bind remote",
-			values: map[string]string{
+			name: "development may bind remote with proof",
+			values: bootstrapEnvironment(map[string]string{
 				httpAddressKey: "0.0.0.0:8080",
-			},
+			}),
 		},
 	}
 
@@ -591,6 +653,7 @@ func TestErrorsNeverContainValues(t *testing.T) {
 		getter(map[string]string{logLevelKey: marker}),
 		getter(map[string]string{dataDirectoryKey: marker + "\x00"}),
 		getter(map[string]string{databaseBusyTimeoutKey: marker}),
+		getter(map[string]string{setupBootstrapProofKey: marker}),
 		getter(map[string]string{readTimeoutKey: marker}),
 		getter(map[string]string{maxHeaderBytesKey: marker}),
 		getter(map[string]string{maximumResponseBytesKey: marker}),

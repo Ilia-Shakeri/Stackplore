@@ -4,7 +4,8 @@ import { useEffect, useRef } from 'react';
 
 import { BrandLogo } from './BrandLogo';
 import { NavigationLinks } from './NavigationLinks';
-import { developmentNavigation, primaryNavigation, secondaryNavigation } from './navigation';
+import { developmentNavigation, getPrimaryNavigation, getSecondaryNavigation } from './navigation';
+import { useAuth } from '../../features/auth/auth-context';
 import { useLocale } from '../../i18n';
 
 interface MobileNavProps {
@@ -15,7 +16,9 @@ interface MobileNavProps {
 
 export function MobileNav({ onOpenChange, open, pathname }: MobileNavProps) {
   const navigationRequested = useRef(false);
+  const { snapshot } = useAuth();
   const { t } = useLocale();
+  const role = snapshot.status === 'authenticated' ? snapshot.user.role : 'viewer';
 
   useEffect(() => {
     onOpenChange(false);
@@ -58,13 +61,13 @@ export function MobileNav({ onOpenChange, open, pathname }: MobileNavProps) {
           <BrandLogo />
         </div>
         <nav className="shell-nav" aria-label={t('shell.navigation.primary')}>
-          <NavigationLinks items={primaryNavigation} onNavigate={closeForNavigation} />
+          <NavigationLinks items={getPrimaryNavigation(role)} onNavigate={closeForNavigation} />
         </nav>
         <nav
           className="shell-nav mobile-nav__secondary"
           aria-label={t('shell.navigation.workspace')}
         >
-          <NavigationLinks items={secondaryNavigation} onNavigate={closeForNavigation} />
+          <NavigationLinks items={getSecondaryNavigation(role)} onNavigate={closeForNavigation} />
           {import.meta.env.DEV ? (
             <div className="app-sidebar__development">
               <NavigationLinks items={[developmentNavigation]} onNavigate={closeForNavigation} />

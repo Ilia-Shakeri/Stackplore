@@ -2,6 +2,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -44,6 +45,8 @@ const (
 	rateMaxClientsKey         = prefix + "RATE_LIMIT_MAX_CLIENTS"
 	dataDirectoryKey          = prefix + "DATA_DIRECTORY"
 	databaseBusyTimeoutKey    = prefix + "DATABASE_BUSY_TIMEOUT"
+	setupBootstrapProofKey    = prefix + "SETUP_BOOTSTRAP_PROOF"
+	setupBootstrapExpiryKey   = prefix + "SETUP_BOOTSTRAP_EXPIRES_AT"
 
 	// This variable belongs to the browser development process and is allowed
 	// in the shared process environment without becoming server configuration.
@@ -66,6 +69,7 @@ const (
 	defaultRateMaxClients       = 4096
 	defaultDataDirectory        = "data"
 	defaultDatabaseBusyTimeout  = 5 * time.Second
+	maximumBootstrapLifetime    = time.Hour
 )
 
 const (
@@ -149,7 +153,32 @@ type Config struct {
 
 	DataDirectory       string
 	DatabaseBusyTimeout time.Duration
+
+	SetupBootstrapProof     Secret
+	SetupBootstrapExpiresAt time.Time
 }
+
+// Secret keeps one fixed-size process secret out of formatted configuration.
+type Secret struct {
+	value [32]byte
+	set   bool
+}
+
+// Present reports whether a secret was configured.
+func (secret Secret) Present() bool { return secret.set }
+
+// Bytes returns an independent copy for a short-lived consumer.
+func (secret Secret) Bytes() []byte {
+	if !secret.set {
+		return nil
+	}
+	result := make([]byte, len(secret.value))
+	copy(result, secret.value[:])
+	return result
+}
+
+// Format prevents configuration formatting from disclosing secret bytes.
+func (Secret) Format(state fmt.State, _ rune) { _, _ = state.Write([]byte("[redacted]")) }
 
 // Getter makes environment access explicit and replaceable in tests.
 type Getter interface {
@@ -205,6 +234,9 @@ func Load(getter Getter) (Config, error) {
 		return Config{}, err
 	}
 	if result.PublicOrigin, err = loadPublicOrigin(getter, result.HTTPAddress); err != nil {
+		return Config{}, err
+	}
+	if result.SetupBootstrapProof, result.SetupBootstrapExpiresAt, err = loadSetupBootstrap(getter); err != nil {
 		return Config{}, err
 	}
 	if result.TrustedProxyPrefixes, err = loadPrefixes(getter, trustedProxyPrefixesKey, nil); err != nil {
@@ -380,7 +412,10 @@ func Validate(result Config) error {
 	if result.RequestTimeout >= result.WriteTimeout {
 		return invalid(requestTimeoutKey, "must be shorter than the write timeout")
 	}
-	return validateProduction(result)
+	if err := validateProduction(result); err != nil {
+		return err
+	}
+	return validateSetupBootstrap(result)
 }
 
 func defaultConfig() Config {
@@ -423,7 +458,7 @@ func validateEnvironmentKeys(entries []string) error {
 		readTimeoutKey: {}, writeTimeoutKey: {}, idleTimeoutKey: {},
 		requestTimeoutKey: {}, shutdownTimeoutKey: {}, maxHeaderBytesKey: {},
 		maxRequestBodyBytesKey: {}, maximumResponseBytesKey: {}, maxConnectionsKey: {}, maxInFlightKey: {}, ratePerSecondKey: {}, rateBurstKey: {},
-		rateMaxClientsKey: {}, dataDirectoryKey: {}, databaseBusyTimeoutKey: {}, developmentAPIOriginKey: {},
+		rateMaxClientsKey: {}, dataDirectoryKey: {}, databaseBusyTimeoutKey: {}, setupBootstrapProofKey: {}, setupBootstrapExpiryKey: {}, developmentAPIOriginKey: {},
 	}
 	seen := make(map[string]struct{}, len(allowed))
 	for _, entry := range entries {
@@ -479,6 +514,65 @@ func loadPublicOrigin(getter Getter, address string) (url.URL, error) {
 		return url.URL{}, invalid(publicOriginKey, "is invalid")
 	}
 	return result, nil
+}
+
+func loadSetupBootstrap(getter Getter) (Secret, time.Time, error) {
+	proofText, proofPresent, err := readValue(getter, setupBootstrapProofKey)
+	if err != nil {
+		return Secret{}, time.Time{}, err
+	}
+	expiryText, expiryPresent, err := readValue(getter, setupBootstrapExpiryKey)
+	if err != nil {
+		return Secret{}, time.Time{}, err
+	}
+	if !proofPresent && !expiryPresent {
+		return Secret{}, time.Time{}, nil
+	}
+	if !proofPresent {
+		return Secret{}, time.Time{}, invalid(setupBootstrapProofKey, "is required with bootstrap expiry")
+	}
+	if !expiryPresent {
+		return Secret{}, time.Time{}, invalid(setupBootstrapExpiryKey, "is required with bootstrap proof")
+	}
+	decoded, decodeErr := base64.RawURLEncoding.Strict().DecodeString(proofText)
+	if decodeErr != nil || len(decoded) != 32 || base64.RawURLEncoding.EncodeToString(decoded) != proofText {
+		return Secret{}, time.Time{}, invalid(setupBootstrapProofKey, "is invalid")
+	}
+	expiresAt, parseErr := time.Parse(time.RFC3339, expiryText)
+	now := time.Now().UTC()
+	if parseErr != nil || expiresAt.Location() != time.UTC || expiresAt.Format(time.RFC3339) != expiryText || expiresAt.After(now.Add(maximumBootstrapLifetime)) {
+		return Secret{}, time.Time{}, invalid(setupBootstrapExpiryKey, "must be a canonical short-lived UTC time")
+	}
+	var result Secret
+	copy(result.value[:], decoded)
+	result.set = true
+	return result, expiresAt, nil
+}
+
+func validateSetupBootstrap(result Config) error {
+	if !result.SetupBootstrapProof.Present() {
+		if !result.SetupBootstrapExpiresAt.IsZero() {
+			return invalid(setupBootstrapProofKey, "is required with bootstrap expiry")
+		}
+		return nil
+	}
+	if result.SetupBootstrapExpiresAt.IsZero() || result.SetupBootstrapExpiresAt.Location() != time.UTC || result.SetupBootstrapExpiresAt.Nanosecond() != 0 {
+		return invalid(setupBootstrapExpiryKey, "is invalid")
+	}
+	return nil
+}
+
+// SetupBootstrapRequired reports whether first-run setup needs operator proof.
+func SetupBootstrapRequired(result Config) bool {
+	return setupExposureRequired(result) || result.SetupBootstrapProof.Present()
+}
+
+func setupExposureRequired(result Config) bool {
+	listenerHost, _, err := parseAddress(result.HTTPAddress)
+	if err != nil || result.PublicOrigin.Hostname() == "" {
+		return true
+	}
+	return !isLoopbackHost(listenerHost) || !isLoopbackHost(result.PublicOrigin.Hostname())
 }
 
 func loadPrefixes(getter Getter, key string, fallback []netip.Prefix) ([]netip.Prefix, error) {

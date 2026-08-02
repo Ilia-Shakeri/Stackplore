@@ -125,10 +125,12 @@ Phase 6 implements and tests:
 - the platform-aware
   [local backup and restore procedure](../operations/backup-restore.md).
 
-Later phases still must test authentication-specific session digest behavior
-and audit filtering, add feature-owned quota and disk-full policy, verify
-Kubernetes output for one replica and `Recreate`, and reject or document every
-deployment configuration above one replica.
+Phase 7 adds tested keyed session digests, transactional setup and account
+security changes, durable authentication throttles, bounded authentication
+audit reads, and restored-session revocation. Later phases still must add
+feature-owned quota and disk-full policy, verify Kubernetes output for one
+replica and `Recreate`, and reject or document every deployment configuration
+above one replica.
 
 ## References
 

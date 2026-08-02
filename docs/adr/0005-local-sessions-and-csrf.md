@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-07-28
+- Implementation: Phase 7
 - Owners: Project maintainers
 
 ## Context
@@ -132,25 +133,46 @@ complexity outside the v1 scope.
 
 ## Implementation and verification
 
-Later phases must:
+Phase 7 writes Argon2id version 19 records with a 16-byte random salt, a
+32-byte hash, 64 MiB of memory, three iterations, and one lane. Passwords are
+bounded to 12 through 128 UTF-8 bytes. The single-lane setting keeps CPU demand
+predictable on small self-hosted systems; a process-wide two-worker limit also
+bounds concurrent password work. The memory and iteration settings follow the
+low-memory profile described by RFC 9106, while the lane count is an explicit
+deployment tradeoff rather than a claim of profile identity.
 
-- benchmark and document selected Argon2id parameters;
-- test setup races, login rotation, expiry, logout, revocation, and role change;
-- test missing, invalid, expired, and concurrent bootstrap proof use;
-- test last-administrator protection and local recovery without network setup;
-- prove that raw session and CSRF values never enter storage, logs, errors, or
-  audit metadata;
-- test missing, invalid, cross-session, and cross-origin CSRF attempts;
-- test missing, expired, replayed, cross-cookie, and cross-origin pre-auth CSRF
-  attempts;
-- test cookie flags under HTTP development and HTTPS production settings;
-- test endpoint and account-aware rate limits without leaking account presence;
-- test recent-auth expiry, replay, wrong-purpose, wrong-user, wrong-session, and
-  revocation behavior;
-- audit authentication and user-management outcomes with safe metadata.
+On 2026-08-02, this repository's benchmark ran on Go 1.26.5 for windows/amd64
+and an Intel Core i5-1334U:
+
+```text
+go -C apps/api test ./internal/auth -run '^$' -bench '^BenchmarkPasswordHasher$' -benchtime=3x -count=3
+```
+
+The median of the three reported means was 103.47 ms per hash with
+67,113,176 bytes allocated per operation. This is a host-specific development
+measurement, not a production capacity promise. Operators should repeat it on
+the target host before changing the cost or concurrency bounds.
+
+Phase 7 implements and tests:
+
+- atomic first-administrator setup, permanent setup closure, one-use remote
+  bootstrap proof validation, and local recovery without reopening setup;
+- setup races, last-administrator protection, login rotation, sliding and
+  absolute expiry, logout, user revocation, and live role or status changes;
+- keyed session-token digests, one-use recent-auth grants bound to purpose,
+  user, and session, and password-change session rotation;
+- missing, invalid, expired, replayed, cross-cookie, cross-session, and
+  cross-origin pre-auth, CSRF, and recent-auth attempts;
+- cookie flags for HTTP development and HTTPS production origins;
+- source- and account-aware durable throttle bounds with non-enumerating login
+  responses, bounded retention, and fail-closed overflow buckets;
+- safe authentication and user-management audit metadata plus integration
+  scans proving raw passwords, session tokens, CSRF values, recent-auth proofs,
+  and bootstrap proofs do not enter logs or database files.
 
 ## References
 
+- [RFC 9106: Argon2 Memory-Hard Function](https://www.rfc-editor.org/rfc/rfc9106)
 - [Architecture overview](../architecture.md)
 - [ADR-0001: Monorepo and same origin](0001-monorepo-and-same-origin.md)
 - [ADR-0003: SQLite and one active API instance](0003-sqlite-single-instance-and-repositories.md)

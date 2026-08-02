@@ -666,6 +666,7 @@ func revokeRestoredCredentials(ctx context.Context, database *sql.DB) error {
 	}{
 		{query: "DELETE FROM recent_auth_grants"},
 		{query: "DELETE FROM preauth_challenges"},
+		{query: "DELETE FROM authentication_throttles"},
 		{
 			query: `UPDATE sessions
 SET revoked_at_us = max(created_at_us, ?),

@@ -6,6 +6,7 @@ export {
   type ApiMethod,
   type ApiQuery,
   type ApiRequest,
+  type ApiRequestProtection,
   type ApiResponse,
   type ApiTransportErrorCode,
   type QueryPrimitive,

@@ -4,6 +4,7 @@ package storage
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"database/sql"
 	"encoding/hex"
 	"errors"
@@ -46,6 +47,8 @@ type Store struct {
 	closed             atomic.Bool
 	closeOnce          sync.Once
 	closeErr           error
+	authDigestKey      [authDigestKeyBytes]byte
+	authDigestKeyID    string
 }
 
 // Open resolves the data directory, takes exclusive ownership, and applies migrations.
@@ -71,6 +74,11 @@ func openWithMigrations(ctx context.Context, options Options, migrationFiles fs.
 		return nil, err
 	}
 	if err := ensureNoPendingRestore(dataDirectory); err != nil {
+		_ = ownerLock.Close()
+		return nil, err
+	}
+	authDigestKey, authDigestKeyID, err := loadOrCreateAuthDigestKey(dataDirectory)
+	if err != nil {
 		_ = ownerLock.Close()
 		return nil, err
 	}
@@ -115,6 +123,8 @@ func openWithMigrations(ctx context.Context, options Options, migrationFiles fs.
 		databasePath:       databasePath,
 		databaseFile:       databaseFile,
 		expectedMigrations: expectedMigrations,
+		authDigestKey:      authDigestKey,
+		authDigestKeyID:    authDigestKeyID,
 	}
 	if err := store.initialize(ctx, orderedMigrations); err != nil {
 		_ = database.Close()
@@ -122,6 +132,16 @@ func openWithMigrations(ctx context.Context, options Options, migrationFiles fs.
 		return nil, err
 	}
 	return store, nil
+}
+
+// AuthDigestKey returns a private copy of the installation authentication key.
+func (store *Store) AuthDigestKey() (string, []byte, error) {
+	if store == nil || store.closed.Load() || store.authDigestKeyID == "" {
+		return "", nil, ErrStoreClosed
+	}
+	key := make([]byte, len(store.authDigestKey))
+	copy(key, store.authDigestKey[:])
+	return store.authDigestKeyID, key, nil
 }
 
 func inspectDatabaseIdentity(ctx context.Context, databasePath string, busyTimeout time.Duration) error {
@@ -243,6 +263,12 @@ func (store *Store) Health(ctx context.Context) error {
 	if err := validateInstallationMetadata(ctx, store.db, false); err != nil {
 		return ErrDatabaseUnavailable
 	}
+	key, err := readAuthDigestKey(filepath.Join(filepath.Dir(store.databasePath), authDigestKeyFilename))
+	if err != nil || subtle.ConstantTimeCompare(key[:], store.authDigestKey[:]) != 1 {
+		clear(key[:])
+		return ErrDatabaseUnavailable
+	}
+	clear(key[:])
 	return nil
 }
 
@@ -327,6 +353,12 @@ func (store *Store) Close() error {
 	}
 	store.closeOnce.Do(func() {
 		store.closed.Store(true)
+		defer func() {
+			for index := range store.authDigestKey {
+				store.authDigestKey[index] = 0
+			}
+			store.authDigestKeyID = ""
+		}()
 		failed := false
 		if store.db != nil {
 			checkpointTimeout := store.busyTimeout + time.Second

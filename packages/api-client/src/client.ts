@@ -10,6 +10,7 @@ const maximumUrlLength = 8192;
 const maximumHeaderCount = 32;
 const maximumHeaderValueLength = 2048;
 const contentLengthPattern = /^(?:0|[1-9][0-9]*)$/u;
+const protectionTokenPattern = /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/u;
 
 const blockedHeaders = new Set([
   'accept',
@@ -36,6 +37,9 @@ const blockedHeaders = new Set([
   'x-forwarded-host',
   'x-forwarded-proto',
   'x-request-id',
+  'x-stackplore-csrf',
+  'x-stackplore-preauth',
+  'x-stackplore-recent-auth',
 ]);
 
 const queryNamePattern = /^[a-z][a-z0-9_]{0,63}$/u;
@@ -62,11 +66,23 @@ export type ApiQuery = Readonly<
   Record<string, QueryPrimitive | readonly QueryPrimitive[] | undefined>
 >;
 
+export type ApiRequestProtection =
+  | {
+      readonly kind: 'preauth';
+      readonly token: string;
+    }
+  | {
+      readonly csrfToken: string;
+      readonly kind: 'session';
+      readonly recentAuthToken?: string;
+    };
+
 export interface ApiRequest<TBody = never> {
   readonly body?: TBody;
   readonly headers?: Readonly<Record<string, string>>;
   readonly method?: ApiMethod;
   readonly path: `/${string}`;
+  readonly protection?: ApiRequestProtection;
   readonly query?: ApiQuery;
   readonly signal?: AbortSignal;
 }
@@ -160,6 +176,14 @@ const readObjectEntries = (
   }
 };
 
+const readOwnKeys = (value: object): readonly PropertyKey[] => {
+  try {
+    return Reflect.ownKeys(value);
+  } catch {
+    throw new ApiTransportError('invalid_request');
+  }
+};
+
 const buildPath = (path: unknown, query: unknown) => {
   if (
     typeof path !== 'string' ||
@@ -220,7 +244,73 @@ const buildPath = (path: unknown, query: unknown) => {
   return url;
 };
 
-const buildHeaders = (requestHeaders: unknown, requestId: string, hasBody: boolean) => {
+const addProtectionHeaders = (headers: Headers, rawProtection: unknown, method: ApiMethod) => {
+  if (rawProtection === undefined) {
+    return;
+  }
+  if (
+    method === 'GET' ||
+    rawProtection === null ||
+    typeof rawProtection !== 'object' ||
+    Array.isArray(rawProtection)
+  ) {
+    throw new ApiTransportError('invalid_request');
+  }
+
+  const entries = readObjectEntries(rawProtection, 'invalid_request');
+  const ownKeys = readOwnKeys(rawProtection);
+  if (ownKeys.length !== entries.length || ownKeys.some((key) => typeof key !== 'string')) {
+    throw new ApiTransportError('invalid_request');
+  }
+  const values = new Map(entries);
+  const kind = values.get('kind');
+  if (kind === 'preauth') {
+    const token = values.get('token');
+    if (
+      entries.length !== 2 ||
+      !values.has('token') ||
+      typeof token !== 'string' ||
+      !protectionTokenPattern.test(token)
+    ) {
+      throw new ApiTransportError('invalid_request');
+    }
+    headers.set('X-Stackplore-Preauth', token);
+    return;
+  }
+
+  if (kind === 'session') {
+    const csrfToken = values.get('csrfToken');
+    const recentAuthToken = values.get('recentAuthToken');
+    if (
+      (entries.length !== 2 && entries.length !== 3) ||
+      !values.has('csrfToken') ||
+      entries.some(
+        ([name]) => name !== 'kind' && name !== 'csrfToken' && name !== 'recentAuthToken',
+      ) ||
+      typeof csrfToken !== 'string' ||
+      !protectionTokenPattern.test(csrfToken) ||
+      (values.has('recentAuthToken') &&
+        (typeof recentAuthToken !== 'string' || !protectionTokenPattern.test(recentAuthToken)))
+    ) {
+      throw new ApiTransportError('invalid_request');
+    }
+    headers.set('X-Stackplore-CSRF', csrfToken);
+    if (typeof recentAuthToken === 'string') {
+      headers.set('X-Stackplore-Recent-Auth', recentAuthToken);
+    }
+    return;
+  }
+
+  throw new ApiTransportError('invalid_request');
+};
+
+const buildHeaders = (
+  requestHeaders: unknown,
+  rawProtection: unknown,
+  requestId: string,
+  hasBody: boolean,
+  method: ApiMethod,
+) => {
   const headers = new Headers({
     Accept: 'application/json, application/problem+json',
     'X-Request-ID': requestId,
@@ -267,6 +357,7 @@ const buildHeaders = (requestHeaders: unknown, requestId: string, hasBody: boole
   if (hasBody) {
     headers.set('Content-Type', 'application/json');
   }
+  addProtectionHeaders(headers, rawProtection, method);
   return headers;
 };
 
@@ -435,6 +526,7 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
       let requestHeaders: Readonly<Record<string, string>> | undefined;
       let requestMethod: ApiMethod | undefined;
       let requestPath: `/${string}`;
+      let requestProtection: ApiRequestProtection | undefined;
       let requestQuery: ApiQuery | undefined;
       let requestSignal: AbortSignal | undefined;
       try {
@@ -442,6 +534,7 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
         requestHeaders = request.headers;
         requestMethod = request.method;
         requestPath = request.path;
+        requestProtection = request.protection;
         requestQuery = request.query;
         requestSignal = request.signal;
       } catch {
@@ -469,7 +562,7 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
       }
 
       const url = buildPath(requestPath, requestQuery);
-      const headers = buildHeaders(requestHeaders, requestId, hasBody);
+      const headers = buildHeaders(requestHeaders, requestProtection, requestId, hasBody, method);
       let body: string | undefined;
       if (hasBody) {
         let serializedBody: unknown;

@@ -22,6 +22,8 @@ import { describe, expect, it } from 'vitest';
 
 import { App } from '../app/App';
 import { createAppRouter } from '../app/router';
+import { createAuthenticatedAuthStore, createResolvedAuthStore, createTestUser } from './auth';
+import { createTestUsersApi } from './users';
 
 describe('representative interface accessibility', () => {
   it('has no detectable axe violations', async () => {
@@ -77,11 +79,48 @@ describe('representative interface accessibility', () => {
   it('has no detectable violations in the Persian RTL shell', async () => {
     globalThis.localStorage.setItem('stackplore.locale', 'fa');
     const history = createMemoryHistory({ initialEntries: ['/overview'] });
-    const router = createAppRouter(history);
+    const router = createAppRouter(history, createAuthenticatedAuthStore());
     const { container } = render(<App router={router} />);
 
     expect(await screen.findByRole('heading', { level: 1, name: 'نمای کلی' })).not.toBeNull();
 
+    const results = await axe.run(container, {
+      rules: {
+        'color-contrast': { enabled: false },
+      },
+    });
+
+    expect(results.violations).toEqual([]);
+  });
+
+  it('has no detectable violations in the local login form', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/login'] });
+    const router = createAppRouter(history, createResolvedAuthStore({ status: 'unauthenticated' }));
+    const { container } = render(<App router={router} />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).not.toBeNull();
+    const results = await axe.run(container, {
+      rules: {
+        'color-contrast': { enabled: false },
+      },
+    });
+
+    expect(results.violations).toEqual([]);
+  });
+
+  it('has no detectable violations in user administration', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/settings/users'] });
+    const router = createAppRouter(
+      history,
+      createAuthenticatedAuthStore(),
+      createTestUsersApi({
+        listUsers: () => Promise.resolve({ items: [createTestUser()] }),
+      }),
+    );
+    const { container } = render(<App router={router} />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Users' })).not.toBeNull();
+    expect(await screen.findByRole('table', { name: 'Current local users' })).not.toBeNull();
     const results = await axe.run(container, {
       rules: {
         'color-contrast': { enabled: false },

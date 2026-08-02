@@ -18,6 +18,7 @@ func testOptions(logOutput io.Writer) Options {
 	return Options{
 		Logger:                 slog.New(slog.NewJSONHandler(logOutput, nil)),
 		Readiness:              NewReadiness(),
+		Authentication:         &testAuthentication{},
 		PublicOrigin:           Origin{Scheme: "http", Authority: "stackplore.test"},
 		MetricsAllowedPrefixes: []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8")},
 		RequestTimeout:         time.Second,
@@ -103,6 +104,7 @@ func TestNewHandlerRejectsUnsafeOptions(t *testing.T) {
 	}{
 		{"nil logger", func(value *Options) { value.Logger = nil }},
 		{"nil readiness", func(value *Options) { value.Readiness = nil }},
+		{"nil authentication", func(value *Options) { value.Authentication = nil }},
 		{"short timeout", func(value *Options) { value.RequestTimeout = time.Millisecond }},
 		{"small request body", func(value *Options) { value.MaximumRequestBody = 1 }},
 		{"large response body", func(value *Options) { value.MaximumResponseBody = maximumResponseBodyBytes + 1 }},

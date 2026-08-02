@@ -6,15 +6,14 @@ repository rules belong in [docs/conventions.md](docs/conventions.md).
 
 ## 1. Current state
 
-Phases 0 through 5 are committed. Phase 6 adds the local SQLite system of
-record, embedded checked migrations, one-process ownership, repository and
-transaction boundaries, retention helpers, database readiness, online backup,
-and offline restore. It is complete and awaiting maintainer commit. The only
-versioned route is
-`GET /api/v1/system/readiness`; its handler stays closed with `401` after outer
-request gates until authentication and administrator authorization arrive in
-Phase 7. Authentication, provider adapters, and product workflows remain
-planned.
+Phases 0 through 6 are committed. Phase 7 adds atomic first-run administrator
+setup, local Argon2id accounts, durable login throttles, opaque server-side
+sessions, CSRF protection, administrator and viewer roles, recent-auth gates,
+local account recovery, and bilingual login, setup, and user-management flows.
+It is complete and awaiting maintainer commit. The versioned API now exposes
+the authentication and user-administration routes plus
+`GET /api/v1/system/readiness`, whose detail remains limited to an enabled
+administrator. Provider adapters and product workflows remain planned.
 Available commands and their verified scope are documented in
 [docs/development.md](docs/development.md).
 

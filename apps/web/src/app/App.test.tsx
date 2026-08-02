@@ -5,10 +5,18 @@ import { describe, expect, it } from 'vitest';
 
 import { App } from './App';
 import { createAppRouter } from './router';
+import { createAuthenticatedAuthStore } from '../test/auth';
+import { createTestUsersApi } from '../test/users';
 
 function renderRoute(path: string) {
   const history = createMemoryHistory({ initialEntries: [path] });
-  const router = createAppRouter(history);
+  const router = createAppRouter(
+    history,
+    createAuthenticatedAuthStore(),
+    createTestUsersApi({
+      listUsers: () => Promise.resolve({ items: [] }),
+    }),
+  );
   return render(<App router={router} />);
 }
 
@@ -34,8 +42,6 @@ describe('application shell', () => {
   });
 
   it.each([
-    ['/setup', 'Setup'],
-    ['/login', 'Sign in'],
     ['/overview', 'Overview'],
     ['/topology', 'Topology'],
     ['/resources', 'Resources'],
@@ -57,8 +63,6 @@ describe('application shell', () => {
   });
 
   it.each([
-    ['/setup', 'راه‌اندازی'],
-    ['/login', 'ورود'],
     ['/overview', 'نمای کلی'],
     ['/topology', 'توپولوژی'],
     ['/resources', 'منابع'],

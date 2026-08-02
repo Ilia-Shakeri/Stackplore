@@ -21,15 +21,21 @@ type problemKind struct {
 }
 
 var (
-	invalidRequestProblem  = problemKind{status: http.StatusBadRequest, code: "invalid_request", title: "Invalid request"}
-	unauthenticatedProblem = problemKind{status: http.StatusUnauthorized, code: "unauthenticated", title: "Sign in required"}
-	notFoundProblem        = problemKind{status: http.StatusNotFound, code: "not_found", title: "Not found"}
-	methodProblem          = problemKind{status: http.StatusMethodNotAllowed, code: "method_not_allowed", title: "Method not allowed"}
-	payloadProblem         = problemKind{status: http.StatusRequestEntityTooLarge, code: "payload_too_large", title: "Request too large"}
-	rateLimitProblem       = problemKind{status: http.StatusTooManyRequests, code: "rate_limited", title: "Too many requests"}
-	internalProblem        = problemKind{status: http.StatusInternalServerError, code: "internal", title: "Request failed"}
-	unavailableProblem     = problemKind{status: http.StatusServiceUnavailable, code: "unavailable", title: "Service unavailable"}
-	timeoutProblem         = problemKind{status: http.StatusServiceUnavailable, code: "request_timeout", title: "Service unavailable"}
+	invalidRequestProblem     = problemKind{status: http.StatusBadRequest, code: "invalid_request", title: "Invalid request"}
+	unauthenticatedProblem    = problemKind{status: http.StatusUnauthorized, code: "unauthenticated", title: "Sign in required"}
+	invalidCredentialsProblem = problemKind{status: http.StatusUnauthorized, code: "invalid_credentials", title: "Sign in failed"}
+	forbiddenProblem          = problemKind{status: http.StatusForbidden, code: "forbidden", title: "Request not allowed"}
+	recentAuthProblem         = problemKind{status: http.StatusForbidden, code: "recent_auth_required", title: "Recent sign in required"}
+	notFoundProblem           = problemKind{status: http.StatusNotFound, code: "not_found", title: "Not found"}
+	conflictProblem           = problemKind{status: http.StatusConflict, code: "conflict", title: "Request conflict"}
+	setupClosedProblem        = problemKind{status: http.StatusConflict, code: "setup_closed", title: "Setup is closed"}
+	methodProblem             = problemKind{status: http.StatusMethodNotAllowed, code: "method_not_allowed", title: "Method not allowed"}
+	payloadProblem            = problemKind{status: http.StatusRequestEntityTooLarge, code: "payload_too_large", title: "Request too large"}
+	mediaTypeProblem          = problemKind{status: http.StatusUnsupportedMediaType, code: "unsupported_media_type", title: "Unsupported media type"}
+	rateLimitProblem          = problemKind{status: http.StatusTooManyRequests, code: "rate_limited", title: "Too many requests"}
+	internalProblem           = problemKind{status: http.StatusInternalServerError, code: "internal", title: "Request failed"}
+	unavailableProblem        = problemKind{status: http.StatusServiceUnavailable, code: "unavailable", title: "Service unavailable"}
+	timeoutProblem            = problemKind{status: http.StatusServiceUnavailable, code: "request_timeout", title: "Service unavailable"}
 )
 
 func writeProblem(w http.ResponseWriter, r *http.Request, kind problemKind) {

@@ -75,6 +75,8 @@ the field and failed rule; they do not copy its value.
 | `STACKPLORE_LOG_FORMAT` | `json` | `json` or `text` |
 | `STACKPLORE_DATA_DIRECTORY` | `data` | Canonical non-root local path with no symlink component; relative only in development and test, absolute in production |
 | `STACKPLORE_DATABASE_BUSY_TIMEOUT` | `5s` | `100ms` through `30s`, exactly representable in whole milliseconds |
+| `STACKPLORE_SETUP_BOOTSTRAP_PROOF` | Absent | Canonical unpadded base64url encoding of exactly 32 random bytes; valid only when paired with the expiry |
+| `STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT` | Absent | Canonical whole-second UTC RFC 3339 time paired with the proof and no more than one hour in the future |
 | `STACKPLORE_HTTP_READ_HEADER_TIMEOUT` | `5s` | `1s` through `30s`; cannot exceed the read timeout |
 | `STACKPLORE_HTTP_READ_TIMEOUT` | `15s` | `1s` through `2m` |
 | `STACKPLORE_HTTP_WRITE_TIMEOUT` | `30s` | `1s` through `5m` |
@@ -95,6 +97,12 @@ Do not commit `.env`. The example contains no credential or private
 infrastructure value. A non-loopback production listener or origin additionally
 requires an HTTPS public origin and at least one trusted-proxy prefix. The
 server rejects production startup before listening when either gate is absent.
+An empty installation whose listener or public origin is beyond loopback also
+fails before listening unless the paired bootstrap values are present and
+unexpired. A closed installation does not need them. Generate, deliver, and
+remove the pair with the
+[first-run procedure](operations/account-recovery.md); do not commit it to
+`.env`.
 
 Forwarding headers are not a general deployment escape hatch. On
 non-operational paths and `/metrics`, a direct peer outside
@@ -127,8 +135,11 @@ Invoke-WebRequest http://127.0.0.1:8080/metrics
 curl.exe -i http://127.0.0.1:8080/api/v1/system/readiness
 ```
 
-The final call returns `401` by design. Phase 6 still has no user or session
-workflow, so no caller can receive detailed readiness yet.
+The final call has no session cookie and returns `401` by design. On an empty
+loopback installation, open `http://127.0.0.1:5173/setup` and create the first
+administrator. Later visits use `/login`. An enabled administrator receives
+the detailed readiness result through the browser client; a viewer receives
+`403`.
 
 Run one service when focused work needs it:
 
@@ -144,20 +155,18 @@ corepack pnpm --filter @stackplore/web dev
 | `/healthz` | `200` and `ok` | Terse process liveness. It does not check storage, providers, or product data. |
 | `/readyz` | `503` and `not ready` before storage and service readiness, after storage health loss, or during stop; otherwise `200` and `ready` | Terse local readiness. It requires validated configuration, a current complete migration ledger, valid installation metadata, a responsive database, and the serving lifecycle. |
 | `/metrics` | `200` for an exact-origin, allowed verified client; plain `404` otherwise | Process-only, low-cardinality metrics. The default network allowlist permits IPv4 and IPv6 loopback. |
-| `/api/v1/system/readiness` | `401` after all outer request gates pass | Reserved for an enabled administrator. Until Phase 7, every caller is denied and no header, query value, cookie, or proxy claim is a bypass. |
+| `/api/v1/system/readiness` | `200` for an enabled administrator, `403` for a current viewer, and `401` without a valid session | Detailed local readiness behind the live user and role check. Outer origin, request, concurrency, and rate gates still apply. |
 
-The closed readiness operation documents every reachable Phase 5 problem:
-`400` for invalid network metadata or public origin, `401` at the closed
-administrator handler, `413` for a declared body over the limit, `429` for a
-client-rate denial, `500` for a safely contained internal response failure, and
-`503` for boundary unavailability such as request-ID failure, cancellation, or
-in-flight overload. It has no success response.
+The readiness operation documents `200`, `400`, `401`, `403`, `413`, `429`,
+`500`, and `503`. No request header, query value, proxy claim, or environment
+setting substitutes for a valid server-side session and current administrator
+role.
 
 All current responses receive a safe request ID, `no-store`, and fixed security
 headers. Every non-operational request requires verified network metadata and
 passes the per-client token bucket. Versioned API requests additionally require
 the exact public origin. Those outer gates may reject a request before the
-closed readiness handler runs.
+authentication or readiness handler runs.
 
 If secure request-ID generation is unavailable, the operational endpoints keep
 serving with the fixed safe fallback `req_unavailable`. Other paths fail closed
@@ -184,18 +193,24 @@ stream in Phase 6. A future SSE or log-tail route must define its own
 connection, idle, write, lifetime, concurrency, queue, and byte limits before
 it can receive a narrow exemption from the ordinary buffered request deadline.
 
-Through Phase 6, checks use deterministic unit tests, local in-process
+Through Phase 7, checks use deterministic unit tests, local in-process
 listeners, and temporary local SQLite databases. They cover migration history,
 repository transactions, retention bounds, second-process ownership,
-contention, backup, restore, and readiness transitions. They do not prove a
+contention, backup, restore, readiness transitions, setup races, login
+enumeration and throttles, password hashing, cookie and CSRF rejection, session
+expiry and revocation, role changes, user administration, local recovery, and
+browser setup, login, password, and user-management flows. They do not prove a
 deployed TLS edge, external proxy, container image, orchestrator health check,
 network filesystem, or public-network installation; those deployment assets
 and live checks belong to their owning later phases.
 
-The root web route redirects to `/overview`. Every product route currently
-shows an explicit planned or no-data state; it does not simulate provider
-results. In development only, `/design-system` exposes the shared controls and
-their states for focused browser review.
+The root web route first resolves setup and session state. It routes an empty
+installation to `/setup`, a signed-out closed installation to `/login`, and an
+authenticated user to `/overview`. `/settings/users` is administrator-only;
+viewer navigation and direct routes cannot mount it. Every provider product
+route still shows an explicit planned or no-data state and does not simulate
+provider results. In development only, `/design-system` exposes the shared
+controls and their states for focused browser review.
 
 ## Local storage operations
 
@@ -211,6 +226,8 @@ backup command, and stop the API before any restore. Exact PowerShell and POSIX
 commands, path rules, ACL and mode limits, restore validation, and interrupted
 restore recovery are in
 [Local SQLite Backup and Restore](operations/backup-restore.md).
+First-run proof generation and offline administrator recovery are in
+[First-Run Setup and Account Recovery](operations/account-recovery.md).
 
 ## Interface development
 
@@ -250,11 +267,12 @@ writing direction without component forks.
 
 The canonical transport contract is [`contracts/openapi.yaml`](../contracts/openapi.yaml).
 It uses OpenAPI 3.1 and the `/api/v1` server prefix. Phase 4 defined the shared
-schemas. Phase 5 adds only `GET /system/readiness`, matching the deliberately
-closed runtime route. It has no success shape or security scheme until the real
-session and administrator guard exist; the contract records `400`, `401`,
-`413`, `429`, `500`, and `503`, and the derived output contains request and
-problem types but no success type for this operation.
+schemas and Phase 5 introduced the readiness route. Phase 7 now defines 13 path
+forms and 16 implemented operations for setup, pre-auth, login, session,
+logout, recent authentication, self-password change, user administration,
+session revocation, and administrator readiness. Browser-session, CSRF,
+pre-auth, and recent-auth schemes match the runtime header and cookie boundary,
+and the derived output includes the current success and problem shapes.
 
 After changing the contract, re-derive the committed browser types and run the
 drift gate:

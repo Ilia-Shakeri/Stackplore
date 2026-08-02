@@ -29,8 +29,9 @@ the versioned `/api/v1` surface.
   operation.
 - In Phase 5, publish only `GET /system/readiness`. Document the reachable
   `400`, `401`, `413`, `429`, `500`, and `503` problems, including the closed
-  `401` handler, but no success response or security scheme. Phase 7 may add a
-  success shape only with the real local-session and administrator checks.
+  `401` handler, but no success response or security scheme. This rule permits
+  a later success shape only with real local-session and administrator checks;
+  Phase 7 supplies them.
 - Define shared provider-neutral schemas for identity, resources, health,
   relationships, metrics, events, alerts, audit records, capabilities,
   pagination, filtering, sorting, request IDs, and problem responses.
@@ -55,6 +56,13 @@ therefore happen only in a focused dependency change that re-derives and
 reviews the committed output. The contract linter is also pinned exactly so
 local and automated checks apply the same rules.
 
+Phase 7 extends the contract to 13 path forms and 16 operations. It publishes
+the implemented pre-authentication, session, password, recovery-grant, user
+administration, and readiness shapes; declares the real session-cookie and
+CSRF schemes; and exposes a readiness success only after administrator
+authorization. The historical Phase 5 closed-gate rule above remains the
+reason no speculative success contract existed before that implementation.
+
 ## Consequences
 
 ### Benefits
@@ -63,8 +71,7 @@ local and automated checks apply the same rules.
 - Browser types cannot silently drift from the committed contract.
 - Domain and provider ports remain independent from HTTP and derivation details.
 - Paths state current runtime truth: shared schemas matured before handlers,
-  and the first error-only operation records a real closed gate without
-  implying temporary access.
+  and operations appear only with tested authorization and response behavior.
 - Bounded provider extension codes preserve useful values without allowing raw
   provider objects through the boundary.
 

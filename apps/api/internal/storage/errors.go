@@ -15,4 +15,5 @@ var (
 	ErrRestoreRejected      = errors.New("storage restore rejected")
 	ErrStoreClosed          = errors.New("storage is closed")
 	ErrCloseFailed          = errors.New("storage close failed")
+	ErrAuthKeyUnavailable   = errors.New("storage authentication key unavailable")
 )
