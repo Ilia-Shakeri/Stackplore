@@ -7,13 +7,13 @@ import {
   createRoute,
   createRouter,
   useRouterState,
+  useRouter,
 } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { lazy, Suspense, useCallback, useEffect } from 'react';
 
 import { AppShell } from './shell/AppShell';
 import { StandaloneShell } from './shell/StandaloneShell';
 import { getPageTitle } from './shell/navigation';
-import { DesignSystemPage } from '../routes/DesignSystemPage';
 import { NotFoundPage } from '../routes/NotFoundPage';
 import {
   AboutPage,
@@ -23,10 +23,12 @@ import {
   EventsPage,
   LogsPage,
   NotificationsSettingsPage,
+  NotificationCenterPage,
   OverviewPage,
   PreferencesSettingsPage,
   ResourceDetailPage,
   ResourcesPage,
+  SearchPage,
   SettingsPage,
   TopologyPage,
   UsersSettingsPage,
@@ -37,27 +39,78 @@ import { SetupPage } from '../features/auth/SetupPage';
 import { createAuthApi } from '../features/auth/auth-api';
 import { AuthProvider, useAuth } from '../features/auth/auth-context';
 import { AuthStore } from '../features/auth/auth-store';
+import { createProductApi, type ProductApi } from '../features/product/product-api';
+import {
+  ProductProvider,
+  readProductQuery,
+  readProductSource,
+} from '../features/product/product-context';
 import { createUsersApi, type UsersApi } from '../features/users/users-api';
 import { UsersProvider } from '../features/users/users-context';
 import { useLocale } from '../i18n';
 
 interface RouterContext {
   readonly auth: AuthStore;
+  readonly product: ProductApi;
   readonly users: UsersApi;
 }
 
 const defaultApiClient = createApiClient();
 const defaultAuthStore = new AuthStore(createAuthApi(defaultApiClient));
 const defaultUsersApi = createUsersApi(defaultApiClient, defaultAuthStore);
+const defaultProductApi = createProductApi(defaultApiClient, defaultAuthStore);
+
+const DesignSystemPage = lazy(() =>
+  import('../routes/DesignSystemPage').then((module) => ({ default: module.DesignSystemPage })),
+);
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
+  validateSearch: (search: Record<string, unknown>) => {
+    const source =
+      typeof search.source === 'string'
+        ? readProductSource(new URLSearchParams({ source: search.source }).toString())
+        : undefined;
+    const q =
+      typeof search.q === 'string'
+        ? readProductQuery(new URLSearchParams({ q: search.q }).toString())
+        : '';
+    return { ...(source === undefined ? {} : { source }), ...(q === '' ? {} : { q }) };
+  },
   component: RootRoute,
   notFoundComponent: () => <Navigate to="/not-found" replace />,
 });
 
 function RootRoute() {
-  const { auth, users } = rootRoute.useRouteContext();
+  const { auth, product, users } = rootRoute.useRouteContext();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.searchStr });
+  const router = useRouter();
+  const resourceSource = pathname.startsWith('/resources/')
+    ? readProductSource(`source=${pathname.split('/')[2] ?? ''}`)
+    : undefined;
+  const selectedSource = resourceSource ?? readProductSource(search);
+  const query = readProductQuery(search);
+  const replaceSearch = useCallback(
+    (name: string, value: string) => {
+      const url = new URL(router.latestLocation.href, 'http://localhost');
+      if (value === '') url.searchParams.delete(name);
+      else url.searchParams.set(name, value);
+      router.history.replace(`${url.pathname}${url.search}${url.hash}`);
+    },
+    [router],
+  );
+  const selectSource = useCallback(
+    (sourceId: string) => {
+      replaceSearch('source', sourceId);
+    },
+    [replaceSearch],
+  );
+  const selectQuery = useCallback(
+    (value: string) => {
+      replaceSearch('q', value);
+    },
+    [replaceSearch],
+  );
   const { t } = useLocale();
 
   useEffect(() => {
@@ -67,9 +120,17 @@ function RootRoute() {
 
   return (
     <AuthProvider store={auth}>
-      <UsersProvider api={users}>
-        <Outlet />
-      </UsersProvider>
+      <ProductProvider
+        api={product}
+        onSourceChange={selectSource}
+        onQueryChange={selectQuery}
+        query={query}
+        {...(selectedSource === undefined ? {} : { sourceId: selectedSource })}
+      >
+        <UsersProvider api={users}>
+          <Outlet />
+        </UsersProvider>
+      </ProductProvider>
     </AuthProvider>
   );
 }
@@ -215,9 +276,31 @@ const resourcesRoute = createRoute({
   component: ResourcesPage,
 });
 
+const searchRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/search',
+  validateSearch: (search: Record<string, unknown>) => {
+    const q =
+      typeof search.q === 'string' && search.q.length <= 200 && search.q.trim() === search.q
+        ? search.q
+        : undefined;
+    const source =
+      typeof search.source === 'string' && /^[A-Za-z][A-Za-z0-9_-]{0,127}$/u.test(search.source)
+        ? search.source
+        : undefined;
+    return { ...(q === undefined ? {} : { q }), ...(source === undefined ? {} : { source }) };
+  },
+  component: SearchRoute,
+});
+
+function SearchRoute() {
+  const search = searchRoute.useSearch();
+  return <SearchPage query={search.q ?? ''} />;
+}
+
 const resourceDetailRoute = createRoute({
   getParentRoute: () => appRoute,
-  path: '/resources/$provider/$kind/$id',
+  path: '/resources/$source/$provider/$kind/$id',
   component: ResourceDetailRoute,
 });
 
@@ -242,6 +325,12 @@ const alertsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/alerts',
   component: AlertsPage,
+});
+
+const notificationsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/notifications',
+  component: NotificationCenterPage,
 });
 
 const auditRoute = createRoute({
@@ -303,9 +392,20 @@ const notFoundRoute = createRoute({
 const designSystemRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/design-system',
-  component: () =>
-    import.meta.env.DEV ? <DesignSystemPage /> : <Navigate to="/not-found" replace />,
+  component: DesignSystemRoute,
 });
+
+function DesignSystemRoute() {
+  const { t } = useLocale();
+  if (!import.meta.env.DEV) {
+    return <Navigate to="/not-found" replace />;
+  }
+  return (
+    <Suspense fallback={<p aria-live="polite">{t('product.loading')}</p>}>
+      <DesignSystemPage />
+    </Suspense>
+  );
+}
 
 const routeTree = rootRoute.addChildren([
   rootIndexRoute,
@@ -314,10 +414,12 @@ const routeTree = rootRoute.addChildren([
     overviewRoute,
     topologyRoute,
     resourcesRoute,
+    searchRoute,
     resourceDetailRoute,
     logsRoute,
     eventsRoute,
     alertsRoute,
+    notificationsRoute,
     settingsRoute,
     settingsPreferencesRoute,
     aboutRoute,
@@ -338,9 +440,12 @@ export function createAppRouter(
   users: UsersApi = auth === defaultAuthStore
     ? defaultUsersApi
     : createUsersApi(createApiClient(), auth),
+  product: ProductApi = auth === defaultAuthStore
+    ? defaultProductApi
+    : createProductApi(createApiClient(), auth),
 ) {
   return createRouter({
-    context: { auth, users },
+    context: { auth, product, users },
     routeTree,
     defaultPreload: 'intent',
     scrollRestoration: history === undefined,

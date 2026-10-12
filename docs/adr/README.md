@@ -24,7 +24,7 @@ changing the decision.
 | --- | --- | --- |
 | [ADR-0001](0001-monorepo-and-same-origin.md) | Accepted | Use one repository and one production origin |
 | [ADR-0002](0002-provider-neutral-boundary.md) | Accepted | Put provider-neutral domain ports between use cases and infrastructure clients |
-| [ADR-0003](0003-sqlite-single-instance-and-repositories.md) | Accepted | Use SQLite with one active API instance behind repository ports |
+| [ADR-0003](0003-sqlite-single-instance-and-repositories.md) | Superseded by ADR-0011 | Historical SQLite single-instance decision |
 | [ADR-0004](0004-server-sent-events.md) | Accepted | Use bounded SSE streams for live server-to-browser data |
 | [ADR-0005](0005-local-sessions-and-csrf.md) | Accepted | Use local server-side sessions with synchronizer CSRF protection |
 | [ADR-0006](0006-read-only-and-guarded-mutations.md) | Accepted | Keep infrastructure read-only by default and gate narrow actions |
@@ -32,6 +32,7 @@ changing the decision.
 | [ADR-0008](0008-project-owned-interface-system.md) | Accepted | Keep interface primitives behind one project-owned package |
 | [ADR-0009](0009-feature-owned-localization-runtime.md) | Accepted | Use feature-owned catalogs and one localization runtime |
 | [ADR-0010](0010-versioned-contract-and-derived-client.md) | Accepted | Version the HTTP contract and derive the browser client |
+| [ADR-0011](0011-postgresql-primary-persistence.md) | Accepted | Use PostgreSQL as the primary persistence system |
 
 ## Adding a record
 

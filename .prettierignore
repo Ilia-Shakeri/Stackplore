@@ -4,6 +4,7 @@
 coverage/
 dist/
 docs/
+deploy/helm/stackplore/templates/
 node_modules/
 test-results/
 *.md

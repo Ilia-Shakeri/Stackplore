@@ -177,8 +177,8 @@ describe('auth routes and forms', () => {
   });
 
   it('accepts only bounded local return paths', () => {
-    expect(sanitizeNextPath('/resources/demo/container/item')).toBe(
-      '/resources/demo/container/item',
+    expect(sanitizeNextPath('/resources/source_demo/demo/container/item')).toBe(
+      '/resources/source_demo/demo/container/item',
     );
     for (const value of ['https://outside.example', '//outside.example', '/\\outside', '/login']) {
       expect(sanitizeNextPath(value)).toBeUndefined();

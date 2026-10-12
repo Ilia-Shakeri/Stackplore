@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgresops"
 )
 
 type mapGetter map[string]string
@@ -107,17 +108,17 @@ func TestRunCommandPassesBoundedOptions(t *testing.T) {
 	source := absoluteTestFile(t, "restore.db")
 	ctx := context.WithValue(context.Background(), struct{}{}, "marker")
 
-	var gotBackup storage.BackupOptions
-	var gotRestore storage.RestoreOptions
+	var gotBackup postgresops.Options
+	var gotRestore postgresops.Options
 	operations := storageOperations{
-		backup: func(gotContext context.Context, options storage.BackupOptions) error {
+		backup: func(gotContext context.Context, options postgresops.Options) error {
 			if gotContext != ctx {
 				t.Error("backup context changed")
 			}
 			gotBackup = options
 			return nil
 		},
-		restore: func(gotContext context.Context, options storage.RestoreOptions) error {
+		restore: func(gotContext context.Context, options postgresops.Options) error {
 			if gotContext != ctx {
 				t.Error("restore context changed")
 			}
@@ -129,18 +130,14 @@ func TestRunCommandPassesBoundedOptions(t *testing.T) {
 	if err := runCommand(ctx, settings, command{name: commandBackup, path: destination}, operations); err != nil {
 		t.Fatalf("backup runCommand() error = %v", err)
 	}
-	if gotBackup.DataDirectory != settings.DataDirectory ||
-		gotBackup.BusyTimeout != settings.DatabaseBusyTimeout ||
-		gotBackup.Destination != destination {
+	if gotBackup.Settings.DatabaseURL.Reveal() != settings.DatabaseURL.Reveal() || gotBackup.Path != destination {
 		t.Errorf("backup options = %#v; want exact settings and destination", gotBackup)
 	}
 
 	if err := runCommand(ctx, settings, command{name: commandRestore, path: source}, operations); err != nil {
 		t.Fatalf("restore runCommand() error = %v", err)
 	}
-	if gotRestore.DataDirectory != settings.DataDirectory ||
-		gotRestore.BusyTimeout != settings.DatabaseBusyTimeout ||
-		gotRestore.Source != source {
+	if gotRestore.Settings.DatabaseURL.Reveal() != settings.DatabaseURL.Reveal() || gotRestore.Path != source {
 		t.Errorf("restore options = %#v; want exact settings and source", gotRestore)
 	}
 }
@@ -150,11 +147,11 @@ func TestRunCommandFailsClosed(t *testing.T) {
 	path := absoluteTestFile(t, "archive.db")
 	called := false
 	operations := storageOperations{
-		backup: func(context.Context, storage.BackupOptions) error {
+		backup: func(context.Context, postgresops.Options) error {
 			called = true
 			return nil
 		},
-		restore: func(context.Context, storage.RestoreOptions) error {
+		restore: func(context.Context, postgresops.Options) error {
 			called = true
 			return nil
 		},
@@ -168,7 +165,7 @@ func TestRunCommandFailsClosed(t *testing.T) {
 	}{
 		{"nil context", nil, func(*config.Config) {}, command{name: commandBackup, path: path}},
 		{"canceled context", canceledContext(), func(*config.Config) {}, command{name: commandBackup, path: path}},
-		{"forged config", context.Background(), func(value *config.Config) { value.DatabaseBusyTimeout = 0 }, command{name: commandBackup, path: path}},
+		{"forged config", context.Background(), func(value *config.Config) { value.DatabaseQueryTimeout = 0 }, command{name: commandBackup, path: path}},
 		{"unknown command", context.Background(), func(*config.Config) {}, command{name: commandName("unknown"), path: path}},
 		{"relative path", context.Background(), func(*config.Config) {}, command{name: commandBackup, path: "archive.db"}},
 	}
@@ -212,7 +209,7 @@ func TestRunMainUsesSealedLogs(t *testing.T) {
 			name:      "operation",
 			arguments: []string{"backup", "--destination", path},
 			getter:    mapGetter{},
-			operations: storageOperations{backup: func(context.Context, storage.BackupOptions) error {
+			operations: storageOperations{backup: func(context.Context, postgresops.Options) error {
 				return errors.New(marker)
 			}},
 			wantExit: exitFailure, wantReason: "operation_failed",
@@ -248,7 +245,7 @@ func TestRunMainCompletesWithoutStandardOutput(t *testing.T) {
 		func() (context.Context, context.CancelFunc) {
 			return context.Background(), func() { stopped = true }
 		},
-		storageOperations{backup: func(context.Context, storage.BackupOptions) error {
+		storageOperations{backup: func(context.Context, postgresops.Options) error {
 			called = true
 			return nil
 		}},
@@ -269,14 +266,13 @@ func TestFailureReasonIsClosed(t *testing.T) {
 		{context.Canceled, "canceled"},
 		{context.DeadlineExceeded, "canceled"},
 		{errCommandBoundary, "invalid_options"},
-		{storage.ErrInvalidOptions, "invalid_options"},
-		{storage.ErrUnsafeDataDirectory, "unsafe_data_directory"},
-		{storage.ErrOwnershipUnavailable, "ownership_unavailable"},
-		{storage.ErrDatabaseUnavailable, "database_unavailable"},
-		{storage.ErrDatabaseIntegrity, "database_integrity"},
-		{storage.ErrMigrationRejected, "migration_rejected"},
-		{storage.ErrBackupRejected, "backup_rejected"},
-		{storage.ErrRestoreRejected, "restore_rejected"},
+		{postgresops.ErrInvalidOptions, "invalid_options"},
+		{postgres.ErrOwnershipUnavailable, "ownership_unavailable"},
+		{postgres.ErrDatabaseUnavailable, "database_unavailable"},
+		{postgres.ErrMigrationRejected, "migration_rejected"},
+		{postgresops.ErrToolUnavailable, "tool_unavailable"},
+		{postgresops.ErrBackupRejected, "backup_rejected"},
+		{postgresops.ErrRestoreRejected, "restore_rejected"},
 		{errors.New("do-not-disclose"), "operation_failed"},
 	}
 	for _, test := range tests {

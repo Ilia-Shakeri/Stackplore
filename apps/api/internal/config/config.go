@@ -22,88 +22,124 @@ import (
 const (
 	prefix = "STACKPLORE_"
 
-	environmentKey            = prefix + "ENVIRONMENT"
-	httpAddressKey            = prefix + "HTTP_ADDRESS"
-	publicOriginKey           = prefix + "PUBLIC_ORIGIN"
-	trustedProxyPrefixesKey   = prefix + "TRUSTED_PROXY_PREFIXES"
-	metricsAllowedPrefixesKey = prefix + "METRICS_ALLOWED_PREFIXES"
-	logLevelKey               = prefix + "LOG_LEVEL"
-	logFormatKey              = prefix + "LOG_FORMAT"
-	readHeaderTimeoutKey      = prefix + "HTTP_READ_HEADER_TIMEOUT"
-	readTimeoutKey            = prefix + "HTTP_READ_TIMEOUT"
-	writeTimeoutKey           = prefix + "HTTP_WRITE_TIMEOUT"
-	idleTimeoutKey            = prefix + "HTTP_IDLE_TIMEOUT"
-	requestTimeoutKey         = prefix + "HTTP_REQUEST_TIMEOUT"
-	shutdownTimeoutKey        = prefix + "HTTP_SHUTDOWN_TIMEOUT"
-	maxHeaderBytesKey         = prefix + "HTTP_MAX_HEADER_BYTES"
-	maxRequestBodyBytesKey    = prefix + "HTTP_MAX_REQUEST_BODY_BYTES"
-	maximumResponseBytesKey   = prefix + "HTTP_MAX_RESPONSE_BYTES"
-	maxConnectionsKey         = prefix + "HTTP_MAX_CONNECTIONS"
-	maxInFlightKey            = prefix + "HTTP_MAX_IN_FLIGHT"
-	ratePerSecondKey          = prefix + "RATE_LIMIT_PER_SECOND"
-	rateBurstKey              = prefix + "RATE_LIMIT_BURST"
-	rateMaxClientsKey         = prefix + "RATE_LIMIT_MAX_CLIENTS"
-	dataDirectoryKey          = prefix + "DATA_DIRECTORY"
-	databaseBusyTimeoutKey    = prefix + "DATABASE_BUSY_TIMEOUT"
-	setupBootstrapProofKey    = prefix + "SETUP_BOOTSTRAP_PROOF"
-	setupBootstrapExpiryKey   = prefix + "SETUP_BOOTSTRAP_EXPIRES_AT"
+	environmentKey              = prefix + "ENVIRONMENT"
+	httpAddressKey              = prefix + "HTTP_ADDRESS"
+	publicOriginKey             = prefix + "PUBLIC_ORIGIN"
+	trustedProxyPrefixesKey     = prefix + "TRUSTED_PROXY_PREFIXES"
+	metricsAllowedPrefixesKey   = prefix + "METRICS_ALLOWED_PREFIXES"
+	logLevelKey                 = prefix + "LOG_LEVEL"
+	logFormatKey                = prefix + "LOG_FORMAT"
+	readHeaderTimeoutKey        = prefix + "HTTP_READ_HEADER_TIMEOUT"
+	readTimeoutKey              = prefix + "HTTP_READ_TIMEOUT"
+	writeTimeoutKey             = prefix + "HTTP_WRITE_TIMEOUT"
+	idleTimeoutKey              = prefix + "HTTP_IDLE_TIMEOUT"
+	requestTimeoutKey           = prefix + "HTTP_REQUEST_TIMEOUT"
+	shutdownTimeoutKey          = prefix + "HTTP_SHUTDOWN_TIMEOUT"
+	maxHeaderBytesKey           = prefix + "HTTP_MAX_HEADER_BYTES"
+	maxRequestBodyBytesKey      = prefix + "HTTP_MAX_REQUEST_BODY_BYTES"
+	maximumResponseBytesKey     = prefix + "HTTP_MAX_RESPONSE_BYTES"
+	maxConnectionsKey           = prefix + "HTTP_MAX_CONNECTIONS"
+	maxInFlightKey              = prefix + "HTTP_MAX_IN_FLIGHT"
+	ratePerSecondKey            = prefix + "RATE_LIMIT_PER_SECOND"
+	rateBurstKey                = prefix + "RATE_LIMIT_BURST"
+	rateMaxClientsKey           = prefix + "RATE_LIMIT_MAX_CLIENTS"
+	dataDirectoryKey            = prefix + "DATA_DIRECTORY"
+	databaseURLKey              = prefix + "DATABASE_URL"
+	databaseMaxConnectionsKey   = prefix + "DATABASE_MAX_CONNECTIONS"
+	databaseMinConnectionsKey   = prefix + "DATABASE_MIN_CONNECTIONS"
+	databaseConnectTimeoutKey   = prefix + "DATABASE_CONNECT_TIMEOUT"
+	databaseQueryTimeoutKey     = prefix + "DATABASE_QUERY_TIMEOUT"
+	databaseMigrationTimeoutKey = prefix + "DATABASE_MIGRATION_TIMEOUT"
+	databaseHealthTimeoutKey    = prefix + "DATABASE_HEALTH_TIMEOUT"
+	dockerEnabledKey            = prefix + "DOCKER_ENABLED"
+	dockerSocketPathKey         = prefix + "DOCKER_SOCKET_PATH"
+	kubernetesEnabledKey        = prefix + "KUBERNETES_ENABLED"
+	kubernetesTokenFileKey      = prefix + "KUBERNETES_TOKEN_FILE"
+	kubernetesCAFileKey         = prefix + "KUBERNETES_CA_FILE"
+	mutationsEnabledKey         = prefix + "MUTATIONS_ENABLED"
+	dockerWriteEnabledKey       = prefix + "DOCKER_WRITE_ENABLED"
+	kubernetesWriteEnabledKey   = prefix + "KUBERNETES_WRITE_ENABLED"
+	setupBootstrapProofKey      = prefix + "SETUP_BOOTSTRAP_PROOF"
+	setupBootstrapExpiryKey     = prefix + "SETUP_BOOTSTRAP_EXPIRES_AT"
+	webhookEnabledKey           = prefix + "WEBHOOK_ENABLED"
+	webhookReferenceKey         = prefix + "WEBHOOK_DESTINATION_REFERENCE_ID"
+	webhookURLKey               = prefix + "WEBHOOK_URL"
+	webhookSigningKeyKey        = prefix + "WEBHOOK_SIGNING_KEY"
 
 	// This variable belongs to the browser development process and is allowed
 	// in the shared process environment without becoming server configuration.
 	developmentAPIOriginKey = prefix + "DEV_API_ORIGIN"
 
-	defaultHTTPAddress          = "127.0.0.1:8080"
-	defaultReadHeaderTimeout    = 5 * time.Second
-	defaultReadTimeout          = 15 * time.Second
-	defaultWriteTimeout         = 30 * time.Second
-	defaultIdleTimeout          = 60 * time.Second
-	defaultRequestTimeout       = 15 * time.Second
-	defaultShutdownTimeout      = 15 * time.Second
-	defaultMaxHeaderBytes       = 32 * 1024
-	defaultMaxRequestBodyBytes  = 256 * 1024
-	defaultMaximumResponseBytes = 16 * 1024 * 1024
-	defaultMaxConnections       = 512
-	defaultMaxInFlight          = 256
-	defaultRatePerSecond        = 20.0
-	defaultRateBurst            = 40
-	defaultRateMaxClients       = 4096
-	defaultDataDirectory        = "data"
-	defaultDatabaseBusyTimeout  = 5 * time.Second
-	maximumBootstrapLifetime    = time.Hour
+	defaultHTTPAddress              = "127.0.0.1:8080"
+	defaultReadHeaderTimeout        = 5 * time.Second
+	defaultReadTimeout              = 15 * time.Second
+	defaultWriteTimeout             = 30 * time.Second
+	defaultIdleTimeout              = 60 * time.Second
+	defaultRequestTimeout           = 15 * time.Second
+	defaultShutdownTimeout          = 15 * time.Second
+	defaultMaxHeaderBytes           = 32 * 1024
+	defaultMaxRequestBodyBytes      = 256 * 1024
+	defaultMaximumResponseBytes     = 16 * 1024 * 1024
+	defaultMaxConnections           = 512
+	defaultMaxInFlight              = 256
+	defaultRatePerSecond            = 20.0
+	defaultRateBurst                = 40
+	defaultRateMaxClients           = 4096
+	defaultDataDirectory            = "data"
+	defaultDatabaseURL              = "postgresql://stackplore@127.0.0.1:5432/stackplore?sslmode=disable"
+	defaultDatabaseMaxConnections   = 32
+	defaultDatabaseMinConnections   = 2
+	defaultDatabaseConnectTimeout   = 5 * time.Second
+	defaultDatabaseQueryTimeout     = 10 * time.Second
+	defaultDatabaseMigrationTimeout = 2 * time.Minute
+	defaultDatabaseHealthTimeout    = 2 * time.Second
+	defaultDockerSocketPath         = "/var/run/docker.sock"
+	defaultKubernetesTokenFile      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	defaultKubernetesCAFile         = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	maximumBootstrapLifetime        = time.Hour
 )
 
 const (
-	minimumReadHeaderTimeout   = time.Second
-	maximumReadHeaderTimeout   = 30 * time.Second
-	minimumReadTimeout         = time.Second
-	maximumReadTimeout         = 2 * time.Minute
-	minimumWriteTimeout        = time.Second
-	maximumWriteTimeout        = 5 * time.Minute
-	minimumIdleTimeout         = time.Second
-	maximumIdleTimeout         = 10 * time.Minute
-	minimumRequestTimeout      = 100 * time.Millisecond
-	maximumRequestTimeout      = 2 * time.Minute
-	minimumShutdownTimeout     = time.Second
-	maximumShutdownTimeout     = 2 * time.Minute
-	minimumMaxHeaderBytes      = 4 * 1024
-	maximumMaxHeaderBytes      = 1024 * 1024
-	minimumRequestBodyBytes    = 1024
-	maximumRequestBodyBytes    = 16 * 1024 * 1024
-	minimumResponseBytes       = 64 * 1024
-	maximumResponseBytes       = 64 * 1024 * 1024
-	minimumMaxConnections      = 1
-	maximumMaxConnections      = 16_384
-	minimumMaxInFlight         = 1
-	maximumMaxInFlight         = 4096
-	minimumRatePerSecond       = 0.1
-	maximumRatePerSecond       = 10_000.0
-	minimumRateBurst           = 1
-	maximumRateBurst           = 10_000
-	minimumRateMaxClients      = 1
-	maximumRateMaxClients      = 65_536
-	maximumDataDirectoryBytes  = 4096
-	minimumDatabaseBusyTimeout = 100 * time.Millisecond
-	maximumDatabaseBusyTimeout = 30 * time.Second
+	minimumReadHeaderTimeout        = time.Second
+	maximumReadHeaderTimeout        = 30 * time.Second
+	minimumReadTimeout              = time.Second
+	maximumReadTimeout              = 2 * time.Minute
+	minimumWriteTimeout             = time.Second
+	maximumWriteTimeout             = 5 * time.Minute
+	minimumIdleTimeout              = time.Second
+	maximumIdleTimeout              = 10 * time.Minute
+	minimumRequestTimeout           = 100 * time.Millisecond
+	maximumRequestTimeout           = 2 * time.Minute
+	minimumShutdownTimeout          = time.Second
+	maximumShutdownTimeout          = 2 * time.Minute
+	minimumMaxHeaderBytes           = 4 * 1024
+	maximumMaxHeaderBytes           = 1024 * 1024
+	minimumRequestBodyBytes         = 1024
+	maximumRequestBodyBytes         = 16 * 1024 * 1024
+	minimumResponseBytes            = 64 * 1024
+	maximumResponseBytes            = 64 * 1024 * 1024
+	minimumMaxConnections           = 1
+	maximumMaxConnections           = 16_384
+	minimumMaxInFlight              = 1
+	maximumMaxInFlight              = 4096
+	minimumRatePerSecond            = 0.1
+	maximumRatePerSecond            = 10_000.0
+	minimumRateBurst                = 1
+	maximumRateBurst                = 10_000
+	minimumRateMaxClients           = 1
+	maximumRateMaxClients           = 65_536
+	maximumDataDirectoryBytes       = 4096
+	minimumDatabaseConnections      = 1
+	maximumDatabaseConnections      = 256
+	minimumDatabaseConnectTimeout   = time.Second
+	maximumDatabaseConnectTimeout   = 30 * time.Second
+	minimumDatabaseQueryTimeout     = 100 * time.Millisecond
+	maximumDatabaseQueryTimeout     = 2 * time.Minute
+	minimumDatabaseMigrationTimeout = 5 * time.Second
+	maximumDatabaseMigrationTimeout = 15 * time.Minute
+	minimumDatabaseHealthTimeout    = 100 * time.Millisecond
+	maximumDatabaseHealthTimeout    = 10 * time.Second
+	maximumDatabaseURLBytes         = 4096
 )
 
 // Environment selects runtime validation rules.
@@ -151,11 +187,31 @@ type Config struct {
 	RateBurst      int
 	RateMaxClients int
 
-	DataDirectory       string
-	DatabaseBusyTimeout time.Duration
+	DataDirectory            string
+	DatabaseURL              SensitiveString
+	DatabaseMaxConnections   int
+	DatabaseMinConnections   int
+	DatabaseConnectTimeout   time.Duration
+	DatabaseQueryTimeout     time.Duration
+	DatabaseMigrationTimeout time.Duration
+	DatabaseHealthTimeout    time.Duration
+
+	DockerEnabled          bool
+	DockerSocketPath       string
+	KubernetesEnabled      bool
+	KubernetesTokenFile    string
+	KubernetesCAFile       string
+	MutationsEnabled       bool
+	DockerWriteEnabled     bool
+	KubernetesWriteEnabled bool
 
 	SetupBootstrapProof     Secret
 	SetupBootstrapExpiresAt time.Time
+
+	WebhookEnabled                bool
+	WebhookDestinationReferenceID string
+	WebhookURL                    SensitiveString
+	WebhookSigningKey             Secret
 }
 
 // Secret keeps one fixed-size process secret out of formatted configuration.
@@ -163,6 +219,20 @@ type Secret struct {
 	value [32]byte
 	set   bool
 }
+
+// SensitiveString keeps variable-length configuration secrets out of formatted output.
+type SensitiveString struct {
+	value string
+}
+
+// Present reports whether the value is non-empty.
+func (value SensitiveString) Present() bool { return value.value != "" }
+
+// Reveal returns the value for the narrow runtime consumer.
+func (value SensitiveString) Reveal() string { return value.value }
+
+// Format prevents formatted configuration from disclosing the value.
+func (SensitiveString) Format(state fmt.State, _ rune) { _, _ = state.Write([]byte("[redacted]")) }
 
 // Present reports whether a secret was configured.
 func (secret Secret) Present() bool { return secret.set }
@@ -230,6 +300,9 @@ func Load(getter Getter) (Config, error) {
 	if result.Environment, err = loadEnvironment(getter, result.Environment); err != nil {
 		return Config{}, err
 	}
+	if result.DatabaseURL, err = loadDatabaseURL(getter, result.DatabaseURL, result.Environment); err != nil {
+		return Config{}, err
+	}
 	if result.HTTPAddress, err = loadAddress(getter, result.HTTPAddress); err != nil {
 		return Config{}, err
 	}
@@ -254,6 +327,33 @@ func Load(getter Getter) (Config, error) {
 	if result.DataDirectory, err = loadDataDirectory(getter, result.DataDirectory); err != nil {
 		return Config{}, err
 	}
+	if result.DockerEnabled, err = loadBool(getter, dockerEnabledKey, result.DockerEnabled); err != nil {
+		return Config{}, err
+	}
+	if result.DockerSocketPath, err = loadAbsolutePath(getter, dockerSocketPathKey, result.DockerSocketPath); err != nil {
+		return Config{}, err
+	}
+	if result.KubernetesEnabled, err = loadBool(getter, kubernetesEnabledKey, result.KubernetesEnabled); err != nil {
+		return Config{}, err
+	}
+	if result.KubernetesTokenFile, err = loadAbsolutePath(getter, kubernetesTokenFileKey, result.KubernetesTokenFile); err != nil {
+		return Config{}, err
+	}
+	if result.KubernetesCAFile, err = loadAbsolutePath(getter, kubernetesCAFileKey, result.KubernetesCAFile); err != nil {
+		return Config{}, err
+	}
+	if result.MutationsEnabled, err = loadBool(getter, mutationsEnabledKey, result.MutationsEnabled); err != nil {
+		return Config{}, err
+	}
+	if result.DockerWriteEnabled, err = loadBool(getter, dockerWriteEnabledKey, result.DockerWriteEnabled); err != nil {
+		return Config{}, err
+	}
+	if result.KubernetesWriteEnabled, err = loadBool(getter, kubernetesWriteEnabledKey, result.KubernetesWriteEnabled); err != nil {
+		return Config{}, err
+	}
+	if result.WebhookEnabled, result.WebhookDestinationReferenceID, result.WebhookURL, result.WebhookSigningKey, err = loadWebhook(getter); err != nil {
+		return Config{}, err
+	}
 
 	durationFields := []struct {
 		key     string
@@ -267,7 +367,10 @@ func Load(getter Getter) (Config, error) {
 		{idleTimeoutKey, &result.IdleTimeout, minimumIdleTimeout, maximumIdleTimeout},
 		{requestTimeoutKey, &result.RequestTimeout, minimumRequestTimeout, maximumRequestTimeout},
 		{shutdownTimeoutKey, &result.ShutdownTimeout, minimumShutdownTimeout, maximumShutdownTimeout},
-		{databaseBusyTimeoutKey, &result.DatabaseBusyTimeout, minimumDatabaseBusyTimeout, maximumDatabaseBusyTimeout},
+		{databaseConnectTimeoutKey, &result.DatabaseConnectTimeout, minimumDatabaseConnectTimeout, maximumDatabaseConnectTimeout},
+		{databaseQueryTimeoutKey, &result.DatabaseQueryTimeout, minimumDatabaseQueryTimeout, maximumDatabaseQueryTimeout},
+		{databaseMigrationTimeoutKey, &result.DatabaseMigrationTimeout, minimumDatabaseMigrationTimeout, maximumDatabaseMigrationTimeout},
+		{databaseHealthTimeoutKey, &result.DatabaseHealthTimeout, minimumDatabaseHealthTimeout, maximumDatabaseHealthTimeout},
 	}
 	for _, field := range durationFields {
 		*field.target, err = loadDuration(getter, field.key, *field.target, field.minimum, field.maximum)
@@ -305,6 +408,14 @@ func Load(getter Getter) (Config, error) {
 		return Config{}, err
 	}
 	result.RateMaxClients, err = loadInt(getter, rateMaxClientsKey, result.RateMaxClients, minimumRateMaxClients, maximumRateMaxClients)
+	if err != nil {
+		return Config{}, err
+	}
+	result.DatabaseMaxConnections, err = loadInt(getter, databaseMaxConnectionsKey, result.DatabaseMaxConnections, minimumDatabaseConnections, maximumDatabaseConnections)
+	if err != nil {
+		return Config{}, err
+	}
+	result.DatabaseMinConnections, err = loadInt(getter, databaseMinConnectionsKey, result.DatabaseMinConnections, minimumDatabaseConnections, maximumDatabaseConnections)
 	if err != nil {
 		return Config{}, err
 	}
@@ -356,6 +467,30 @@ func Validate(result Config) error {
 	if err := validateDataDirectory(result.DataDirectory, result.Environment); err != nil {
 		return err
 	}
+	if err := validateDatabaseURL(result.DatabaseURL.Reveal(), result.Environment); err != nil {
+		return err
+	}
+	if result.DockerEnabled && !validAbsolutePath(result.DockerSocketPath) {
+		return invalid(dockerSocketPathKey, "is invalid")
+	}
+	if result.DockerEnabled {
+		listenerHost, _, _ := parseAddress(result.HTTPAddress)
+		if result.Environment != EnvironmentDevelopment || !isLoopbackHost(listenerHost) || !isLoopbackHost(result.PublicOrigin.Hostname()) {
+			return invalid(dockerEnabledKey, "requires the loopback development socket profile")
+		}
+	}
+	if result.KubernetesEnabled && (!validAbsolutePath(result.KubernetesTokenFile) || !validAbsolutePath(result.KubernetesCAFile)) {
+		return invalid(kubernetesTokenFileKey, "is invalid")
+	}
+	if result.DockerWriteEnabled && (!result.MutationsEnabled || !result.DockerEnabled) {
+		return invalid(dockerWriteEnabledKey, "requires global mutations and Docker observation")
+	}
+	if result.KubernetesWriteEnabled && (!result.MutationsEnabled || !result.KubernetesEnabled) {
+		return invalid(kubernetesWriteEnabledKey, "requires global mutations and Kubernetes observation")
+	}
+	if err := validateWebhook(result); err != nil {
+		return err
+	}
 
 	durations := []struct {
 		key     string
@@ -369,15 +504,21 @@ func Validate(result Config) error {
 		{idleTimeoutKey, result.IdleTimeout, minimumIdleTimeout, maximumIdleTimeout},
 		{requestTimeoutKey, result.RequestTimeout, minimumRequestTimeout, maximumRequestTimeout},
 		{shutdownTimeoutKey, result.ShutdownTimeout, minimumShutdownTimeout, maximumShutdownTimeout},
-		{databaseBusyTimeoutKey, result.DatabaseBusyTimeout, minimumDatabaseBusyTimeout, maximumDatabaseBusyTimeout},
+		{databaseConnectTimeoutKey, result.DatabaseConnectTimeout, minimumDatabaseConnectTimeout, maximumDatabaseConnectTimeout},
+		{databaseQueryTimeoutKey, result.DatabaseQueryTimeout, minimumDatabaseQueryTimeout, maximumDatabaseQueryTimeout},
+		{databaseMigrationTimeoutKey, result.DatabaseMigrationTimeout, minimumDatabaseMigrationTimeout, maximumDatabaseMigrationTimeout},
+		{databaseHealthTimeoutKey, result.DatabaseHealthTimeout, minimumDatabaseHealthTimeout, maximumDatabaseHealthTimeout},
 	}
 	for _, field := range durations {
 		if field.value < field.minimum || field.value > field.maximum {
 			return invalid(field.key, "is outside the allowed range")
 		}
 	}
-	if result.DatabaseBusyTimeout%time.Millisecond != 0 {
-		return invalid(databaseBusyTimeoutKey, "must use whole milliseconds")
+	if result.DatabaseMaxConnections < 2 || result.DatabaseMaxConnections > maximumDatabaseConnections {
+		return invalid(databaseMaxConnectionsKey, "is outside the allowed range")
+	}
+	if result.DatabaseMinConnections < minimumDatabaseConnections || result.DatabaseMinConnections > result.DatabaseMaxConnections {
+		return invalid(databaseMinConnectionsKey, "must not exceed the maximum connection count")
 	}
 	if result.MaxHeaderBytes < minimumMaxHeaderBytes || result.MaxHeaderBytes > maximumMaxHeaderBytes {
 		return invalid(maxHeaderBytesKey, "is outside the allowed range")
@@ -425,28 +566,37 @@ func defaultConfig() Config {
 	}
 
 	return Config{
-		Environment:            EnvironmentDevelopment,
-		HTTPAddress:            defaultHTTPAddress,
-		PublicOrigin:           publicOrigin,
-		MetricsAllowedPrefixes: []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8"), netip.MustParsePrefix("::1/128")},
-		LogLevel:               slog.LevelInfo,
-		LogFormat:              LogFormatJSON,
-		ReadHeaderTimeout:      defaultReadHeaderTimeout,
-		ReadTimeout:            defaultReadTimeout,
-		WriteTimeout:           defaultWriteTimeout,
-		IdleTimeout:            defaultIdleTimeout,
-		RequestTimeout:         defaultRequestTimeout,
-		ShutdownTimeout:        defaultShutdownTimeout,
-		MaxHeaderBytes:         defaultMaxHeaderBytes,
-		MaxRequestBodyBytes:    defaultMaxRequestBodyBytes,
-		MaximumResponseBytes:   defaultMaximumResponseBytes,
-		MaxConnections:         defaultMaxConnections,
-		MaxInFlight:            defaultMaxInFlight,
-		RatePerSecond:          defaultRatePerSecond,
-		RateBurst:              defaultRateBurst,
-		RateMaxClients:         defaultRateMaxClients,
-		DataDirectory:          defaultDataDirectory,
-		DatabaseBusyTimeout:    defaultDatabaseBusyTimeout,
+		Environment:              EnvironmentDevelopment,
+		HTTPAddress:              defaultHTTPAddress,
+		PublicOrigin:             publicOrigin,
+		MetricsAllowedPrefixes:   []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8"), netip.MustParsePrefix("::1/128")},
+		LogLevel:                 slog.LevelInfo,
+		LogFormat:                LogFormatJSON,
+		ReadHeaderTimeout:        defaultReadHeaderTimeout,
+		ReadTimeout:              defaultReadTimeout,
+		WriteTimeout:             defaultWriteTimeout,
+		IdleTimeout:              defaultIdleTimeout,
+		RequestTimeout:           defaultRequestTimeout,
+		ShutdownTimeout:          defaultShutdownTimeout,
+		MaxHeaderBytes:           defaultMaxHeaderBytes,
+		MaxRequestBodyBytes:      defaultMaxRequestBodyBytes,
+		MaximumResponseBytes:     defaultMaximumResponseBytes,
+		MaxConnections:           defaultMaxConnections,
+		MaxInFlight:              defaultMaxInFlight,
+		RatePerSecond:            defaultRatePerSecond,
+		RateBurst:                defaultRateBurst,
+		RateMaxClients:           defaultRateMaxClients,
+		DataDirectory:            defaultDataDirectory,
+		DatabaseURL:              SensitiveString{value: defaultDatabaseURL},
+		DatabaseMaxConnections:   defaultDatabaseMaxConnections,
+		DatabaseMinConnections:   defaultDatabaseMinConnections,
+		DatabaseConnectTimeout:   defaultDatabaseConnectTimeout,
+		DatabaseQueryTimeout:     defaultDatabaseQueryTimeout,
+		DatabaseMigrationTimeout: defaultDatabaseMigrationTimeout,
+		DatabaseHealthTimeout:    defaultDatabaseHealthTimeout,
+		DockerSocketPath:         defaultDockerSocketPath,
+		KubernetesTokenFile:      defaultKubernetesTokenFile,
+		KubernetesCAFile:         defaultKubernetesCAFile,
 	}
 }
 
@@ -458,7 +608,12 @@ func validateEnvironmentKeys(entries []string) error {
 		readTimeoutKey: {}, writeTimeoutKey: {}, idleTimeoutKey: {},
 		requestTimeoutKey: {}, shutdownTimeoutKey: {}, maxHeaderBytesKey: {},
 		maxRequestBodyBytesKey: {}, maximumResponseBytesKey: {}, maxConnectionsKey: {}, maxInFlightKey: {}, ratePerSecondKey: {}, rateBurstKey: {},
-		rateMaxClientsKey: {}, dataDirectoryKey: {}, databaseBusyTimeoutKey: {}, setupBootstrapProofKey: {}, setupBootstrapExpiryKey: {}, developmentAPIOriginKey: {},
+		rateMaxClientsKey: {}, dataDirectoryKey: {}, databaseURLKey: {}, databaseMaxConnectionsKey: {}, databaseMinConnectionsKey: {},
+		databaseConnectTimeoutKey: {}, databaseQueryTimeoutKey: {}, databaseMigrationTimeoutKey: {}, databaseHealthTimeoutKey: {},
+		dockerEnabledKey: {}, dockerSocketPathKey: {}, kubernetesEnabledKey: {}, kubernetesTokenFileKey: {}, kubernetesCAFileKey: {},
+		mutationsEnabledKey: {}, dockerWriteEnabledKey: {}, kubernetesWriteEnabledKey: {},
+		setupBootstrapProofKey: {}, setupBootstrapExpiryKey: {}, developmentAPIOriginKey: {},
+		webhookEnabledKey: {}, webhookReferenceKey: {}, webhookURLKey: {}, webhookSigningKeyKey: {},
 	}
 	seen := make(map[string]struct{}, len(allowed))
 	for _, entry := range entries {
@@ -499,6 +654,36 @@ func loadAddress(getter Getter, fallback string) (string, error) {
 		return "", invalid(httpAddressKey, "is invalid")
 	}
 	return value, nil
+}
+
+func loadBool(getter Getter, key string, fallback bool) (bool, error) {
+	value, present, err := readValue(getter, key)
+	if err != nil || !present {
+		return fallback, err
+	}
+	switch value {
+	case "true":
+		return true, nil
+	case "false":
+		return false, nil
+	default:
+		return false, invalid(key, "must be true or false")
+	}
+}
+
+func loadAbsolutePath(getter Getter, key, fallback string) (string, error) {
+	value, present, err := readValue(getter, key)
+	if err != nil || !present {
+		return fallback, err
+	}
+	if !validAbsolutePath(value) {
+		return "", invalid(key, "is invalid")
+	}
+	return value, nil
+}
+
+func validAbsolutePath(value string) bool {
+	return value != "" && !strings.ContainsRune(value, '\x00') && filepath.IsAbs(value) && filepath.Clean(value) == value
 }
 
 func loadPublicOrigin(getter Getter, address string) (url.URL, error) {
@@ -547,6 +732,103 @@ func loadSetupBootstrap(getter Getter) (Secret, time.Time, error) {
 	copy(result.value[:], decoded)
 	result.set = true
 	return result, expiresAt, nil
+}
+
+func loadWebhook(getter Getter) (bool, string, SensitiveString, Secret, error) {
+	enabled, err := loadBool(getter, webhookEnabledKey, false)
+	if err != nil {
+		return false, "", SensitiveString{}, Secret{}, err
+	}
+	reference, referencePresent, err := readOptionalWebhookValue(getter, webhookReferenceKey)
+	if err != nil {
+		return false, "", SensitiveString{}, Secret{}, err
+	}
+	rawURL, urlPresent, err := readOptionalWebhookValue(getter, webhookURLKey)
+	if err != nil {
+		return false, "", SensitiveString{}, Secret{}, err
+	}
+	keyText, keyPresent, err := readOptionalWebhookValue(getter, webhookSigningKeyKey)
+	if err != nil {
+		return false, "", SensitiveString{}, Secret{}, err
+	}
+	if !enabled {
+		if referencePresent || urlPresent || keyPresent {
+			return false, "", SensitiveString{}, Secret{}, invalid(webhookEnabledKey, "must be true when webhook fields are set")
+		}
+		return false, "", SensitiveString{}, Secret{}, nil
+	}
+	if !referencePresent || !validConfigToken(reference) {
+		return false, "", SensitiveString{}, Secret{}, invalid(webhookReferenceKey, "is required and invalid")
+	}
+	if !urlPresent || !validWebhookURL(rawURL) {
+		return false, "", SensitiveString{}, Secret{}, invalid(webhookURLKey, "is required and invalid")
+	}
+	if !keyPresent {
+		return false, "", SensitiveString{}, Secret{}, invalid(webhookSigningKeyKey, "is required")
+	}
+	decoded, decodeErr := base64.RawURLEncoding.Strict().DecodeString(keyText)
+	if decodeErr != nil || len(decoded) != 32 || base64.RawURLEncoding.EncodeToString(decoded) != keyText {
+		clear(decoded)
+		return false, "", SensitiveString{}, Secret{}, invalid(webhookSigningKeyKey, "is invalid")
+	}
+	var key Secret
+	copy(key.value[:], decoded)
+	clear(decoded)
+	key.set = true
+	return true, reference, SensitiveString{value: rawURL}, key, nil
+}
+
+func readOptionalWebhookValue(getter Getter, key string) (string, bool, error) {
+	value, present := getter.LookupEnv(key)
+	if !present || value == "" {
+		return "", false, nil
+	}
+	return readValue(getter, key)
+}
+
+func validateWebhook(result Config) error {
+	if !result.WebhookEnabled {
+		if result.WebhookDestinationReferenceID != "" || result.WebhookURL.Present() || result.WebhookSigningKey.Present() {
+			return invalid(webhookEnabledKey, "must be true when webhook fields are set")
+		}
+		return nil
+	}
+	if !validConfigToken(result.WebhookDestinationReferenceID) {
+		return invalid(webhookReferenceKey, "is invalid")
+	}
+	if !validWebhookURL(result.WebhookURL.Reveal()) {
+		return invalid(webhookURLKey, "is invalid")
+	}
+	if !result.WebhookSigningKey.Present() {
+		return invalid(webhookSigningKeyKey, "is required")
+	}
+	return nil
+}
+
+func validWebhookURL(value string) bool {
+	if len(value) < 1 || len(value) > 2048 || value != strings.TrimSpace(value) {
+		return false
+	}
+	parsed, err := url.Parse(value)
+	return err == nil && parsed.Scheme == "https" && parsed.Hostname() != "" && parsed.User == nil &&
+		parsed.Fragment == "" && parsed.String() == value
+}
+
+func validConfigToken(value string) bool {
+	if len(value) < 1 || len(value) > 128 || !asciiLetter(value[0]) {
+		return false
+	}
+	for _, char := range value[1:] {
+		if char != '_' && char != '-' && (char < '0' || char > '9') &&
+			(char < 'A' || char > 'Z') && (char < 'a' || char > 'z') {
+			return false
+		}
+	}
+	return true
+}
+
+func asciiLetter(value byte) bool {
+	return value >= 'A' && value <= 'Z' || value >= 'a' && value <= 'z'
 }
 
 func validateSetupBootstrap(result Config) error {
@@ -757,6 +1039,71 @@ func isWindowsDeviceDigit(character rune) bool {
 		character == '\u00b9' ||
 		character == '\u00b2' ||
 		character == '\u00b3'
+}
+
+func loadDatabaseURL(getter Getter, fallback SensitiveString, environment Environment) (SensitiveString, error) {
+	value, present, err := readValue(getter, databaseURLKey)
+	if err != nil {
+		return SensitiveString{}, err
+	}
+	if !present {
+		if environment == EnvironmentProduction {
+			return SensitiveString{}, invalid(databaseURLKey, "is required in production")
+		}
+		return fallback, nil
+	}
+	if err := validateDatabaseURL(value, environment); err != nil {
+		return SensitiveString{}, err
+	}
+	return SensitiveString{value: value}, nil
+}
+
+func validateDatabaseURL(value string, environment Environment) error {
+	if value == "" || len(value) > maximumDatabaseURLBytes || !utf8.ValidString(value) {
+		return invalid(databaseURLKey, "is invalid")
+	}
+	for _, character := range value {
+		if unicode.IsControl(character) || unicode.IsSpace(character) {
+			return invalid(databaseURLKey, "is invalid")
+		}
+	}
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Fragment != "" || parsed.Opaque != "" || parsed.Host == "" || parsed.User == nil {
+		return invalid(databaseURLKey, "is invalid")
+	}
+	if parsed.Scheme != "postgres" && parsed.Scheme != "postgresql" {
+		return invalid(databaseURLKey, "must use PostgreSQL")
+	}
+	if parsed.User.Username() == "" || parsed.Hostname() == "" || !validHost(parsed.Hostname()) {
+		return invalid(databaseURLKey, "is invalid")
+	}
+	if port := parsed.Port(); port != "" {
+		if !canonicalPort(port) {
+			return invalid(databaseURLKey, "is invalid")
+		}
+	}
+	if len(parsed.Path) < 2 || strings.Count(parsed.Path, "/") != 1 || parsed.RawPath != "" {
+		return invalid(databaseURLKey, "must name one database")
+	}
+	query := parsed.Query()
+	for key, values := range query {
+		if len(values) != 1 || values[0] == "" {
+			return invalid(databaseURLKey, "has duplicate or blank options")
+		}
+		switch key {
+		case "sslmode", "sslrootcert", "sslcert", "sslkey", "sslpassword", "application_name", "target_session_attrs":
+		default:
+			return invalid(databaseURLKey, "has an unsupported option")
+		}
+	}
+	sslMode := query.Get("sslmode")
+	if environment == EnvironmentProduction && sslMode != "verify-full" {
+		return invalid(databaseURLKey, "must verify the database host in production")
+	}
+	if sslMode == "" || sslMode != "disable" && sslMode != "require" && sslMode != "verify-ca" && sslMode != "verify-full" {
+		return invalid(databaseURLKey, "has an invalid TLS mode")
+	}
+	return nil
 }
 
 func loadDuration(getter Getter, key string, fallback, minimum, maximum time.Duration) (time.Duration, error) {

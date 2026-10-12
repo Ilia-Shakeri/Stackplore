@@ -3,10 +3,12 @@ import { Link, useRouterState } from '@tanstack/react-router';
 
 import { getBreadcrumbs } from './navigation';
 import { useLocale } from '../../i18n';
+import { useProductSource } from '../../features/product/product-context';
 
 export function Breadcrumbs() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { t } = useLocale();
+  const { selectedSource } = useProductSource();
   const breadcrumbs = getBreadcrumbs(pathname, t);
 
   if (breadcrumbs.length === 0) {
@@ -24,7 +26,11 @@ export function Breadcrumbs() {
               {item.to === undefined ? (
                 <span aria-current={current ? 'page' : undefined}>{item.label}</span>
               ) : (
-                <Link className="breadcrumbs__link ui-focus-ring" to={item.to}>
+                <Link
+                  className="breadcrumbs__link ui-focus-ring"
+                  to={item.to}
+                  search={selectedSource === undefined ? {} : { source: selectedSource }}
+                >
                   {item.label}
                 </Link>
               )}

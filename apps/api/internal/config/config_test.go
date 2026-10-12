@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const testProductionDatabaseURL = "postgresql://stackplore:test-only@db.example:5432/stackplore?sslmode=verify-full"
+
 type mapGetter struct {
 	values  map[string]string
 	entries []string
@@ -39,13 +41,23 @@ func productionDataDirectory() string {
 	return "/var/lib/stackplore"
 }
 
+func sourceAbsolutePath(name string) string {
+	if filepath.Separator == '\\' {
+		return `C:\stackplore\` + name
+	}
+	return "/var/run/stackplore/" + name
+}
+
 func bootstrapEnvironment(values map[string]string) map[string]string {
-	result := make(map[string]string, len(values)+2)
+	result := make(map[string]string, len(values)+3)
 	for key, value := range values {
 		result[key] = value
 	}
 	result[setupBootstrapProofKey] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 	result[setupBootstrapExpiryKey] = time.Now().UTC().Add(30 * time.Minute).Truncate(time.Second).Format(time.RFC3339)
+	if result[environmentKey] == "production" {
+		result[databaseURLKey] = testProductionDatabaseURL
+	}
 	return result
 }
 
@@ -88,8 +100,100 @@ func TestLoadDefaults(t *testing.T) {
 	if got.RatePerSecond != 20 || got.RateBurst != 40 || got.RateMaxClients != 4096 {
 		t.Errorf("rate limits = (%v, %d, %d); want defaults", got.RatePerSecond, got.RateBurst, got.RateMaxClients)
 	}
-	if got.DataDirectory != "data" || got.DatabaseBusyTimeout != 5*time.Second {
-		t.Errorf("database = (%q, %s); want data and 5s", got.DataDirectory, got.DatabaseBusyTimeout)
+	if got.DataDirectory != "data" {
+		t.Errorf("data directory = %q; want data", got.DataDirectory)
+	}
+	if got.DatabaseURL.Reveal() != defaultDatabaseURL || got.DatabaseMaxConnections != 32 || got.DatabaseMinConnections != 2 {
+		t.Error("PostgreSQL defaults were not preserved")
+	}
+	if got.DockerEnabled || got.KubernetesEnabled || got.MutationsEnabled || got.DockerWriteEnabled || got.KubernetesWriteEnabled {
+		t.Error("live infrastructure sources must be opt-in")
+	}
+	if got.WebhookEnabled || got.WebhookURL.Present() || got.WebhookSigningKey.Present() || got.WebhookDestinationReferenceID != "" {
+		t.Error("outbound webhook must be opt-in")
+	}
+	if got.DatabaseConnectTimeout != 5*time.Second || got.DatabaseQueryTimeout != 10*time.Second || got.DatabaseMigrationTimeout != 2*time.Minute || got.DatabaseHealthTimeout != 2*time.Second {
+		t.Error("PostgreSQL timeout defaults were not preserved")
+	}
+}
+
+func TestWebhookSettingsArePairedBoundedAndRedacted(t *testing.T) {
+	t.Parallel()
+	const rawURL = "https://hooks.example.test/notify?key=do-not-print"
+	const signingKey = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	got, err := Load(getter(map[string]string{
+		webhookEnabledKey: "true", webhookReferenceKey: "webhook_primary",
+		webhookURLKey: rawURL, webhookSigningKeyKey: signingKey,
+	}))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !got.WebhookEnabled || got.WebhookDestinationReferenceID != "webhook_primary" ||
+		got.WebhookURL.Reveal() != rawURL || len(got.WebhookSigningKey.Bytes()) != 32 {
+		t.Fatal("webhook configuration was not preserved")
+	}
+	formatted := fmt.Sprintf("%+v", got)
+	if strings.Contains(formatted, rawURL) || strings.Contains(formatted, "do-not-print") ||
+		strings.Contains(formatted, signingKey) {
+		t.Fatal("formatted configuration disclosed webhook material")
+	}
+	for _, values := range []map[string]string{
+		{webhookURLKey: rawURL},
+		{webhookEnabledKey: "true", webhookReferenceKey: "bad ref", webhookURLKey: rawURL, webhookSigningKeyKey: signingKey},
+		{webhookEnabledKey: "true", webhookReferenceKey: "webhook_primary", webhookURLKey: "http://hooks.example.test", webhookSigningKeyKey: signingKey},
+		{webhookEnabledKey: "true", webhookReferenceKey: "webhook_primary", webhookURLKey: rawURL, webhookSigningKeyKey: "short"},
+	} {
+		if _, err := Load(getter(values)); err == nil {
+			t.Fatalf("invalid webhook settings accepted: keys=%v", reflect.ValueOf(values).MapKeys())
+		}
+	}
+}
+
+func TestLoadLiveSourceSettingsUseStrictFlagsAndAbsolutePaths(t *testing.T) {
+	dockerPath := sourceAbsolutePath("docker.sock")
+	tokenPath := sourceAbsolutePath("token")
+	caPath := sourceAbsolutePath("ca.crt")
+	got, err := Load(getter(map[string]string{
+		dockerEnabledKey: "true", dockerSocketPathKey: dockerPath,
+		kubernetesEnabledKey: "true", kubernetesTokenFileKey: tokenPath, kubernetesCAFileKey: caPath,
+	}))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !got.DockerEnabled || got.DockerSocketPath != dockerPath || !got.KubernetesEnabled || got.KubernetesTokenFile != tokenPath || got.KubernetesCAFile != caPath {
+		t.Fatalf("source settings = %+v", got)
+	}
+	for _, values := range []map[string]string{
+		{dockerEnabledKey: "TRUE"},
+		{dockerSocketPathKey: "relative.sock"},
+		{kubernetesTokenFileKey: "token"},
+	} {
+		if _, err := Load(getter(values)); err == nil {
+			t.Fatalf("invalid source settings accepted: %v", values)
+		}
+	}
+}
+
+func TestMutationPermissionsRequireGlobalAndExactProviderEnablement(t *testing.T) {
+	dockerPath := sourceAbsolutePath("docker.sock")
+	got, err := Load(getter(map[string]string{
+		dockerEnabledKey: "true", dockerSocketPathKey: dockerPath,
+		mutationsEnabledKey: "true", dockerWriteEnabledKey: "true",
+	}))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !got.MutationsEnabled || !got.DockerWriteEnabled || got.KubernetesWriteEnabled {
+		t.Fatalf("mutation permissions = (%t, %t, %t)", got.MutationsEnabled, got.DockerWriteEnabled, got.KubernetesWriteEnabled)
+	}
+	for _, values := range []map[string]string{
+		{dockerWriteEnabledKey: "true"},
+		{mutationsEnabledKey: "true", dockerWriteEnabledKey: "true"},
+		{mutationsEnabledKey: "true", kubernetesWriteEnabledKey: "true"},
+	} {
+		if _, err := Load(getter(values)); err == nil {
+			t.Fatalf("unpaired mutation permissions accepted: %v", values)
+		}
 	}
 }
 
@@ -110,6 +214,21 @@ func TestSetupBootstrapIsBoundedAndRedacted(t *testing.T) {
 	copyOne[0] = 1
 	if got.SetupBootstrapProof.Bytes()[0] != 0 {
 		t.Fatal("bootstrap proof returned shared storage")
+	}
+}
+
+func TestDatabaseURLIsValidatedAndRedacted(t *testing.T) {
+	t.Parallel()
+	const databaseURL = "postgresql://stackplore:not-for-use@db.example:5432/stackplore?sslmode=verify-full"
+	got, err := Load(getter(map[string]string{databaseURLKey: databaseURL}))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if got.DatabaseURL.Reveal() != databaseURL || !got.DatabaseURL.Present() {
+		t.Fatal("database URL was not preserved for runtime use")
+	}
+	if formatted := fmt.Sprintf("%+v", got); strings.Contains(formatted, "not-for-use") || strings.Contains(formatted, databaseURL) {
+		t.Fatal("formatted configuration disclosed database credentials")
 	}
 }
 
@@ -147,30 +266,35 @@ func TestLoadAllFields(t *testing.T) {
 	t.Parallel()
 
 	got, err := Load(getter(bootstrapEnvironment(map[string]string{
-		environmentKey:            "production",
-		httpAddressKey:            "0.0.0.0:8443",
-		publicOriginKey:           "https://stackplore.example:8443",
-		trustedProxyPrefixesKey:   "10.0.0.0/8,2001:db8::/32",
-		metricsAllowedPrefixesKey: "10.20.0.0/16,2001:db8:1::/48",
-		logLevelKey:               "debug",
-		logFormatKey:              "text",
-		readHeaderTimeoutKey:      "2s",
-		readTimeoutKey:            "12s",
-		writeTimeoutKey:           "25s",
-		idleTimeoutKey:            "2m",
-		requestTimeoutKey:         "20s",
-		shutdownTimeoutKey:        "30s",
-		maxHeaderBytesKey:         "65536",
-		maxRequestBodyBytesKey:    "1048576",
-		maximumResponseBytesKey:   "2097152",
-		maxConnectionsKey:         "1024",
-		maxInFlightKey:            "128",
-		ratePerSecondKey:          "12.5",
-		rateBurstKey:              "25",
-		rateMaxClientsKey:         "2048",
-		dataDirectoryKey:          productionDataDirectory(),
-		databaseBusyTimeoutKey:    "10s",
-		developmentAPIOriginKey:   "http://127.0.0.1:8080",
+		environmentKey:              "production",
+		httpAddressKey:              "0.0.0.0:8443",
+		publicOriginKey:             "https://stackplore.example:8443",
+		trustedProxyPrefixesKey:     "10.0.0.0/8,2001:db8::/32",
+		metricsAllowedPrefixesKey:   "10.20.0.0/16,2001:db8:1::/48",
+		logLevelKey:                 "debug",
+		logFormatKey:                "text",
+		readHeaderTimeoutKey:        "2s",
+		readTimeoutKey:              "12s",
+		writeTimeoutKey:             "25s",
+		idleTimeoutKey:              "2m",
+		requestTimeoutKey:           "20s",
+		shutdownTimeoutKey:          "30s",
+		maxHeaderBytesKey:           "65536",
+		maxRequestBodyBytesKey:      "1048576",
+		maximumResponseBytesKey:     "2097152",
+		maxConnectionsKey:           "1024",
+		maxInFlightKey:              "128",
+		ratePerSecondKey:            "12.5",
+		rateBurstKey:                "25",
+		rateMaxClientsKey:           "2048",
+		dataDirectoryKey:            productionDataDirectory(),
+		databaseMaxConnectionsKey:   "48",
+		databaseMinConnectionsKey:   "4",
+		databaseConnectTimeoutKey:   "6s",
+		databaseQueryTimeoutKey:     "15s",
+		databaseMigrationTimeoutKey: "3m",
+		databaseHealthTimeoutKey:    "3s",
+		developmentAPIOriginKey:     "http://127.0.0.1:8080",
 	})))
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
@@ -188,8 +312,11 @@ func TestLoadAllFields(t *testing.T) {
 	if got.MaxHeaderBytes != 65536 || got.MaxRequestBodyBytes != 1048576 || got.MaximumResponseBytes != 2097152 || got.MaxConnections != 1024 || got.MaxInFlight != 128 || got.RatePerSecond != 12.5 || got.RateBurst != 25 || got.RateMaxClients != 2048 {
 		t.Error("configured bounds were not preserved")
 	}
-	if got.DataDirectory != productionDataDirectory() || got.DatabaseBusyTimeout != 10*time.Second {
+	if got.DataDirectory != productionDataDirectory() {
 		t.Error("configured database values were not preserved")
+	}
+	if got.DatabaseMaxConnections != 48 || got.DatabaseMinConnections != 4 || got.DatabaseConnectTimeout != 6*time.Second || got.DatabaseQueryTimeout != 15*time.Second || got.DatabaseMigrationTimeout != 3*time.Minute || got.DatabaseHealthTimeout != 3*time.Second {
+		t.Error("configured PostgreSQL pool values were not preserved")
 	}
 	if want := []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("2001:db8::/32")}; !reflect.DeepEqual(got.TrustedProxyPrefixes, want) {
 		t.Errorf("TrustedProxyPrefixes = %v; want %v", got.TrustedProxyPrefixes, want)
@@ -308,10 +435,20 @@ func TestLoadRejectsInvalidFieldValues(t *testing.T) {
 		{"data directory NUL", dataDirectoryKey, "data\x00child"},
 		{"data directory invalid UTF-8", dataDirectoryKey, string([]byte{'d', 'a', 't', 'a', 0xff})},
 		{"data directory too long", dataDirectoryKey, strings.Repeat("d", maximumDataDirectoryBytes+1)},
-		{"busy timeout malformed", databaseBusyTimeoutKey, "soon"},
-		{"busy timeout too short", databaseBusyTimeoutKey, "99ms"},
-		{"busy timeout sub-millisecond", databaseBusyTimeoutKey, "100ms1ns"},
-		{"busy timeout too long", databaseBusyTimeoutKey, "30s1ns"},
+		{"database URL blank", databaseURLKey, ""},
+		{"database URL wrong scheme", databaseURLKey, "mysql://stackplore@db.example:5432/stackplore?sslmode=verify-full"},
+		{"database URL no user", databaseURLKey, "postgresql://db.example:5432/stackplore?sslmode=verify-full"},
+		{"database URL no database", databaseURLKey, "postgresql://stackplore@db.example:5432?sslmode=verify-full"},
+		{"database URL nested path", databaseURLKey, "postgresql://stackplore@db.example:5432/team/stackplore?sslmode=verify-full"},
+		{"database URL unknown option", databaseURLKey, "postgresql://stackplore@db.example:5432/stackplore?sslmode=verify-full&search_path=public"},
+		{"database URL weak mode", databaseURLKey, "postgresql://stackplore@db.example:5432/stackplore?sslmode=prefer"},
+		{"database max zero", databaseMaxConnectionsKey, "0"},
+		{"database max too high", databaseMaxConnectionsKey, "257"},
+		{"database min zero", databaseMinConnectionsKey, "0"},
+		{"database connect short", databaseConnectTimeoutKey, "999ms"},
+		{"database query short", databaseQueryTimeoutKey, "99ms"},
+		{"database migration short", databaseMigrationTimeoutKey, "4999ms"},
+		{"database health short", databaseHealthTimeoutKey, "99ms"},
 	}
 
 	for _, test := range tests {
@@ -352,8 +489,6 @@ func TestLoadAcceptsDocumentedBounds(t *testing.T) {
 		{"maximum clients", map[string]string{rateMaxClientsKey: "65536"}},
 		{"maximum data directory bytes", map[string]string{dataDirectoryKey: strings.Repeat("d", maximumDataDirectoryBytes)}},
 		{"Unicode data directory", map[string]string{dataDirectoryKey: "dâtâ"}},
-		{"minimum busy timeout", map[string]string{databaseBusyTimeoutKey: "100ms"}},
-		{"maximum busy timeout", map[string]string{databaseBusyTimeoutKey: "30s"}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -395,8 +530,6 @@ func TestValidateRejectsForgedTypedConfig(t *testing.T) {
 		{"rate", func(value *Config) { value.RatePerSecond = 0 }},
 		{"data directory", func(value *Config) { value.DataDirectory = "../data" }},
 		{"production relative data directory", func(value *Config) { value.Environment = EnvironmentProduction }},
-		{"database busy timeout", func(value *Config) { value.DatabaseBusyTimeout = 0 }},
-		{"database busy timeout precision", func(value *Config) { value.DatabaseBusyTimeout = 100*time.Millisecond + time.Nanosecond }},
 		{"bootstrap expiry without proof", func(value *Config) { value.SetupBootstrapExpiresAt = time.Now().UTC().Truncate(time.Second) }},
 	}
 	for _, test := range tests {
@@ -466,6 +599,7 @@ func TestProductionExposureRules(t *testing.T) {
 			values: map[string]string{
 				environmentKey:   "production",
 				dataDirectoryKey: productionDataDirectory(),
+				databaseURLKey:   testProductionDatabaseURL,
 			},
 		},
 		{
@@ -475,6 +609,7 @@ func TestProductionExposureRules(t *testing.T) {
 				httpAddressKey:   "0.0.0.0:8080",
 				publicOriginKey:  "http://stackplore.example",
 				dataDirectoryKey: productionDataDirectory(),
+				databaseURLKey:   testProductionDatabaseURL,
 			},
 			field: publicOriginKey, wantErr: true,
 		},
@@ -484,6 +619,7 @@ func TestProductionExposureRules(t *testing.T) {
 				environmentKey:   "production",
 				publicOriginKey:  "http://stackplore.example",
 				dataDirectoryKey: productionDataDirectory(),
+				databaseURLKey:   testProductionDatabaseURL,
 			},
 			field: publicOriginKey, wantErr: true,
 		},
@@ -494,6 +630,7 @@ func TestProductionExposureRules(t *testing.T) {
 				httpAddressKey:   "0.0.0.0:8080",
 				publicOriginKey:  "https://stackplore.example",
 				dataDirectoryKey: productionDataDirectory(),
+				databaseURLKey:   testProductionDatabaseURL,
 			},
 			field: trustedProxyPrefixesKey, wantErr: true,
 		},
@@ -543,6 +680,7 @@ func TestDataDirectoryEnvironmentRules(t *testing.T) {
 			values: map[string]string{
 				environmentKey:   "production",
 				dataDirectoryKey: "data",
+				databaseURLKey:   testProductionDatabaseURL,
 			},
 			wantErr: true,
 		},
@@ -551,6 +689,7 @@ func TestDataDirectoryEnvironmentRules(t *testing.T) {
 			values: map[string]string{
 				environmentKey:   "production",
 				dataDirectoryKey: productionDataDirectory(),
+				databaseURLKey:   testProductionDatabaseURL,
 			},
 		},
 		{
@@ -652,7 +791,6 @@ func TestErrorsNeverContainValues(t *testing.T) {
 		getter(map[string]string{trustedProxyPrefixesKey: marker}),
 		getter(map[string]string{logLevelKey: marker}),
 		getter(map[string]string{dataDirectoryKey: marker + "\x00"}),
-		getter(map[string]string{databaseBusyTimeoutKey: marker}),
 		getter(map[string]string{setupBootstrapProofKey: marker}),
 		getter(map[string]string{readTimeoutKey: marker}),
 		getter(map[string]string{maxHeaderBytesKey: marker}),

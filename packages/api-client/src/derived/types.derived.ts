@@ -117,7 +117,8 @@ export type RecentAuthPurpose =
   | 'user.update'
   | 'user.delete'
   | 'user.password_reset'
-  | 'user.sessions_revoke';
+  | 'user.sessions_revoke'
+  | 'notification.test';
 
 /**
  * Current-password proof request for one exact high-risk purpose.
@@ -196,6 +197,318 @@ export type DatabaseReadinessCheck = {
 export type ServiceReadinessCheck = {
   name: 'service';
   state: ReadinessState;
+};
+
+export type ProductResourceKind = string;
+
+export type HealthSummary = {
+  healthy: number;
+  degraded: number;
+  unhealthy: number;
+  unknown: number;
+};
+
+export type SourceSummary = {
+  id: string;
+  provider: 'demo' | 'docker' | 'kubernetes';
+  name: string;
+  synthetic: boolean;
+  fixture_version?: string;
+  observed_at: string;
+  availability: AvailabilityState;
+  completeness: Completeness;
+  resource_count: number;
+  health: HealthSummary;
+};
+
+export type ProductEnvironment = {
+  id: string;
+  source_id: string;
+  provider: 'demo' | 'docker' | 'kubernetes';
+  name: string;
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: string;
+  synthetic: boolean;
+};
+
+export type ProductEnvironmentPage = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductEnvironment>;
+  page: PageInfo;
+};
+
+export type ProductResource = {
+  id: ResourceId;
+  provider: 'demo' | 'docker' | 'kubernetes';
+  source_id: string;
+  environment_id: string;
+  kind: ProductResourceKind;
+  scope_kind: 'global' | 'project' | 'namespace';
+  scope_name?: string;
+  name: string;
+  synthetic: boolean;
+  observed_at: string;
+  health?: HealthState;
+};
+
+export type ProductResourcePage = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductResource>;
+  page: PageInfo;
+};
+
+export type ProductResourceHealth = {
+  resource_id: ResourceId;
+  state: HealthState;
+  observed_at: string;
+  synthetic: boolean;
+  reason_codes: Array<string>;
+};
+
+export type ProductRelationship = {
+  id: RelationshipId;
+  from: ResourceId;
+  to: ResourceId;
+  kind: 'owns' | 'selects' | 'routes_to' | 'depends_on' | 'mounts' | 'references' | 'member_of';
+  direction: 'source_to_target' | 'bidirectional' | 'undirected';
+  observed_at: Timestamp;
+  synthetic: boolean;
+  confidence: number;
+};
+
+export type ProductRelationshipPage = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductRelationship>;
+  page: PageInfo;
+};
+
+export type ProductLogRecord = {
+  id: LogEntryId;
+  resource_id: ResourceId;
+  stream: 'stdout' | 'stderr' | 'system' | 'unknown';
+  sequence: number;
+  severity: 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical' | 'unknown';
+  timestamp: Timestamp;
+  message: string;
+  redacted: boolean;
+  truncated: boolean;
+  synthetic: boolean;
+};
+
+export type ProductLogPage = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductLogRecord>;
+  page: PageInfo;
+};
+
+export type ProductMetricSample = {
+  id: MetricSampleId;
+  resource_id: ResourceId;
+  name: MetricName;
+  unit: MetricUnit;
+  value: number;
+  sampled_at: Timestamp;
+  interval_seconds: number;
+  synthetic: boolean;
+};
+
+export type ProductMetricResult = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductMetricSample>;
+};
+
+export type ProductMetricHistoryResult = {
+  availability: AvailabilityState;
+  observed_at: Timestamp;
+  completeness: Completeness;
+  reason_code?: NamespacedCode;
+  items: Array<ProductMetricSample>;
+};
+
+export type ProductEvent = {
+  id: EventId;
+  resource_id?: ResourceId;
+  environment_id?: EnvironmentId;
+  kind: NamespacedCode;
+  severity: EventSeverity;
+  reason_code: NamespacedCode;
+  summary: string;
+  occurred_at: Timestamp;
+  observed_at: Timestamp;
+  synthetic: boolean;
+};
+
+export type ProductEventPage = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductEvent>;
+  page: PageInfo;
+};
+
+export type ProductAlert = {
+  id: AlertId;
+  rule_id: AlertRuleId;
+  resource_id?: ResourceId;
+  environment_id?: EnvironmentId;
+  state: AlertState;
+  severity: EventSeverity;
+  summary_code: NamespacedCode;
+  started_at: Timestamp;
+  updated_at: Timestamp;
+  acknowledged_at?: Timestamp;
+  resolved_at?: Timestamp;
+  synthetic: boolean;
+};
+
+export type ProductAlertPage = {
+  items: Array<ProductAlert>;
+  page: PageInfo;
+};
+
+export type AlertRuleInput = {
+  source_id: SourceId;
+  environment_id?: EnvironmentId;
+  resource_id?: ResourceId;
+  display_name: string;
+  kind:
+    | 'resource_unavailable'
+    | 'resource_unhealthy'
+    | 'restart_threshold'
+    | 'cpu_threshold'
+    | 'memory_threshold'
+    | 'workload_unavailable_replicas'
+    | 'event_severity_match'
+    | 'provider_connection_lost';
+  enabled: boolean;
+  severity: EventSeverity;
+  comparison_operator?:
+    'greater_than' | 'greater_than_or_equal' | 'less_than' | 'less_than_or_equal' | 'equal';
+  threshold_value?: number;
+  threshold_count?: number;
+  window_seconds?: number;
+  minimum_event_severity?: EventSeverity;
+  evaluation_interval_seconds: number;
+  pending_for_seconds: number;
+};
+
+export type AlertRuleRecord = {
+  id: AlertRuleId;
+  source_id: SourceId;
+  environment_id?: EnvironmentId;
+  resource_id?: ResourceId;
+  display_name: string;
+  kind:
+    | 'resource_unavailable'
+    | 'resource_unhealthy'
+    | 'restart_threshold'
+    | 'cpu_threshold'
+    | 'memory_threshold'
+    | 'workload_unavailable_replicas'
+    | 'event_severity_match'
+    | 'provider_connection_lost';
+  enabled: boolean;
+  severity: EventSeverity;
+  comparison_operator?:
+    'greater_than' | 'greater_than_or_equal' | 'less_than' | 'less_than_or_equal' | 'equal';
+  threshold_value?: number;
+  threshold_count?: number;
+  window_seconds?: number;
+  minimum_event_severity?: EventSeverity;
+  evaluation_interval_seconds: number;
+  pending_for_seconds: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  version: number;
+};
+
+export type AlertRulePage = {
+  items: Array<AlertRuleRecord>;
+  page: PageInfo;
+};
+
+/**
+ * Safe in-application notification with optional alert and resource links.
+ */
+export type ProductNotification = {
+  id: NotificationId;
+  source_id?: SourceId;
+  alert_id?: AlertId;
+  resource_id?: ResourceId;
+  kind: NamespacedCode;
+  severity: EventSeverity;
+  summary_code: NamespacedCode;
+  created_at: Timestamp;
+  synthetic: boolean;
+};
+
+/**
+ * Newest-first in-application notification page.
+ */
+export type ProductNotificationPage = {
+  items: Array<ProductNotification>;
+  page: PageInfo;
+};
+
+/**
+ * Secret-free operator-owned outbound notification configuration state.
+ */
+export type NotificationSettingsStatus =
+  ConfiguredNotificationSettingsStatus | DisabledNotificationSettingsStatus;
+
+/**
+ * Enabled generic webhook with only its safe operator reference exposed.
+ */
+export type ConfiguredNotificationSettingsStatus = {
+  adapter: 'generic_webhook';
+  enabled: true;
+  destination_reference_id: string;
+  configuration_source: 'operator_environment';
+  delivery_semantics: 'at_least_once';
+};
+
+/**
+ * Disabled generic webhook with no destination material exposed.
+ */
+export type DisabledNotificationSettingsStatus = {
+  adapter: 'generic_webhook';
+  enabled: false;
+  configuration_source: 'operator_environment';
+  delivery_semantics: 'at_least_once';
+};
+
+/**
+ * Safe acknowledgement for one durably queued test delivery.
+ */
+export type NotificationTestResponse = {
+  notification_id: NotificationId;
+  destination_reference_id: string;
+  state: 'queued';
+};
+
+/**
+ * Newest-first protected audit history page.
+ */
+export type ProductAuditPage = {
+  items: Array<AuditEntry>;
+  page: PageInfo;
 };
 
 /**
@@ -292,6 +605,11 @@ export type AlertRuleId = string;
 export type AlertId = string;
 
 /**
+ * Stable opaque notification identifier.
+ */
+export type NotificationId = string;
+
+/**
  * Stable opaque audit entry identifier.
  */
 export type AuditEntryId = string;
@@ -381,6 +699,7 @@ export type CapabilityName =
   | 'log.read'
   | 'log.tail'
   | 'metric.current'
+  | 'metric.history'
   | 'event.history'
   | 'event.watch';
 
@@ -1271,6 +1590,14 @@ export type MetricCurrentCapability = {
 };
 
 /**
+ * Current metric history capability status.
+ */
+export type MetricHistoryCapability = {
+  name: 'metric.history';
+  status: ObservationStatus;
+};
+
+/**
  * Current event history capability status.
  */
 export type EventHistoryCapability = {
@@ -1297,6 +1624,7 @@ export type Capability =
   | LogReadCapability
   | LogTailCapability
   | MetricCurrentCapability
+  | MetricHistoryCapability
   | EventHistoryCapability
   | EventWatchCapability;
 
@@ -1314,6 +1642,7 @@ export type CapabilitySet = {
     LogReadCapability,
     LogTailCapability,
     MetricCurrentCapability,
+    MetricHistoryCapability,
     EventHistoryCapability,
     EventWatchCapability,
   ];
@@ -1368,6 +1697,26 @@ export type RequestId2 = RequestId;
  * Stable opaque local user identifier.
  */
 export type UserId2 = UserId;
+
+/**
+ * Stable provider-neutral resource identifier.
+ */
+export type ResourceId2 = ResourceId;
+
+/**
+ * Optional exact provider-neutral resource filter.
+ */
+export type ProductResourceFilter = ResourceId;
+
+/**
+ * Selects one configured source. Omission selects the built-in demo source.
+ */
+export type ProductSourceSelection = SourceId;
+
+/**
+ * Last fully handled decimal event ID used for bounded replay after reconnect.
+ */
+export type LastEventId = string;
 
 /**
  * Strong quoted decimal form of the last observed user version.
@@ -2395,6 +2744,1641 @@ export type RevokeUserSessionsResponses = {
 
 export type RevokeUserSessionsResponse =
   RevokeUserSessionsResponses[keyof RevokeUserSessionsResponses];
+
+export type ListSourcesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/sources';
+};
+
+export type ListSourcesErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListSourcesError = ListSourcesErrors[keyof ListSourcesErrors];
+
+export type ListSourcesResponses = {
+  /**
+   * Bounded source summaries.
+   */
+  200: Array<SourceSummary>;
+};
+
+export type ListSourcesResponse = ListSourcesResponses[keyof ListSourcesResponses];
+
+export type ListEnvironmentsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    limit?: number;
+    cursor?: string;
+  };
+  url: '/environments';
+};
+
+export type ListEnvironmentsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListEnvironmentsError = ListEnvironmentsErrors[keyof ListEnvironmentsErrors];
+
+export type ListEnvironmentsResponses = {
+  /**
+   * One bounded normalized environment page.
+   */
+  200: ProductEnvironmentPage;
+};
+
+export type ListEnvironmentsResponse = ListEnvironmentsResponses[keyof ListEnvironmentsResponses];
+
+export type ListResourcesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    search?: string;
+    kind?: ProductResourceKind;
+    limit?: number;
+    cursor?: string;
+    sort?: 'name' | 'kind' | 'observed_at';
+    direction?: 'asc' | 'desc';
+  };
+  url: '/resources';
+};
+
+export type ListResourcesErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListResourcesError = ListResourcesErrors[keyof ListResourcesErrors];
+
+export type ListResourcesResponses = {
+  /**
+   * One bounded normalized resource page.
+   */
+  200: ProductResourcePage;
+};
+
+export type ListResourcesResponse = ListResourcesResponses[keyof ListResourcesResponses];
+
+export type GetResourceData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * Stable provider-neutral resource identifier.
+     */
+    resource_id: ResourceId;
+  };
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/resources/{resource_id}';
+};
+
+export type GetResourceErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetResourceError = GetResourceErrors[keyof GetResourceErrors];
+
+export type GetResourceResponses = {
+  /**
+   * Resource detail with current health.
+   */
+  200: ProductResource;
+};
+
+export type GetResourceResponse = GetResourceResponses[keyof GetResourceResponses];
+
+export type GetResourceHealthData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * Stable provider-neutral resource identifier.
+     */
+    resource_id: ResourceId;
+  };
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/resources/{resource_id}/health';
+};
+
+export type GetResourceHealthErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetResourceHealthError = GetResourceHealthErrors[keyof GetResourceHealthErrors];
+
+export type GetResourceHealthResponses = {
+  /**
+   * Current health and safe reason codes.
+   */
+  200: ProductResourceHealth;
+};
+
+export type GetResourceHealthResponse =
+  GetResourceHealthResponses[keyof GetResourceHealthResponses];
+
+export type GetProductTopologyData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Optional exact provider-neutral resource filter.
+     */
+    resource_id?: ResourceId;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+  };
+  url: '/topology';
+};
+
+export type GetProductTopologyErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetProductTopologyError = GetProductTopologyErrors[keyof GetProductTopologyErrors];
+
+export type GetProductTopologyResponses = {
+  /**
+   * One bounded relationship page.
+   */
+  200: ProductRelationshipPage;
+};
+
+export type GetProductTopologyResponse =
+  GetProductTopologyResponses[keyof GetProductTopologyResponses];
+
+export type ListProductLogsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Optional exact provider-neutral resource filter.
+     */
+    resource_id?: ResourceId;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+  };
+  url: '/logs';
+};
+
+export type ListProductLogsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListProductLogsError = ListProductLogsErrors[keyof ListProductLogsErrors];
+
+export type ListProductLogsResponses = {
+  /**
+   * One bounded log page.
+   */
+  200: ProductLogPage;
+};
+
+export type ListProductLogsResponse = ListProductLogsResponses[keyof ListProductLogsResponses];
+
+export type GetProductMetricsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Optional exact provider-neutral resource filter.
+     */
+    resource_id?: ResourceId;
+  };
+  url: '/metrics/current';
+};
+
+export type GetProductMetricsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetProductMetricsError = GetProductMetricsErrors[keyof GetProductMetricsErrors];
+
+export type GetProductMetricsResponses = {
+  /**
+   * Current bounded metric samples.
+   */
+  200: ProductMetricResult;
+};
+
+export type GetProductMetricsResponse =
+  GetProductMetricsResponses[keyof GetProductMetricsResponses];
+
+export type GetProductMetricHistoryData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Optional exact provider-neutral resource filter.
+     */
+    resource_id?: ResourceId;
+    minutes?: number;
+    limit?: number;
+  };
+  url: '/metrics/history';
+};
+
+export type GetProductMetricHistoryErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetProductMetricHistoryError =
+  GetProductMetricHistoryErrors[keyof GetProductMetricHistoryErrors];
+
+export type GetProductMetricHistoryResponses = {
+  /**
+   * Bounded metric history in ascending sample order.
+   */
+  200: ProductMetricHistoryResult;
+};
+
+export type GetProductMetricHistoryResponse =
+  GetProductMetricHistoryResponses[keyof GetProductMetricHistoryResponses];
+
+export type ListProductEventsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Optional exact provider-neutral resource filter.
+     */
+    resource_id?: ResourceId;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+  };
+  url: '/events';
+};
+
+export type ListProductEventsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListProductEventsError = ListProductEventsErrors[keyof ListProductEventsErrors];
+
+export type ListProductEventsResponses = {
+  /**
+   * One bounded event page.
+   */
+  200: ProductEventPage;
+};
+
+export type ListProductEventsResponse =
+  ListProductEventsResponses[keyof ListProductEventsResponses];
+
+export type ListProductAlertsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+  };
+  url: '/alerts';
+};
+
+export type ListProductAlertsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListProductAlertsError = ListProductAlertsErrors[keyof ListProductAlertsErrors];
+
+export type ListProductAlertsResponses = {
+  /**
+   * Current bounded alert page.
+   */
+  200: ProductAlertPage;
+};
+
+export type ListProductAlertsResponse =
+  ListProductAlertsResponses[keyof ListProductAlertsResponses];
+
+export type AcknowledgeProductAlertData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    alert_id: AlertId;
+  };
+  query?: never;
+  url: '/alerts/{alert_id}/acknowledge';
+};
+
+export type AcknowledgeProductAlertErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type AcknowledgeProductAlertError =
+  AcknowledgeProductAlertErrors[keyof AcknowledgeProductAlertErrors];
+
+export type AcknowledgeProductAlertResponses = {
+  /**
+   * Alert acknowledged.
+   */
+  200: ProductAlert;
+};
+
+export type AcknowledgeProductAlertResponse =
+  AcknowledgeProductAlertResponses[keyof AcknowledgeProductAlertResponses];
+
+export type ListAlertRulesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+  };
+  url: '/alert-rules';
+};
+
+export type ListAlertRulesErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListAlertRulesError = ListAlertRulesErrors[keyof ListAlertRulesErrors];
+
+export type ListAlertRulesResponses = {
+  /**
+   * One bounded alert-rule page.
+   */
+  200: AlertRulePage;
+};
+
+export type ListAlertRulesResponse = ListAlertRulesResponses[keyof ListAlertRulesResponses];
+
+export type CreateAlertRuleData = {
+  body: AlertRuleInput;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/alert-rules';
+};
+
+export type CreateAlertRuleErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CreateAlertRuleError = CreateAlertRuleErrors[keyof CreateAlertRuleErrors];
+
+export type CreateAlertRuleResponses = {
+  /**
+   * Alert rule created.
+   */
+  201: AlertRuleRecord;
+};
+
+export type CreateAlertRuleResponse = CreateAlertRuleResponses[keyof CreateAlertRuleResponses];
+
+export type DeleteAlertRuleData = {
+  body?: never;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed user version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    rule_id: AlertRuleId;
+  };
+  query?: never;
+  url: '/alert-rules/{rule_id}';
+};
+
+export type DeleteAlertRuleErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type DeleteAlertRuleError = DeleteAlertRuleErrors[keyof DeleteAlertRuleErrors];
+
+export type DeleteAlertRuleResponses = {
+  /**
+   * Alert rule deleted.
+   */
+  204: void;
+};
+
+export type DeleteAlertRuleResponse = DeleteAlertRuleResponses[keyof DeleteAlertRuleResponses];
+
+export type ReplaceAlertRuleData = {
+  body: AlertRuleInput;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed user version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    rule_id: AlertRuleId;
+  };
+  query?: never;
+  url: '/alert-rules/{rule_id}';
+};
+
+export type ReplaceAlertRuleErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ReplaceAlertRuleError = ReplaceAlertRuleErrors[keyof ReplaceAlertRuleErrors];
+
+export type ReplaceAlertRuleResponses = {
+  /**
+   * Alert rule replaced.
+   */
+  200: AlertRuleRecord;
+};
+
+export type ReplaceAlertRuleResponse = ReplaceAlertRuleResponses[keyof ReplaceAlertRuleResponses];
+
+export type ListNotificationsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+  };
+  url: '/notifications';
+};
+
+export type ListNotificationsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListNotificationsError = ListNotificationsErrors[keyof ListNotificationsErrors];
+
+export type ListNotificationsResponses = {
+  /**
+   * Current bounded notification page.
+   */
+  200: ProductNotificationPage;
+};
+
+export type ListNotificationsResponse =
+  ListNotificationsResponses[keyof ListNotificationsResponses];
+
+export type GetNotificationSettingsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/notifications';
+};
+
+export type GetNotificationSettingsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetNotificationSettingsError =
+  GetNotificationSettingsErrors[keyof GetNotificationSettingsErrors];
+
+export type GetNotificationSettingsResponses = {
+  /**
+   * Current secret-free outbound notification status.
+   */
+  200: NotificationSettingsStatus;
+};
+
+export type GetNotificationSettingsResponse =
+  GetNotificationSettingsResponses[keyof GetNotificationSettingsResponses];
+
+export type TestNotificationDeliveryData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/notifications/test';
+};
+
+export type TestNotificationDeliveryErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type TestNotificationDeliveryError =
+  TestNotificationDeliveryErrors[keyof TestNotificationDeliveryErrors];
+
+export type TestNotificationDeliveryResponses = {
+  /**
+   * Test delivery durably queued.
+   */
+  202: NotificationTestResponse;
+};
+
+export type TestNotificationDeliveryResponse =
+  TestNotificationDeliveryResponses[keyof TestNotificationDeliveryResponses];
+
+export type ListAuditEntriesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+  };
+  url: '/audit';
+};
+
+export type ListAuditEntriesErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListAuditEntriesError = ListAuditEntriesErrors[keyof ListAuditEntriesErrors];
+
+export type ListAuditEntriesResponses = {
+  /**
+   * Current bounded audit page.
+   */
+  200: ProductAuditPage;
+};
+
+export type ListAuditEntriesResponse = ListAuditEntriesResponses[keyof ListAuditEntriesResponses];
+
+export type StreamProductHealthData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Last fully handled decimal event ID used for bounded replay after reconnect.
+     */
+    'Last-Event-ID'?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/streams/health';
+};
+
+export type StreamProductHealthErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type StreamProductHealthError = StreamProductHealthErrors[keyof StreamProductHealthErrors];
+
+export type StreamProductHealthResponses = {
+  /**
+   * UTF-8 SSE frames with monotonic decimal IDs and single-line JSON data.
+   */
+  200: string;
+};
+
+export type StreamProductHealthResponse =
+  StreamProductHealthResponses[keyof StreamProductHealthResponses];
+
+export type StreamProductMetricsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Last fully handled decimal event ID used for bounded replay after reconnect.
+     */
+    'Last-Event-ID'?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/streams/metrics';
+};
+
+export type StreamProductMetricsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type StreamProductMetricsError =
+  StreamProductMetricsErrors[keyof StreamProductMetricsErrors];
+
+export type StreamProductMetricsResponses = {
+  /**
+   * UTF-8 SSE frames with monotonic decimal IDs and single-line JSON data.
+   */
+  200: string;
+};
+
+export type StreamProductMetricsResponse =
+  StreamProductMetricsResponses[keyof StreamProductMetricsResponses];
+
+export type StreamProductEventsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Last fully handled decimal event ID used for bounded replay after reconnect.
+     */
+    'Last-Event-ID'?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/streams/events';
+};
+
+export type StreamProductEventsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type StreamProductEventsError = StreamProductEventsErrors[keyof StreamProductEventsErrors];
+
+export type StreamProductEventsResponses = {
+  /**
+   * UTF-8 SSE frames with monotonic decimal IDs and single-line JSON data.
+   */
+  200: string;
+};
+
+export type StreamProductEventsResponse =
+  StreamProductEventsResponses[keyof StreamProductEventsResponses];
+
+export type StreamProductLogsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Last fully handled decimal event ID used for bounded replay after reconnect.
+     */
+    'Last-Event-ID'?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/streams/logs';
+};
+
+export type StreamProductLogsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type StreamProductLogsError = StreamProductLogsErrors[keyof StreamProductLogsErrors];
+
+export type StreamProductLogsResponses = {
+  /**
+   * UTF-8 SSE frames with monotonic decimal IDs and single-line JSON data.
+   */
+  200: string;
+};
+
+export type StreamProductLogsResponse =
+  StreamProductLogsResponses[keyof StreamProductLogsResponses];
+
+export type StreamProductAlertsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Last fully handled decimal event ID used for bounded replay after reconnect.
+     */
+    'Last-Event-ID'?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+  };
+  url: '/streams/alerts';
+};
+
+export type StreamProductAlertsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type StreamProductAlertsError = StreamProductAlertsErrors[keyof StreamProductAlertsErrors];
+
+export type StreamProductAlertsResponses = {
+  /**
+   * UTF-8 SSE frames with monotonic decimal IDs and single-line JSON data.
+   */
+  200: string;
+};
+
+export type StreamProductAlertsResponse =
+  StreamProductAlertsResponses[keyof StreamProductAlertsResponses];
 
 export type GetSystemReadinessData = {
   body?: never;

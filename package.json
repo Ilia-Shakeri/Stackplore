@@ -1,6 +1,6 @@
 {
   "name": "stackplore",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Local-first infrastructure visibility workspace.",
   "license": "Apache-2.0",
@@ -28,7 +28,9 @@
     "check:locales": "node scripts/check-locales.mjs",
     "derive:api-client": "corepack pnpm --filter @stackplore/api-client derive",
     "check:contracts": "corepack pnpm --filter @stackplore/api-client check",
-    "verify": "corepack pnpm run format:check && corepack pnpm run check:locales && corepack pnpm run check:contracts && corepack pnpm run lint && corepack pnpm run typecheck && corepack pnpm run test && corepack pnpm run build"
+    "verify": "corepack pnpm run format:check && corepack pnpm run check:docs && corepack pnpm run check:version && corepack pnpm run check:locales && corepack pnpm run check:contracts && corepack pnpm run lint && corepack pnpm run typecheck && corepack pnpm run test && corepack pnpm run build",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:version": "node scripts/check-version.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

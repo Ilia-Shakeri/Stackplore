@@ -2,11 +2,7 @@
 
 ## Project status
 
-Stackplore has no released version yet. The repository has a prerelease
-implementation through Phase 7, but there is currently no supported release
-range or production-security claim.
-
-This policy will be updated with supported versions and release-specific guidance before the first release.
+Stackplore 0.1.0 is a development checkpoint, with no production-supported release range or production-security claim. Report issues against the exact version or commit. Supported 1.0 versions and promotion evidence will be published with the final release.
 
 ## Report a vulnerability privately
 

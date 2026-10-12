@@ -6,6 +6,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+No later roadmap stage is complete.
+
+## [0.1.0] - 2026-10-12
+
+### Added
+
+- Reviewed PostgreSQL-backed read-only baseline with secure local auth, Demo/Docker/Kubernetes adapters, product APIs/pages, bounded SSE, rule management, audit/notification reads and leased webhook delivery. Much of this implementation existed uncommitted at review entry and is integrated after verification.
+- Real PostgreSQL auth/product repository parity, concurrency, ownership, migration rollback/drift, outbox, retention and HTTP tests; native backup/restore and session revocation proof on disposable local data.
+- Nine-stage completion roadmap, codebase audit, current English/Persian user guides and roadmap, document index, configuration/testing/troubleshooting/upgrade/release guides; document-link and version gates.
+- Versioned metadata at 0.1.0, pinned workflow action revisions and real Helm default/setup/cluster/annotation render checks.
+
+### Fixed
+
+- Final-administrator mutation race, migration-before-ownership, ownership loss, query/transaction bounds, undersized pools, outbox commit ordering, digest-key close races and migration-ledger read bounds.
+- Invalid read input returning empty success, provider denied/outage mapping, metric reply bounds/completeness, source summary health/count truth and exact resource lookup beyond the first page.
+- Bearer/structured secret log masking, repeated Kubernetes container names and per-delivery idle HTTP connection cleanup.
+- Mutable frontend source races, direct resource links, URL source/search history, missing metric totals, runtime guards, predicate translations and technical log direction.
+- Fresh-install setup environment/Secret gates, Nginx writable pod mounts, chart annotation YAML and forwarded HTTPS, separate edge liveness/readiness and Compose API filesystem/resource limits.
+- Native jobs15-minute bound, restore ownership monitoring/public schema scope, archive sync and atomic no-overwrite publication.
+
+### Removed
+
+- Legacy SQLite runtime/migrations/dependencies/licenses and busy-timeout configuration after real PostgreSQL parity and native restore checks. Private runtime key/path protection remains in a focused package. Old development data is not converted automatically.
+
+### Known limits
+
+- This is a development checkpoint. The full 1.0 product is not complete and has no production support promise.
+- Persistent discovery/source workflows, correct historical alert evidence/durable alert streams, complete paging/detail/log/topology journeys, namespace fidelity, full demo/guest isolation, guarded actions/settings/cleanup/PWA and release artifacts remain in the roadmap.
+- Accepted built-web serving and vendor-client architecture need alignment before 1.0.
+- Local PostgreSQL17.11 and Helm3.17.3 proof does not prove containers, browser accessibility/performance, a live provider/receiver, a cluster or a production restore. Linux race/remote CI outcomes are recorded separately in the evidence plan.
+
+## [0.0.0] - Historical foundation record
+
+The entries below preserve the earlier phase snapshot; retired storage and planned-product descriptions are historical, not current support claims.
+
 ### Added
 
 - Initial product specification, project guide, and phased delivery plan
@@ -74,7 +109,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
   browser types, setup and login screens, session-aware navigation, and a
   responsive bilingual user-management interface
 
-### Project status
+### Historical project status
 
 - The repository contains the Phase 7 local account, session, authorization,
   and user-management flows; the Phase 6 storage foundation; the Phase 5

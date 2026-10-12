@@ -3,34 +3,24 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/testpostgres"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/postgresmigrations"
+	"github.com/jackc/pgx/v5"
 )
 
-func TestAuthenticationHTTPStorageFlowKeepsRawProofsOutOfData(t *testing.T) {
-	dataDirectory := filepath.Join(t.TempDir(), "data")
-	store, err := storage.Open(context.Background(), storage.Options{
-		DataDirectory: dataDirectory,
-		BusyTimeout:   time.Second,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	closed := false
-	t.Cleanup(func() {
-		if !closed {
-			_ = store.Close()
-		}
-	})
+func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
+	store, admin, schema := integrationPostgresStore(t)
 	keyID, key, err := store.AuthDigestKey()
 	if err != nil {
 		t.Fatal(err)
@@ -144,34 +134,97 @@ func TestAuthenticationHTTPStorageFlowKeepsRawProofsOutOfData(t *testing.T) {
 			t.Fatal("request logs contain protected input")
 		}
 	}
-	if err := store.Close(); err != nil {
-		t.Fatal(err)
+	assertPostgresProofsAbsent(t, admin, schema, protectedValues)
+}
+
+func integrationPostgresStore(t *testing.T) (*postgres.Store, *pgx.Conn, string) {
+	t.Helper()
+	databaseURL := os.Getenv("STACKPLORE_TEST_POSTGRES_URL")
+	if databaseURL == "" {
+		t.Skip("real PostgreSQL URL is not configured")
 	}
-	closed = true
-	if err := filepath.WalkDir(dataDirectory, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil || entry.IsDir() {
-			return walkErr
-		}
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		contents, readErr := io.ReadAll(file)
-		closeErr := file.Close()
-		if readErr != nil {
-			return readErr
-		}
-		if closeErr != nil {
-			return closeErr
-		}
-		for _, protected := range protectedValues {
-			if bytes.Contains(contents, protected) {
-				t.Fatalf("protected input persisted in %s", filepath.Base(path))
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	admin, err := testpostgres.OpenGate(ctx, databaseURL)
+	if err != nil {
+		t.Fatal("connect to PostgreSQL test database")
+	}
+	var random [12]byte
+	if _, err := rand.Read(random[:]); err != nil {
+		_ = admin.Close(ctx)
+		t.Fatal("create PostgreSQL fixture identity")
+	}
+	schema := "http_auth_test_" + hex.EncodeToString(random[:])
+	identifier := pgx.Identifier{schema}.Sanitize()
+	var store *postgres.Store
+	t.Cleanup(func() {
+		if store != nil {
+			if err := store.Close(); err != nil {
+				t.Error("close PostgreSQL HTTP fixture")
 			}
 		}
-		return nil
-	}); err != nil {
-		t.Fatal(err)
+		cleanupContext, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cleanupCancel()
+		if _, err := admin.Exec(cleanupContext, "DROP SCHEMA IF EXISTS "+identifier+" CASCADE"); err != nil {
+			t.Error("drop isolated PostgreSQL HTTP fixture schema")
+		}
+		if err := admin.Close(cleanupContext); err != nil {
+			t.Error("close PostgreSQL HTTP fixture gate")
+		}
+	})
+	if _, err := admin.Exec(ctx, "CREATE SCHEMA "+identifier); err != nil {
+		t.Fatal("create isolated PostgreSQL HTTP fixture schema")
+	}
+	var digestKey [auth.DigestKeyBytes]byte
+	if _, err := rand.Read(digestKey[:]); err != nil {
+		t.Fatal("create PostgreSQL fixture digest key")
+	}
+	defer clear(digestKey[:])
+	store, err = postgres.Open(ctx, postgres.Options{
+		ConnectionString: databaseURL, Schema: schema, MinimumConnections: 2, MaximumConnections: 4,
+		ConnectTimeout: 5 * time.Second, QueryTimeout: 10 * time.Second, MigrationTimeout: time.Minute,
+		HealthTimeout: 2 * time.Second, ShutdownTimeout: 5 * time.Second,
+		MaximumConnectionLifetime: 30 * time.Minute, MaximumConnectionIdleTime: 5 * time.Minute,
+		AuthDigestKey: digestKey, AuthDigestKeyID: "http_auth_test_key",
+	}, postgresmigrations.FS)
+	if err != nil {
+		t.Fatal("open PostgreSQL HTTP fixture")
+	}
+	return store, admin, schema
+}
+
+func assertPostgresProofsAbsent(t *testing.T, admin *pgx.Conn, schema string, protectedValues [][]byte) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := admin.Query(ctx, `SELECT table_name FROM information_schema.tables WHERE table_schema = $1 AND table_type = 'BASE TABLE'`, schema)
+	if err != nil {
+		t.Fatal("inspect PostgreSQL fixture tables")
+	}
+	var tables []string
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			rows.Close()
+			t.Fatal("read PostgreSQL fixture table name")
+		}
+		tables = append(tables, table)
+	}
+	rows.Close()
+	if rows.Err() != nil || len(tables) == 0 {
+		t.Fatal("read PostgreSQL fixture table list")
+	}
+	for _, table := range tables {
+		var contents string
+		query := "SELECT COALESCE(jsonb_agg(to_jsonb(stored_row)), '[]'::jsonb)::text FROM " + pgx.Identifier{schema, table}.Sanitize() + " AS stored_row"
+		if err := admin.QueryRow(ctx, query).Scan(&contents); err != nil {
+			t.Fatal("inspect persisted PostgreSQL fixture data")
+		}
+		for _, protected := range protectedValues {
+			if bytes.Contains([]byte(contents), protected) || bytes.Contains([]byte(contents), []byte(hex.EncodeToString(protected))) {
+				t.Fatal("protected input persisted in PostgreSQL fixture")
+			}
+		}
 	}
 }
 

@@ -1,10 +1,33 @@
-import { TechnicalText } from '@stackplore/ui';
 import { Link } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 
 import { PlannedPage } from './PlannedPage';
+import type * as ProductPageExports from '../features/product/ProductPages';
 import { useAuth } from '../features/auth/auth-context';
 import { useLocale, type TextMessageKey } from '../i18n';
+
+const productPage = <Name extends keyof typeof ProductPageExports>(name: Name) =>
+  lazy(() =>
+    import('../features/product/ProductPages').then((module) => ({ default: module[name] })),
+  );
+
+const ProductOverviewPage = productPage('ProductOverviewPage');
+const ProductTopologyPage = productPage('ProductTopologyPage');
+const ProductResourcesPage = productPage('ProductResourcesPage');
+const ProductSearchPage = productPage('ProductSearchPage');
+const ProductResourceDetailPage = productPage('ProductResourceDetailPage');
+const ProductLogsPage = productPage('ProductLogsPage');
+const ProductEventsPage = productPage('ProductEventsPage');
+const ProductAlertsPage = productPage('ProductAlertsPage');
+const ProductNotificationsPage = productPage('ProductNotificationsPage');
+const ProductAuditPage = productPage('ProductAuditPage');
+const ProductSystemSettingsPage = productPage('ProductSystemSettingsPage');
+const ProductConnectionsSettingsPage = productPage('ProductConnectionsSettingsPage');
+const ProductAlertRulesSettingsPage = lazy(() =>
+  import('../features/product/AlertRulesSettingsPage').then((module) => ({
+    default: module.ProductAlertRulesSettingsPage,
+  })),
+);
 
 const UserAdminPage = lazy(() =>
   import('../features/users/UserAdminPage').then((module) => ({
@@ -18,7 +41,7 @@ const settingsLinks = [
   { administratorOnly: true, labelKey: 'route.users.title', to: '/settings/users' },
   {
     administratorOnly: true,
-    labelKey: 'route.notifications.title',
+    labelKey: 'alerts.rules.nav',
     to: '/settings/notifications',
   },
   { labelKey: 'route.preferences.title', to: '/settings/preferences' },
@@ -53,33 +76,34 @@ function SettingsNavigation() {
 }
 
 export function OverviewPage() {
-  const { t } = useLocale();
-
   return (
-    <PlannedPage
-      eyebrow={t('route.overview.eyebrow')}
-      title={t('route.overview.title')}
-      description={t('route.overview.description')}
-    />
+    <ProductBoundary>
+      <ProductOverviewPage />
+    </ProductBoundary>
   );
 }
 
 export function TopologyPage() {
-  const { t } = useLocale();
-
   return (
-    <PlannedPage title={t('route.topology.title')} description={t('route.topology.description')} />
+    <ProductBoundary>
+      <ProductTopologyPage />
+    </ProductBoundary>
   );
 }
 
 export function ResourcesPage() {
-  const { t } = useLocale();
-
   return (
-    <PlannedPage
-      title={t('route.resources.title')}
-      description={t('route.resources.description')}
-    />
+    <ProductBoundary>
+      <ProductResourcesPage />
+    </ProductBoundary>
+  );
+}
+
+export function SearchPage({ query }: { readonly query: string }) {
+  return (
+    <ProductBoundary>
+      <ProductSearchPage query={query} />
+    </ProductBoundary>
   );
 }
 
@@ -87,83 +111,85 @@ interface ResourceDetailPageProps {
   id: string;
   kind: string;
   provider: string;
+  source: string;
 }
 
-export function ResourceDetailPage({ id, kind, provider }: ResourceDetailPageProps) {
-  const { t } = useLocale();
-
+export function ResourceDetailPage({ id, kind, provider, source }: ResourceDetailPageProps) {
   return (
-    <PlannedPage
-      title={t('route.resourceDetail.title')}
-      description={t('route.resourceDetail.description')}
-    >
-      <dl className="resource-identity" aria-label={t('route.resourceDetail.identityLabel')}>
-        <div>
-          <dt>{t('route.resourceDetail.provider')}</dt>
-          <dd>
-            <TechnicalText>{provider}</TechnicalText>
-          </dd>
-        </div>
-        <div>
-          <dt>{t('route.resourceDetail.kind')}</dt>
-          <dd>
-            <TechnicalText>{kind}</TechnicalText>
-          </dd>
-        </div>
-        <div>
-          <dt>{t('route.resourceDetail.identifier')}</dt>
-          <dd>
-            <TechnicalText>{id}</TechnicalText>
-          </dd>
-        </div>
-      </dl>
-    </PlannedPage>
+    <ProductBoundary>
+      <ProductResourceDetailPage id={id} kind={kind} provider={provider} source={source} />
+    </ProductBoundary>
   );
 }
 
 export function LogsPage() {
-  const { t } = useLocale();
-  return <PlannedPage title={t('route.logs.title')} description={t('route.logs.description')} />;
+  return (
+    <ProductBoundary>
+      <ProductLogsPage />
+    </ProductBoundary>
+  );
 }
 
 export function EventsPage() {
-  const { t } = useLocale();
   return (
-    <PlannedPage title={t('route.events.title')} description={t('route.events.description')} />
+    <ProductBoundary>
+      <ProductEventsPage />
+    </ProductBoundary>
   );
 }
 
 export function AlertsPage() {
+  return (
+    <ProductBoundary>
+      <ProductAlertsPage />
+    </ProductBoundary>
+  );
+}
+
+export function NotificationCenterPage() {
+  return (
+    <ProductBoundary>
+      <ProductNotificationsPage />
+    </ProductBoundary>
+  );
+}
+
+function ProductBoundary({ children }: { readonly children: ReactNode }) {
   const { t } = useLocale();
   return (
-    <PlannedPage title={t('route.alerts.title')} description={t('route.alerts.description')} />
+    <Suspense
+      fallback={
+        <section className="product-state" aria-live="polite">
+          <p>{t('product.loading')}</p>
+        </section>
+      }
+    >
+      {children}
+    </Suspense>
   );
 }
 
 export function AuditPage() {
-  const { t } = useLocale();
-  return <PlannedPage title={t('route.audit.title')} description={t('route.audit.description')} />;
+  return (
+    <ProductBoundary>
+      <ProductAuditPage />
+    </ProductBoundary>
+  );
 }
 
 export function SettingsPage() {
-  const { t } = useLocale();
   return (
-    <PlannedPage
-      title={t('route.settings.title')}
-      description={t('route.settings.description')}
-      toolbar={<SettingsNavigation />}
-    />
+    <ProductBoundary>
+      <ProductSystemSettingsPage toolbar={<SettingsNavigation />} />
+    </ProductBoundary>
   );
 }
 
 export function ConnectionsSettingsPage() {
-  const { t } = useLocale();
   return (
-    <PlannedPage
-      title={t('route.connections.title')}
-      description={t('route.connections.description')}
-      toolbar={<SettingsNavigation />}
-    />
+    <ProductBoundary>
+      <ProductConnectionsSettingsPage toolbar={<SettingsNavigation />} />
+    </ProductBoundary>
   );
 }
 
@@ -192,13 +218,10 @@ export function UsersSettingsPage() {
 }
 
 export function NotificationsSettingsPage() {
-  const { t } = useLocale();
   return (
-    <PlannedPage
-      title={t('route.notifications.title')}
-      description={t('route.notifications.description')}
-      toolbar={<SettingsNavigation />}
-    />
+    <ProductBoundary>
+      <ProductAlertRulesSettingsPage toolbar={<SettingsNavigation />} />
+    </ProductBoundary>
   );
 }
 

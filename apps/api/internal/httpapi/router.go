@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -35,6 +36,13 @@ type Options struct {
 	MaximumResponseBody    int64
 	MaximumInFlight        int
 	RateLimit              RateLimitConfig
+	ProductProviders       []ProductProvider
+	AuditReader            AuditReader
+	AlertReader            AlertReader
+	NotificationReader     NotificationReader
+	NotificationSettings   NotificationSettingsReader
+	NotificationTester     NotificationTester
+	AlertManager           AlertManager
 
 	requestIDs requestIDSource
 	now        func() time.Time
@@ -75,6 +83,13 @@ func NewHandler(options Options) (http.Handler, error) {
 		options.Authentication,
 		options.Readiness,
 		now,
+		options.ProductProviders,
+		options.AuditReader,
+		options.AlertReader,
+		options.NotificationReader,
+		options.NotificationSettings,
+		options.NotificationTester,
+		options.AlertManager,
 	))
 	root.NotFound(plainNotFound)
 	root.MethodNotAllowed(rootMethodNotAllowed)
@@ -114,6 +129,9 @@ func validateOptions(options Options) error {
 	if !validPrefixes(options.TrustedProxyPrefixes) || !validPrefixes(options.MetricsAllowedPrefixes) {
 		return errInvalidOptions
 	}
+	if err := validateProductProviders(options.ProductProviders); err != nil {
+		return errInvalidOptions
+	}
 	return nil
 }
 
@@ -134,11 +152,16 @@ func validPrefixes(prefixes []netip.Prefix) bool {
 	return true
 }
 
-func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time) http.Handler {
+func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager) http.Handler {
 	authRoutes := newAuthHTTP(authentication, proxy.origin, readiness, now, maximumBody)
+	if len(providers) == 0 {
+		providers = []ProductProvider{demo.MustNew()}
+	}
+	productRoutes := newProductHTTP(authRoutes, providers, auditReader, alertReader, notificationReader, notificationSettings, notificationTester, alertManager)
 	router := chi.NewRouter()
 	router.Use(proxy.requirePublicOrigin)
 	router.Use(limitRequestBody(maximumBody))
+	router.Use(rejectMalformedQuery)
 	router.Get("/setup/status", authRoutes.setupStatus)
 	router.Post("/setup", authRoutes.setup)
 	router.Post("/auth/preflight", authRoutes.preflight)
@@ -155,6 +178,31 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	router.Post("/users/{user_id}/password-reset", authRoutes.resetUserPassword)
 	router.Delete("/users/{user_id}/sessions", authRoutes.revokeUserSessions)
 	router.Get("/system/readiness", authRoutes.systemReadiness)
+	router.Get("/sources", productRoutes.sources)
+	router.Get("/environments", productRoutes.environments)
+	router.Get("/resources", productRoutes.resources)
+	router.Get("/resources/{resource_id}", productRoutes.resource)
+	router.Get("/resources/{resource_id}/health", productRoutes.health)
+	router.Get("/topology", productRoutes.topology)
+	router.Get("/logs", productRoutes.logs)
+	router.Get("/metrics/current", productRoutes.metrics)
+	router.Get("/metrics/history", productRoutes.metricHistory)
+	router.Get("/events", productRoutes.events)
+	router.Get("/alerts", productRoutes.alerts)
+	router.Post("/alerts/{alert_id}/acknowledge", productRoutes.acknowledgeAlert)
+	router.Get("/alert-rules", productRoutes.listAlertRules)
+	router.Post("/alert-rules", productRoutes.createAlertRule)
+	router.Put("/alert-rules/{rule_id}", productRoutes.replaceAlertRule)
+	router.Delete("/alert-rules/{rule_id}", productRoutes.deleteAlertRule)
+	router.Get("/notifications", productRoutes.notifications)
+	router.Get("/settings/notifications", productRoutes.notificationSettings)
+	router.Post("/settings/notifications/test", productRoutes.testNotification)
+	router.Get("/audit", productRoutes.audit)
+	router.Get("/streams/health", productRoutes.streamHealth)
+	router.Get("/streams/metrics", productRoutes.streamMetrics)
+	router.Get("/streams/events", productRoutes.streamEvents)
+	router.Get("/streams/logs", productRoutes.streamLogs)
+	router.Get("/streams/alerts", productRoutes.streamAlerts)
 	router.NotFound(apiNotFound)
 	router.MethodNotAllowed(apiMethodNotAllowed)
 	return router
@@ -162,6 +210,15 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 
 func isAPIPath(path string) bool {
 	return path == "/api/v1" || strings.HasPrefix(path, "/api/v1/")
+}
+
+func isStreamPath(path string) bool {
+	switch path {
+	case "/api/v1/streams/health", "/api/v1/streams/metrics", "/api/v1/streams/events", "/api/v1/streams/logs", "/api/v1/streams/alerts":
+		return true
+	default:
+		return false
+	}
 }
 
 func isOperationalPath(path string) bool {
@@ -186,14 +243,30 @@ func apiMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 func allowedAPIMethods(path string) string {
 	path = strings.TrimPrefix(path, "/api/v1")
 	switch path {
-	case "/setup/status", "/auth/session", "/system/readiness":
+	case "/setup/status", "/auth/session", "/system/readiness", "/sources", "/environments", "/resources",
+		"/topology", "/logs", "/metrics/current", "/metrics/history", "/events", "/streams/health", "/streams/metrics",
+		"/streams/events", "/streams/logs", "/streams/alerts", "/audit", "/notifications", "/settings/notifications":
 		return http.MethodGet
+	case "/alerts":
+		return http.MethodGet
+	case "/alert-rules":
+		return http.MethodGet + ", " + http.MethodPost
 	case "/setup", "/auth/preflight", "/auth/login", "/auth/logout", "/auth/recent-grants":
+		return http.MethodPost
+	case "/settings/notifications/test":
 		return http.MethodPost
 	case "/auth/password":
 		return http.MethodPatch
 	case "/users":
 		return http.MethodGet + ", " + http.MethodPost
+	}
+	alertParts := strings.Split(strings.TrimPrefix(path, "/alerts/"), "/")
+	if len(alertParts) == 2 && alertParts[0] != "" && alertParts[1] == "acknowledge" {
+		return http.MethodPost
+	}
+	ruleParts := strings.Split(strings.TrimPrefix(path, "/alert-rules/"), "/")
+	if len(ruleParts) == 1 && ruleParts[0] != "" {
+		return http.MethodPut + ", " + http.MethodDelete
 	}
 	parts := strings.Split(strings.TrimPrefix(path, "/users/"), "/")
 	if len(parts) == 1 && parts[0] != "" {
@@ -206,6 +279,11 @@ func allowedAPIMethods(path string) string {
 		case "sessions":
 			return http.MethodDelete
 		}
+	}
+	resourceParts := strings.Split(strings.TrimPrefix(path, "/resources/"), "/")
+	if len(resourceParts) == 1 && resourceParts[0] != "" ||
+		len(resourceParts) == 2 && resourceParts[0] != "" && resourceParts[1] == "health" {
+		return http.MethodGet
 	}
 	return ""
 }

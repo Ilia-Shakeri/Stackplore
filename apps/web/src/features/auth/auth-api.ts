@@ -17,6 +17,7 @@ const visibleBasePattern = /[\p{L}\p{N}\p{P}\p{S}]/u;
 export type UserRole = 'administrator' | 'viewer';
 export type RecentAuthPurpose =
   | 'account.password_change'
+  | 'notification.test'
   | 'user.create'
   | 'user.delete'
   | 'user.password_reset'

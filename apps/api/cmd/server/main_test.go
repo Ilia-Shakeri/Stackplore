@@ -14,11 +14,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/notification"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
 )
 
 type mapGetter map[string]string
@@ -207,9 +209,13 @@ func TestRunFailsClosedBeforeListening(t *testing.T) {
 	settings := defaultSettings(t)
 	logger := discardLogger(t)
 	wantListenError := errors.New("listen failed")
-	err := run(context.Background(), settings, logger, func(string, string) (net.Listener, error) {
-		return nil, wantListenError
-	})
+	err := runWithStorage(
+		context.Background(),
+		settings,
+		logger,
+		func(string, string) (net.Listener, error) { return nil, wantListenError },
+		func(context.Context, config.Config) (databaseRuntime, error) { return &fakeDatabase{}, nil },
+	)
 	if !errors.Is(err, errListen) || errors.Is(err, wantListenError) {
 		t.Errorf("run() error = %v; want sealed listener error", err)
 	}
@@ -238,7 +244,7 @@ func TestRunSealsStorageStartFailureBeforeListening(t *testing.T) {
 			listened = true
 			return nil, errors.New("unexpected listen")
 		},
-		func(context.Context, storage.Options) (databaseRuntime, error) {
+		func(context.Context, config.Config) (databaseRuntime, error) {
 			return nil, marker
 		},
 	)
@@ -256,10 +262,35 @@ func TestRunClosesStorageAfterListenerFailure(t *testing.T) {
 		settings,
 		discardLogger(t),
 		func(string, string) (net.Listener, error) { return nil, errors.New("raw listen failure") },
-		func(context.Context, storage.Options) (databaseRuntime, error) { return database, nil },
+		func(context.Context, config.Config) (databaseRuntime, error) { return database, nil },
 	)
 	if !errors.Is(err, errListen) || !database.closed.Load() {
 		t.Errorf("runWithStorage() = %v, closed = %t; want listener error after storage close", err, database.closed.Load())
+	}
+}
+
+func TestBuildDeliveryWorkerNeedsConfiguredRepositoryAndClearsTarget(t *testing.T) {
+	t.Parallel()
+	settings, err := config.Load(mapGetter{
+		"STACKPLORE_WEBHOOK_ENABLED":                  "true",
+		"STACKPLORE_WEBHOOK_DESTINATION_REFERENCE_ID": "webhook_primary",
+		"STACKPLORE_WEBHOOK_URL":                      "https://hooks.example.test/path",
+		"STACKPLORE_WEBHOOK_SIGNING_KEY":              "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+	})
+	if err != nil {
+		t.Fatalf("config.Load() error = %v", err)
+	}
+	if worker, targets, err := buildDeliveryWorker(settings, &fakeDatabase{}, discardLogger(t)); worker != nil || targets != nil || !errors.Is(err, errDeliveryStart) {
+		t.Fatalf("missing repository build = (%v, %v, %v)", worker, targets, err)
+	}
+	database := &fakeDeliveryDatabase{fakeDatabase: &fakeDatabase{}}
+	worker, targets, err := buildDeliveryWorker(settings, database, discardLogger(t))
+	if err != nil || worker == nil || targets == nil {
+		t.Fatalf("buildDeliveryWorker() = (%v, %v, %v)", worker, targets, err)
+	}
+	targets.Close()
+	if _, err := targets.ResolveWebhookTarget(context.Background(), "webhook_primary"); err == nil {
+		t.Fatal("closed runtime target retained secret")
 	}
 }
 
@@ -279,7 +310,7 @@ func TestOpenRemoteSetupFailsBeforeListenerWithoutLiveProof(t *testing.T) {
 			listened = true
 			return nil, errors.New("listener must stay closed")
 		},
-		func(context.Context, storage.Options) (databaseRuntime, error) { return database, nil },
+		func(context.Context, config.Config) (databaseRuntime, error) { return database, nil },
 	)
 	if !errors.Is(err, errAuthStart) || listened || !database.closed.Load() {
 		t.Errorf("runWithStorage() = (%v, listened %t, closed %t); want sealed auth stop", err, listened, database.closed.Load())
@@ -298,7 +329,7 @@ func TestClosedRemoteSetupStartsWithoutProof(t *testing.T) {
 		settings,
 		discardLogger(t),
 		func(string, string) (net.Listener, error) { return nil, errors.New("raw listener failure") },
-		func(context.Context, storage.Options) (databaseRuntime, error) { return database, nil },
+		func(context.Context, config.Config) (databaseRuntime, error) { return database, nil },
 	)
 	if !errors.Is(err, errListen) || errors.Is(err, errAuthStart) || !database.closed.Load() {
 		t.Errorf("runWithStorage() = (%v, closed %t); want listener stop after closed setup boot", err, database.closed.Load())
@@ -499,6 +530,8 @@ func TestLifecycleReasonIsClosed(t *testing.T) {
 		{errAuthStart, "authentication_start"},
 		{errStorageStart, "storage_start"},
 		{errStorageStop, "storage_stop"},
+		{errProductStart, "product_start"},
+		{errAlertStart, "alert_start"},
 		{errServe, "unexpected_stop"},
 		{errors.New("raw secret-canary"), "unexpected_stop"},
 	}
@@ -541,6 +574,20 @@ type fakeDatabase struct {
 	authKeyErr    error
 }
 
+type fakeDeliveryDatabase struct{ *fakeDatabase }
+
+func (*fakeDeliveryDatabase) EnqueueWebhookDeliveries(context.Context, string, int, time.Time, int) (int, error) {
+	return 0, nil
+}
+
+func (*fakeDeliveryDatabase) ClaimWebhookDeliveries(context.Context, string, time.Time, time.Duration, int) ([]notification.DeliveryTask, error) {
+	return nil, nil
+}
+
+func (*fakeDeliveryDatabase) CompleteWebhookDelivery(context.Context, notification.DeliveryCompletion) error {
+	return nil
+}
+
 func (database *fakeDatabase) SetupRequired(context.Context) (bool, error) {
 	return database.setupRequired, database.setupErr
 }
@@ -559,6 +606,34 @@ func (database *fakeDatabase) Health(context.Context) error {
 	if !database.available.Load() {
 		return errors.New("database unavailable")
 	}
+	return nil
+}
+
+func (database *fakeDatabase) ClaimDueAlertEvaluations(context.Context, time.Time, int) ([]alerting.EvaluationTask, error) {
+	return nil, nil
+}
+
+func (database *fakeDatabase) SaveAlertMutation(context.Context, domain.AlertMutation) error {
+	return nil
+}
+
+func (database *fakeDatabase) AcknowledgeAlert(context.Context, domain.AlertAcknowledgement) (domain.Alert, error) {
+	return domain.Alert{}, domain.ErrRepositoryNotFound
+}
+
+func (database *fakeDatabase) ListAlertRules(context.Context, domain.PageRequest) (domain.AlertRulePage, error) {
+	return domain.AlertRulePage{}, nil
+}
+func (database *fakeDatabase) GetAlertRule(context.Context, domain.AlertRuleID) (domain.AlertRuleRecord, error) {
+	return domain.AlertRuleRecord{}, domain.ErrRepositoryNotFound
+}
+func (database *fakeDatabase) CreateAlertRule(context.Context, domain.AlertRuleCreate) error {
+	return nil
+}
+func (database *fakeDatabase) ReplaceAlertRule(context.Context, domain.AlertRuleReplace) error {
+	return nil
+}
+func (database *fakeDatabase) DeleteAlertRule(context.Context, domain.AlertRuleDelete) error {
 	return nil
 }
 

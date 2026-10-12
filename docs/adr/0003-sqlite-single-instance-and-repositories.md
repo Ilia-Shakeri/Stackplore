@@ -1,6 +1,6 @@
 # ADR-0003: Use SQLite with One Active API Instance
 
-- Status: Accepted
+- Status: Superseded by [ADR-0011](0011-postgresql-primary-persistence.md)
 - Date: 2026-07-28
 - Implementation: Phase 6
 - Owners: Project maintainers

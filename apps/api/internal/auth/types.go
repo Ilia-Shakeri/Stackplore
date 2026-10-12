@@ -197,6 +197,8 @@ const (
 	RecentAuthPurposeUserDelete            RecentAuthPurpose = "user.delete"
 	RecentAuthPurposeUserPasswordReset     RecentAuthPurpose = "user.password_reset"
 	RecentAuthPurposeUserSessionsRevoke    RecentAuthPurpose = "user.sessions_revoke"
+	RecentAuthPurposeNotificationTest      RecentAuthPurpose = "notification.test"
+	RecentAuthPurposeOperationExecute      RecentAuthPurpose = "operation.execute"
 )
 
 func (purpose RecentAuthPurpose) Validate() error {
@@ -206,7 +208,9 @@ func (purpose RecentAuthPurpose) Validate() error {
 		RecentAuthPurposeUserUpdate,
 		RecentAuthPurposeUserDelete,
 		RecentAuthPurposeUserPasswordReset,
-		RecentAuthPurposeUserSessionsRevoke:
+		RecentAuthPurposeUserSessionsRevoke,
+		RecentAuthPurposeNotificationTest,
+		RecentAuthPurposeOperationExecute:
 		return nil
 	default:
 		return ErrInvalidAuthState

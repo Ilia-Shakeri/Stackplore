@@ -80,6 +80,8 @@ func applyFixedHeaders(header http.Header, path string, status int, requestID st
 	switch {
 	case path == "/metrics" && status >= 200 && status < 300:
 		header.Set("Content-Type", metricsContentType)
+	case isStreamPath(path) && status >= 200 && status < 300:
+		header.Set("Content-Type", "text/event-stream; charset=utf-8")
 	case path == "/api/v1" || strings.HasPrefix(path, "/api/v1/"):
 		if status >= 400 {
 			header.Set("Content-Type", "application/problem+json")

@@ -19,9 +19,11 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/database"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runtimefiles"
 )
 
 const (
@@ -56,14 +58,14 @@ func (passwordInput) Format(state fmt.State, _ rune) {
 
 type recoveryRequest struct {
 	dataDirectory string
-	busyTimeout   time.Duration
+	queryTimeout  time.Duration
 	loginName     string
 	displayName   string
 	password      passwordInput
 	requestID     domain.RequestID
 }
 
-type recoveryOperation func(context.Context, recoveryRequest) error
+type recoveryOperation func(context.Context, config.Config, recoveryRequest) error
 type contextFactory func() (context.Context, context.CancelFunc)
 
 func main() {
@@ -138,7 +140,7 @@ func runMain(
 	}
 	request := recoveryRequest{
 		dataDirectory: settings.DataDirectory,
-		busyTimeout:   settings.DatabaseBusyTimeout,
+		queryTimeout:  settings.DatabaseQueryTimeout,
 		loginName:     parsed.loginName,
 		displayName:   parsed.displayName,
 		password:      password,
@@ -252,7 +254,7 @@ func newRequestID(random io.Reader) (domain.RequestID, error) {
 
 func runCommand(ctx context.Context, settings config.Config, request recoveryRequest, recover recoveryOperation) error {
 	if ctx == nil || recover == nil || config.Validate(settings) != nil ||
-		request.dataDirectory != settings.DataDirectory || request.busyTimeout != settings.DatabaseBusyTimeout ||
+		request.dataDirectory != settings.DataDirectory || request.queryTimeout != settings.DatabaseQueryTimeout ||
 		request.requestID.Validate() != nil || len(request.password) < auth.MinimumPasswordBytes ||
 		len(request.password) > auth.MaximumPasswordBytes || bytes.ContainsAny(request.password, "\r\n") {
 		return errCommandBoundary
@@ -263,14 +265,11 @@ func runCommand(ctx context.Context, settings config.Config, request recoveryReq
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	return recover(ctx, request)
+	return recover(ctx, settings, request)
 }
 
-func recoverAdministrator(ctx context.Context, request recoveryRequest) (result error) {
-	store, err := storage.Open(ctx, storage.Options{
-		DataDirectory: request.dataDirectory,
-		BusyTimeout:   request.busyTimeout,
-	})
+func recoverAdministrator(ctx context.Context, settings config.Config, request recoveryRequest) (result error) {
+	store, err := database.Open(ctx, settings)
 	if err != nil {
 		return err
 	}
@@ -309,21 +308,19 @@ func failureReason(err error) string {
 		return "canceled"
 	case errors.Is(err, errCommandBoundary):
 		return "command_boundary"
-	case errors.Is(err, storage.ErrInvalidOptions):
+	case errors.Is(err, postgres.ErrInvalidOptions):
 		return "invalid_options"
-	case errors.Is(err, storage.ErrUnsafeDataDirectory):
+	case errors.Is(err, runtimefiles.ErrUnsafeDataDirectory):
 		return "unsafe_data_directory"
-	case errors.Is(err, storage.ErrOwnershipUnavailable):
+	case errors.Is(err, postgres.ErrOwnershipUnavailable):
 		return "ownership_unavailable"
-	case errors.Is(err, storage.ErrDatabaseUnavailable):
+	case errors.Is(err, postgres.ErrDatabaseUnavailable):
 		return "database_unavailable"
-	case errors.Is(err, storage.ErrDatabaseIntegrity):
-		return "database_integrity"
-	case errors.Is(err, storage.ErrMigrationRejected):
+	case errors.Is(err, postgres.ErrMigrationRejected):
 		return "migration_rejected"
-	case errors.Is(err, storage.ErrAuthKeyUnavailable):
+	case errors.Is(err, runtimefiles.ErrAuthKeyUnavailable):
 		return "authentication_key"
-	case errors.Is(err, storage.ErrStoreClosed), errors.Is(err, storage.ErrCloseFailed):
+	case errors.Is(err, postgres.ErrStoreClosed):
 		return "storage_close"
 	case errors.Is(err, auth.ErrInvalidServiceInput):
 		return "invalid_account_input"

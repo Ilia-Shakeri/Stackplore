@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -117,4 +118,36 @@ func (entry AuditEntry) Validate() error {
 		return err
 	}
 	return entry.ReasonCode.Validate()
+}
+
+type AuditPage struct {
+	Entries []AuditEntry
+	Page    PageInfo
+}
+
+func (page AuditPage) ValidateFor(request PageRequest) error {
+	if err := page.Page.ValidateFor(request); err != nil {
+		return err
+	}
+	if len(page.Entries) > request.Limit {
+		return fmt.Errorf("audit page exceeds requested limit")
+	}
+	seen := make(map[AuditEntryID]struct{}, len(page.Entries))
+	for index, entry := range page.Entries {
+		if err := entry.Validate(); err != nil {
+			return err
+		}
+		if _, exists := seen[entry.ID]; exists {
+			return fmt.Errorf("audit page contains a duplicate entry")
+		}
+		if index > 0 {
+			previous := page.Entries[index-1]
+			if previous.OccurredAt.Before(entry.OccurredAt) ||
+				(previous.OccurredAt.Equal(entry.OccurredAt) && strings.Compare(string(previous.ID), string(entry.ID)) > 0) {
+				return fmt.Errorf("audit page must use descending time and ascending ID order")
+			}
+		}
+		seen[entry.ID] = struct{}{}
+	}
+	return nil
 }

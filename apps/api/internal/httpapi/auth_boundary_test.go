@@ -12,6 +12,8 @@ type testAuthentication struct {
 	setupFunc              func(context.Context, auth.SetupInput) (auth.SessionIssue, error)
 	loginFunc              func(context.Context, auth.LoginInput) (auth.SessionIssue, error)
 	authenticateFunc       func(context.Context, string) (auth.Authentication, error)
+	authorizeUnsafeFunc    func(context.Context, string, string) (auth.Authentication, error)
+	authorizeRecentFunc    func(context.Context, auth.RecentAuthorizationInput) (auth.Authentication, error)
 	logoutFunc             func(context.Context, auth.LogoutInput) error
 	createRecentGrantFunc  func(context.Context, auth.RecentAuthInput) (auth.RecentGrantIssue, error)
 	changeOwnPasswordFunc  func(context.Context, auth.OwnPasswordChangeInput) (auth.SessionIssue, error)
@@ -55,6 +57,20 @@ func (service *testAuthentication) Login(ctx context.Context, input auth.LoginIn
 func (service *testAuthentication) Authenticate(ctx context.Context, token string) (auth.Authentication, error) {
 	if service.authenticateFunc != nil {
 		return service.authenticateFunc(ctx, token)
+	}
+	return auth.Authentication{}, auth.ErrUnauthenticated
+}
+
+func (service *testAuthentication) AuthorizeUnsafe(ctx context.Context, token string, proof string) (auth.Authentication, error) {
+	if service.authorizeUnsafeFunc != nil {
+		return service.authorizeUnsafeFunc(ctx, token, proof)
+	}
+	return auth.Authentication{}, auth.ErrUnauthenticated
+}
+
+func (service *testAuthentication) AuthorizeRecent(ctx context.Context, input auth.RecentAuthorizationInput) (auth.Authentication, error) {
+	if service.authorizeRecentFunc != nil {
+		return service.authorizeRecentFunc(ctx, input)
 	}
 	return auth.Authentication{}, auth.ErrUnauthenticated
 }

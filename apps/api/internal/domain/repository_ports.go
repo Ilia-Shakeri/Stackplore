@@ -13,6 +13,7 @@ const MaxRepositoryWriteBatch = 100
 var (
 	ErrRepositoryInvalidInput = errors.New("repository input is invalid")
 	ErrRepositoryConflict     = errors.New("repository write conflicts with stored state")
+	ErrRepositoryNotFound     = errors.New("repository record was not found")
 	ErrRepositoryUnavailable  = errors.New("repository is unavailable")
 )
 
@@ -31,6 +32,22 @@ type AuditEntryRepository interface {
 	AppendAuditEntries(context.Context, []AuditEntry) error
 }
 
+type AuditEntryReader interface {
+	ListAuditEntries(context.Context, PageRequest) (AuditPage, error)
+}
+
+type AlertReader interface {
+	ListAlerts(context.Context, SourceID, PageRequest) (AlertPage, error)
+}
+
+type AlertMutationRepository interface {
+	SaveAlertMutation(context.Context, AlertMutation) error
+}
+
+type NotificationReader interface {
+	ListNotifications(context.Context, PageRequest) (NotificationPage, error)
+}
+
 // Repositories is the narrow set available inside a unit of work.
 type Repositories interface {
 	MetricSampleRepository
@@ -38,10 +55,19 @@ type Repositories interface {
 	AuditEntryRepository
 }
 
+type ProductRepositories interface {
+	Repositories
+	AlertMutationRepository
+}
+
 // RepositoryUnitOfWork atomically combines changes from multiple repositories.
 // Any repository error aborts the unit, even when its callback ignores the error.
 type RepositoryUnitOfWork interface {
 	WithinUnitOfWork(context.Context, func(Repositories) error) error
+}
+
+type ProductRepositoryUnitOfWork interface {
+	WithinProductUnitOfWork(context.Context, func(ProductRepositories) error) error
 }
 
 // ValidateMetricSampleWriteBatch enforces the repository input contract without

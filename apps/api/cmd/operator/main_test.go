@@ -7,11 +7,10 @@ import (
 	"io"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres"
 )
 
 type mapGetter map[string]string
@@ -113,7 +112,7 @@ func TestRunCommandPassesOnlyValidatedRecoveryRequest(t *testing.T) {
 	settings := testSettings(t)
 	request := recoveryRequest{
 		dataDirectory: settings.DataDirectory,
-		busyTimeout:   settings.DatabaseBusyTimeout,
+		queryTimeout:  settings.DatabaseQueryTimeout,
 		loginName:     "operator",
 		displayName:   "Primary Operator",
 		password:      []byte("correct horse value"),
@@ -122,10 +121,11 @@ func TestRunCommandPassesOnlyValidatedRecoveryRequest(t *testing.T) {
 	defer clear(request.password)
 	ctx := context.WithValue(context.Background(), struct{}{}, "marker")
 	called := false
-	err := runCommand(ctx, settings, request, func(gotContext context.Context, got recoveryRequest) error {
+	err := runCommand(ctx, settings, request, func(gotContext context.Context, gotSettings config.Config, got recoveryRequest) error {
 		called = true
-		if gotContext != ctx || got.loginName != request.loginName || got.displayName != request.displayName ||
-			got.dataDirectory != request.dataDirectory || got.busyTimeout != request.busyTimeout ||
+		if gotContext != ctx || gotSettings.DatabaseURL.Reveal() != settings.DatabaseURL.Reveal() ||
+			got.loginName != request.loginName || got.displayName != request.displayName ||
+			got.dataDirectory != request.dataDirectory || got.queryTimeout != request.queryTimeout ||
 			got.requestID != request.requestID || !bytes.Equal(got.password, request.password) {
 			t.Fatalf("recovery request changed: %#v", got)
 		}
@@ -140,7 +140,7 @@ func TestRunCommandFailsClosedBeforeRecovery(t *testing.T) {
 	settings := testSettings(t)
 	base := recoveryRequest{
 		dataDirectory: settings.DataDirectory,
-		busyTimeout:   settings.DatabaseBusyTimeout,
+		queryTimeout:  settings.DatabaseQueryTimeout,
 		loginName:     "operator",
 		displayName:   "Primary Operator",
 		password:      []byte("correct horse value"),
@@ -155,15 +155,15 @@ func TestRunCommandFailsClosedBeforeRecovery(t *testing.T) {
 		change  func(*recoveryRequest)
 		recover recoveryOperation
 	}{
-		{"nil context", nil, func(*recoveryRequest) {}, func(context.Context, recoveryRequest) error { return nil }},
-		{"canceled", canceled, func(*recoveryRequest) {}, func(context.Context, recoveryRequest) error { return nil }},
+		{"nil context", nil, func(*recoveryRequest) {}, func(context.Context, config.Config, recoveryRequest) error { return nil }},
+		{"canceled", canceled, func(*recoveryRequest) {}, func(context.Context, config.Config, recoveryRequest) error { return nil }},
 		{"nil operation", context.Background(), func(*recoveryRequest) {}, nil},
-		{"wrong directory", context.Background(), func(value *recoveryRequest) { value.dataDirectory += "-other" }, func(context.Context, recoveryRequest) error { return nil }},
-		{"wrong timeout", context.Background(), func(value *recoveryRequest) { value.busyTimeout++ }, func(context.Context, recoveryRequest) error { return nil }},
-		{"invalid login", context.Background(), func(value *recoveryRequest) { value.loginName = "bad name" }, func(context.Context, recoveryRequest) error { return nil }},
-		{"invalid display", context.Background(), func(value *recoveryRequest) { value.displayName = " hidden" }, func(context.Context, recoveryRequest) error { return nil }},
-		{"invalid password", context.Background(), func(value *recoveryRequest) { value.password = []byte("short") }, func(context.Context, recoveryRequest) error { return nil }},
-		{"invalid request", context.Background(), func(value *recoveryRequest) { value.requestID = "bad request" }, func(context.Context, recoveryRequest) error { return nil }},
+		{"wrong directory", context.Background(), func(value *recoveryRequest) { value.dataDirectory += "-other" }, func(context.Context, config.Config, recoveryRequest) error { return nil }},
+		{"wrong timeout", context.Background(), func(value *recoveryRequest) { value.queryTimeout++ }, func(context.Context, config.Config, recoveryRequest) error { return nil }},
+		{"invalid login", context.Background(), func(value *recoveryRequest) { value.loginName = "bad name" }, func(context.Context, config.Config, recoveryRequest) error { return nil }},
+		{"invalid display", context.Background(), func(value *recoveryRequest) { value.displayName = " hidden" }, func(context.Context, config.Config, recoveryRequest) error { return nil }},
+		{"invalid password", context.Background(), func(value *recoveryRequest) { value.password = []byte("short") }, func(context.Context, config.Config, recoveryRequest) error { return nil }},
+		{"invalid request", context.Background(), func(value *recoveryRequest) { value.requestID = "bad request" }, func(context.Context, config.Config, recoveryRequest) error { return nil }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -172,7 +172,7 @@ func TestRunCommandFailsClosedBeforeRecovery(t *testing.T) {
 			called := false
 			operation := test.recover
 			if operation != nil {
-				operation = func(context.Context, recoveryRequest) error {
+				operation = func(context.Context, config.Config, recoveryRequest) error {
 					called = true
 					return nil
 				}
@@ -198,7 +198,7 @@ func TestRunMainUsesSealedFailureOutput(t *testing.T) {
 		&standardError,
 		mapGetter{},
 		backgroundContext,
-		func(context.Context, recoveryRequest) error { return errors.New(marker) },
+		func(context.Context, config.Config, recoveryRequest) error { return errors.New(marker) },
 		bytes.NewReader(make([]byte, requestRandomBytes)),
 	)
 	if exitCode != exitFailure {
@@ -228,7 +228,7 @@ func TestRunMainClearsPasswordAndWritesFixedSuccess(t *testing.T) {
 		func() (context.Context, context.CancelFunc) {
 			return context.Background(), func() { stopped = true }
 		},
-		func(_ context.Context, request recoveryRequest) error {
+		func(_ context.Context, _ config.Config, request recoveryRequest) error {
 			if string(request.password) != passwordText || request.requestID.Validate() != nil {
 				t.Fatalf("recovery input invalid")
 			}
@@ -250,88 +250,19 @@ func TestRunMainClearsPasswordAndWritesFixedSuccess(t *testing.T) {
 	}
 }
 
-func TestRecoverAdministratorCreatesAndResetsWithoutReopeningSetup(t *testing.T) {
-	settings := testSettings(t)
-	directory := t.TempDir()
-	firstPassword := []byte("first correct horse")
-	secondPassword := []byte("second correct horse")
-	defer clear(firstPassword)
-	defer clear(secondPassword)
-	request := recoveryRequest{
-		dataDirectory: directory,
-		busyTimeout:   settings.DatabaseBusyTimeout,
-		loginName:     "operator",
-		displayName:   "Primary Operator",
-		password:      firstPassword,
-		requestID:     "request_recovery_create",
+func TestFailureReasonMapsPostgreSQLBoundaries(t *testing.T) {
+	tests := map[error]string{
+		postgres.ErrInvalidOptions:       "invalid_options",
+		postgres.ErrOwnershipUnavailable: "ownership_unavailable",
+		postgres.ErrDatabaseUnavailable:  "database_unavailable",
+		postgres.ErrMigrationRejected:    "migration_rejected",
+		postgres.ErrStoreClosed:          "storage_close",
 	}
-	if err := recoverAdministrator(context.Background(), request); err != nil {
-		t.Fatalf("recoverAdministrator(create) error = %v", err)
+	for input, want := range tests {
+		if got := failureReason(input); got != want {
+			t.Errorf("failureReason(%v) = %q, want %q", input, got, want)
+		}
 	}
-	first := inspectRecoveredAccount(t, directory, settings.DatabaseBusyTimeout, firstPassword)
-
-	request.displayName = "Recovered Operator"
-	request.password = secondPassword
-	request.requestID = "request_recovery_reset"
-	if err := recoverAdministrator(context.Background(), request); err != nil {
-		t.Fatalf("recoverAdministrator(reset) error = %v", err)
-	}
-	second := inspectRecoveredAccount(t, directory, settings.DatabaseBusyTimeout, secondPassword)
-	if second.ID != first.ID || second.AuthRevision != first.AuthRevision+1 || second.Version != first.Version+1 || second.DisplayName != request.displayName {
-		t.Fatalf("recovered account transition = %#v -> %#v", first, second)
-	}
-}
-
-func TestRecoverAdministratorRefusesAStoreOwnedByAnotherProcessBoundary(t *testing.T) {
-	settings := testSettings(t)
-	directory := t.TempDir()
-	store, err := storage.Open(context.Background(), storage.Options{DataDirectory: directory, BusyTimeout: settings.DatabaseBusyTimeout})
-	if err != nil {
-		t.Fatalf("storage.Open() error = %v", err)
-	}
-	defer store.Close()
-	password := []byte("correct horse value")
-	defer clear(password)
-	err = recoverAdministrator(context.Background(), recoveryRequest{
-		dataDirectory: directory,
-		busyTimeout:   settings.DatabaseBusyTimeout,
-		loginName:     "operator",
-		displayName:   "Primary Operator",
-		password:      password,
-		requestID:     "request_recovery_locked",
-	})
-	if !errors.Is(err, storage.ErrOwnershipUnavailable) {
-		t.Fatalf("recoverAdministrator(locked) error = %v", err)
-	}
-}
-
-func inspectRecoveredAccount(t *testing.T, directory string, busyTimeout time.Duration, password []byte) auth.User {
-	t.Helper()
-	store, err := storage.Open(context.Background(), storage.Options{DataDirectory: directory, BusyTimeout: busyTimeout})
-	if err != nil {
-		t.Fatalf("storage.Open(inspect) error = %v", err)
-	}
-	defer store.Close()
-	required, err := store.SetupRequired(context.Background())
-	if err != nil || required {
-		t.Fatalf("SetupRequired() = %t, %v", required, err)
-	}
-	account, err := store.FindLoginAccount(context.Background(), "operator")
-	if err != nil {
-		t.Fatalf("FindLoginAccount() error = %v", err)
-	}
-	if account.User.Role != auth.RoleAdministrator || !account.User.Enabled {
-		t.Fatalf("recovered user = %#v", account.User)
-	}
-	hasher, err := auth.NewPasswordHasher(auth.DefaultPasswordPolicy())
-	if err != nil {
-		t.Fatalf("NewPasswordHasher() error = %v", err)
-	}
-	verification, err := hasher.Verify(context.Background(), password, account.Credential)
-	if err != nil || !verification.Match {
-		t.Fatalf("Verify(recovered password) = %#v, %v", verification, err)
-	}
-	return account.User
 }
 
 func testSettings(t *testing.T) config.Config {

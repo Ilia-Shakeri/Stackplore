@@ -217,6 +217,271 @@ const routePolicies = new Map([
     },
   ],
   [
+    '/sources',
+    {
+      get: {
+        operationId: 'listSources',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/environments',
+    {
+      get: {
+        operationId: 'listEnvironments',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/resources',
+    {
+      get: {
+        operationId: 'listResources',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/resources/{resource_id}',
+    {
+      get: {
+        operationId: 'getResource',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/resources/{resource_id}/health',
+    {
+      get: {
+        operationId: 'getResourceHealth',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/topology',
+    {
+      get: {
+        operationId: 'getProductTopology',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/logs',
+    {
+      get: {
+        operationId: 'listProductLogs',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/metrics/current',
+    {
+      get: {
+        operationId: 'getProductMetrics',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/metrics/history',
+    {
+      get: {
+        operationId: 'getProductMetricHistory',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/events',
+    {
+      get: {
+        operationId: 'listProductEvents',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/alerts',
+    {
+      get: {
+        operationId: 'listProductAlerts',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/alerts/{alert_id}/acknowledge',
+    {
+      post: {
+        operationId: 'acknowledgeProductAlert',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '404', '409', '413', '429', '500', '503'],
+        security: sessionMutation,
+      },
+    },
+  ],
+  [
+    '/alert-rules',
+    {
+      get: {
+        operationId: 'listAlertRules',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+      post: {
+        operationId: 'createAlertRule',
+        requestBody: true,
+        responses: ['201', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+        security: sessionMutation,
+      },
+    },
+  ],
+  [
+    '/alert-rules/{rule_id}',
+    {
+      delete: {
+        operationId: 'deleteAlertRule',
+        requestBody: false,
+        responses: ['204', '400', '401', '403', '404', '409', '413', '429', '500', '503'],
+        security: sessionMutation,
+      },
+      put: {
+        operationId: 'replaceAlertRule',
+        requestBody: true,
+        responses: ['200', '400', '401', '403', '404', '409', '413', '415', '429', '500', '503'],
+        security: sessionMutation,
+      },
+    },
+  ],
+  [
+    '/notifications',
+    {
+      get: {
+        operationId: 'listNotifications',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/settings/notifications',
+    {
+      get: {
+        operationId: 'getNotificationSettings',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/settings/notifications/test',
+    {
+      post: {
+        operationId: 'testNotificationDelivery',
+        requestBody: false,
+        responses: ['202', '400', '401', '403', '413', '429', '500', '503'],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
+    '/audit',
+    {
+      get: {
+        operationId: 'listAuditEntries',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/streams/health',
+    {
+      get: {
+        operationId: 'streamProductHealth',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/streams/metrics',
+    {
+      get: {
+        operationId: 'streamProductMetrics',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/streams/events',
+    {
+      get: {
+        operationId: 'streamProductEvents',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/streams/logs',
+    {
+      get: {
+        operationId: 'streamProductLogs',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/streams/alerts',
+    {
+      get: {
+        operationId: 'streamProductAlerts',
+        requestBody: false,
+        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
     '/system/readiness',
     {
       get: {
@@ -254,9 +519,13 @@ const allowedParameterNames = [
   'From',
   'HealthFilter',
   'IfMatch',
+  'LastEventId',
   'Limit',
   'ProviderFilter',
+  'ProductResourceFilter',
+  'ProductSourceSelection',
   'RequestId',
+  'ResourceId',
   'ResourceKindFilter',
   'Search',
   'SortDirection',
@@ -273,6 +542,7 @@ const allowedResponseNames = [
   'InternalProblem',
   'NotFoundProblem',
   'PayloadTooLargeProblem',
+  'ProductEventStream',
   'ServiceUnavailableProblem',
   'SignInRejectedProblem',
   'TooManyRequestsProblem',
@@ -283,7 +553,12 @@ const allowedResponseNames = [
   'UserFound',
 ];
 const retryableResponseNames = new Set(['ServiceUnavailableProblem', 'TooManyRequestsProblem']);
-const successResponseNames = new Set(['MutationAccepted', 'UserCreated', 'UserFound']);
+const successResponseNames = new Set([
+  'MutationAccepted',
+  'ProductEventStream',
+  'UserCreated',
+  'UserFound',
+]);
 const allowedResponseKeys = ['content', 'description', 'headers'];
 const problemMediaType = 'application/problem+json';
 const allowedSchemaNames = [
@@ -292,6 +567,9 @@ const allowedSchemaNames = [
   'Alert',
   'AlertId',
   'AlertRuleId',
+  'AlertRuleInput',
+  'AlertRulePage',
+  'AlertRuleRecord',
   'AlertState',
   'AuditActor',
   'AuditActorKind',
@@ -345,6 +623,7 @@ const allowedSchemaNames = [
   'HealthResult',
   'HealthSnapshot',
   'HealthState',
+  'HealthSummary',
   'InfrastructureEvent',
   'InfrastructureSource',
   'InventoryDetailCapability',
@@ -364,6 +643,7 @@ const allowedSchemaNames = [
   'MemoryRequestMetricSample',
   'MemoryUsageMetricSample',
   'MetricCurrentCapability',
+  'MetricHistoryCapability',
   'MetricName',
   'MetricSample',
   'MetricSampleId',
@@ -383,6 +663,11 @@ const allowedSchemaNames = [
   'NoDataRelationshipPage',
   'NoDataResourcePage',
   'NoDataUnknownHealthSnapshot',
+  'NotificationId',
+  'NotificationSettingsStatus',
+  'NotificationTestResponse',
+  'ConfiguredNotificationSettingsStatus',
+  'DisabledNotificationSettingsStatus',
   'ObservationStatus',
   'OperatorAuditActor',
   'OptionalDisplayText',
@@ -393,6 +678,26 @@ const allowedSchemaNames = [
   'PreauthRequest',
   'PreauthResponse',
   'Problem',
+  'ProductResource',
+  'ProductEnvironment',
+  'ProductEnvironmentPage',
+  'ProductResourceHealth',
+  'ProductResourceKind',
+  'ProductResourcePage',
+  'ProductEvent',
+  'ProductEventPage',
+  'ProductAlert',
+  'ProductAlertPage',
+  'ProductAuditPage',
+  'ProductLogPage',
+  'ProductLogRecord',
+  'ProductMetricResult',
+  'ProductMetricHistoryResult',
+  'ProductMetricSample',
+  'ProductNotification',
+  'ProductNotificationPage',
+  'ProductRelationship',
+  'ProductRelationshipPage',
   'Proof',
   'ProviderKind',
   'Relationship',
@@ -424,6 +729,7 @@ const allowedSchemaNames = [
   'SetupStatus',
   'SortDirection',
   'SourceId',
+  'SourceSummary',
   'StaleObservation',
   'SystemAuditActor',
   'SystemReadiness',
@@ -552,14 +858,14 @@ const hasExactKeys = (value, expected) => {
 const inspectPathPolicy = (paths) => {
   const issues = [];
   if (!hasExactKeys(paths, allowedPathNames)) {
-    return ['paths must contain only the Phase 7 authentication and user routes'];
+    return ['paths must contain only the fixed product routes'];
   }
 
   const operationIds = new Set();
   for (const [path, methodPolicies] of routePolicies) {
     const pathItem = paths[path];
     if (!hasExactKeys(pathItem, Object.keys(methodPolicies))) {
-      issues.push(`${path} must keep its fixed Phase 7 methods`);
+      issues.push(`${path} must keep its fixed methods`);
       continue;
     }
 
@@ -685,11 +991,13 @@ const inspectComponentPolicy = (components) => {
         issues.push(`${responseLocation}.headers must be an object`);
       } else {
         const expectedHeaders =
-          responseName === 'UserCreated' || responseName === 'UserFound'
-            ? ['ETag', 'Set-Cookie', 'X-Request-ID']
-            : retryableResponseNames.has(responseName)
-              ? ['Retry-After', 'Set-Cookie', 'X-Request-ID']
-              : ['Set-Cookie', 'X-Request-ID'];
+          responseName === 'ProductEventStream'
+            ? ['Cache-Control', 'Set-Cookie', 'X-Accel-Buffering', 'X-Request-ID']
+            : responseName === 'UserCreated' || responseName === 'UserFound'
+              ? ['ETag', 'Set-Cookie', 'X-Request-ID']
+              : retryableResponseNames.has(responseName)
+                ? ['Retry-After', 'Set-Cookie', 'X-Request-ID']
+                : ['Set-Cookie', 'X-Request-ID'];
         const actualHeaders = Object.keys(response.headers).sort();
         if (
           actualHeaders.length !== expectedHeaders.length ||
@@ -703,6 +1011,20 @@ const inspectComponentPolicy = (components) => {
             issues.push(`${responseLocation}.headers.${headerName} uses an unsafe name`);
           }
         }
+      }
+
+      if (responseName === 'ProductEventStream') {
+        if (
+          !isRecord(response.content) ||
+          !hasExactKeys(response.content, ['text/event-stream']) ||
+          !isRecord(response.content['text/event-stream']) ||
+          !hasExactKeys(response.content['text/event-stream'], ['schema']) ||
+          !isRecord(response.content['text/event-stream'].schema) ||
+          response.content['text/event-stream'].schema.type !== 'string'
+        ) {
+          issues.push(`${responseLocation}.content must use one documented SSE body`);
+        }
+        continue;
       }
 
       if (successResponseNames.has(responseName)) {
@@ -1395,6 +1717,9 @@ const main = async () => {
 
     if (isRecord(components.responses)) {
       for (const [name, response] of Object.entries(components.responses)) {
+        if (name === 'ProductEventStream') {
+          continue;
+        }
         if (!isRecord(response) || !isRecord(response.content)) {
           continue;
         }
@@ -1432,6 +1757,7 @@ const main = async () => {
           'log.read',
           'log.tail',
           'metric.current',
+          'metric.history',
           'event.history',
           'event.watch',
         ],
@@ -1470,6 +1796,7 @@ const main = async () => {
           'user.delete',
           'user.password_reset',
           'user.sessions_revoke',
+          'notification.test',
         ],
       ],
       ['RelationshipDirection', ['source_to_target', 'bidirectional', 'undirected']],
@@ -1751,6 +2078,16 @@ const main = async () => {
         if (name === 'MutationAccepted') {
           if ('content' in response) {
             fail('MutationAccepted must have no response body');
+          }
+          continue;
+        }
+        if (name === 'ProductEventStream') {
+          if (
+            response?.content?.['text/event-stream']?.schema?.type !== 'string' ||
+            response?.headers?.['Cache-Control']?.schema?.const !== 'no-cache, no-store' ||
+            response?.headers?.['X-Accel-Buffering']?.schema?.const !== 'no'
+          ) {
+            fail('ProductEventStream must keep its bounded SSE transport contract');
           }
           continue;
         }

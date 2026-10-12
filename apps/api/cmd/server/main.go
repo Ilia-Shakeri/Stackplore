@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"io"
@@ -11,38 +14,59 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/database"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/notification"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/docker"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes"
 )
 
-const databaseHealthInterval = 5 * time.Second
+const (
+	databaseHealthInterval = 5 * time.Second
+	alertPollInterval      = 5 * time.Second
+	alertEvaluationBatch   = 32
+	alertReadTimeoutLimit  = 30 * time.Second
+	deliveryPollInterval   = 5 * time.Second
+	deliveryLeaseDuration  = 30 * time.Second
+	deliveryAttemptTimeout = 10 * time.Second
+	deliveryBatchSize      = 16
+)
 
 var (
-	errHTTPBoundary = errors.New("HTTP boundary could not start")
-	errListen       = errors.New("HTTP listener could not start")
-	errServe        = errors.New("HTTP service stopped unexpectedly")
-	errShutdown     = errors.New("HTTP service shutdown timed out")
-	errAuthStart    = errors.New("authentication could not start")
-	errStorageStart = errors.New("storage could not start")
-	errStorageStop  = errors.New("storage could not stop cleanly")
+	errHTTPBoundary     = errors.New("HTTP boundary could not start")
+	errListen           = errors.New("HTTP listener could not start")
+	errServe            = errors.New("HTTP service stopped unexpectedly")
+	errShutdown         = errors.New("HTTP service shutdown timed out")
+	errAuthStart        = errors.New("authentication could not start")
+	errStorageStart     = errors.New("storage could not start")
+	errStorageStop      = errors.New("storage could not stop cleanly")
+	errStorageOwnership = errors.New("storage ownership lost")
+	errProductStart     = errors.New("infrastructure source could not start")
+	errAlertStart       = errors.New("alert worker could not start")
+	errDeliveryStart    = errors.New("notification delivery could not start")
 )
 
 type listenerFactory func(network string, address string) (net.Listener, error)
 
 type databaseRuntime interface {
 	auth.Repository
+	alerting.TaskStore
+	alerting.ManagementRepository
 	AuthDigestKey() (string, []byte, error)
 	Health(context.Context) error
 	Close() error
 }
 
-type databaseFactory func(context.Context, storage.Options) (databaseRuntime, error)
+type databaseFactory func(context.Context, config.Config) (databaseRuntime, error)
 
 func main() {
 	os.Exit(realMain())
@@ -78,8 +102,8 @@ func run(ctx context.Context, settings config.Config, logger *slog.Logger, liste
 	return runWithStorage(ctx, settings, logger, listen, openDatabase)
 }
 
-func openDatabase(ctx context.Context, options storage.Options) (databaseRuntime, error) {
-	return storage.Open(ctx, options)
+func openDatabase(ctx context.Context, settings config.Config) (databaseRuntime, error) {
+	return database.Open(ctx, settings)
 }
 
 func runWithStorage(
@@ -96,12 +120,20 @@ func runWithStorage(
 		return nil
 	}
 
-	database, err := open(ctx, storage.Options{
-		DataDirectory: settings.DataDirectory,
-		BusyTimeout:   settings.DatabaseBusyTimeout,
-	})
+	database, err := open(ctx, settings)
 	if err != nil || database == nil {
 		return errStorageStart
+	}
+	serviceContext, stopService := context.WithCancel(ctx)
+	defer stopService()
+	if ownership, ok := database.(interface{ OwnershipLost() <-chan struct{} }); ok {
+		go func() {
+			select {
+			case <-ownership.OwnershipLost():
+				stopService()
+			case <-serviceContext.Done():
+			}
+		}()
 	}
 	closeDatabase := func(primary error) error {
 		if err := database.Close(); err != nil {
@@ -123,7 +155,18 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errAuthStart)
 	}
-	server, err := newHTTPServer(settings, logger, readiness, authentication)
+	providers, err := buildProductProviders(settings)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errors.Join(errHTTPBoundary, errProductStart))
+	}
+	alertManager, err := alerting.NewManagementService(database, alerting.SecureIdentifierFactory{}, time.Now)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errAlertStart)
+	}
+	historyReader, _ := database.(productHistoryReader)
+	server, err := newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, alertManager, historyReader)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(err)
@@ -138,19 +181,57 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errHTTPBoundary)
 	}
+	alertWorker, err := buildAlertWorker(database, providers, logger, settings.RequestTimeout)
+	if err != nil {
+		_ = listener.Close()
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errAlertStart)
+	}
+	deliveryWorker, deliveryTargets, err := buildDeliveryWorker(settings, database, logger)
+	if err != nil {
+		_ = listener.Close()
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errDeliveryStart)
+	}
+	if deliveryTargets != nil {
+		defer deliveryTargets.Close()
+	}
 
-	monitorContext, stopMonitor := context.WithCancel(context.Background())
+	monitorContext, stopMonitor := context.WithCancel(serviceContext)
 	monitorDone := make(chan struct{})
+	alertDone := make(chan struct{})
+	deliveryDone := make(chan struct{})
 	go func() {
 		defer close(monitorDone)
-		monitorDatabase(monitorContext, database, readiness, databaseHealthInterval, settings.DatabaseBusyTimeout)
+		monitorDatabase(monitorContext, database, readiness, databaseHealthInterval, settings.DatabaseHealthTimeout)
 	}()
+	go func() {
+		defer close(alertDone)
+		alertWorker.Run(monitorContext)
+	}()
+	if deliveryWorker == nil {
+		close(deliveryDone)
+	} else {
+		go func() {
+			defer close(deliveryDone)
+			deliveryWorker.Run(monitorContext)
+		}()
+	}
 
 	logger.Info("service listener ready", "environment", string(settings.Environment))
-	err = serveServer(ctx, server, listener, readiness, settings.ShutdownTimeout)
+	err = serveServer(serviceContext, server, listener, readiness, settings.ShutdownTimeout)
 	stopMonitor()
 	<-monitorDone
+	<-alertDone
+	<-deliveryDone
 	readiness.SetDatabaseReady(false)
+	if ownership, ok := database.(interface{ OwnershipLost() <-chan struct{} }); ok {
+		select {
+		case <-ownership.OwnershipLost():
+			err = errors.Join(err, errStorageOwnership)
+		default:
+		}
+	}
 	err = closeDatabase(err)
 	if err == nil {
 		logger.Info("service stopped", "reason", "graceful_shutdown")
@@ -258,9 +339,53 @@ func newHTTPServer(
 	logger *slog.Logger,
 	readiness *httpapi.Readiness,
 	authentication *auth.Service,
+	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
-	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil {
+	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil || len(historyReaders) > 1 {
 		return nil, errHTTPBoundary
+	}
+	providers, err := buildProductProviders(settings)
+	if err != nil {
+		return nil, errors.Join(errHTTPBoundary, errProductStart)
+	}
+	return newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, nil, historyReaders...)
+}
+
+func newHTTPServerWithProviders(
+	settings config.Config,
+	logger *slog.Logger,
+	readiness *httpapi.Readiness,
+	authentication *auth.Service,
+	providers []httpapi.ProductProvider,
+	alertManager httpapi.AlertManager,
+	historyReaders ...productHistoryReader,
+) (*http.Server, error) {
+	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil ||
+		len(providers) == 0 || len(historyReaders) > 1 {
+		return nil, errHTTPBoundary
+	}
+	var historyReader productHistoryReader
+	if len(historyReaders) == 1 {
+		historyReader = historyReaders[0]
+	}
+	notificationSettings, err := notification.NewRuntimeSettings(
+		settings.WebhookEnabled, settings.WebhookDestinationReferenceID,
+	)
+	if err != nil {
+		return nil, errHTTPBoundary
+	}
+	var notificationTester httpapi.NotificationTester
+	if settings.WebhookEnabled {
+		if repository, ok := any(historyReader).(notification.TestRepository); ok {
+			tester, err := notification.NewTestService(
+				repository, notification.SecureTestIdentifierFactory{},
+				settings.WebhookDestinationReferenceID, time.Now,
+			)
+			if err != nil {
+				return nil, errHTTPBoundary
+			}
+			notificationTester = tester
+		}
 	}
 	handler, err := httpapi.NewHandler(httpapi.Options{
 		Logger:                 logger,
@@ -273,6 +398,13 @@ func newHTTPServer(
 		MaximumRequestBody:     settings.MaxRequestBodyBytes,
 		MaximumResponseBody:    settings.MaximumResponseBytes,
 		MaximumInFlight:        settings.MaxInFlight,
+		ProductProviders:       providers,
+		AuditReader:            historyReader,
+		AlertReader:            historyReader,
+		NotificationReader:     historyReader,
+		NotificationSettings:   notificationSettings,
+		NotificationTester:     notificationTester,
+		AlertManager:           alertManager,
 		RateLimit: httpapi.RateLimitConfig{
 			RequestsPerSecond: settings.RatePerSecond,
 			Burst:             settings.RateBurst,
@@ -293,6 +425,179 @@ func newHTTPServer(
 		IdleTimeout:       settings.IdleTimeout,
 		MaxHeaderBytes:    settings.MaxHeaderBytes,
 	}, nil
+}
+
+func buildAlertWorker(
+	store alerting.TaskStore,
+	providers []httpapi.ProductProvider,
+	logger *slog.Logger,
+	readTimeout time.Duration,
+) (*alerting.Worker, error) {
+	if store == nil || len(providers) == 0 || logger == nil {
+		return nil, errAlertStart
+	}
+	if readTimeout > alertReadTimeoutLimit {
+		readTimeout = alertReadTimeoutLimit
+	}
+	evidenceProviders := make([]alerting.EvidenceProvider, 0, len(providers))
+	for _, provider := range providers {
+		evidenceProviders = append(evidenceProviders, provider)
+	}
+	evidence, err := alerting.NewProviderEvidence(evidenceProviders)
+	if err != nil {
+		return nil, errAlertStart
+	}
+	worker, err := alerting.NewWorker(alerting.WorkerOptions{
+		Store: store, Evidence: evidence, Identifiers: alerting.SecureIdentifierFactory{},
+		Now: time.Now, PollInterval: alertPollInterval, ReadTimeout: readTimeout,
+		BatchSize: alertEvaluationBatch,
+		OnError: func(error) {
+			logger.Error("alert evaluation failed", "reason", "evaluation_unavailable")
+		},
+	})
+	if err != nil {
+		return nil, errAlertStart
+	}
+	return worker, nil
+}
+
+func buildDeliveryWorker(
+	settings config.Config,
+	database databaseRuntime,
+	logger *slog.Logger,
+) (*notification.DeliveryWorker, *notification.StaticWebhookTargetResolver, error) {
+	if !settings.WebhookEnabled {
+		return nil, nil, nil
+	}
+	repository, ok := database.(notification.DeliveryRepository)
+	if !ok || logger == nil {
+		return nil, nil, errDeliveryStart
+	}
+	signingKey := settings.WebhookSigningKey.Bytes()
+	defer clear(signingKey)
+	targets, err := notification.NewStaticWebhookTargetResolver(
+		settings.WebhookDestinationReferenceID, settings.WebhookURL.Reveal(), signingKey,
+	)
+	if err != nil {
+		return nil, nil, errDeliveryStart
+	}
+	randomBytes := make([]byte, 18)
+	if _, err := rand.Read(randomBytes); err != nil {
+		targets.Close()
+		return nil, nil, errDeliveryStart
+	}
+	workerID, err := notification.NewDeliveryWorkerID(randomBytes)
+	clear(randomBytes)
+	if err != nil {
+		targets.Close()
+		return nil, nil, errDeliveryStart
+	}
+	sender, err := notification.NewWebhookSender(notification.WebhookSenderOptions{
+		Resolver: net.DefaultResolver,
+		Dialer:   &net.Dialer{Timeout: deliveryAttemptTimeout, KeepAlive: 30 * time.Second},
+		Timeout:  deliveryAttemptTimeout, MaximumResponseBytes: 64 * 1024,
+	})
+	if err != nil {
+		targets.Close()
+		return nil, nil, errDeliveryStart
+	}
+	worker, err := notification.NewDeliveryWorker(notification.DeliveryWorkerOptions{
+		Repository: repository, Targets: targets, Sender: sender,
+		DestinationReferenceID: settings.WebhookDestinationReferenceID, LeaseOwner: workerID,
+		Now: time.Now, PollInterval: deliveryPollInterval, LeaseDuration: deliveryLeaseDuration,
+		BatchSize: deliveryBatchSize, MaximumAttempts: 3,
+		RetrySchedule: []time.Duration{5 * time.Second, 30 * time.Second, 2 * time.Minute},
+		OnError: func(error) {
+			logger.Error("notification delivery failed", "reason", "delivery_unavailable")
+		},
+	})
+	if err != nil {
+		targets.Close()
+		return nil, nil, errDeliveryStart
+	}
+	return worker, targets, nil
+}
+
+type productHistoryReader interface {
+	httpapi.AuditReader
+	httpapi.AlertReader
+	httpapi.NotificationReader
+}
+
+func buildProductProviders(settings config.Config) ([]httpapi.ProductProvider, error) {
+	providers := []httpapi.ProductProvider{demo.MustNew()}
+	if settings.DockerEnabled {
+		transport := &http.Transport{
+			Proxy: nil, DisableCompression: true, MaxIdleConns: 8, MaxIdleConnsPerHost: 8,
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				return (&net.Dialer{Timeout: settings.DatabaseConnectTimeout}).DialContext(ctx, "unix", settings.DockerSocketPath)
+			},
+		}
+		collector, err := docker.NewEngineCollector(docker.EngineCollectorOptions{
+			Client: &http.Client{Transport: transport, Timeout: settings.RequestTimeout}, BaseURL: "http://docker",
+			MaximumItems: 10_000, MaximumResponse: 32 * 1024 * 1024, InspectConcurrency: 8,
+		})
+		if err != nil {
+			return nil, errProductStart
+		}
+		provider, err := docker.New("source_docker", "Local Docker", collector)
+		if err != nil {
+			return nil, errProductStart
+		}
+		providers = append(providers, provider)
+	}
+	if settings.KubernetesEnabled {
+		tokenBytes, err := readBoundedFile(settings.KubernetesTokenFile, 16*1024)
+		if err != nil {
+			return nil, errProductStart
+		}
+		token := strings.TrimSpace(string(tokenBytes))
+		clear(tokenBytes)
+		caBytes, err := readBoundedFile(settings.KubernetesCAFile, 1024*1024)
+		if err != nil {
+			return nil, errProductStart
+		}
+		roots := x509.NewCertPool()
+		if !roots.AppendCertsFromPEM(caBytes) {
+			clear(caBytes)
+			return nil, errProductStart
+		}
+		clear(caBytes)
+		transport := &http.Transport{
+			Proxy: nil, DisableCompression: true, MaxIdleConns: 8, MaxIdleConnsPerHost: 8,
+			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots, ServerName: "kubernetes.default.svc"},
+		}
+		collector, err := kubernetes.NewAPICollector(kubernetes.APICollectorOptions{
+			Client: &http.Client{Transport: transport, Timeout: settings.RequestTimeout}, BearerToken: token,
+			MaximumItems: 10_000, MaximumResponse: 32 * 1024 * 1024,
+		})
+		if err != nil {
+			return nil, errProductStart
+		}
+		provider, err := kubernetes.New("source_kubernetes", "In-cluster Kubernetes", collector)
+		if err != nil {
+			return nil, errProductStart
+		}
+		providers = append(providers, provider)
+	}
+	return providers, nil
+}
+
+func readBoundedFile(path string, limit int64) ([]byte, error) {
+	if limit < 1 {
+		return nil, errProductStart
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, errProductStart
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, limit+1))
+	if err != nil || int64(len(data)) > limit {
+		clear(data)
+		return nil, errProductStart
+	}
+	return data, nil
 }
 
 func serveServer(
@@ -366,6 +671,8 @@ func logConfigurationFailure(logger *slog.Logger, err error) {
 
 func lifecycleReason(err error) string {
 	switch {
+	case errors.Is(err, errStorageOwnership):
+		return "storage_ownership_lost"
 	case errors.Is(err, errHTTPBoundary):
 		return "http_boundary"
 	case errors.Is(err, errListen):
@@ -378,6 +685,12 @@ func lifecycleReason(err error) string {
 		return "storage_start"
 	case errors.Is(err, errStorageStop):
 		return "storage_stop"
+	case errors.Is(err, errProductStart):
+		return "product_start"
+	case errors.Is(err, errAlertStart):
+		return "alert_start"
+	case errors.Is(err, errDeliveryStart):
+		return "notification_delivery_start"
 	default:
 		return "unexpected_stop"
 	}

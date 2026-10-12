@@ -6,40 +6,23 @@ licenses remain separate from the project's Apache License 2.0.
 The Go service also links the storage components listed below. Their licenses
 remain separate from the project's Apache License 2.0.
 
-## modernc.org/sqlite
+## Go runtime modules
 
-- Module: `modernc.org/sqlite` version `1.55.0`
-- Source: <https://gitlab.com/cznic/sqlite/-/tree/v1.55.0>
-- License: BSD 3-Clause
-- License copy:
-  [apps/api/licenses/modernc-sqlite-BSD-3-Clause.txt](apps/api/licenses/modernc-sqlite-BSD-3-Clause.txt)
-- Bundled SQLite core: public domain
-- SQLite notice:
-  [apps/api/licenses/sqlite-public-domain.txt](apps/api/licenses/sqlite-public-domain.txt)
+The PostgreSQL-only runtime links the modules below. License copies match the
+pinned module versions. Development-only transitive test tools are not shipped
+in the service binary. Font notices remain below.
 
-## gofrs/flock
-
-- Module: `github.com/gofrs/flock` version `0.13.0`
-- Source: <https://github.com/gofrs/flock/tree/v0.13.0>
-- License: BSD 3-Clause
-- License copy:
-  [apps/api/licenses/gofrs-flock-BSD-3-Clause.txt](apps/api/licenses/gofrs-flock-BSD-3-Clause.txt)
-
-## golang.org/x/sys
-
-- Module: `golang.org/x/sys` version `0.47.0`
-- Source: <https://go.googlesource.com/sys/+/refs/tags/v0.47.0>
-- License: BSD 3-Clause
-- License copy:
-  [apps/api/licenses/golang-x-sys-BSD-3-Clause.txt](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt)
-
-## golang.org/x/crypto
-
-- Module: `golang.org/x/crypto` version `0.54.0`
-- Source: <https://go.googlesource.com/crypto/+/refs/tags/v0.54.0>
-- License: BSD 3-Clause
-- License copy:
-  [apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt)
+| Module | Version | License | Copy |
+| --- | --- | --- | --- |
+| `github.com/go-chi/chi/v5` | `5.3.1` | MIT | [License](apps/api/licenses/chi-LICENSE.txt) |
+| `github.com/jackc/pgx/v5` | `5.10.0` | MIT | [License](apps/api/licenses/pgx-LICENSE.txt) |
+| `github.com/jackc/pgpassfile` | `1.0.0` | MIT | [License](apps/api/licenses/pgpassfile-LICENSE.txt) |
+| `github.com/jackc/pgservicefile` | `5a60cdf6a761` | MIT | [License](apps/api/licenses/pgservicefile-LICENSE.txt) |
+| `github.com/jackc/puddle/v2` | `2.2.2` | MIT | [License](apps/api/licenses/puddle-LICENSE.txt) |
+| `golang.org/x/crypto` | `0.54.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt) |
+| `golang.org/x/sys` | `0.47.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt) |
+| `golang.org/x/sync` | `0.22.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sync-LICENSE.txt) |
+| `golang.org/x/text` | `0.40.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-text-LICENSE.txt) |
 
 ## Inter
 

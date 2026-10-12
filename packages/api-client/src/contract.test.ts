@@ -106,6 +106,7 @@ describe('API contract types', () => {
     expectTypeOf<'id'>().not.toExtend<keyof SystemActor>();
     expectTypeOf<'id'>().toExtend<keyof UserActor>();
     expectTypeOf<CapabilitySet['items'][0]['name']>().toEqualTypeOf<'inventory.list'>();
-    expectTypeOf<CapabilitySet['items'][8]['name']>().toEqualTypeOf<'event.watch'>();
+    expectTypeOf<CapabilitySet['items'][7]['name']>().toEqualTypeOf<'metric.history'>();
+    expectTypeOf<CapabilitySet['items'][9]['name']>().toEqualTypeOf<'event.watch'>();
   });
 });

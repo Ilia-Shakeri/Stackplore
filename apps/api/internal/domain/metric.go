@@ -6,7 +6,11 @@ import (
 	"time"
 )
 
-const MaxMetricTargets = 100
+const (
+	MaxMetricTargets       = 100
+	MaxMetricHistoryPoints = 200
+	MaxMetricLookback      = 30 * 24 * time.Hour
+)
 
 type MetricName string
 
@@ -240,4 +244,105 @@ func (result CurrentMetricResult) ValidateFor(query CurrentMetricQuery) error {
 		}
 	}
 	return nil
+}
+
+type MetricHistoryQuery struct {
+	Source     ProviderRef
+	Resources  []ResourceRef
+	Names      []MetricName
+	Range      TimeRange
+	PointLimit int
+}
+
+func (query MetricHistoryQuery) Validate() error {
+	current := CurrentMetricQuery{Source: query.Source, Resources: query.Resources, Names: query.Names}
+	if err := current.Validate(); err != nil {
+		return err
+	}
+	if err := query.Range.ValidateLookback(MaxMetricLookback); err != nil {
+		return err
+	}
+	if query.PointLimit < 1 || query.PointLimit > MaxMetricHistoryPoints {
+		return fmt.Errorf("metric history point limit must be between 1 and %d", MaxMetricHistoryPoints)
+	}
+	return nil
+}
+
+type MetricHistoryResult struct {
+	Status  ObservationStatus
+	Samples []MetricSample
+}
+
+func (result MetricHistoryResult) ValidateFor(query MetricHistoryQuery) error {
+	if err := query.Validate(); err != nil {
+		return err
+	}
+	if err := result.Status.Validate(); err != nil {
+		return err
+	}
+	if len(result.Samples) > query.PointLimit {
+		return fmt.Errorf("metric history exceeds requested point limit")
+	}
+	if !result.Status.AllowsData() && len(result.Samples) != 0 {
+		return fmt.Errorf("unavailable metric history must not contain data")
+	}
+	resources := make(map[ResourceID]struct{}, len(query.Resources))
+	for _, resource := range query.Resources {
+		resources[resource.ID] = struct{}{}
+	}
+	names := make(map[MetricName]struct{}, len(query.Names))
+	for _, name := range query.Names {
+		names[name] = struct{}{}
+	}
+	seen := make(map[MetricSampleID]struct{}, len(result.Samples))
+	for index, sample := range result.Samples {
+		if err := sample.Validate(); err != nil {
+			return err
+		}
+		if _, exists := resources[sample.ResourceID]; !exists {
+			return fmt.Errorf("metric history contains an unrequested resource")
+		}
+		if _, exists := names[sample.Name]; !exists {
+			return fmt.Errorf("metric history contains an unrequested metric")
+		}
+		if sample.SampledAt.Before(query.Range.Start) || !sample.SampledAt.Before(query.Range.End) {
+			return fmt.Errorf("metric history sample is outside the requested range")
+		}
+		if sample.SampledAt.After(result.Status.ObservedAt) {
+			return fmt.Errorf("metric history sample cannot be newer than its result")
+		}
+		if _, exists := seen[sample.ID]; exists {
+			return fmt.Errorf("metric history contains a duplicate sample ID")
+		}
+		if index > 0 && metricSampleOrder(result.Samples[index-1], sample) > 0 {
+			return fmt.Errorf("metric history must use ascending time and identity order")
+		}
+		seen[sample.ID] = struct{}{}
+	}
+	return nil
+}
+
+func metricSampleOrder(left, right MetricSample) int {
+	if comparison := left.SampledAt.Compare(right.SampledAt); comparison != 0 {
+		return comparison
+	}
+	if left.ResourceID < right.ResourceID {
+		return -1
+	}
+	if left.ResourceID > right.ResourceID {
+		return 1
+	}
+	if left.Name < right.Name {
+		return -1
+	}
+	if left.Name > right.Name {
+		return 1
+	}
+	if left.ID < right.ID {
+		return -1
+	}
+	if left.ID > right.ID {
+		return 1
+	}
+	return 0
 }

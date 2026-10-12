@@ -1,0 +1,12 @@
+.git
+.github
+.pnpm-store
+.tmp
+.tools
+node_modules
+apps/web/dist
+apps/api/data
+data
+*.log
+code_dumper.py
+full_Stackplore_project_code.txt

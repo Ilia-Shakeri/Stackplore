@@ -4,12 +4,12 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Phase 7 local authentication foundation available;
-  awaiting maintainer commit
+- **Implementation status:** Stackplore 1.0 implementation active; PostgreSQL
+  persistence migration in progress on top of the local authentication foundation
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
-phase status live in [PLAN.md](PLAN.md). Engineering rules live in
+current stage status live in [PLAN.md](PLAN.md) and the [evidence plan](docs/implementation-plan.md). Engineering rules live in
 [PROJECT_GUIDE.md](PROJECT_GUIDE.md).
 
 ## 1. Product summary
@@ -53,9 +53,11 @@ Version 1.0 is not:
 - a multi-tenant hosted service;
 - a native desktop or mobile application.
 
-The first release supports one self-hosted installation and one active API
-process. SQLite is the persistence layer for this release. Storage interfaces
-must permit a future PostgreSQL implementation without changing domain rules.
+The first release supports one self-hosted installation. PostgreSQL is the
+primary persistence system. The first production topology uses one active API
+process until provider collection, background jobs, and realtime fan-out have
+explicit multi-process coordination; repository boundaries keep that runtime
+limit out of domain rules.
 
 ## 4. Users and roles
 
@@ -388,7 +390,7 @@ Normalized metrics include:
 - requests and limits when available.
 
 Sources are Docker stats, the Kubernetes Metrics API when present, and the demo
-provider. Samples use bounded SQLite retention. Charts require accessible table
+provider. Samples use bounded PostgreSQL retention. Charts require accessible table
 alternatives. Missing sources produce an unavailable state.
 
 ### 6.10 Events
@@ -776,14 +778,17 @@ raw kubeconfig content, Secret values, or complete environment dumps.
 Development uses a Vite server, Go API server, and same-origin development
 proxy.
 
-Through Phase 7, the Go listener opens the local database, verifies and applies
-embedded migrations, initializes the local authentication boundary, and
-becomes ready before accepting product work. The production image and built-web
-serving path do not exist yet. Configuration is validated before the listener
-is opened. Unknown `STACKPLORE_*` names, blank or non-canonical values,
-conflicting timeouts, and values outside documented bounds stop startup without
-logging the rejected value. The full key, default, and range table lives in
-[docs/development.md](docs/development.md).
+The current runtime uses PostgreSQL for the API, account recovery and native
+backup/restore. It checks process ownership before immutable migrations and
+uses bounded pools, queries and transactions. Local real PostgreSQL tests and
+a disposable native restore drill provide current baseline evidence; target
+production drills remain separate. Non-root API/web images and Compose/Helm
+definitions exist; local chart lint/render ran, while container and cluster
+startup are still unproved. The current static web edge differs from the
+accepted Go-built-web serving target in ADR-0001 and must be aligned before 1.0.
+Configuration is validated before listen. Unknown names and non-canonical,
+blank or out-of-bound values fail without logging values. The current reference
+is [configuration](docs/configuration.md).
 
 Production uses one origin. The Go process serves the API and static web build.
 TLS may terminate at a trusted edge, but a non-loopback production profile must
@@ -798,12 +803,12 @@ The production image must:
 - use a read-only root filesystem where practical;
 - drop all Linux capabilities, prevent privilege gain, and use the runtime
   default seccomp profile;
-- persist runtime data in a mounted directory;
+- use durable PostgreSQL storage and only reviewed mounted runtime files;
 - handle `SIGTERM`;
 - expose `/healthz`, `/readyz`, and low-cardinality `/metrics`;
 - use health checks;
-- provide a local operator-only SQLite online-backup command and document an
-  offline, integrity-checked restore;
+- provide PostgreSQL-native backup, restore, and disposable restore-verification
+  procedures;
 - avoid CORS complexity.
 
 `/healthz` returns only process liveness. `/readyz` is `503` until the database
@@ -813,11 +818,10 @@ accepted, returns to not-ready when storage health is lost, and returns to
 not-ready before shutdown. Loss of one observed provider later changes that
 source status but does not make the whole API unready.
 
-Phase 6 supplies a local online-backup command and an offline restore command.
-The restore validates and upgrades a known schema, checks integrity and foreign
-keys, and revokes restored sessions before installation. Exact operator steps
-and platform permission limits are in
-[the backup and restore procedure](docs/operations/backup-restore.md).
+The operator command uses PostgreSQL-native custom archives and empty-target
+restore. The development SQLite adapter is retired only after real repository
+parity and restore checks pass; no automatic old-development-data import is
+promised. See [the native runbook](docs/operations/backup-restore.md).
 
 Health and readiness responses expose only terse process state. Detailed
 readiness is administrator-only at `/api/v1/system/readiness`; Phase 7 enforces
@@ -900,8 +904,8 @@ Stackplore 1.0 is complete only when:
 
 Possible later work includes:
 
-- PostgreSQL storage;
 - horizontal API scaling;
+- coordinated multi-process provider collection and realtime fan-out;
 - external identity providers;
 - additional notification adapters;
 - a desktop wrapper;

@@ -14,6 +14,7 @@
   "shell.skipToMain": "Skip to main content",
   "shell.theme.dark": "Dark",
   "shell.theme.label": "Theme",
+  "shell.notifications.open": "Open notification center",
   "shell.theme.light": "Light",
   "shell.theme.system": "System"
 }

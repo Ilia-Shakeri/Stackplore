@@ -90,12 +90,18 @@ func (ref ResourceRef) Validate() error {
 type Resource struct {
 	Ref         ResourceRef
 	DisplayName string
+	Version     string
 	Synthetic   bool
 }
 
 func (resource Resource) Validate() error {
 	if err := resource.Ref.Validate(); err != nil {
 		return err
+	}
+	if resource.Version != "" {
+		if err := ValidateOperationVersion(resource.Version); err != nil {
+			return err
+		}
 	}
 	return validateDisplayText("resource display name", resource.DisplayName, maxDisplayNameLength, false)
 }

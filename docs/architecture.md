@@ -1,698 +1,152 @@
-# Stackplore Architecture
+# Architecture
 
-Status: Target architecture with Phase 7 local authentication foundation
-Last updated: 2026-08-02
+Status: active 1.0 implementation
 
-This document defines the intended v1 architecture for Stackplore. Phase 0
-established the design and governance documents. Phases 1 through 7 implement
-the developer scaffold, responsive and bilingual interface foundation,
-provider-neutral domain contracts, focused read ports, the versioned transport
-foundation, and a bounded Go service boundary with validated configuration and
-operational probes, plus local SQLite storage, migrations, local accounts,
-sessions, authorization, and user administration. Product workflows, provider
-behavior, static production serving, and deployment assets described here
-remain targets for later phases, not claims about current functionality.
+## System shape
 
-## Goals and constraints
-
-Stackplore is a self-hosted, single-installation infrastructure explorer for
-Docker and Kubernetes. The architecture must:
-
-- normalize discovery, health, topology, logs, metrics, and events without
-  leaking provider credentials or secret values to the browser;
-- be read-only unless an operator deliberately enables a small allowlist of
-  guarded actions;
-- support deterministic demonstration data without contacting real
-  infrastructure;
-- deliver a responsive React application and a versioned Go API from one
-  origin in production;
-- operate as one active API instance in v1 because SQLite is the system of
-  record;
-- preserve clear domain and repository ports so another database can be added
-  later;
-- bound memory, storage, concurrency, and stream lifetimes;
-- remain portable to a future desktop wrapper by keeping provider access on the
-  server and platform concerns outside frontend domain features.
-
-## Architecture principles
-
-1. **Dependencies point inward.** HTTP, databases, and provider clients adapt
-   to application and domain ports. Domain packages do not import transport or
-   vendor packages.
-2. **The server owns trust.** Authentication, authorization, credential
-   references, metadata filtering, redaction, and mutation policy are enforced
-   by the Go service. Browser state is never a security boundary.
-3. **Normalize evidence, preserve provenance.** Common models make providers
-   comparable, while typed safe metadata and relationship evidence preserve
-   provider detail.
-4. **Read paths and command paths are separate.** Discovery and observation
-   ports cannot perform infrastructure changes. A narrow command port exists
-   only for explicitly supported actions.
-5. **Limits are part of every contract.** Page size, lookback, line count,
-   sample retention, queue depth, request duration, and concurrent streams have
-   server-enforced ceilings.
-6. **Degraded is a valid state.** Missing permissions or optional metrics
-   services produce explicit partial results, not fabricated data or broad
-   failure.
-7. **One contract owns HTTP shape.** `contracts/openapi.yaml` is the OpenAPI 3.1
-   source for `/api/v1`; the TypeScript client is derived reproducibly from that
-   contract.
-
-## System context
-
-```mermaid
-flowchart LR
-    Browser["Web browser / PWA"] -->|HTTPS, same origin| Server["Stackplore Go service"]
-    Server -->|SQL| DB[("SQLite data volume")]
-    Server -->|allowlisted API calls| DockerBoundary["Restricted Docker proxy"]
-    Server -->|least-privilege API calls| Kubernetes["Kubernetes API"]
-    Server -->|fixed fixtures only| Demo["Demo provider"]
-    Server -->|optional bounded delivery| Webhook["Configured notification endpoint"]
-    Server -->|optional bounded delivery| Matrix["Configured Matrix endpoint"]
-```
-
-The browser communicates only with Stackplore. It never receives Docker
-credentials, kubeconfig content, private keys, raw session tokens from storage,
-or Secret values. Docker and Kubernetes remain separate trust boundaries with
-their own least-privilege deployment profiles.
-
-## Repository boundaries
-
-The target repository is a single source tree with these primary ownership
-areas:
+Stackplore uses a same-origin web edge, one Go API process, PostgreSQL, and provider adapters. The browser never receives provider credentials and never calls infrastructure endpoints directly.
 
 ```text
-apps/
-  api/                 Go service, domain, ports, adapters, migrations
-  web/                 React, strict TypeScript, and Vite application
-packages/
-  api-client/          contract-derived browser client and fetch policy
-  ui/                  shared accessible presentation primitives
-contracts/
-  openapi.yaml         OpenAPI 3.1 source of truth
-deploy/
-  compose/             container deployment and restricted Docker profile
-  helm/stackplore/     Kubernetes deployment and least-privilege RBAC
-docs/
-  adr/                 architecture decisions
+Browser
+  |
+  | HTTPS, / and /api/v1
+  v
+Web edge (static React files + reverse proxy)
+  |
+  | trusted private HTTP hop
+  v
+Go API
+  |-- local auth and policy
+  |-- product services
+  |-- provider registry
+  |-- alert and notification workers
+  |
+  +--> PostgreSQL
+  +--> Demo provider
+  +--> Docker read provider (opt-in)
+  +--> Kubernetes read provider (opt-in)
 ```
 
-The pnpm workspace coordinates JavaScript packages and repository commands.
-The Go service remains an explicit Go module within the same repository. Exact
-dependency versions belong in lockfiles and module files.
+The server wires Demo plus operator-enabled Docker and Kubernetes read adapters. Sources are runtime configuration; persistent browser connection workflows and discovery scheduling are unfinished. Docker direct socket access is limited to loopback development. The current Kubernetes collector requires an explicit cluster observation profile; namespace-only/partial permission behavior remains open.
 
-## Runtime building blocks
-
-| Building block | Responsibility | Must not do |
-| --- | --- | --- |
-| React web application | Navigation, accessible presentation, local interaction, localization, and API consumption | Contact providers, hold provider credentials, or decide authorization |
-| Chi HTTP adapter | Routing, decoding, validation handoff, auth middleware, limits, response encoding, and SSE framing | Contain domain rules or provider-specific inference |
-| Application services | Coordinate use cases, transactions, permissions, capabilities, and audit outcomes | Depend on HTTP or concrete storage |
-| Domain model | Provider-neutral resources, relationships, health, metrics, events, alerts, and action policy | Import vendor clients or expose unsafe metadata |
-| Provider adapters | Translate Demo, Docker, and Kubernetes behavior into domain ports | Return credentials, Secret values, or unbounded payloads |
-| Repository adapters | Implement persistence ports, migrations, retention, and transaction boundaries | Leak SQL types into domain services |
-| Realtime hub | Fan out authorized live events with replay and bounded queues | Become the durable source of record |
-| Background services | Discovery refresh, sampling, event watches, alert evaluation, pruning, and notification delivery | Outlive shutdown context or run without concurrency bounds |
-
-### Backend dependency direction
+## Repository layout
 
 ```text
-cmd/server
-  -> configuration and composition root
-  -> HTTP and background adapters
-  -> application services
-  -> domain types and ports
-
-provider adapters  -----> domain provider ports
-SQLite adapter     -----> domain repository ports
-HTTP adapter       -----> application use cases
+apps/api/                     Go service, domain, adapters, commands
+apps/web/                     React application
+packages/api-client/          OpenAPI-derived types and same-origin client
+packages/ui/                  shared accessible interface components
+contracts/openapi.yaml        version 1 HTTP authority
+apps/api/postgresmigrations/  embedded forward-only PostgreSQL migrations
+deploy/                       container, Compose, edge, and cluster assets
+docs/                         decisions, security, development, operations
 ```
 
-Explicit constructors form the composition root. Process-wide mutable
-singletons are avoided. Every provider call, database call, request, watch, and
-background loop receives a cancellation context.
-
-### Frontend dependency direction
-
-```text
-routes
-  -> feature modules
-  -> shared UI and browser services
-  -> typed API client
-
-typed API client -> /api/v1 only
-```
-
-TanStack Query owns server state. URL parameters own shareable filters. Local
-component state owns local interaction. A small cross-cutting UI store may be
-introduced only when real state cannot fit those three places. Provider
-conditionals belong in typed capabilities and presentation adapters, not in
-route-level data access.
-
-### Contract boundary
-
-`contracts/openapi.yaml` is the canonical OpenAPI 3.1 transport document.
-Phase 4 established shared schemas under the `/api/v1` server prefix without
-speculative operations, and Phase 5 added the first readiness path. Phase 7
-defines 13 path forms and 16 implemented operations for setup, authentication,
-password rotation, user administration, session revocation, and detailed
-administrator readiness. Browser-session, CSRF, pre-auth, and recent-auth
-schemes match the live cookie and header boundary. Fixed success and problem
-responses keep the contract aligned with runtime behavior.
-
-The contract derivation tool writes browser transport types into one committed
-file under `packages/api-client/src/derived`. Handwritten modules in that package
-own same-origin request construction, safe problem parsing, and request-ID
-capture. Application features import the package boundary rather than derived
-files directly.
-
-Go domain types and provider ports are not derived from OpenAPI. They remain
-independent from HTTP and provider SDKs; future HTTP adapters explicitly map
-between domain and transport types. Repository checks lint contract policy and
-fail when committed browser types are stale.
-
-### Localization and direction
-
-The web application owns one locale provider for `en` and `fa`. Paired,
-feature-owned catalogs hold production copy, while a repository check enforces
-key, message-kind, plural-form, and placeholder parity. Components consume
-typed keys instead of hardcoded visible copy.
-
-The browser stores the initial preference under `stackplore.locale`. A small
-head script applies language and direction before paint; the runtime provider
-then owns live updates and feeds the same direction into shared interface
-primitives. Phase 24 may hydrate an authenticated user preference through this
-provider without changing the rendering boundary.
-
-English presentation uses `en-US`. Persian presentation uses
-`fa-IR-u-ca-persian-nu-arabext`, including the Persian calendar and native
-digits. Domain and API time values remain canonical UTC. Resource identifiers,
-image names, addresses, and other technical values are never translated or
-number-shaped and render in an isolated left-to-right element.
-
-## HTTP and delivery model
-
-Production uses one origin:
-
-- the Go service serves the built web assets;
-- API routes live below `/api/v1`;
-- operational endpoints include `/healthz`, `/readyz`, and `/metrics`;
-- the SPA fallback applies only to browser routes and never masks API or
-  operational 404 responses;
-- hashed public assets may be cached immutably, while HTML uses revalidation;
-- API, authentication, logs, metrics, and SSE responses are never stored by the
-  PWA cache.
-
-Cacheable application-shell HTML uses a static hash-based content policy.
-Nonce-bearing or personalized HTML is `no-store`, network-only, and never
-enters the service-worker cache.
-
-During development, Vite proxies API and stream requests to the Go service so
-cookie and same-origin behavior match production. General CORS support is not a
-default feature. If a future deployment needs another origin, it requires a
-separate security decision.
-
-HTTP handlers use consistent problem responses, request IDs, input limits,
-pagination, filtering, documented status codes, and safe error messages. The
-OpenAPI contract is changed before or with handler changes. Contract checks
-prevent undocumented routes and stale browser types. Phase 5 exposes only the
-closed system-readiness operation below `/api/v1`; later handler phases add
-paths with their runtime behavior, authorization, limits, and tests.
-
-The Phase 5 HTTP boundary validates exact public scheme and authority for every
-versioned request. It trusts forwarding data only from canonical configured
-network prefixes, rejects the standardized `Forwarded` field, accepts bounded
-single-value `X-Forwarded-Proto` and `X-Forwarded-Host` fields, and resolves a
-bounded IP-only `X-Forwarded-For` chain from the trusted edge inward. An
-untrusted peer that supplies any forwarding field is rejected on
-non-operational paths and metrics. The terse probes do not use forwarding
-identity. A non-operational request through a trusted peer must yield a verified
-untrusted client from the forwarded chain.
-
-Versioned API responses are buffered until handler completion so a panic,
-deadline, invalid status, or response overflow cannot leak a partial response.
-One request deadline, maximum response body, and in-flight ceiling cover the
-current short versioned operations. A known API content length over the body
-ceiling is denied before the handler, and any future handler body read remains
-capped. A capped per-client token bucket covers every non-operational HTTP path,
-while accepted sockets have their own process-wide ceiling. This buffering is
-not a stream design: each future SSE or log-tail route must gain explicit
-connection, idle, write, lifetime, concurrency, queue, and byte limits before a
-narrowly scoped exemption is made.
-
-## Core domain model
-
-The stable model includes:
-
-- `User` and `Session`;
-- `InfrastructureSource` and `Environment`;
-- `Scope`, `Resource`, and `ResourceSnapshot`;
-- `Relationship` with direction, provenance, confidence, and safe metadata;
-- `HealthSnapshot` and `MetricSample`;
-- `InfrastructureEvent`;
-- `AlertRule`, `Alert`, and `NotificationDelivery`;
-- `AuditEntry`.
-
-Phase 4 implements the provider-neutral resource, relationship, health, metric,
-event, alert, audit, capability, query, and provider-status parts under
-`apps/api/internal/domain`. Versioned composite digests provide stable resource
-and relationship identifiers. Validation bounds identifiers, display text,
-queries, result sets, evidence, and live-read targets, and requires canonical
-UTC timestamps. Phase 6 adds the persistence schema plus bounded repository
-adapters for metric, event, and audit writes. User, session,
-notification-delivery, and feature HTTP behavior remain owned by later phases.
-
-Resource identity is a stable composite of provider kind, source identifier,
-environment scope, resource kind, namespace or project, and provider-native
-identifier. Display names are not identity. DTOs expose provider-neutral fields
-plus small typed metadata blocks whose fields are explicitly reviewed for safe
-display.
-
-Resource health uses a common state set: healthy, degraded, unhealthy, and
-unknown. Adapters preserve the evidence used to reach a state. Availability is
-a separate outcome: available, stale, unavailable, unsupported, or permission
-denied. Missing evidence never maps to healthy.
-
-Relationships are evidence records, not just graph edges. Each edge carries:
-
-- source and target stable identifiers;
-- relationship type and direction;
-- provider and source identifier;
-- provenance, such as ownership, selector, route, annotation, declared
-  dependency, storage reference, or network membership;
-- confidence appropriate to that evidence;
-- bounded, safe metadata.
-
-Shared network membership is never presented as proven application dependency.
-Duplicate evidence is coalesced without discarding provenance.
-
-## Provider architecture
-
-Providers implement focused ports rather than one large interface:
-
-- inventory and detail discovery;
-- health snapshots;
-- topology evidence;
-- bounded log reads and live tails;
-- current metric samples;
-- event history and live watches;
-- capability inspection.
-
-Application services persist bounded samples and query historical metrics
-through repositories. Provider adapters do not fabricate stored history.
-
-The optional infrastructure command port is separate. Application services
-select a provider by source identifier and ask for capabilities before invoking
-an operation. Unsupported and permission-denied outcomes are typed states.
-
-Adapters translate at the boundary:
-
-- the Demo adapter reads versioned deterministic fixtures;
-- the Docker adapter uses `github.com/moby/moby/client`;
-- the Kubernetes adapter uses official `client-go` packages and GA API versions
-  where available. The optional read-only Resource Metrics API is the narrow
-  named `metrics.k8s.io/v1beta1` exception until that upstream API offers a GA
-  version.
-
-Provider-specific objects do not pass through the application service layer.
-Docker labels and Kubernetes metadata are filtered by explicit field rules.
-Adapters may receive raw provider payloads that contain sensitive fields; they
-drop those fields before the application boundary and never persist, log, or
-return them. Environment-variable values are not sought for inference.
-Kubernetes Secret objects are never requested. Secret references are learned
-only from safe workload specifications.
-
-Provider watches reconnect with bounded backoff and jitter, respect
-cancellation, and surface stale or disconnected status. Discovery refreshes use
-bounded concurrency per source so a slow control plane cannot exhaust the
-server.
-
-## Storage architecture
-
-SQLite is the v1 system of record. Phase 6 selects and pins the pure-Go
-`modernc.org/sqlite` driver. V1 runs exactly one active API instance against the
-fixed `stackplore.db` file. Startup takes an exclusive process-ownership lock
-before opening or migrating the database. A second API process, multiple
-replicas, and network filesystem sharing are unsupported.
-
-Phase 6 implements:
-
-- embedded, ordered, forward schema migrations with a checked full ledger and
-  application identity before readiness;
-- foreign keys enabled for every connection;
-- WAL mode, full synchronous durability, and a bounded busy timeout;
-- short write transactions, bounded batches, and an atomic unit-of-work path;
-- domain-owned metric, event, and audit repository interfaces whose SQLite
-  adapters do not expose SQL or driver types;
-- fixed bounded pruning for metric samples, health history, infrastructure
-  events, and terminal notification deliveries; audit and identity rows are not
-  generic cleanup targets;
-- explicit indexes for later bounded feature access paths;
-- consistent UTC timestamps with locale formatting confined to presentation;
-- a shared maintenance lock for live online backup and an exclusive maintenance
-  lock for offline restore;
-- checked single-file backup plus staged, migration-aware restore that revokes
-  restored sessions and pending authorization grants;
-- storage-aware readiness, close-time checkpointing, and ownership release
-  after HTTP drain.
-
-The embedded schema covers installation metadata, users and sessions, sources,
-resources and observation history, alerts, notification delivery, and audit
-records. This schema does not make their product or authorization workflows
-available. Separate audit quotas and pruning policy, session lifecycle cleanup,
-disk-space policy, and feature queries remain with their owning later phases.
-
-Raw passwords and raw session tokens are never stored. Connection records
-prefer mounted file paths or environment references over credential material.
-Provider keys, kubeconfig content, Secret values, and complete environment
-dumps do not belong in SQLite.
-
-Repository ports express domain operations and transaction needs, not SQL
-queries. This leaves room for a future PostgreSQL adapter without changing
-domain services or HTTP contracts.
-
-Local backup and restore path, permission, lock, validation, and crash-recovery
-rules are documented in
-[Local SQLite Backup and Restore](operations/backup-restore.md).
-
-## Authentication and request security
-
-V1 uses local users, Argon2id password hashing, and opaque server-side sessions.
-The browser receives only a secure session cookie. The database stores a
-one-way token digest and session metadata. Login rotates the session, logout
-revokes it, expiration is enforced server-side, and administrators can revoke
-sessions. Every authorized request resolves the current user enabled state and
-role; password, role, enabled-state, and recovery changes revoke that user's
-sessions.
-
-New passwords are 12 through 128 UTF-8 bytes. Argon2id version 19 uses 65,536
-KiB, time cost 3, parallelism 1, a 16-byte salt, and a 32-byte result, with at
-most two concurrent hashes per process. Session, pre-auth, and recent-auth
-proofs are canonical unpadded base64url encodings of 32 random bytes. The
-database stores keyed digests under a private installation key rather than raw
-proofs.
-
-Authenticated state-changing requests require all of:
-
-- an authenticated, unexpired session;
-- the required role;
-- a synchronizer CSRF token in a custom header;
-- same-origin validation;
-- route-specific input validation.
-
-Login and first-run setup have no session yet. An auth preflight issues a
-bounded, short-lived server nonce, an HttpOnly SameSite pre-auth cookie, and a
-separate bound header token. Login or setup requires that cookie, token, and a
-valid `Origin`, then consumes the nonce. Pre-auth state expires after five
-minutes and has a 4,096-record cap.
-
-Cookie policy uses HttpOnly, SameSite=Lax, path `/api/v1`, no Domain attribute,
-and Secure under HTTPS. Sessions use a 30-minute sliding idle bound, a 12-hour
-absolute bound, and at most one persisted touch per minute. Authenticated
-service results renew the cookie only within the absolute bound, including
-denied or conflicting work after a session touch.
-
-Login has durable source- and account-aware limits, rejected remote bootstrap
-proofs have a durable setup-source limit, and current-password checks have a
-durable per-user limit. Each throttle scope has a 4,096-key cap and a shared
-fail-closed overflow bucket. The first
-administrator is created through a transaction that succeeds only while no
-user exists. Setup then closes permanently. When a deployment is reachable
-beyond loopback, setup also requires a canonical 32-byte, short-lived, one-use
-bootstrap proof with a UTC expiry no more than one hour ahead, configured
-through an operator-controlled out-of-band channel. The proof is compared
-safely and never enters persistent storage, logs, errors, or audit metadata.
-The last enabled administrator cannot be disabled, deleted, or demoted. Local
-operator recovery never reopens network setup. Recent-auth grants expire after
-five minutes and bind one exact purpose, user, and session.
-
-A non-loopback production profile requires an HTTPS configured public origin
-and accepts forwarding headers only from explicit trusted proxy addresses.
-
-Production requires authentication. A guest demo view may exist only under an
-explicit demo-deployment setting; that setting also prevents real provider
-configuration and every infrastructure mutation.
-
-Administrator and viewer roles are installation-wide in v1. A viewer can see
-all normalized provider data from every configured source. Authentication,
-account, configuration, and full audit data remain administrator-only; v1 does
-not provide source-level or tenant isolation.
-
-See [ADR-0005](adr/0005-local-sessions-and-csrf.md) and the
-[security model](security.md). Exact bootstrap and recovery steps are in
-[First-Run Setup and Account Recovery](operations/account-recovery.md).
-
-## Realtime architecture
-
-Server-sent events carry resource status, events, metrics, log tails, and alert
-updates. SSE matches the predominantly server-to-browser flow and works with
-same-origin session cookies.
-
-Each stream has:
-
-- authorization and scope checks before subscription;
-- typed event names and schema-versioned JSON payloads;
-- monotonically ordered event IDs within its replay scope;
-- keepalive comments;
-- a bounded replay ring;
-- a bounded per-client queue;
-- maximum clients per user and per server;
-- cancellation on disconnect, logout, source removal, or shutdown.
-
-Clients reconnect with `Last-Event-ID`. If the requested position is outside
-the replay window or a process restart invalidates it, the server sends an
-explicit reset instruction and the client refreshes the relevant snapshot.
-When a client cannot keep up, the server closes that stream with a recoverable
-reason instead of growing memory or silently serving stale state.
-
-The realtime hub is transient. Durable infrastructure events, metric samples,
-alerts, and audit entries use repositories where retention policy requires
-history.
-
-See [ADR-0004](adr/0004-server-sent-events.md).
-
-## Read-only policy and guarded actions
-
-Observation is always available independently of infrastructure mutation.
-Action routes are narrow, typed use cases, never general Docker, Kubernetes, or
-shell proxies.
-
-An action proceeds only when every gate passes:
-
-1. `STACKPLORE_MUTATIONS_ENABLED=true` was set when the service started.
-2. The deployment profile grants the exact provider write permission.
-3. The authenticated user is currently enabled and is an administrator.
-4. CSRF, same-origin, and recent-authentication checks pass.
-5. The runtime is not in demo deployment mode and the target is not synthetic.
-6. The source reports the exact action capability.
-7. The target kind and action are on the v1 allowlist, and the expected current
-   version still matches.
-8. The user submits a short-lived, single-use confirmation bound to actor,
-   source, target, action, and material parameters.
-9. An idempotency record prevents a retry from duplicating an accepted effect.
-10. Audit intent commits durably; an audit-write failure stops the action.
-11. A server timeout and provider-specific least-privilege check apply.
-12. The final outcome, including an uncertain timeout, is recorded with a
-    request ID and safe metadata.
-
-V1 permits only Docker container restart, supported Kubernetes workload
-restart, and scaling of supported Kubernetes workload kinds. Delete, exec,
-shell, arbitrary API proxying, secret editing, image deployment, and cluster
-administration have no command path.
-
-Deployment permissions are split into read-only and optional mutation profiles.
-The user interface renders action state from server-returned capabilities but
-does not enforce the policy.
-
-See [ADR-0006](adr/0006-read-only-and-guarded-mutations.md).
-
-## Deterministic demo isolation
-
-The demo provider supplies versioned fixtures with stable identifiers, ordered
-events, a controlled clock, and fixed metric and log sequences. It performs no
-provider network access and implements no infrastructure command port. Every
-demo resource and response is marked synthetic.
-
-Demo deployment mode composes only the demo adapter. It rejects real source
-configuration, disables outbound notification delivery, and keeps all
-infrastructure actions unavailable. This makes public demonstration deployments
-safe and keeps screenshots and tests repeatable.
-
-Guest demo deployment uses a separate data root and database carrying the
-fixture-version marker. Startup rejects non-demo source or history rows and
-never accepts a normal installation database. The scenario resets to its
-versioned initial step at process start and on explicit reset; a fixture upgrade
-clears prior demo-derived history before serving the new version.
-
-See [ADR-0007](adr/0007-deterministic-isolated-demo.md).
-
-## Background work and consistency
-
-Long-running work is owned by a supervisor tied to the process shutdown
-context. Each loop has a clear cadence, timeout, concurrency ceiling, and
-bounded retry policy. Sources have independent health so one unavailable
-provider does not stop unrelated reads.
-
-SQLite writes from discovery, metrics, alerts, and audit activity pass through
-short, deliberate transaction boundaries. Work that can be reconstructed, such
-as the live replay ring, stays in memory. State that must survive restart is
-committed before a success response or notification acknowledgement.
-
-Notification delivery uses an outbox-style persisted record so process failure
-does not lose an accepted delivery. Retries are capped, observable, and safe to
-attempt, but delivery semantics are at-least-once. Every retry keeps one stable
-delivery identifier and identical canonical payload bytes. Webhooks carry that
-identifier as an idempotency key and signed field; Matrix uses it as the
-transaction identifier. A timeout remains uncertain rather than being called a
-failure or safe non-delivery.
-
-Webhook and Matrix calls share scheme, DNS, resolved-address, redirect,
-body-size, and timeout controls. Full webhook URLs, Matrix tokens, and signing
-keys come from operator-created secret references and never enter browser
-responses, logs, audit details, diagnostics, or configuration exports.
-Matrix homeserver discovery is disabled in v1. Its operator-mapped token is
-sent only to the exact configured canonical HTTPS origin and never follows a
-redirect.
-
-## Operational behavior
-
-The Go service uses `log/slog` with structured fields and a centralized
-redaction policy. JSON is the default and text is an explicit option. Sensitive
-field names are redacted, byte slices and unsupported values are not expanded,
-control and format characters are neutralized, text and keys are bounded, and
-startup errors name only the invalid field and rule. Access logs use fixed
-method and route labels with request ID, status class, and bounded duration;
-they never copy a raw URL, header, body, or configuration value.
-
-If secure request-ID generation is unavailable, operational endpoints continue
-with the fixed safe fallback ID. Other paths fail closed with `503`. The service
-increments a counter for each failure and emits only one bounded process log for
-the repeated source failure.
-
-Operational endpoints have distinct meaning:
-
-- `/healthz` returns `200` with `ok` while the process can serve HTTP;
-- `/readyz` returns `503` before database and service readiness, after an
-  observed required database failure, and during stop; it returns `200` only
-  while storage health and the serving lifecycle are ready;
-- `/metrics` returns process metrics only when the request resolves to the
-  exact configured public scheme and authority and its verified client IP is
-  in a configured network prefix; the Phase 5 default permits IPv4 and IPv6
-  loopback, while denial is a plain `404`.
-
-The versioned `GET /api/v1/system/readiness` route is reserved for enabled
-administrators. A missing or expired session receives `401`, a live viewer
-receives `403`, and a live administrator receives the bounded detailed result.
-No header, query value, trusted-edge assertion, or environment setting grants
-temporary access or substitutes for the server-side session and current role.
-
-Metrics include build identity, readiness, in-flight work, completed requests,
-recovered panics, request deadlines, rate denials, overload denials, and request
-ID source failures. The only request labels are fixed route, method, and status
-classes. Metrics never label by client, user, source, provider-native
-identifier, resource name, or log-derived value.
-
-Provider availability belongs in product status APIs and does not normally make
-the process unready. Phase 6 readiness requires validated configuration, a
-healthy database, a complete current migration ledger, valid installation
-metadata, and the HTTP lifecycle. A bounded monitor marks the service not ready
-after required database health is lost and ready again only after a successful
-check. On an interrupt or termination signal, the service marks itself not
-ready and asks the HTTP server to drain accepted requests within the configured
-bound. It then cancels the base request context, force-closes the server if that
-deadline expired, closes the database, and releases ownership. Later
-composition phases must add their stream, watch, and worker close steps to the
-same lifecycle.
-
-## Deployment model
-
-The production image is intended to:
-
-- build the web application and Go service in separate stages;
-- contain the web assets in the final non-root runtime;
-- use a read-only root filesystem where practical;
-- persist the SQLite database and runtime data in one mounted volume;
-- expose one HTTP port;
-- include health checks and graceful termination.
-
-Compose drops all Linux capabilities, enables no-new-privileges, uses the
-runtime default seccomp profile, and mounts only reviewed writable data or
-temporary paths. Kubernetes uses `runAsNonRoot`, disallows privilege
-escalation, drops all capabilities, selects `RuntimeDefault` seccomp, and keeps
-the root filesystem read-only. Service-account token automount is off unless
-the explicit in-cluster provider profile needs its dedicated identity.
-
-Non-loopback production startup requires one canonical HTTPS public origin and
-at least one explicit trusted-proxy network prefix. The configured origin has
-no user information, path, query, fragment, or redundant default port. The
-recommended Docker profile places a restricted authorization proxy between
-Stackplore and Docker. Direct socket mounting is for loopback development only
-and is documented as high risk. An operator-mapped remote Docker endpoint
-requires verified mutual TLS and an equivalent daemon-side allowlist.
-
-Kubernetes deployment defaults to namespace-scoped read-only RBAC. An explicit
-cluster-observation profile adds only the cluster-scoped read rights needed for
-nodes and namespaces. Mutation RBAC remains separate, and no profile requires
-cluster-administrator access or Secret read permission.
-
-The release deployment runs exactly one API process. Kubernetes uses one
-replica with a `Recreate` update strategy, and process startup acquires an
-exclusive database ownership lock before migrations or background work.
-Backup uses the implemented local operator-only SQLite online-backup command;
-restore is offline, fail-closed across interruption, and revokes restored
-sessions. Deployment packaging for those commands remains in later phases.
-
-## Scaling and availability limits
-
-V1 deliberately favors a small, understandable deployment:
-
-- exactly one active API process;
-- no cross-process SSE fan-out;
-- no active-active database access;
-- bounded local metric and event history;
-- no multi-tenant isolation guarantee.
-
-Vertical resource limits, query bounds, retention, provider polling cadence,
-and stream caps protect that process. High availability requires a later
-decision covering PostgreSQL, distributed coordination, shared stream
-transport, migration ownership, and session behavior.
-
-## Verification expectations
-
-Phase 6 proves migration, storage-policy, repository-transaction, bounded
-retention, process-ownership, contention, backup, restore, and storage-readiness
-behavior against temporary local databases. Phase 7 proves setup races,
-password-cost bounds, login enumeration and throttles, session expiry and
-revocation, cookie and CSRF policy, recent-auth replay defense, role changes,
-final-administrator protection, local recovery, user administration, contract
-compatibility, bilingual browser flows, and accessibility. Later phases must
-prove the remaining design with:
-
-- domain tests against fake ports;
-- feature repository query and lifecycle tests;
-- provider fixture tests plus clearly labeled optional live checks;
-- provider authorization, redaction, and action-gate tests;
-- SSE replay, overflow, cancellation, and reconnect tests;
-- OpenAPI validation and browser-client compatibility checks;
-- English, Persian, RTL, accessibility, and browser journey tests;
-- container, Compose, and Helm validation where those runtimes are available.
-
-Missing host tools or infrastructure must be reported as a verification gap.
-Documentation must not turn a mocked result into a live integration claim.
-
-## Recorded decisions
-
-The decision log is indexed in [`docs/adr/README.md`](adr/README.md).
-
-| Decision | Summary |
-| --- | --- |
-| [ADR-0001](adr/0001-monorepo-and-same-origin.md) | One repository and one production origin |
-| [ADR-0002](adr/0002-provider-neutral-boundary.md) | Provider-neutral domain ports and safe metadata |
-| [ADR-0003](adr/0003-sqlite-single-instance-and-repositories.md) | SQLite, one active API instance, and repository ports |
-| [ADR-0004](adr/0004-server-sent-events.md) | SSE for bounded server-to-browser live streams |
-| [ADR-0005](adr/0005-local-sessions-and-csrf.md) | Local server-side sessions and CSRF defense |
-| [ADR-0006](adr/0006-read-only-and-guarded-mutations.md) | Read-only default with narrow guarded actions |
-| [ADR-0007](adr/0007-deterministic-isolated-demo.md) | Deterministic demo fixtures in an isolated mode |
-| [ADR-0008](adr/0008-project-owned-interface-system.md) | Project-owned interface primitives and themes |
-| [ADR-0009](adr/0009-feature-owned-localization-runtime.md) | Feature-owned catalogs and one localization runtime |
-| [ADR-0010](adr/0010-versioned-contract-and-derived-client.md) | Versioned contract and derived browser client |
+## Backend boundaries
+
+The backend follows inward dependencies:
+
+1. `internal/domain` owns identities, normalized models, query limits, validation, provider ports, and repository ports.
+2. Provider packages translate external data into domain results. They cannot expose raw provider payloads.
+3. PostgreSQL and authentication adapters implement domain/service ports.
+4. HTTP handlers parse bounded wire input, call typed services/providers, and map results into closed response shapes.
+5. `cmd/server`, `cmd/operator`, and `cmd/storage` compose runtime boundaries.
+
+Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages. Stable resource and relationship IDs are digests of normalized identity fields, not display names.
+
+## Persistence
+
+PostgreSQL is the primary store. Startup:
+
+1. validates a canonical connection URL and bounded pool settings;
+2. opens a pool with query and connection deadlines;
+3. takes the installation ownership lock before any migration;
+4. takes the migration advisory lock and verifies the immutable ledger;
+5. applies embedded forward-only migrations;
+6. retains ownership on a dedicated session and fails closed on loss;
+7. initializes the installation row and local digest-key boundary;
+8. reports database readiness.
+
+The schema covers installation identity, users, credentials, sessions, pre-auth and recent-auth grants, source and resource identity, observations, topology, health, metrics, events, alerts, notifications, audit history, and authentication throttles. The live server wires authentication, product reads, alert evaluation and management, in-app notification reads, and the opt-in PostgreSQL-leased generic webhook worker. Discovery scheduling and remaining product settings remain 1.0 work.
+
+PostgreSQL backup uses custom-format `pg_dump`, validates the artifact with `pg_restore --list`, and publishes it through an atomic no-overwrite hard link. Restore accepts an empty target only, runs in one transaction, verifies the exact migration ledger, advances the restore generation, and invalidates sessions and pre-auth state.
+
+## Provider model
+
+Every provider reports all known capabilities as `available`, `stale`, `unavailable`, `unsupported`, or `permission_denied`, with completeness and a machine reason code when required. A missing capability is never simulated.
+
+Core read ports are:
+
+- environments, resource inventory, and resource detail;
+- health evidence;
+- topology relationships with provenance and confidence;
+- bounded historical logs and cancelable tails;
+- current normalized metrics;
+- event history and cancelable watches;
+- capability discovery.
+
+Queries own hard limits, time windows, sorting, and opaque cursors bound to normalized filter state. Result validation rejects cross-source data, duplicate identities, unstable order, unrequested records, oversized payloads, invalid time ranges, and data attached to unavailable status.
+
+The Demo provider is synthetic and deterministic. It exposes six resources, health states, five relationships, bounded logs, three current metrics per resource, and event history. Provider tail/watch capabilities are explicitly unsupported. Authenticated HTTP SSE sends bounded polled snapshots; it does not prove a native provider watch or durable alert-change feed.
+
+## HTTP and authentication
+
+The versioned API lives at `/api/v1`. `contracts/openapi.yaml` is linted by a closed policy and generates browser types. Browser adapters still validate unknown runtime data before use.
+
+Local authentication uses:
+
+- Argon2id password records;
+- opaque random session tokens stored only as keyed digests;
+- host-only `HttpOnly`, `SameSite=Lax` cookies;
+- exact same-origin enforcement and a session-bound CSRF proof on unsafe requests;
+- one-use pre-auth proofs for sign-in and setup;
+- one-use recent-auth proofs bound to exact high-risk purposes;
+- current user role and enabled state resolution on every authenticated call;
+- permanent first-run setup closure and an operator recovery command.
+
+HTTP middleware applies request IDs, fixed security headers, public-origin and proxy checks, bounded request and response bodies, concurrency limits, timeouts, per-client rate limiting, safe access logs, and safe problem responses. `/healthz` is process liveness; `/readyz` includes database readiness. `/metrics` requires both the exact public origin and an allowed client network.
+
+## Frontend
+
+The React application uses strict TypeScript, TanStack Router, a small same-origin client, runtime response guards, and shared interface components. Authentication and product APIs enter through explicit contexts, which keeps routes testable.
+
+English and Persian catalogs must have exact key parity. Locale changes update `lang`, `dir`, typography, number/date formatting, navigation, dialogs, and technical-text isolation. Provider IDs, resource IDs, and log text keep explicit LTR isolation inside Persian RTL pages.
+
+Connected pages include overview, resources, resource detail, topology, logs, events, alerts, audit, search, notification center, connection status and alert/notification settings. Connection mutation, preferences, full detail tabs, log controls and guarded infrastructure actions remain planned. Requests carry explicit source identity; direct resource links use their route source. Missing metric samples are not summed into fake zero totals.
+
+## Deployment
+
+The local Compose profile has three services:
+
+- PostgreSQL with a named data volume and health check;
+- a non-root API with a named runtime-key volume and readiness gate;
+- a read-only non-root Nginx edge serving the web app and proxying same-origin API traffic.
+
+Only the edge binds to host loopback. The private bridge uses an explicit subnet so proxy trust is narrow and reviewable. `docker compose down` preserves both named volumes.
+
+The cluster chart uses an external PostgreSQL Secret, one API replica with a ReadWriteOnce runtime-key claim and `Recreate` strategy, multiple stateless web replicas, probes, resource bounds, restricted security contexts, optional TLS ingress, and a web disruption budget. The API remains single-replica until digest-key distribution and multi-process ownership are redesigned.
+
+CI defines locked package installation, full code verification, a real PostgreSQL integration service, Compose model validation, chart lint, and both image builds. These definitions are not target-environment proof until they run successfully in the release system.
+
+## Security and reliability rules
+
+- Read-only provider access is the default.
+- Provider credentials remain server-side and secret values are dropped at adapter boundaries.
+- External errors and raw payloads do not cross the public API.
+- No operational change exists without explicit capability support, administrator authorization, recent authentication, confirmation, idempotency, timeout, result verification, and audit.
+- Synthetic data stays marked through domain, HTTP, and UI layers.
+- Pagination, histories, stream buffers, line sizes, requests, responses, and retention are bounded.
+- Database migrations are additive and forward-only; backup and restore are operator workflows, not request handlers.
+- Local, CI, Compose, PostgreSQL, browser, and target-cluster evidence are reported as separate proof levels.
+
+## Current limits
+
+- Persistent provider configuration, discovery/reconnect and native live collection are not complete.
+- Source configuration and provider credentials are not managed by the live API.
+- Product observations are not yet persisted or scheduled.
+- Generic webhook delivery is opt-in and locally verified; a real receiver run remains target-environment proof.
+- Guarded operations are not live.
+- Real local PostgreSQL 17.11 tests and a native backup/restore drill ran on a disposable private cluster. Helm 3.17.3 lint/render ran locally. Container startup, real browser geometry, live Docker/Kubernetes and target production drills are still unproved.
+- The current separate static web edge and custom fixed HTTP collectors differ from ADR-0001 built-web serving and ADR-0002 vendor clients. Stage 5/7 must align these implementations with accepted decisions, or obtain a justified superseding decision before 1.0.
+
+See [ADR-0011](adr/0011-postgresql-primary-persistence.md), [security](security.md), [deployment](operations/deployment.md), and [backup/restore](operations/backup-restore.md).

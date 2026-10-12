@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 
 import type { NavigationItem } from './navigation';
 import { useLocale } from '../../i18n';
+import { useProductSource } from '../../features/product/product-context';
 
 interface NavigationLinksProps {
   collapsed?: boolean;
@@ -12,6 +13,7 @@ interface NavigationLinksProps {
 
 export function NavigationLinks({ collapsed = false, items, onNavigate }: NavigationLinksProps) {
   const { direction, t } = useLocale();
+  const { selectedSource } = useProductSource();
 
   return (
     <ul className="shell-nav__list">
@@ -22,6 +24,7 @@ export function NavigationLinks({ collapsed = false, items, onNavigate }: Naviga
           <Link
             className="shell-nav__link ui-focus-ring"
             to={item.to}
+            search={selectedSource === undefined ? {} : { source: selectedSource }}
             activeOptions={{ exact: item.to !== '/settings' }}
             onClick={onNavigate}
           >

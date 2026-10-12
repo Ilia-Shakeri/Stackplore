@@ -1,19 +1,16 @@
 # Contributing to Stackplore
 
-Thank you for helping improve Stackplore. The project is being delivered in numbered phases, and focused changes are easier to review, verify, and maintain.
+Thank you for helping improve Stackplore. The project is being delivered in versioned stages, and focused changes are easier to review, verify, and maintain.
 
 ## Before you begin
 
 1. Read [PROJECT_GUIDE.md](PROJECT_GUIDE.md), [SPEC.md](SPEC.md), and [PLAN.md](PLAN.md).
 2. Check existing issues and pull requests for related work.
-3. Confirm which phase is active and keep the proposal within that phase.
+3. Confirm which roadmap stage is active and keep the proposal within that phase.
 4. Open an issue before substantial work so scope and design can be agreed upon.
 5. Use the private process in [SECURITY.md](SECURITY.md) for vulnerabilities.
 
-The repository currently contains the Phase 1 web and API developer scaffold,
-builds, and basic tests. Product workflows remain planned. Follow
-[docs/development.md](docs/development.md) for the pinned bootstrap and
-verification commands, and do not imply that later-phase behavior exists.
+The repository has an active PostgreSQL-backed read-only product baseline. See [the current roadmap](docs/roadmap.md), [audit](docs/codebase-audit.md) and [evidence plan](docs/implementation-plan.md). Planned and unproven work must remain labeled.
 
 ## Scope and design
 
@@ -61,7 +58,7 @@ Do not mix generated build output, local configuration, editor state, or runtime
 - Keep English and Persian user-facing content equivalent in meaning.
 - Verify internal links and examples in documentation changes.
 
-Language-specific formatting and lint rules will be documented when the application foundations are added. Follow the checked-in configuration and exact commands in `PROJECT_GUIDE.md` once they exist.
+Use the checked-in formatter, lint and strict type rules with the pinned commands in [development](docs/development.md). Run the full gate before completing a stage.
 
 ## Commits
 

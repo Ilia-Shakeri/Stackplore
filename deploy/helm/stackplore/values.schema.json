@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["api", "web", "service", "ingress"],
+  "properties": {
+    "api": {
+      "type": "object",
+      "required": [
+        "replicaCount",
+        "publicOrigin",
+        "existingSecret",
+        "databaseURLKey",
+        "setup",
+        "kubernetes",
+        "webhook",
+        "image",
+        "persistence"
+      ],
+      "properties": {
+        "replicaCount": { "type": "integer", "const": 1 },
+        "publicOrigin": { "type": "string", "pattern": "^https://[^/?#]+$" },
+        "existingSecret": { "type": "string", "minLength": 1 },
+        "databaseURLKey": { "type": "string", "minLength": 1 },
+        "setup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "proofSecretKey", "expirySecretKey"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "proofSecretKey": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "expirySecretKey": { "type": "string", "minLength": 1, "maxLength": 253 }
+          }
+        },
+        "kubernetes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": { "enabled": { "type": "boolean" } }
+        },
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "destinationReferenceId", "urlSecretKey", "signingKeySecretKey"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "destinationReferenceId": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+            },
+            "urlSecretKey": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "signingKeySecretKey": { "type": "string", "minLength": 1, "maxLength": 253 }
+          }
+        },
+        "image": {
+          "type": "object",
+          "required": ["repository", "tag", "pullPolicy"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 },
+            "tag": { "type": "string", "minLength": 1 },
+            "pullPolicy": { "enum": ["Always", "IfNotPresent", "Never"] }
+          }
+        },
+        "persistence": {
+          "type": "object",
+          "required": ["size"],
+          "properties": {
+            "size": { "type": "string", "pattern": "^[1-9][0-9]*(Ei|Pi|Ti|Gi|Mi|Ki)$" }
+          }
+        }
+      }
+    },
+    "web": {
+      "type": "object",
+      "required": ["replicaCount", "image"],
+      "properties": {
+        "replicaCount": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "image": {
+          "type": "object",
+          "required": ["repository", "tag", "pullPolicy"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 },
+            "tag": { "type": "string", "minLength": 1 },
+            "pullPolicy": { "enum": ["Always", "IfNotPresent", "Never"] }
+          }
+        }
+      }
+    }
+  }
+}

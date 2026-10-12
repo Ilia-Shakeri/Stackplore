@@ -166,6 +166,16 @@ type RecentGrantUse struct {
 	ConsumedAt  time.Time
 }
 
+type RecentAuthorizationCommit struct {
+	Actor Principal
+	Grant RecentGrantUse
+	Audit domain.AuditEntry
+}
+
+type RecentAuthorizationRepository interface {
+	CommitRecentAuthorization(context.Context, RecentAuthorizationCommit) error
+}
+
 type UserListQuery struct {
 	Cursor  string
 	Limit   int

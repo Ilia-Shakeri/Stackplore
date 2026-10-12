@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -38,6 +39,67 @@ type Alert struct {
 	ResolvedAt     *time.Time
 	SummaryCode    ReasonCode
 	Synthetic      bool
+}
+
+type AlertPage struct {
+	Alerts []Alert
+	Page   PageInfo
+}
+
+type AlertAcknowledgement struct {
+	AlertID      AlertID
+	UserID       UserID
+	TransitionID AlertTransitionID
+	OccurredAt   time.Time
+	Audit        AuditEntry
+}
+
+func (command AlertAcknowledgement) Validate() error {
+	if command.AlertID.Validate() != nil || command.UserID.Validate() != nil ||
+		command.TransitionID.Validate() != nil || validateUTCTime("alert acknowledgement time", command.OccurredAt) != nil ||
+		command.Audit.Validate() != nil {
+		return fmt.Errorf("alert acknowledgement is invalid")
+	}
+	if command.Audit.Actor.Kind != AuditActorUser || command.Audit.Actor.ID != string(command.UserID) ||
+		command.Audit.Action != "alert.acknowledge" || command.Audit.Target.Kind != "alert.instance" ||
+		command.Audit.Target.ID != string(command.AlertID) || command.Audit.Outcome != AuditSuccess ||
+		command.Audit.ReasonCode != "alert.acknowledged" || command.Audit.OccurredAt != command.OccurredAt {
+		return fmt.Errorf("alert acknowledgement audit does not match command")
+	}
+	return nil
+}
+
+func (page AlertPage) ValidateFor(sourceID SourceID, request PageRequest) error {
+	if err := sourceID.Validate(); err != nil {
+		return err
+	}
+	if err := page.Page.ValidateFor(request); err != nil {
+		return err
+	}
+	if len(page.Alerts) > request.Limit {
+		return fmt.Errorf("alert page exceeds requested limit")
+	}
+	seen := make(map[AlertID]struct{}, len(page.Alerts))
+	for index, alert := range page.Alerts {
+		if err := alert.Validate(); err != nil {
+			return err
+		}
+		if alert.SourceID != sourceID {
+			return fmt.Errorf("alert page contains another source")
+		}
+		if _, exists := seen[alert.ID]; exists {
+			return fmt.Errorf("alert page contains a duplicate alert")
+		}
+		if index > 0 {
+			previous := page.Alerts[index-1]
+			if previous.UpdatedAt.Before(alert.UpdatedAt) ||
+				(previous.UpdatedAt.Equal(alert.UpdatedAt) && strings.Compare(string(previous.ID), string(alert.ID)) > 0) {
+				return fmt.Errorf("alert page must use descending update time and ascending ID order")
+			}
+		}
+		seen[alert.ID] = struct{}{}
+	}
+	return nil
 }
 
 func (alert Alert) Validate() error {

@@ -15,7 +15,8 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/storage"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgresops"
 )
 
 const maximumCommandPathBytes = 4096
@@ -44,8 +45,8 @@ type command struct {
 }
 
 type storageOperations struct {
-	backup  func(context.Context, storage.BackupOptions) error
-	restore func(context.Context, storage.RestoreOptions) error
+	backup  func(context.Context, postgresops.Options) error
+	restore func(context.Context, postgresops.Options) error
 }
 
 type contextFactory func() (context.Context, context.CancelFunc)
@@ -61,8 +62,8 @@ func realMain() int {
 		config.OSGetter{},
 		processContext,
 		storageOperations{
-			backup:  storage.Backup,
-			restore: storage.Restore,
+			backup:  postgresops.Backup,
+			restore: postgresops.Restore,
 		},
 	)
 }
@@ -220,20 +221,12 @@ func runCommand(ctx context.Context, settings config.Config, parsed command, ope
 		if operations.backup == nil {
 			return errCommandBoundary
 		}
-		return operations.backup(ctx, storage.BackupOptions{
-			DataDirectory: settings.DataDirectory,
-			BusyTimeout:   settings.DatabaseBusyTimeout,
-			Destination:   parsed.path,
-		})
+		return operations.backup(ctx, postgresops.Options{Settings: settings, Path: parsed.path})
 	case commandRestore:
 		if operations.restore == nil {
 			return errCommandBoundary
 		}
-		return operations.restore(ctx, storage.RestoreOptions{
-			DataDirectory: settings.DataDirectory,
-			BusyTimeout:   settings.DatabaseBusyTimeout,
-			Source:        parsed.path,
-		})
+		return operations.restore(ctx, postgresops.Options{Settings: settings, Path: parsed.path})
 	default:
 		return errCommandBoundary
 	}
@@ -243,21 +236,19 @@ func failureReason(err error) string {
 	switch {
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
 		return "canceled"
-	case errors.Is(err, errCommandBoundary), errors.Is(err, storage.ErrInvalidOptions):
+	case errors.Is(err, errCommandBoundary), errors.Is(err, postgresops.ErrInvalidOptions):
 		return "invalid_options"
-	case errors.Is(err, storage.ErrUnsafeDataDirectory):
-		return "unsafe_data_directory"
-	case errors.Is(err, storage.ErrOwnershipUnavailable):
+	case errors.Is(err, postgres.ErrOwnershipUnavailable):
 		return "ownership_unavailable"
-	case errors.Is(err, storage.ErrDatabaseUnavailable):
+	case errors.Is(err, postgres.ErrDatabaseUnavailable):
 		return "database_unavailable"
-	case errors.Is(err, storage.ErrDatabaseIntegrity):
-		return "database_integrity"
-	case errors.Is(err, storage.ErrMigrationRejected):
+	case errors.Is(err, postgres.ErrMigrationRejected):
 		return "migration_rejected"
-	case errors.Is(err, storage.ErrBackupRejected):
+	case errors.Is(err, postgresops.ErrToolUnavailable):
+		return "tool_unavailable"
+	case errors.Is(err, postgresops.ErrBackupRejected):
 		return "backup_rejected"
-	case errors.Is(err, storage.ErrRestoreRejected):
+	case errors.Is(err, postgresops.ErrRestoreRejected):
 		return "restore_rejected"
 	default:
 		return "operation_failed"

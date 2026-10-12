@@ -15,6 +15,22 @@ export default defineConfig(({ mode }) => {
     defaultAPIOrigin;
 
   return {
+    build: {
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: 'react-runtime',
+                test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/u,
+              },
+              { name: 'router-runtime', test: /[\\/]node_modules[\\/]@tanstack[\\/]/u },
+              { name: 'ui-runtime', test: /[\\/]node_modules[\\/](@radix-ui|lucide-react)[\\/]/u },
+            ],
+          },
+        },
+      },
+    },
     plugins: [react(), tailwindcss()],
     server: {
       host: '127.0.0.1',

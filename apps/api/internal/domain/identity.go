@@ -33,6 +33,8 @@ type RelationshipID string
 type EventID string
 type AlertRuleID string
 type AlertID string
+type AlertTransitionID string
+type NotificationID string
 type AuditEntryID string
 type LogEntryID string
 type MetricSampleID string
@@ -48,6 +50,12 @@ func (id EnvironmentID) Validate() error {
 func (id EventID) Validate() error     { return validateToken("event ID", string(id), maxIDBytes) }
 func (id AlertRuleID) Validate() error { return validateToken("alert rule ID", string(id), maxIDBytes) }
 func (id AlertID) Validate() error     { return validateToken("alert ID", string(id), maxIDBytes) }
+func (id AlertTransitionID) Validate() error {
+	return validateToken("alert transition ID", string(id), maxIDBytes)
+}
+func (id NotificationID) Validate() error {
+	return validateToken("notification ID", string(id), maxIDBytes)
+}
 func (id AuditEntryID) Validate() error {
 	return validateToken("audit entry ID", string(id), maxIDBytes)
 }

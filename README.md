@@ -4,73 +4,31 @@
 
 [فارسی](README.fa.md)
 
-> **Project status:** Phase 7 adds atomic first-run administrator setup, local
-> Argon2id accounts, durable login throttles, opaque server-side sessions, CSRF
-> protection, administrator and viewer roles, local recovery, and bilingual
-> login, setup, and user-management flows. Detailed system readiness is now
-> available only to an enabled administrator. Product workflows, provider
-> integrations, deployment assets, a demo, and a published release do not
-> exist yet. Phase 7 is complete and awaiting maintainer commit.
+Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-Stackplore is a planned self-hosted infrastructure explorer for understanding Docker and Kubernetes environments from one web interface. Its v1 scope is intended to bring topology, health, logs, metrics, events, alerts, and carefully guarded operations into a coherent troubleshooting workflow.
+> **Status:** 1.0 work is active. PostgreSQL persistence, local accounts, deterministic demo data, Docker and Kubernetes read adapters, connected product pages, all declared alert predicates and rule management, in-app notifications, opt-in leased webhook delivery with secret-free status and guarded test delivery, bilingual LTR/RTL UI, container definitions, a local Compose profile, and a cluster chart exist. Guarded operations, notification target mutation, provider depth, target-environment drills, and a published release are not complete. Real local PostgreSQL 17.11 migration/repository tests and a disposable native backup/restore drill passed. Local Helm lint/render passed. Live Docker, webhook receiver, Compose, cluster, browser and production-target proof remain open.
 
-## Planned v1 direction
+## Implemented
 
-- Docker, Docker Compose, and Kubernetes discovery behind a shared provider model
-- Live topology with relationship provenance and confidence
-- Searchable resources, health details, logs, metrics, and event history
-- Local alert rules, in-app notifications, and optional outbound integrations
-- Read-only defaults with explicit authorization and audit records for supported changes
-- Local accounts with administrator and viewer roles
-- English and Persian interfaces with full LTR and RTL support
-- A responsive, installable web application
-- A deterministic demo mode that is clearly separated from real infrastructure
-- Self-hosted deployment through containers and Kubernetes
+- PostgreSQL-only server startup with bounded pooling, embedded forward migrations, advisory migration and ownership locks, readiness checks, and native `pg_dump`/`pg_restore` operations
+- Local administrator/viewer accounts, Argon2id credentials, opaque sessions, CSRF and recent-auth proofs, first-run setup, user administration, and operator recovery
+- Provider-neutral domain ports and a deterministic synthetic source with stable resource identity, cursor-bound inventory, health, topology, logs, current metrics, and event history
+- Versioned OpenAPI contract, generated browser types, strict runtime response parsing, safe problems, request bounds, rate limits, proxy trust, liveness, readiness, and guarded process metrics
+- Responsive overview, resources, detail, topology, logs, and events in English and Persian RTL
+- Durable evaluation for all declared alert predicates, including normalized Kubernetes unavailable-replica counts, administrator rule management, linked in-app notifications, and opt-in SSRF-guarded generic webhook delivery with secret-free status, one-use recent-auth test delivery, stable payloads, leases, retries, and terminal attempt history
+- Non-root API and web images, a persistent local Compose profile, an external-PostgreSQL cluster chart, and CI definitions for code, PostgreSQL integration, image, Compose, and chart gates
 
-These are design goals, not claims about the current repository state. Delivery is split into reviewed phases so documentation, implementation, tests, and deployment assets can evolve together.
+## Still required for 1.0
 
-## Current repository
-
-Phase 0 established the product definition, architecture boundaries, security
-model, delivery plan, and community standards. Phase 1 adds the pnpm workspace,
-strict TypeScript web scaffold, Go API scaffold, tests, builds, and portable
-task entry points. Phase 2 adds the shared interface system, theme behavior,
-responsive navigation shell, route foundations, and local brand assets. Phase
-3 adds paired feature catalogs, live English and Persian switching, full shell
-direction changes, locale formatters, and catalog parity checks. Phase 4 adds
-provider-neutral domain and provider-port foundations, the canonical OpenAPI
-document, contract-derived browser types, a small same-origin client
-boundary, and contract validation tasks. Phase 5 adds canonical startup
-configuration, safe structured logging and problems, request and response
-limits, strict public-origin and proxy trust, liveness and readiness probes,
-origin-and-network-guarded process metrics, non-operational request rate
-limiting, and bounded lifecycle handling.
-Phase 6 adds a pure-Go SQLite adapter with WAL, foreign keys, a bounded busy
-timeout, exclusive process ownership, embedded forward migrations, focused
-metric, event, and audit repositories, storage health in `/readyz`, and tested
-local backup and offline restore commands. Phase 7 adds the local account and
-session service, exact same-origin request protection, permanently closed
-first-run setup, administrator user management, local recovery, a versioned
-authentication API and typed browser client, and responsive English and Persian
-account flows. Provider-backed product workflows do not exist yet.
-
-The main project documents are:
-
-- [Product specification](SPEC.md)
-- [Project guide](PROJECT_GUIDE.md)
-- [Delivery plan](PLAN.md)
-- [Architecture](docs/architecture.md)
-- [Security model](docs/security.md)
-- [Architecture decisions](docs/adr/)
-- [Development guide](docs/development.md)
-- [Local backup and restore](docs/operations/backup-restore.md)
-- [First-run setup and account recovery](docs/operations/account-recovery.md)
-- [Change history](CHANGELOG.md)
+- Persistent least-privilege Docker/Compose and Kubernetes connection setup plus live-provider proof
+- Persistent source configuration, discovery scheduling, retention, and provider reconnect behavior
+- Durable alert streaming, correct historical alert evidence, real receiver proof, and immutable audit coverage for unfinished mutation paths
+- Explicitly guarded supported operations with authorization, confirmation, idempotency, timeouts, and audit records
+- Live target proof for PostgreSQL backup/restore, Compose, cluster install/upgrade/rollback, browser flows, accessibility, and performance budgets
 
 ## Development
 
-Use the exact Node.js, Corepack, pnpm, and Go versions in the
-[development guide](docs/development.md), then run:
+Use Node.js `24.18.0`, pnpm `11.17.0`, and Go `1.26.5`:
 
 ```sh
 node scripts/bootstrap.mjs
@@ -79,27 +37,43 @@ corepack pnpm run verify
 corepack pnpm run dev
 ```
 
-The development page runs at `http://127.0.0.1:5173`. Both services bind to
-loopback by default. A non-loopback production profile starts only with a
-canonical HTTPS public origin and explicit trusted-proxy prefixes.
+The web development server uses `http://127.0.0.1:5173`; the API uses `http://127.0.0.1:8080`. PostgreSQL integration tests run only when `STACKPLORE_TEST_POSTGRES_URL` names a disposable test database.
 
-## Security posture
+## Deployment
 
-Stackplore is designed for access to sensitive infrastructure. The planned
-application therefore keeps provider credentials on the server, does not seek
-secret values for inference, drops sensitive provider fields at the adapter
-edge, and does not retain, log, or expose those values. It uses least-privilege
-access, defaults to read-only behavior, and requires explicit safeguards for
-every supported operational change.
+For local Compose, copy `deploy/compose.env.example` to `.env`, replace the placeholders, then run:
 
-Do not post credentials, access tokens, private keys, kubeconfig content, session data, private infrastructure addresses, or unredacted logs in issues or pull requests. See [SECURITY.md](SECURITY.md) for private vulnerability reporting guidance.
+For a fresh database, first generate paired short-lived setup proof/expiry in
+the operator shell using [first setup](docs/operations/account-recovery.md).
+Compose passes them through; do not save them in `.env`. Open `/setup` and
+complete the first administrator before removing those values and recreating
+the API. See the complete [deployment steps](docs/operations/deployment.md).
 
-## Contributing
+```sh
+docker compose up --build -d
+```
 
-The project is being built one numbered phase at a time. Before proposing a change, read [CONTRIBUTING.md](CONTRIBUTING.md), check the active phase in [PLAN.md](PLAN.md), and keep the change within that phase.
+Named volumes preserve PostgreSQL and runtime key data. `docker compose down` keeps them. The cluster chart requires an existing Secret containing an external PostgreSQL URL with `sslmode=verify-full`. See [deployment](docs/operations/deployment.md) and [backup/restore](docs/operations/backup-restore.md).
 
-Community participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+## Project documents
+
+- [Document index](docs/README.md)
+- [Completion roadmap](docs/roadmap.md)
+- [Repository audit](docs/codebase-audit.md)
+- [Product specification](SPEC.md)
+- [Current implementation plan](docs/implementation-plan.md)
+- [Architecture](docs/architecture.md)
+- [Security model](docs/security.md)
+- [Architecture decisions](docs/adr/)
+- [Development guide](docs/development.md)
+- [Account recovery](docs/operations/account-recovery.md)
+- [Delivery entry point](PLAN.md)
+- [Change history](CHANGELOG.md)
+
+## Security
+
+Provider access is sensitive. Keep credentials server-side, grant read-only access by default, and never place passwords, tokens, private keys, kubeconfig content, session data, private addresses, or unredacted logs in issues or pull requests. See [SECURITY.md](SECURITY.md) for private reporting.
 
 ## License
 
-Stackplore is licensed under the [Apache License 2.0](LICENSE).
+Stackplore uses the [Apache License 2.0](LICENSE).

@@ -598,6 +598,14 @@ func requireNoQuery(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
+func requireNoBody(w http.ResponseWriter, r *http.Request) bool {
+	if !requestHasNoBody(r) {
+		writeProblem(w, r, invalidRequestProblem)
+		return false
+	}
+	return true
+}
+
 func requireNoBodyAndQuery(w http.ResponseWriter, r *http.Request) bool {
 	if !requestHasNoBody(r) || !requestHasNoQuery(r) {
 		writeProblem(w, r, invalidRequestProblem)

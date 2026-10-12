@@ -45,6 +45,7 @@ describe('application shell', () => {
     ['/overview', 'Overview'],
     ['/topology', 'Topology'],
     ['/resources', 'Resources'],
+    ['/search?q=api', 'Search'],
     ['/logs', 'Logs'],
     ['/events', 'Events'],
     ['/alerts', 'Alerts'],
@@ -52,7 +53,8 @@ describe('application shell', () => {
     ['/settings', 'Settings'],
     ['/settings/connections', 'Connections'],
     ['/settings/users', 'Users'],
-    ['/settings/notifications', 'Notifications'],
+    ['/settings/notifications', 'Alert rules'],
+    ['/notifications', 'Notification center'],
     ['/settings/preferences', 'Preferences'],
     ['/about', 'About'],
     ['/not-found', 'Page not found'],
@@ -66,6 +68,7 @@ describe('application shell', () => {
     ['/overview', 'نمای کلی'],
     ['/topology', 'توپولوژی'],
     ['/resources', 'منابع'],
+    ['/search?q=api', 'جست‌وجو'],
     ['/logs', 'گزارش‌ها'],
     ['/events', 'رویدادها'],
     ['/alerts', 'هشدارها'],
@@ -73,7 +76,8 @@ describe('application shell', () => {
     ['/settings', 'تنظیمات'],
     ['/settings/connections', 'اتصال‌ها'],
     ['/settings/users', 'کاربران'],
-    ['/settings/notifications', 'اعلان‌ها'],
+    ['/settings/notifications', 'قانون‌های هشدار'],
+    ['/notifications', 'مرکز اعلان‌ها'],
     ['/settings/preferences', 'ترجیحات'],
     ['/about', 'درباره'],
     ['/not-found', 'صفحه پیدا نشد'],
@@ -84,6 +88,17 @@ describe('application shell', () => {
     expect(await screen.findByRole('heading', { level: 1, name: heading })).not.toBeNull();
     expect(document.documentElement.lang).toBe('fa');
     expect(document.documentElement.dir).toBe('rtl');
+  });
+
+  it('opens global resource search from the top bar', async () => {
+    const user = userEvent.setup();
+    renderRoute('/overview');
+
+    const search = await screen.findByRole('searchbox', { name: 'Search resources' });
+    await user.type(search, 'gateway');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Search' })).not.toBeNull();
   });
 
   it('switches shell language without a reload and preserves theme state', async () => {
@@ -109,7 +124,7 @@ describe('application shell', () => {
   });
 
   it('keeps resource route parameters exact', async () => {
-    renderRoute('/resources/demo/container/service%2Fedge');
+    renderRoute('/resources/source_demo/demo/container/service%2Fedge');
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Resource detail' }),
@@ -121,7 +136,7 @@ describe('application shell', () => {
 
   it('keeps technical resource identity exact and isolated in Persian', async () => {
     globalThis.localStorage.setItem('stackplore.locale', 'fa');
-    renderRoute('/resources/demo/container/service%2Fedge');
+    renderRoute('/resources/source_demo/demo/container/service%2Fedge');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'جزئیات منبع' })).not.toBeNull();
 

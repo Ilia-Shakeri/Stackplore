@@ -1,0 +1,69 @@
+nameOverride: ''
+fullnameOverride: ''
+
+imagePullSecrets: []
+
+api:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/stackplore-api
+    tag: '0.1.0'
+    pullPolicy: IfNotPresent
+  publicOrigin: https://stackplore.example.com
+  trustedProxyPrefixes: 10.0.0.0/8
+  metricsAllowedPrefixes: 10.0.0.0/8
+  existingSecret: stackplore-runtime
+  databaseURLKey: database-url
+  setup:
+    enabled: false
+    proofSecretKey: setup-bootstrap-proof
+    expirySecretKey: setup-bootstrap-expires-at
+  kubernetes:
+    enabled: false
+  webhook:
+    enabled: false
+    destinationReferenceId: webhook_primary
+    urlSecretKey: webhook-url
+    signingKeySecretKey: webhook-signing-key
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: '1'
+      memory: 512Mi
+  persistence:
+    storageClass: ''
+    size: 1Gi
+
+web:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/example/stackplore-web
+    tag: '0.1.0'
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  host: stackplore.example.com
+  tls:
+    enabled: true
+    secretName: stackplore-tls
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

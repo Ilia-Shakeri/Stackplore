@@ -23,12 +23,17 @@ func (repositoryContract) AppendAuditEntries(context.Context, []AuditEntry) erro
 	return nil
 }
 
+func (repositoryContract) SaveAlertMutation(context.Context, AlertMutation) error {
+	return nil
+}
+
 func (repository repositoryContract) WithinUnitOfWork(ctx context.Context, work func(Repositories) error) error {
 	return work(repository)
 }
 
 var _ Repositories = repositoryContract{}
 var _ RepositoryUnitOfWork = repositoryContract{}
+var _ ProductRepositories = repositoryContract{}
 
 func TestRepositoryPortsStayFocused(t *testing.T) {
 	tests := map[string]struct {
@@ -38,7 +43,9 @@ func TestRepositoryPortsStayFocused(t *testing.T) {
 		"metric samples":        {port: (*MetricSampleRepository)(nil), methods: 1},
 		"infrastructure events": {port: (*InfrastructureEventRepository)(nil), methods: 1},
 		"audit entries":         {port: (*AuditEntryRepository)(nil), methods: 1},
+		"alert mutation":        {port: (*AlertMutationRepository)(nil), methods: 1},
 		"repositories":          {port: (*Repositories)(nil), methods: 3},
+		"product repositories":  {port: (*ProductRepositories)(nil), methods: 4},
 		"unit of work":          {port: (*RepositoryUnitOfWork)(nil), methods: 1},
 	}
 	for name, test := range tests {

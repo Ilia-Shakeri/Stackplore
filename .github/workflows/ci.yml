@@ -1,0 +1,92 @@
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'main/**']
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_DB: stackplore_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d stackplore_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      CI: "true"
+      STACKPLORE_TEST_POSTGRES_URL: postgresql://postgres:postgres@127.0.0.1:5432/stackplore_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 1.26.5
+          cache-dependency-path: apps/api/go.sum
+      - name: Enable package manager
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+      - name: Install locked packages
+        run: corepack pnpm install --frozen-lockfile
+      - name: Run full gate
+        run: corepack pnpm verify
+      - name: Run Go concurrency gate
+        run: go -C apps/api test -race ./...
+
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: azure/setup-helm@bf6a7d304bc2fdb57e0331155b7ebf2c504acf0a # v4
+        with:
+          version: v3.17.3
+      - name: Validate Compose model
+        run: docker compose --env-file deploy/compose.env.example config --quiet
+      - name: Lint cluster chart
+        run: helm lint deploy/helm/stackplore --strict
+      - name: Render reviewed chart profiles
+        run: |
+          helm template verify deploy/helm/stackplore >/dev/null
+          helm template verify deploy/helm/stackplore --set api.setup.enabled=true --set api.kubernetes.enabled=true --set ingress.enabled=true >/dev/null
+          helm template verify deploy/helm/stackplore --set podAnnotations.test=verify >/dev/null
+      - name: Build API image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: deploy/Dockerfile.api
+          push: false
+          tags: stackplore-api:verify
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - name: Build web image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: deploy/Dockerfile.web
+          push: false
+          tags: stackplore-web:verify
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web

@@ -69,9 +69,10 @@ configuring the pair also enables the proof gate on loopback.
 ## Offline administrator recovery
 
 1. Stop the API process. The command requires exclusive ownership of the same
-   data directory and refuses to run beside the server, backup, or restore.
-2. Load the same `STACKPLORE_DATA_DIRECTORY` and
-   `STACKPLORE_DATABASE_BUSY_TIMEOUT` configuration used by the server.
+   PostgreSQL installation and refuses to run beside the server or restore. Live backup does not hold the runtime ownership lock.
+2. Load the same `STACKPLORE_DATABASE_URL`, pool/timeouts, schema, and
+   `STACKPLORE_DATA_DIRECTORY` used by the server. The data directory contains
+   the local digest key; PostgreSQL contains account and session state.
 3. Verify the exact existing login name. A typo can create another
    administrator.
 4. Feed one new password line through protected standard input. Never put a

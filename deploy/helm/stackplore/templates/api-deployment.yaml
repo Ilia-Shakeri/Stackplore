@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "stackplore.fullname" . }}-api
+  labels:
+    {{- include "stackplore.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "stackplore.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "stackplore.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: api
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "stackplore.fullname" . }}
+      automountServiceAccountToken: {{ .Values.api.kubernetes.enabled }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          env:
+            - name: STACKPLORE_ENVIRONMENT
+              value: production
+            - name: STACKPLORE_HTTP_ADDRESS
+              value: 0.0.0.0:8080
+            - name: STACKPLORE_PUBLIC_ORIGIN
+              value: {{ .Values.api.publicOrigin | quote }}
+            - name: STACKPLORE_TRUSTED_PROXY_PREFIXES
+              value: {{ .Values.api.trustedProxyPrefixes | quote }}
+            - name: STACKPLORE_METRICS_ALLOWED_PREFIXES
+              value: {{ .Values.api.metricsAllowedPrefixes | quote }}
+            - name: STACKPLORE_DATA_DIRECTORY
+              value: /var/lib/stackplore
+            - name: STACKPLORE_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.databaseURLKey }}
+            - name: STACKPLORE_LOG_FORMAT
+              value: json
+            {{- if .Values.api.setup.enabled }}
+            - name: STACKPLORE_SETUP_BOOTSTRAP_PROOF
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.setup.proofSecretKey }}
+            - name: STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.setup.expirySecretKey }}
+            {{- end }}
+            - name: STACKPLORE_KUBERNETES_ENABLED
+              value: {{ .Values.api.kubernetes.enabled | quote }}
+            - name: STACKPLORE_WEBHOOK_ENABLED
+              value: {{ .Values.api.webhook.enabled | quote }}
+            {{- if .Values.api.webhook.enabled }}
+            - name: STACKPLORE_WEBHOOK_DESTINATION_REFERENCE_ID
+              value: {{ .Values.api.webhook.destinationReferenceId | quote }}
+            - name: STACKPLORE_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.webhook.urlSecretKey }}
+            - name: STACKPLORE_WEBHOOK_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.webhook.signingKeySecretKey }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          volumeMounts:
+            - name: runtime
+              mountPath: /var/lib/stackplore
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: runtime
+          persistentVolumeClaim:
+            claimName: {{ include "stackplore.fullname" . }}-runtime
+        - name: tmp
+          emptyDir:
+            sizeLimit: 32Mi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

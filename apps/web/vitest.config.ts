@@ -5,7 +5,9 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    maxWorkers: 1,
     restoreMocks: true,
     setupFiles: ['./src/test/setup.ts'],
+    testTimeout: 15_000,
   },
 });

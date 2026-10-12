@@ -15,6 +15,10 @@ type HealthProvider interface {
 	GetHealth(context.Context, HealthQuery) (HealthResult, error)
 }
 
+type WorkloadReplicaProvider interface {
+	GetWorkloadReplicas(context.Context, ResourceDetailQuery) (WorkloadReplicaSnapshot, error)
+}
+
 type TopologyProvider interface {
 	GetRelationships(context.Context, TopologyQuery) (RelationshipPage, error)
 }
@@ -38,6 +42,10 @@ type CurrentMetricProvider interface {
 	GetCurrentMetrics(context.Context, CurrentMetricQuery) (CurrentMetricResult, error)
 }
 
+type MetricHistoryProvider interface {
+	GetMetricHistory(context.Context, MetricHistoryQuery) (MetricHistoryResult, error)
+}
+
 type EventHistoryProvider interface {
 	ListEvents(context.Context, EventQuery) (EventPage, error)
 }
@@ -57,4 +65,9 @@ type EventWatchProvider interface {
 
 type CapabilityProvider interface {
 	GetCapabilities(context.Context, ProviderRef) (CapabilitySet, error)
+}
+
+type OperationProvider interface {
+	PreviewOperation(context.Context, OperationRequest) (OperationImpact, error)
+	ExecuteOperation(context.Context, OperationExecution) (OperationProviderResult, error)
 }

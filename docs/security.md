@@ -1,597 +1,135 @@
-# Security Architecture
+# Security Model
 
-## Status and purpose
+Status: implemented foundation plus explicit 1.0 gaps
 
-This document defines the security requirements and delivery boundary for
-Stackplore. Through Phase 7, validated startup configuration, safe structured
-logging, strict origin and proxy handling, bounded short HTTP requests,
-operational probes, protected process metrics, and graceful shutdown are
-implemented and tested. Local SQLite identity, migrations, process ownership,
-repository boundaries, readiness, backup, and restore are also implemented.
-Local accounts, first-run setup, login throttles, server-side sessions, CSRF,
-roles, user administration, and offline administrator recovery are live.
-Provider access, streams, notifications, deployment controls, and guarded
-infrastructure actions remain later-phase requirements. No control described
-here is a claim of an independent audit.
+## Assets
 
-Security vulnerabilities should be reported through the private process in [SECURITY.md](../SECURITY.md).
+Stackplore protects:
 
-## Security objectives
-
-Stackplore must:
-
-- expose only the minimum infrastructure data needed for its documented views;
-- keep credentials, sensitive provider configuration, and secret values out of
-  response bodies, client-readable storage, logs, events, exports, and audit
-  details; the raw session token appears only in protected `Set-Cookie`
-  header;
-- require server-side authorization for every protected read and mutation;
-- make infrastructure-changing actions explicit, narrow, reviewable, and attributable;
-- remain bounded when providers, clients, logs, metadata, or remote endpoints behave maliciously;
-- fail closed when authentication, authorization, provider permissions, or security configuration is missing;
-- state operational limitations honestly instead of implying protection the product cannot provide.
-
-Availability is important, but it does not justify widening provider access, bypassing authorization, or returning stale private data as if it were current.
-
-## Threat model
-
-The design assumes possible attacks from:
-
-- an unauthenticated network client;
-- an authenticated user attempting to exceed assigned permissions;
-- a compromised browser session;
-- malicious or malformed infrastructure names, labels, annotations, status messages, metrics, or log lines;
-- a slow client attempting to exhaust stream resources;
-- an outbound notification destination attempting redirects, DNS rebinding, or
-  response amplification;
-- a compromised dependency, build input, or container base;
-- accidental operator misconfiguration.
-
-A process with host administrator access can read or alter local files, replace the running binary, tamper with SQLite, and often reach provider credentials. Docker socket access is effectively host-root access. These are critical deployment boundaries; the application cannot make a compromised host trustworthy.
+- local account credentials, sessions, CSRF and recent-auth proofs;
+- provider connection credentials and infrastructure metadata;
+- PostgreSQL state, history, alerts, notifications, and audit records;
+- the local keyed-digest file used for browser proof digests;
+- backup artifacts and release configuration;
+- operator trust in whether data is real, stale, partial, denied, unsupported, or synthetic.
 
 ## Trust boundaries
 
-| Boundary | Untrusted input | Required controls |
-| --- | --- | --- |
-| Browser to same-origin HTTP service | URLs, headers, cookies, forms, filters, identifiers, stream connections | TLS at the deployment edge, authentication, authorization, CSRF defense, origin checks, input bounds, safe response encoding, rate limits |
-| HTTP service to SQLite | User-controlled fields, provider results, concurrent writes | Parameterized queries, typed validation, short transactions, migration checks, quotas, file permissions |
-| HTTP service to Demo provider | Fixed fixtures and simulated state | Read-only fixture boundary, no real credentials, no route to live providers |
-| HTTP service to Docker boundary | Untrusted daemon data and a root-equivalent control plane | Restricted proxy, exact method and path allowlist, response limits, separate mutation profile |
-| HTTP service to Kubernetes API | Cluster metadata and a privileged control plane | Dedicated identity, namespace scope by default, exact resources and verbs, no Secret object reads |
-| HTTP service to mounted files | Host paths, symlinks, credential files | Operator-defined roots, canonical path checks, read-only mounts, minimal file permissions |
-| HTTP service to outbound notification destination | DNS, redirects, certificates, response bodies | Destination policy, address checks on every connection, time and size bounds, controlled egress |
-| HTTP service to clients over SSE | Slow readers, reconnect storms, replay requests | Authenticated same-origin streams, bounded queues and replay, connection caps, cancellation |
-| Service worker to browser cache | Private responses and stale application state | Static shell caching only, explicit exclusions, versioned eviction, no private offline data |
-
-Provider output remains untrusted even when it comes from a locally managed daemon or cluster.
-
-## Authentication, sessions, and CSRF
-
-### First-run bootstrap
-
-Initial administrator creation is a security-sensitive state transition:
-
-- network setup is available only while the user table is empty;
-- the empty-state check and first administrator insert occur in one serialized database transaction;
-- exactly one competing request may succeed, and all later requests fail closed;
-- deployments whose listener or public origin is beyond loopback require a
-  canonical unpadded base64url proof of 32 random bytes paired with a canonical
-  UTC expiry no more than one hour in the future;
-- the pair is loaded only from `STACKPLORE_SETUP_BOOTSTRAP_PROOF` and
-  `STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT`; the in-process gate keeps a digest,
-  permits one successful use, and never persists the raw proof;
-- successful setup permanently closes the network bootstrap path;
-- setup attempts are rate-limited and recorded without storing passwords or bootstrap secrets;
-- responses do not disclose more setup state than required by the first-run interface.
-
-This prevents two simultaneous requests from both claiming initial ownership.
-The last enabled administrator cannot be disabled, deleted, or demoted. A local
-operator-only recovery command may reset or create an administrator after
-filesystem-level access; it never reopens network setup, revokes affected
-sessions, and emits a safe recovery record. Exact operation steps are in
-[First-Run Setup and Account Recovery](operations/account-recovery.md).
-
-### Passwords and login
-
-- Passwords are 12 through 128 UTF-8 bytes and are never trimmed or normalized.
-- New records use Argon2id version 19, 65,536 KiB memory, time cost 3,
-  parallelism 1, a 16-byte salt, and a 32-byte result. Records retain their
-  parameters and successful verification can trigger an approved rehash.
-- At most two password hashes run concurrently in one process. The request
-  context bounds queue wait, and verifier inputs have separate defensive
-  parameter ceilings.
-- Login responses are generic for unknown users, wrong passwords, disabled accounts, and invalid sessions.
-- Ten failed logins from one verified source within five minutes block that
-  source for five minutes. Five failures for one canonical account within 15
-  minutes block that account for 15 minutes. Successful login clears both.
-- Five failed current-password checks for one authenticated user within 15
-  minutes block recent authentication for that user for 15 minutes. A
-  successful check clears that user throttle.
-- Five rejected bootstrap proofs from one setup source within 15 minutes block
-  that source for 15 minutes. Throttle keys are keyed digests, expire after one
-  hour, are pruned on later failures, and are capped at 4,096 direct keys per
-  scope plus one fail-closed overflow bucket.
-- Password changes and account recovery rotate or revoke sessions as defined
-  below.
-- There is no default password, shipped credential, or hidden authentication bypass.
-
-### Sessions
-
-- Session tokens contain at least 256 bits of cryptographically secure randomness.
-- Only a keyed or cryptographic hash of each token is stored. A raw token is
-  sent only through `Set-Cookie`, never in a response body; the same token may
-  be repeated when the browser cookie is renewed to a server-confirmed idle
-  deadline.
-- Cookies use `HttpOnly`, `SameSite=Lax`, path `/api/v1`, no broad domain
-  attribute, and `Secure` whenever the configured public origin is HTTPS.
-- Sessions have a 30-minute sliding idle expiry and a 12-hour absolute expiry.
-  The server persists idle activity at most once per minute and renews the
-  browser cookie after authenticated service results, including denied or
-  conflicting protected work that may have touched the session, without
-  extending the absolute bound. The browser hides authenticated state at its
-  last confirmed deadline.
-- Sessions rotate after login, first setup, and self-password change and are
-  revoked on logout.
-- Privilege changes are checked against current server-side state, not only data captured when the session was created.
-- Role and enabled-state changes revoke every session for the affected user.
-- Authentication material is never stored in browser local storage, placed in URLs, or sent in SSE query strings.
-
-### CSRF and origin validation
-
-Every state-changing browser request requires a CSRF token bound to the session
-and a valid same-origin `Origin` check. A missing or invalid `Origin` is
-rejected. `SameSite` cookies are defense in depth, not the sole CSRF control.
-
-Before a session exists, an auth preflight endpoint creates a short-lived
-server-side nonce record, sets an HttpOnly SameSite pre-auth cookie, and returns
-a separate header token bound to that record. Login and first-run setup require
-the cookie, header token, and valid `Origin`, then consume the nonce. Pre-auth
-material grants no account or setup authority, expires after five minutes, and
-is capped at 4,096 live records. The raw cookie and header proofs are distinct,
-one-use, and stored only as keyed digests.
-
-The normal deployment is one origin. Cross-origin credentialed access is disabled unless a future, documented deployment mode defines an exact allowlist and test coverage.
-Every non-loopback production profile requires an HTTPS configured public
-origin and rejects startup otherwise. TLS may terminate at a trusted edge; only
-explicitly configured proxy addresses may supply forwarding headers used to
-recover the original scheme or host.
-
-## Authorization and guarded actions
-
-Authorization is enforced in the service layer for both HTTP and non-HTTP entry points. Hiding a button is not authorization.
-
-Each infrastructure-changing action must:
-
-1. require `STACKPLORE_MUTATIONS_ENABLED=true` from process startup;
-2. require the exact write permission in the active deployment profile;
-3. resolve a valid session, current enabled state, administrator role, and a
-   purpose-bound recent-auth grant;
-4. pass CSRF and same-origin checks;
-5. reject demo deployment mode and synthetic targets;
-6. require the source's exact action capability;
-7. match a typed action and resource-kind allowlist and the expected current
-   provider or resource version;
-8. show an impact preview and consume a short-lived, single-use confirmation
-   bound to actor, source, stable target, action, and material parameters;
-9. use a request-scoped idempotency record for any retryable effect;
-10. durably commit audit intent before contacting the provider, failing closed
-    if that write fails;
-11. apply a deadline, output bound, and cancellation;
-12. record the final outcome, including uncertain timeout, with safe metadata.
-
-Cleanup actions also require an exact preview, an explicit hard confirmation, a backup warning, and bounded selection criteria. Paths, shell fragments, provider arguments, and selectors supplied by a browser must never be passed to a shell.
-
-Read-only provider access is the default. Mutating Docker or Kubernetes access requires a separate, explicit deployment profile and narrower credentials. A denied provider operation remains denied; the service must not retry it with broader credentials.
-
-Recent authentication is also required to create, promote, demote, disable, or
-delete a user; change one's own password; reset another user's password; create,
-change, or delete a provider source; create, change, test, or delete
-notification delivery; export configuration; or run retention cleanup. Each
-route has negative tests for missing, expired, and wrong-user recent-auth proof.
-
-Recent authentication verifies the current password through the normal bounded
-hash path, then stores a short-lived, one-use server-side grant bound to user,
-current session, and exact purpose. The protected operation consumes the grant
-atomically. Session revocation and password, role, or enabled-state changes
-remove every outstanding grant. Tests cover expiry, replay, wrong purpose,
-wrong user, and wrong session. A grant expires after five minutes.
-
-A successful self password change rotates the current session and revokes every
-other session and grant for that user. An administrative reset revokes every
-session and grant for the target user.
-
-V1 authorization is installation-wide. A viewer can read all normalized
-provider data, logs, metrics, and infrastructure events exposed by every
-configured source. Authentication, account, denied-action, configuration, and
-full audit events remain administrator-only and are not copied into the viewer
-timeline. V1 provides no source-level or tenant isolation.
-
-## Demo isolation
-
-Demo mode is an explicit deployment choice, not an authentication shortcut.
-
-- Demo provider results come only from fixed, non-sensitive fixtures.
-- Guest access, if enabled, is read-only and can reach only demo data.
-- All infrastructure mutations are disabled.
-- Live Docker and Kubernetes providers, mounted credentials, all outbound
-  notification delivery, and sensitive exports are unavailable to the guest
-  path.
-- Configuration that combines guest demo access with live provider access fails startup validation.
-- Guest demo deployment uses a separate data root and database marked for the
-  demo fixture version. Startup fails if that database contains non-demo source
-  or history rows; a normal installation database can never be reused.
-- The interface labels simulated state clearly.
-
-Production mode never silently falls back to demo data when a real provider fails.
-
-## Docker boundary
-
-The Docker socket grants control comparable to host administrator access. It must not be mounted directly into an Internet-facing application process.
-
-- Production uses a dedicated authorization proxy that exposes an exact
-  allowlist of required HTTP methods and daemon API paths.
-- The default profile permits only documented read operations.
-- Container creation, execution, file copy, archive extraction, image build, plugin control, swarm control, and unrestricted event or log access are denied unless a later feature has a separate reviewed design.
-- Mutations, if introduced, use a separate opt-in proxy policy and deployment identity.
-- The proxy is isolated on a private network, has no public port, and applies request, response, concurrency, and time limits.
-- Daemon responses are normalized before use; raw JSON, environment arrays, mounts, and labels are not forwarded to the browser.
-- The application does not infer safety from membership in a Docker group.
-
-A direct socket is allowed only in an explicit loopback development profile
-with a host-control warning. A remote TLS target must be mapped by the operator,
-use mutual TLS with hostname and certificate verification, and terminate at an
-authorization layer with an equivalent method-and-path allowlist. Browser input
-cannot supply its address. Production keeps the Docker provider disabled unless
-one of those restricted authorization boundaries exists.
-
-## Kubernetes boundary
-
-Kubernetes access uses a dedicated service account or dedicated kubeconfig identity. Namespace-scoped access is the default.
-
-- RBAC lists exact GA API groups, resources, and verbs where available. The
-  optional read-only `metrics.k8s.io/v1beta1` Resource Metrics API is the sole
-  named pre-GA exception.
-- Read mode uses only required `get`, `list`, and `watch` permissions.
-- Wildcards, privilege escalation, impersonation, token creation, non-resource URL access, and broad cluster-admin bindings are prohibited.
-- Secret objects are never read, listed, or watched.
-- The product may report the name of a referenced Secret only when that reference is already present in a Pod or workload specification; it never resolves or returns the Secret value.
-- Pod execution, attach, port-forward, eviction, proxy, and mutation subresources are absent from the read-only role.
-- Cluster-wide discovery is an explicit operator choice with a separately reviewed role.
-- A permissions error is displayed as a denied or unavailable state and never triggers credential escalation.
-- Kubeconfig sources may use only operator-mapped certificate, key, token-file,
-  and CA-file references inside configured read-only roots.
-- Kubeconfigs containing credential `exec` or auth-provider plug-ins, proxy
-  settings, impersonation, inline credential data, insecure TLS, or
-  outside-root file references are rejected before a client is created.
-
-Provider clients must cap watch buffers, recover from expired resource versions with a bounded relist, stop on request cancellation, and avoid persisting raw API objects.
-
-## Metadata and provider normalization
-
-Infrastructure metadata can contain credentials or attacker-controlled content.
-
-- Provider adapters return typed, normalized domain objects rather than raw provider payloads.
-- Only documented metadata keys are eligible for browser display or storage.
-- Labels and annotations use an explicit allowlist; keys merely absent from a denylist are not safe.
-- Environment variables, command arguments, full mount definitions, auth configuration, managed fields, last-applied configuration, and provider credential fields are excluded.
-- Names, values, collection counts, nesting, and total response sizes are bounded.
-- Text is treated as plain text and encoded by the rendering layer. Provider content is never trusted markup.
-
-Allowlist additions require a security review and leak-focused tests.
-
-## Mounted files and path handling
-
-- Mount roots are chosen by the operator and are read-only by default.
-- The operator maps stable logical identifiers to approved files, environment
-  entries, and remote targets. Clients can select only those identifiers and
-  cannot probe arbitrary host paths or process environment names.
-- Server-side resolution canonicalizes paths, rejects traversal and device paths, resolves symlinks safely, and proves the final target remains within an allowed root.
-- File type, size, permissions, and ownership are checked before use.
-- Credential files are opened only by the provider component that needs them and are never returned, logged, or exposed through download endpoints.
-- New file writes use restrictive permissions, safe temporary files in the destination directory, and atomic replacement where supported.
-- Optional Compose import parses one selected file as inert data. It does not
-  follow includes, `extends`, build contexts, environment files, configs,
-  secrets, referenced files, or host environment interpolation, and it extracts
-  only allowlisted relationship fields.
-
-## Logs and redaction
-
-Application logs are structured and use bounded fixed fields. The Phase 5
-logger redacts sensitive field and group names, replaces raw byte and
-unsupported values, neutralizes control and format characters, bounds text and
-keys, and omits source paths. Request logs use fixed route and method classes;
-configuration failures log the field and rule but never its rejected value.
-Authorization headers, cookies, session tokens, CSRF tokens, passwords,
-bootstrap secrets, provider credentials, webhook signatures, URL user
-information, request bodies, and raw environment data are never logged.
-Request-ID source failure uses one fixed safe fallback, increments a counter for
-every occurrence, and emits only one bounded process log for the repeated
-failure.
-
-Infrastructure logs are hostile input:
-
-- redaction runs before persistence, streaming, search indexing, export, or audit inclusion;
-- each line, event, query, response, and total stream has a size bound;
-- control characters and terminal escape sequences are neutralized for display;
-- sensitive-key patterns and configured secret canaries are removed;
-- truncation is explicit so an operator does not mistake partial output for complete output;
-- correlation identifiers are random, bounded, and non-secret.
-
-Tests must seed recognizable secret canaries across headers, query strings, metadata, provider errors, and log bodies, then prove they do not reach any output sink. Redaction lowers accidental exposure risk; it cannot guarantee detection of every secret embedded in arbitrary text.
-
-## SQLite security and reliability
-
-SQLite stores authentication state, configuration, history, and audit records
-and must be treated as sensitive. Phases 6 and 7 implement these controls:
-
-- one fixed database in a private non-root data directory, with symlink,
-  non-regular-file, multi-link database file, UNC or device path-form, and
-  unsafe POSIX permission rejection; mapped drives and POSIX mount types are
-  not detectable, so the operator must keep the directory on a local
-  filesystem;
-- one exclusive API-process ownership lock and separate shared or exclusive
-  maintenance locking; shared-network filesystems and active-active use are
-  unsupported;
-- checked application identity, a complete checksummed migration ledger,
-  embedded ordered migrations, and database health before readiness;
-- WAL, full synchronous durability, foreign keys on every connection, a bounded
-  busy timeout, short transactions, bounded repository write batches, and
-  parameterized fixed statements;
-- strict tables and explicit indexes for identity, sources, observations,
-  alerts, notifications, and audit records;
-- bounded generic pruning limited to metrics, health history, infrastructure
-  events, and terminal notification deliveries; it cannot delete audit or
-  identity rows;
-- a tested local online-backup command and staged offline restore with full
-  integrity, foreign-key, migration, and restored-credential checks.
-
-The data directory also contains `.stackplore.auth-key`, a 32-byte random key
-used for keyed authentication digests and signed user cursors. Storage creates
-it as a private, regular, single-link file and rechecks its content during
-health probes. A malformed, linked, symlinked, or POSIX-permission-exposed key
-file blocks startup or makes storage not ready; Windows ACL privacy remains an
-operator check. If the file is absent, the next storage open creates a fresh
-key; existing session, pre-authentication,
-recent-auth, throttle, and cursor digests made with the old key become unusable,
-while password hashes remain valid. Replacing a valid key has the same bearer
-state effect and is not a session-preserving repair.
-
-The supported SQLite online backup intentionally contains only the database.
-Restore revokes or deletes active bearer proof state before installation, so a
-database-only restore can keep the target data directory's key or let a fresh
-directory create a new one. Never expose the key, copy one from another live
-installation, or treat it as a substitute for the supported database backup.
-
-Feature phases still own product data-volume quotas, a separate audit retention
-and summary workflow, and disk-space response. Windows
-file mode bits do not prove NTFS ACL privacy; operators must review and restrict
-ACLs. Exact permission and maintenance guidance is in
-[Local SQLite Backup and Restore](operations/backup-restore.md).
-
-Copying a live database file without the SQLite backup mechanism is not a
-supported backup. Encryption at rest is an operator responsibility in the
-initial architecture; use encrypted storage when local-disk disclosure is in
-scope.
-
-## Server-sent events
-
-SSE endpoints use the existing same-origin session and never accept credentials in a URL.
-
-- Authorization is checked before connection and re-evaluated when relevant permissions or sessions change.
-- Per-user, per-source, and global connection limits prevent connection floods.
-- The hub uses bounded event sizes, bounded subscriber queues, and a bounded replay ring.
-- Events carry monotonically usable identifiers. A reconnect outside the replay window receives a reset signal and must fetch a fresh snapshot.
-- Slow clients are dropped or told to resynchronize; they cannot grow server memory without bound.
-- Keepalives, write deadlines, shutdown signals, and request cancellation release resources promptly.
-- The Phase 5 versioned API path buffers its response and has a short total
-  deadline. A stream cannot merely disable that guard; its owning phase must
-  add explicit connection, idle, write, lifetime, concurrency, queue, and byte
-  ceilings first.
-- Responses use `Cache-Control: no-store`, disable intermediary buffering where supported, and are never stored by the service worker.
-- Stream payloads contain normalized, authorized data only.
-
-## Notification egress and SSRF
-
-All outbound notification adapters are disabled until configured by an
-administrator. Webhook and Matrix test and delivery calls use one shared egress
-policy and dialer. Matrix homeserver discovery is disabled in v1; the operator
-maps one exact canonical HTTPS origin, and its token is never sent to another
-origin or across a redirect.
-
-- HTTPS is required by default. Any plain HTTP exception is explicit, narrow, and visibly unsafe.
-- URLs reject embedded credentials, fragments, unsupported schemes, ambiguous host syntax, and unexpected ports.
-- DNS results are checked before every connection. Loopback, link-local, private, multicast, unspecified, reserved, and cloud metadata address ranges are denied for both IPv4 and IPv6.
-- Redirects are disabled by default. If later enabled, every hop repeats the complete URL, DNS, address, and port policy.
-- Connection, TLS, request, and response deadlines are short and bounded.
-- Request bodies, response bodies, headers, retries, and concurrent deliveries are bounded.
-- Hostname validation and certificate verification remain enabled.
-- An operator may allow a private destination only through an exact deployment-level allowlist that ordinary users cannot change.
-- A deployment may enforce these rules again with an outbound proxy or network policy.
-
-Notification payloads contain the minimum event fields and no session,
-provider, or database credentials. Full webhook URLs, Matrix access tokens,
-signing keys, and other credential-bearing values are supplied through
-operator-created secret references. They are rotated outside the browser and
-never returned in full, logged, audited, diagnosed, or exported. The database
-stores only safe adapter metadata, masked reference identifiers, and bounded
-delivery state.
-
-Delivery is at-least-once. A persisted stable delivery identifier, canonical
-payload bytes, and signed idempotency field remain unchanged across webhook
-retries. Matrix uses the stable identifier as its transaction ID. Timeouts are
-recorded as uncertain, and tests prove retry envelopes do not drift.
-
-## Audit trail
-
-Security-relevant events include login, logout, session revocation, setup attempts, account and role changes, configuration changes, provider mutations, denied actions, exports, backups, cleanup, and notification changes.
-
-Audit records include UTC time, actor identifier, request identifier, source,
-action, target, result, and redacted before-and-after summaries. Session
-identifiers, raw tokens, passwords, credentials, arbitrary request bodies, and
-raw logs are excluded.
-
-Audit intent and any related local state change commit in the same database
-transaction before an external effect begins. If that write fails, the
-external action does not run. A separate outcome record follows the external
-effect. Audit access is separately authorized and retention is explicit.
-Generic cleanup cannot remove audit rows. Local records are tamper-evident only
-if a later design adds external sealing; a host administrator can alter a local
-SQLite audit trail, so the product must not call it immutable.
-
-Audit storage has a separate operator-configured quota and retention policy
-with a documented minimum. A dedicated worker prunes only expired rows in
-bounded batches and writes a summary record containing the cutoff and count.
-Generic cleanup cannot invoke or widen this lifecycle.
-
-Generic cleanup can prune only explicitly named retention classes: metric
-samples, health history, infrastructure events, and terminal notification
-deliveries. It cannot delete users, sessions, sources, current settings, or
-audit records. Configuration export is administrator-only,
-requires recent authentication, uses an explicit field allowlist and response
-size cap, sets `Cache-Control: no-store`, records an audit event, masks
-reference identifiers and provider hosts, and excludes every credential value.
-
-A retention decrease that would make stored rows newly eligible for deletion
-is a destructive cleanup, not an ordinary setting update. It requires a count
-and time-range preview, purpose-bound recent authentication, hard confirmation,
-a backup warning, and an audit record before the new cutoff can take effect.
-The same rule applies to the separate audit-retention policy.
-
-## HTTP and browser controls
-
-The Phase 5 service accepts one canonical public origin. A non-loopback
-production listener or origin rejects startup unless that public origin uses
-HTTPS and at least one trusted-proxy network prefix is configured. The origin
-may contain no user information, path, query, fragment, non-canonical host, or
-redundant default port.
-
-Only a direct peer inside an explicit canonical prefix may supply forwarding
-data used for routing or client identity. Forwarding fields from an untrusted
-peer are rejected on every non-operational path and on `/metrics`; the terse
-health and readiness probes do not use forwarding identity. The standardized
-`Forwarded` field is rejected wherever forwarding data is evaluated in Phase
-5. Trusted peers may supply one bounded `X-Forwarded-Proto`, one bounded
-`X-Forwarded-Host`, and an IP-only `X-Forwarded-For` chain of at most 16 hops.
-The service walks that chain from the trusted edge toward the client and
-rejects malformed, ambiguous, or unverified network state. A non-operational
-request through a trusted peer must yield one verified untrusted client from
-that chain. Every `/api/v1` request must also resolve to the exact configured
-public scheme and authority. This is origin and proxy validation, not user
-authorization.
-
-Responses apply route-appropriate controls, including:
-
-- a hash-based Content Security Policy for cacheable application-shell HTML,
-  with no unsafe script execution;
-- `frame-ancestors 'none'`;
-- `X-Content-Type-Options: nosniff`;
-- a strict referrer policy;
-- a minimal Permissions Policy;
-- HTTPS-only Strict Transport Security when the deployment is fully HTTPS;
-- no cache storage for authentication, API, log, metric, audit, export, backup, or stream responses.
-
-Phase 5 applies `Cache-Control: no-store`, a deny-all non-HTML content policy,
-same-origin resource policy, no-referrer policy, frame denial, content-type
-sniffing denial, a minimal permissions policy, and request IDs to every current
-response. It removes server, hop-by-hop, content-length, and CORS response
-fields supplied by handlers. HSTS is emitted only when the configured public
-origin is HTTPS.
-
-Dynamic content is encoded by context. Untrusted HTML is not rendered. Error responses do not expose stack traces, SQL, filesystem paths, provider credentials, or internal request bodies. Server banners and unnecessary diagnostic endpoints are disabled.
-
-`/healthz` and `/readyz` return only terse process state on the public listener.
-Current readiness covers configuration, required local database health, and the
-HTTP lifecycle, not provider health. `GET /api/v1/system/readiness` is reserved
-for an enabled administrator. A missing or expired session receives `401`, a
-current non-administrator receives `403`, and an administrator receives the
-bounded detailed result. Outer origin, request, concurrency, and rate gates
-still run first. No header, query value, proxy assertion, or environment
-setting bypasses the session and live role check.
-
-`/metrics` requires the exact configured public scheme and authority plus a
-verified client IP in an explicit network allowlist. Its default is IPv4 and
-IPv6 loopback; denied clients receive a plain `404`. Phase 5 has no
-operational-account alternative. Metric names and labels never contain client,
-user, source, provider-native, resource, log, or other infrastructure
-identifiers. Only fixed route, method, and status classes are used.
-
-All requests have server read, write, and idle timeouts plus an accepted-socket
-ceiling. Every non-operational path has a capped per-client token bucket.
-Versioned API requests additionally have one total request deadline, a declared
-body-length precheck, capped handler body reads, bounded buffered responses, and
-a fixed in-flight ceiling. Their panic, timeout, cancellation, overflow, and
-overload paths replace any partial result with one safe bounded problem.
-
-## PWA cache boundary
-
-The service worker may cache only the versioned application shell and immutable
-public static assets. Cacheable shell HTML uses a static hash-based CSP. Any
-HTML that carries a response nonce or personalized boot data is `no-store` and
-network-only; a nonce-bearing response is never cached or replayed.
-
-- `/api/`, authentication paths, SSE, logs, metrics, audit data, exports, and any personalized response are always network-only and never cached.
-- Offline screens contain no previously viewed private data.
-- Service-worker upgrades remove obsolete named caches.
-- Logout clears application-owned transient state and any cache that could contain user-specific data.
-- A failed API request is shown as unavailable; it is not replaced with an old private response.
-
-## Supply-chain and build controls
-
-- Runtime and build dependencies use exact versions in committed lock and checksum files.
-- Dependencies come from official registries or explicitly reviewed sources.
-- New dependencies require purpose, maintenance, license, and vulnerability review.
-- Automated checks cover known vulnerabilities, license policy, secret leakage, and static analysis.
-- Build jobs use minimal permissions, isolated credentials, and pinned third-party task revisions.
-- Release artifacts include a software bill of materials and provenance when the release process is introduced.
-- Container images use a minimal pinned base, a non-root runtime user, read-only filesystems where practical, and no build-time secrets.
-- Deployment manifests use immutable image digests for releases.
-- Compose drops all Linux capabilities, sets no-new-privileges, uses the runtime
-  default seccomp profile, and adds only reviewed writable mounts or temporary
-  filesystems.
-- Kubernetes containers set `runAsNonRoot`, disallow privilege escalation, drop
-  all capabilities, use `RuntimeDefault` seccomp, and keep the root filesystem
-  read-only.
-- Kubernetes disables service-account token automount unless the explicit
-  in-cluster provider profile requires its dedicated least-privilege identity.
-
-No signature, provenance, scan, or audit claim is made until the corresponding release evidence exists.
-
-## Backup, restore, and incident limits
-
-V1 exposes no browser or HTTP backup or restore path. Phase 6 implements a local
-operator-only command that uses the SQLite online-backup mechanism, requires a
-new absolute destination in a private local parent, and emits no database
-contents to standard output. Restore requires the API to be offline and an
-absolute private local source. It validates and stages the candidate, applies
-known missing migrations, checks integrity and foreign keys, and revokes all
-restored sessions before installation. Durable markers make service startup and
-backup fail closed after an interrupted restore until recovery finishes.
-
-The application does not encrypt backup artifacts or prove Windows ACL
-privacy. Operators supply encryption and access control, preserve a corrupt
-database with its complete WAL sidecar set, and rerun the same restore command
-after interruption rather than deleting recovery files. The exact procedure is
-[Local SQLite Backup and Restore](operations/backup-restore.md).
-
-An incident runbook should cover:
-
-1. isolate the affected service and preserve relevant evidence;
-2. revoke sessions and bootstrap material;
-3. rotate database, provider, webhook, deployment, and signing credentials that may be exposed;
-4. inspect host, proxy, provider, audit, and deployment logs;
-5. restore from a verified clean backup if integrity is uncertain;
-6. validate provider permissions and application state before reopening access;
-7. document impact and notify affected parties as required.
-
-The initial architecture does not provide hardware-backed key storage, database encryption, high availability, remote tamper-resistant audit storage, automatic credential rotation, or disaster-recovery guarantees. Operators must supply these controls when their threat model requires them.
-
-## Review gate
-
-A feature does not pass security review until it has:
-
-- a named trust boundary and minimum required privilege;
-- positive and negative authorization tests;
-- input, output, time, memory, and concurrency bounds;
-- redaction and secret-canary tests where data can leave the service;
-- failure behavior that is visible and closed by default;
-- updated threat notes, deployment permissions, and operator guidance.
+```text
+Untrusted browser/input
+  -> public web edge
+  -> same-origin Go API
+  -> local policy and provider adapters
+  -> PostgreSQL / external infrastructure APIs
+
+Operator terminal
+  -> offline recovery and storage commands
+  -> PostgreSQL and local digest-key directory
+```
+
+The browser, proxy headers, provider payloads, resource names, log lines, event summaries, cursor values, and database contents after an uncontrolled restore are untrusted. A host or cluster administrator can replace binaries, read process memory, alter mounted files, reach provider sockets, and modify database traffic. Application controls cannot make a compromised host trustworthy.
+
+## Authentication
+
+- There is no default account or password.
+- Passwords use Argon2id with versioned parameters and random salts.
+- Session, pre-auth, CSRF, and recent-auth values are random opaque tokens. PostgreSQL stores keyed digests, not usable bearer values.
+- Session cookies are host-only, `HttpOnly`, `SameSite=Lax`, scoped to `/api/v1`, and `Secure` on HTTPS.
+- Every authenticated request resolves the current enabled user and current installation-wide role.
+- Unsafe browser requests require the exact public origin and a session-bound CSRF proof.
+- First setup is transactional and closes permanently. A non-loopback empty install needs a short-lived one-use operator bootstrap proof.
+- High-risk account changes require the current password and a one-use recent-auth proof bound to the exact operation.
+- Administrator recovery is an offline operator command. It takes the shared maintenance lock, reads the new password from standard input, advances authorization state, and revokes sessions and grants.
+
+Sign-in and setup errors stay deliberately coarse. Rate limits cover source and account scopes without revealing whether an account exists.
+
+## HTTP boundary
+
+The API enforces:
+
+- canonical public origin and explicit proxy CIDR trust;
+- replacement of invalid caller request IDs;
+- bounded headers, request bodies, responses, connections, concurrent requests, and deadlines;
+- strict methods, media types, query keys, path IDs, and closed JSON shapes;
+- per-client token-bucket limits with bounded client state;
+- fixed security headers and safe problem responses;
+- structured access logs without cookies, authorization data, request bodies, provider payloads, database URLs, or proof values.
+
+`/healthz` is public process liveness. `/readyz` reports coarse readiness. Detailed readiness is administrator-only. `/metrics` needs both the exact public origin and an allowed client network.
+
+## Provider boundary
+
+Provider credentials must remain server-side. Adapters must use least-privilege read-only access by default and drop secret-bearing fields before constructing domain values. Raw payloads, environment values, mounted secret values, Kubernetes Secret data, registry credentials, auth headers, and Docker configuration blobs must never enter public responses, logs, events, topology evidence, or search indexes.
+
+Every capability is explicit. Unsupported, denied, unavailable, stale, and partial results stay different through provider, domain, API, and UI layers. Synthetic results carry a marker. The product must not fill missing real data with demo data.
+
+Docker socket access is effectively host-root access. A production Docker adapter should prefer a narrowly scoped proxy or remote read-only API and must document remaining authority. Kubernetes credentials should use a dedicated ServiceAccount and the smallest resource/verb/namespace set needed for enabled capabilities. Secret read permission is not needed for the planned default feature set.
+
+Docker and Kubernetes read adapters are wired behind operator flags. The Docker direct socket profile is restricted to loopback development; production support waits for the narrow proxy design. Kubernetes currently requires explicit cluster observation rights, and its chart defaults off. Persistent source/credential workflows and namespace-scoped fidelity remain open.
+
+## PostgreSQL
+
+Production requires an explicit PostgreSQL URL with `sslmode=verify-full`. The database role should own only the Stackplore database/schema and should not have cluster administration, replication, role creation, or unrelated database access.
+
+Startup validates pool and deadline bounds, acquires ownership before migrations, applies forward migrations under a separate advisory lock and verifies the immutable ledger. Dedicated ownership-session checks seal the runtime on loss. Queries and whole transactions have deadlines. Auth mutations serialize through a common transaction lock before current actor/target/final-admin checks. Notification inserts and high-water scans share a commit-order lock. Queries are parameterized.
+
+The local digest key is separate from PostgreSQL. A database-only attacker should not be able to turn stored browser digests into bearer tokens. The key directory must be private, persistent, backed up separately when recovery policy requires session continuity, and never placed in the database backup artifact.
+
+The current live server wires PostgreSQL authentication, product history, alert evaluation and management, in-app notifications, audit reads, and an opt-in generic webhook worker. Webhook URL and signing material come only from operator configuration, stay redacted in formatted settings, and are never returned through browser APIs. Local tests do not prove a real receiver or target network.
+
+## Backup and restore
+
+Backup uses custom-format `pg_dump` to a temporary file, validates it with `pg_restore --list`, then publishes it by atomic rename. Password material uses the child environment, not command arguments.
+
+Restore accepts an empty target only, uses one transaction, and verifies the exact migration ledger after import. Finalization advances restore generation and removes all sessions and pre-auth challenges. A successful command still needs target readiness, sign-in, data sampling, and rollback checks.
+
+Backup files contain sensitive application state. Encrypt them at rest, restrict access, define retention, test restore, and record custody. See [backup/restore](operations/backup-restore.md).
+
+## Deployment
+
+The API and web images run as non-root and drop Linux capabilities. The local web container has a read-only root filesystem and bounded temporary filesystems. Compose binds only the edge to host loopback and preserves PostgreSQL and runtime-key named volumes.
+
+The cluster chart uses restricted pod security contexts, read-only roots, probes, resource bounds, an external PostgreSQL Secret, TLS ingress support, and one API replica with persistent runtime-key storage. Use registry-enforced immutable tags in current chart values. Digest fields and release artifact verification remain stage8 work; the current chart appends a tag.
+
+Proxy CIDRs must name only the actual edge network. Broad defaults in example values must be narrowed for the target. An ingress or service mesh must preserve the exact scheme and host used by `STACKPLORE_PUBLIC_ORIGIN`.
+
+Local Helm lint and default/setup/cluster-observation/ingress/annotation renders have direct proof. Local real PostgreSQL integration and native empty-target restore have direct proof. Image/Compose runs, cluster installation/policy, browser and target TLS/database proof remain separate gates.
+
+## Logs, metrics, and retained data
+
+Logs are potentially sensitive even after provider fields are filtered. Bound line bytes, page bytes, time windows, stream buffers, and retention. Treat log search as exact user input, not an expression language. Escape display output and isolate technical text in RTL.
+
+Metric values must be finite, non-negative, correctly unit-tagged, and bounded to safe integers where required. Events and topology evidence need stable IDs, source ownership, normalized reason codes, safe text, deterministic order, and explicit provenance.
+
+A bounded PostgreSQL prune method covers named non-audit history classes. A scheduled retention worker, quota settings and the separately audited audit lifecycle remain unimplemented. Operators must not assume a helper or table schema performs automatic cleanup.
+
+## Guarded operations
+
+Read-only behavior is the current product default. A future infrastructure mutation may ship only when all are true:
+
+- the provider reports the exact operation as supported;
+- the current user is an administrator;
+- recent authentication is valid for that purpose;
+- the UI displays the exact target, effect, and risk and requires explicit confirmation;
+- the request has an idempotency key and bounded deadline;
+- the adapter verifies the result and maps partial/unknown outcomes honestly;
+- an immutable audit entry records actor, target, request ID, reason, and outcome without secret values.
+
+No generic shell, arbitrary manifest apply, SQL console, or free-form provider request belongs in version 1.
+
+## Supply chain
+
+Tool and package versions are locked. CI uses a frozen pnpm lock, the Go checksum file, contract drift checks, tests, builds, PostgreSQL integration, image builds, Compose validation, and chart lint. Release work should also pin action revisions and image digests, generate an SBOM, scan dependencies and images, sign artifacts, and verify provenance before promotion.
+
+CI configuration is not evidence until a trusted run passes. A clean source scan does not prove secret rotation or incident closure.
+
+## Known gaps
+
+- Production restricted Docker access, namespace-scoped Kubernetes/partial-permission fidelity and persistent least-privilege connection flows
+- encrypted provider credential persistence and rotation
+- persistent discovery/observation/retention scheduling and quotas
+- correct historical alert windows, connection-loss/event evidence, durable alert streams and real receiver proof
+- guarded infrastructure operations
+- target production PostgreSQL/restore/TLS, Compose, cluster, browser, accessibility and performance proof
+
+These gaps block a 1.0 production-ready claim.

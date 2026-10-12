@@ -5,7 +5,7 @@ rules apply to application code, deployment files, tests, and documentation.
 
 ## 1. Change scope
 
-- One numbered delivery phase maps to one coherent commit.
+- One versioned roadmap stage maps to one coherent reviewed commit.
 - Do not mix refactors, dependency updates, and feature work unless the current
   phase requires all of them.
 - Preserve unrelated work in the worktree.

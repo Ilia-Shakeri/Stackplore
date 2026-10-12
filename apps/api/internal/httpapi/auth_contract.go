@@ -23,6 +23,8 @@ type authenticationBoundary interface {
 	Setup(context.Context, auth.SetupInput) (auth.SessionIssue, error)
 	Login(context.Context, auth.LoginInput) (auth.SessionIssue, error)
 	Authenticate(context.Context, string) (auth.Authentication, error)
+	AuthorizeUnsafe(context.Context, string, string) (auth.Authentication, error)
+	AuthorizeRecent(context.Context, auth.RecentAuthorizationInput) (auth.Authentication, error)
 	Logout(context.Context, auth.LogoutInput) error
 	CreateRecentGrant(context.Context, auth.RecentAuthInput) (auth.RecentGrantIssue, error)
 	ChangeOwnPassword(context.Context, auth.OwnPasswordChangeInput) (auth.SessionIssue, error)

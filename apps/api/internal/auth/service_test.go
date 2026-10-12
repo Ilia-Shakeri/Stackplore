@@ -284,6 +284,28 @@ func TestServiceCreatesPurposeBoundRecentGrantAndEnforcesRole(t *testing.T) {
 	}
 }
 
+func TestServiceConsumesNotificationTestGrantOnce(t *testing.T) {
+	fixture := setupServiceFixture(t)
+	administrator := fixture.login(t, "request_notification_test_login")
+	grant := fixture.recentGrant(
+		t, administrator, RecentAuthPurposeNotificationTest, "request_notification_test_grant",
+	)
+	input := RecentAuthorizationInput{
+		SessionToken: encodeTestToken(t, administrator.Token),
+		CSRFProof:    encodeTestToken(t, administrator.Context.CSRFProof),
+		RecentProof:  encodeTestToken(t, grant.Proof), Purpose: RecentAuthPurposeNotificationTest,
+		RequestID: "request_notification_test_authorize",
+	}
+	authorized, err := fixture.service.AuthorizeRecent(fixture.ctx, input)
+	if err != nil || authorized.Principal.Role != RoleAdministrator {
+		t.Fatalf("AuthorizeRecent() = (%#v, %v)", authorized, err)
+	}
+	input.RequestID = "request_notification_test_replay"
+	if _, err := fixture.service.AuthorizeRecent(fixture.ctx, input); !errors.Is(err, ErrAuthorizationDenied) {
+		t.Fatalf("AuthorizeRecent(replay) error = %v", err)
+	}
+}
+
 func TestServiceEnforcesRecentGrantPasswordPurposeSessionExpiryAndReplay(t *testing.T) {
 	fixture := setupServiceFixture(t)
 	administrator := fixture.login(t, "request_recent_rules_login")
@@ -988,6 +1010,16 @@ func (repository *fakeAuthRepository) CommitRecentAuthFailure(_ context.Context,
 	defer repository.mu.Unlock()
 	if commit.Throttle != nil {
 		repository.recordThrottle(*commit.Throttle)
+	}
+	repository.audits = append(repository.audits, commit.Audit)
+	return nil
+}
+
+func (repository *fakeAuthRepository) CommitRecentAuthorization(_ context.Context, commit RecentAuthorizationCommit) error {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	if commit.Actor.Role != RoleAdministrator || !repository.consumeGrant(commit.Grant) {
+		return ErrAuthRepositoryRejected
 	}
 	repository.audits = append(repository.audits, commit.Audit)
 	return nil

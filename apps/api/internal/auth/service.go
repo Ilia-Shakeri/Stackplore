@@ -149,6 +149,14 @@ type RecentAuthInput struct {
 	RequestID       domain.RequestID
 }
 
+type RecentAuthorizationInput struct {
+	SessionToken string
+	CSRFProof    string
+	RecentProof  string
+	Purpose      RecentAuthPurpose
+	RequestID    domain.RequestID
+}
+
 type AuthenticatedReadInput struct {
 	SessionToken string
 }
@@ -676,6 +684,41 @@ func (service *Service) CreateRecentGrant(ctx context.Context, input RecentAuthI
 	return RecentGrantIssue{Proof: proof, Purpose: input.Purpose, ExpiresAt: expiresAt}, nil
 }
 
+func (service *Service) AuthorizeRecent(ctx context.Context, input RecentAuthorizationInput) (Authentication, error) {
+	if input.Purpose.Validate() != nil || input.RequestID.Validate() != nil {
+		return Authentication{}, ErrInvalidServiceInput
+	}
+	authentication, err := service.authenticateAdministrator(ctx, input.SessionToken, input.CSRFProof)
+	if err != nil {
+		return Authentication{}, err
+	}
+	now, err := service.currentTime()
+	if err != nil {
+		return Authentication{}, err
+	}
+	grant, err := service.recentGrantUse(authentication.Principal, input.Purpose, input.RecentProof, now)
+	if err != nil {
+		return Authentication{}, err
+	}
+	audit, err := service.newAudit(
+		domain.AuditActor{Kind: domain.AuditActorUser, ID: string(authentication.User.ID)},
+		"auth.recent_grant_use", "auth.account", string(authentication.User.ID), domain.AuditSuccess,
+		input.RequestID, "auth.recent_grant_consumed", now,
+	)
+	if err != nil {
+		return Authentication{}, err
+	}
+	commit := RecentAuthorizationCommit{Actor: authentication.Principal, Grant: grant, Audit: audit}
+	repository, ok := service.repository.(RecentAuthorizationRepository)
+	if !ok {
+		return Authentication{}, ErrAuthUnavailable
+	}
+	if err := repository.CommitRecentAuthorization(ctx, commit); err != nil {
+		return Authentication{}, mapMutationError(err)
+	}
+	return authentication, nil
+}
+
 func (service *Service) ChangeOwnPassword(ctx context.Context, input OwnPasswordChangeInput) (SessionIssue, error) {
 	if input.RequestID.Validate() != nil || !validPassword(input.NewPassword) {
 		return SessionIssue{}, ErrInvalidServiceInput
@@ -1143,6 +1186,10 @@ func (service *Service) authenticateUnsafe(ctx context.Context, sessionToken str
 		return Authentication{}, ErrCSRFRejected
 	}
 	return authentication, nil
+}
+
+func (service *Service) AuthorizeUnsafe(ctx context.Context, sessionToken string, csrfProof string) (Authentication, error) {
+	return service.authenticateUnsafe(ctx, sessionToken, csrfProof)
 }
 
 func (service *Service) parsePreauth(cookieEncoded string, proofEncoded string, purpose PreauthPurpose, consumedAt time.Time) (PreauthUse, error) {

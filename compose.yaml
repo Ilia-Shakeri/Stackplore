@@ -1,0 +1,107 @@
+name: stackplore
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: stackplore
+      POSTGRES_USER: stackplore
+      POSTGRES_PASSWORD: ${STACKPLORE_COMPOSE_DATABASE_PASSWORD:?set STACKPLORE_COMPOSE_DATABASE_PASSWORD}
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U stackplore -d stackplore]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    volumes:
+      - stackplore-postgres:/var/lib/postgresql/data
+    networks:
+      stackplore:
+        ipv4_address: 172.30.0.10
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=0700,uid=10001,gid=10001
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      STACKPLORE_ENVIRONMENT: development
+      STACKPLORE_HTTP_ADDRESS: 0.0.0.0:8080
+      STACKPLORE_PUBLIC_ORIGIN: http://localhost:${STACKPLORE_COMPOSE_PORT:-8080}
+      STACKPLORE_TRUSTED_PROXY_PREFIXES: 172.30.0.0/24
+      STACKPLORE_METRICS_ALLOWED_PREFIXES: 172.30.0.0/24
+      STACKPLORE_DATA_DIRECTORY: /var/lib/stackplore
+      STACKPLORE_DATABASE_URL: ${STACKPLORE_COMPOSE_DATABASE_URL:?set STACKPLORE_COMPOSE_DATABASE_URL}
+      # Unset values stay absent; first install supplies both through the operator environment.
+      STACKPLORE_SETUP_BOOTSTRAP_PROOF:
+      STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT:
+      STACKPLORE_LOG_FORMAT: json
+      STACKPLORE_DOCKER_ENABLED: 'false'
+      STACKPLORE_KUBERNETES_ENABLED: 'false'
+      STACKPLORE_WEBHOOK_ENABLED: ${STACKPLORE_WEBHOOK_ENABLED:-false}
+      STACKPLORE_WEBHOOK_DESTINATION_REFERENCE_ID: ${STACKPLORE_WEBHOOK_DESTINATION_REFERENCE_ID:-}
+      STACKPLORE_WEBHOOK_URL: ${STACKPLORE_WEBHOOK_URL:-}
+      STACKPLORE_WEBHOOK_SIGNING_KEY: ${STACKPLORE_WEBHOOK_SIGNING_KEY:-}
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:8080/readyz]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 15s
+    volumes:
+      - stackplore-runtime:/var/lib/stackplore
+    networks:
+      stackplore:
+        ipv4_address: 172.30.0.20
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:${STACKPLORE_COMPOSE_PORT:-8080}:8080
+    networks:
+      stackplore:
+        ipv4_address: 172.30.0.30
+    read_only: true
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    tmpfs:
+      - /var/cache/nginx:size=16m,mode=0755,uid=101,gid=101
+      - /var/run:size=1m,mode=0755,uid=101,gid=101
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+networks:
+  stackplore:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  stackplore-postgres:
+  stackplore-runtime:

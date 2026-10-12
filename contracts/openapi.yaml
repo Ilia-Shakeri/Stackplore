@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.0.0
+  version: 0.1.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -722,6 +722,987 @@ paths:
           $ref: '#/components/responses/InternalProblem'
         '503':
           $ref: '#/components/responses/ServiceUnavailableProblem'
+  /sources:
+    get:
+      operationId: listSources
+      summary: List configured infrastructure sources
+      description: Returns safe bounded source summaries for any authenticated local user.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Bounded source summaries.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 64
+                items:
+                  $ref: '#/components/schemas/SourceSummary'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /environments:
+    get:
+      operationId: listEnvironments
+      summary: List normalized environments
+      description: Returns one cursor-bound page of safe provider-neutral environment summaries.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 1024
+            pattern: ^[A-Za-z0-9_-]+$
+      responses:
+        '200':
+          description: One bounded normalized environment page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductEnvironmentPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /resources:
+    get:
+      operationId: listResources
+      summary: List normalized resources
+      description: Returns one cursor-bound page of safe provider-neutral resource summaries.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+        - name: kind
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProductResourceKind'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 1024
+            pattern: ^[A-Za-z0-9_-]+$
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [name, kind, observed_at]
+            default: name
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: One bounded normalized resource page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResourcePage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /resources/{resource_id}:
+    get:
+      operationId: getResource
+      summary: Read one normalized resource
+      description: Returns one safe provider-neutral resource and its current health state.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+      responses:
+        '200':
+          description: Resource detail with current health.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResource'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /resources/{resource_id}/health:
+    get:
+      operationId: getResourceHealth
+      summary: Read current normalized resource health
+      description: Returns current bounded health and normalized reason codes for one resource.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+      responses:
+        '200':
+          description: Current health and safe reason codes.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResourceHealth'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /topology:
+    get:
+      operationId: getProductTopology
+      summary: Read normalized infrastructure relationships
+      description: Returns one cursor-bound page of observed source-to-target relationships.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/ProductResourceFilter'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: One bounded relationship page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductRelationshipPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /logs:
+    get:
+      operationId: listProductLogs
+      summary: Read normalized infrastructure logs
+      description: Returns one cursor-bound page with bounded line and response sizes.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/ProductResourceFilter'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: One bounded log page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductLogPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /metrics/current:
+    get:
+      operationId: getProductMetrics
+      summary: Read current normalized resource metrics
+      description: Returns the fixed current CPU, memory, and restart metric set.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/ProductResourceFilter'
+      responses:
+        '200':
+          description: Current bounded metric samples.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductMetricResult'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /metrics/history:
+    get:
+      operationId: getProductMetricHistory
+      summary: Read bounded normalized metric history
+      description: Returns a server-reduced time series with explicit completeness.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/ProductResourceFilter'
+        - name: minutes
+          in: query
+          schema:
+            type: integer
+            minimum: 5
+            maximum: 43200
+            default: 60
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 200
+      responses:
+        '200':
+          description: Bounded metric history in ascending sample order.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductMetricHistoryResult'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /events:
+    get:
+      operationId: listProductEvents
+      summary: Read normalized infrastructure events
+      description: Returns one cursor-bound page in descending occurrence order.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/ProductResourceFilter'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: One bounded event page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductEventPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /alerts:
+    get:
+      operationId: listProductAlerts
+      summary: Read current normalized alerts
+      description: Returns the bounded local alert state, including clear synthetic markers.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Current bounded alert page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductAlertPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /alerts/{alert_id}/acknowledge:
+    post:
+      operationId: acknowledgeProductAlert
+      summary: Acknowledge one firing alert
+      description: Atomically changes one persisted firing alert to acknowledged and writes its transition and administrator audit event.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - name: alert_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AlertId'
+      responses:
+        '200':
+          description: Alert acknowledged.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductAlert'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /alert-rules:
+    get:
+      operationId: listAlertRules
+      summary: List alert rules
+      description: Returns an administrator-only newest-first page of persisted alert rules.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: One bounded alert-rule page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRulePage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+    post:
+      operationId: createAlertRule
+      summary: Create an alert rule
+      description: Creates one validated rule and atomically writes its administrator audit event.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertRuleInput'
+      responses:
+        '201':
+          description: Alert rule created.
+          headers:
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRuleRecord'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /alert-rules/{rule_id}:
+    put:
+      operationId: replaceAlertRule
+      summary: Replace an alert rule
+      description: Replaces one rule at its expected version and atomically writes its audit event.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IfMatch'
+        - name: rule_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AlertRuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertRuleInput'
+      responses:
+        '200':
+          description: Alert rule replaced.
+          headers:
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRuleRecord'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+    delete:
+      operationId: deleteAlertRule
+      summary: Delete an alert rule
+      description: Deletes one rule at its expected version and atomically writes its audit event.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IfMatch'
+        - name: rule_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AlertRuleId'
+      responses:
+        '204':
+          description: Alert rule deleted.
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /notifications:
+    get:
+      operationId: listNotifications
+      summary: Read in-application notifications
+      description: Returns a newest-first bounded notification page with safe alert and resource links.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Current bounded notification page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductNotificationPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /settings/notifications:
+    get:
+      operationId: getNotificationSettings
+      summary: Read outbound notification status
+      description: >-
+        Returns administrator-only generic webhook status and its operator-owned destination
+        reference. Full URLs, signing keys, and credential material are never returned.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Current secret-free outbound notification status.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettingsStatus'
+              examples:
+                configured:
+                  value:
+                    adapter: generic_webhook
+                    enabled: true
+                    destination_reference_id: webhook_primary
+                    configuration_source: operator_environment
+                    delivery_semantics: at_least_once
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /settings/notifications/test:
+    post:
+      operationId: testNotificationDelivery
+      summary: Queue one generic webhook test
+      description: >-
+        Consumes a notification.test recent-authentication proof and atomically stores one
+        audit intent, test notification, and single-attempt webhook delivery. The response
+        exposes no destination URL or signing key.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '202':
+          description: Test delivery durably queued.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /audit:
+    get:
+      operationId: listAuditEntries
+      summary: Read protected audit history
+      description: Returns a newest-first, administrator-only page of safe audit facts. Session data and credential material never appear.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Current bounded audit page.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductAuditPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /streams/health:
+    get:
+      operationId: streamProductHealth
+      summary: Stream bounded health snapshots
+      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/LastEventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProductEventStream'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /streams/metrics:
+    get:
+      operationId: streamProductMetrics
+      summary: Stream bounded current metric snapshots
+      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/LastEventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProductEventStream'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /streams/events:
+    get:
+      operationId: streamProductEvents
+      summary: Stream bounded event snapshots
+      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/LastEventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProductEventStream'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /streams/logs:
+    get:
+      operationId: streamProductLogs
+      summary: Stream bounded log snapshots
+      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/LastEventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProductEventStream'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /streams/alerts:
+    get:
+      operationId: streamProductAlerts
+      summary: Stream bounded alert snapshots
+      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/LastEventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProductEventStream'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
   /system/readiness:
     get:
       operationId: getSystemReadiness
@@ -986,6 +1967,7 @@ components:
         - user.delete
         - user.password_reset
         - user.sessions_revoke
+        - notification.test
     RecentAuthRequest:
       type: object
       description: Current-password proof request for one exact high-risk purpose.
@@ -1121,6 +2103,752 @@ components:
           const: service
         state:
           $ref: '#/components/schemas/ReadinessState'
+    ProductResourceKind:
+      type: string
+      minLength: 3
+      maxLength: 96
+      pattern: ^[a-z][a-z0-9_-]*(\.[a-z][a-z0-9_-]*)+$
+    HealthSummary:
+      type: object
+      additionalProperties: false
+      required: [healthy, degraded, unhealthy, unknown]
+      properties:
+        healthy:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        degraded:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        unhealthy:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        unknown:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+    SourceSummary:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          provider,
+          name,
+          synthetic,
+          observed_at,
+          availability,
+          completeness,
+          resource_count,
+          health,
+        ]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        provider:
+          type: string
+          enum: [demo, docker, kubernetes]
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        synthetic:
+          type: boolean
+        fixture_version:
+          type: string
+          minLength: 1
+          maxLength: 64
+        observed_at:
+          type: string
+          format: date-time
+          maxLength: 35
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        resource_count:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        health:
+          $ref: '#/components/schemas/HealthSummary'
+    ProductEnvironment:
+      type: object
+      additionalProperties: false
+      required: [id, source_id, provider, name, availability, completeness, observed_at, synthetic]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        source_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        provider:
+          type: string
+          enum: [demo, docker, kubernetes]
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          type: string
+          format: date-time
+          maxLength: 35
+        synthetic:
+          type: boolean
+    ProductEnvironmentPage:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items, page]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductEnvironment'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ProductResource:
+      type: object
+      additionalProperties: false
+      required:
+        [id, provider, source_id, environment_id, kind, scope_kind, name, synthetic, observed_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/ResourceId'
+        provider:
+          type: string
+          enum: [demo, docker, kubernetes]
+        source_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        environment_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        kind:
+          $ref: '#/components/schemas/ProductResourceKind'
+        scope_kind:
+          type: string
+          enum: [global, project, namespace]
+        scope_name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        synthetic:
+          type: boolean
+        observed_at:
+          type: string
+          format: date-time
+          maxLength: 35
+        health:
+          $ref: '#/components/schemas/HealthState'
+    ProductResourcePage:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items, page]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductResource'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ProductResourceHealth:
+      type: object
+      additionalProperties: false
+      required: [resource_id, state, observed_at, synthetic, reason_codes]
+      properties:
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          $ref: '#/components/schemas/HealthState'
+        observed_at:
+          type: string
+          format: date-time
+          maxLength: 35
+        synthetic:
+          type: boolean
+        reason_codes:
+          type: array
+          maxItems: 32
+          items:
+            type: string
+            minLength: 3
+            maxLength: 96
+            pattern: ^[a-z][a-z0-9_-]*(\.[a-z][a-z0-9_-]*)+$
+    ProductRelationship:
+      type: object
+      additionalProperties: false
+      required: [id, from, to, kind, direction, observed_at, synthetic, confidence]
+      properties:
+        id:
+          $ref: '#/components/schemas/RelationshipId'
+        from:
+          $ref: '#/components/schemas/ResourceId'
+        to:
+          $ref: '#/components/schemas/ResourceId'
+        kind:
+          type: string
+          enum: [owns, selects, routes_to, depends_on, mounts, references, member_of]
+        direction:
+          type: string
+          enum: [source_to_target, bidirectional, undirected]
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        synthetic:
+          type: boolean
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    ProductRelationshipPage:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items, page]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductRelationship'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ProductLogRecord:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          resource_id,
+          stream,
+          sequence,
+          severity,
+          timestamp,
+          message,
+          redacted,
+          truncated,
+          synthetic,
+        ]
+      properties:
+        id:
+          $ref: '#/components/schemas/LogEntryId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        stream:
+          type: string
+          enum: [stdout, stderr, system, unknown]
+        sequence:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        severity:
+          type: string
+          enum: [trace, debug, info, warning, error, critical, unknown]
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+        message:
+          type: string
+          maxLength: 65536
+        redacted:
+          type: boolean
+        truncated:
+          type: boolean
+        synthetic:
+          type: boolean
+    ProductLogPage:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items, page]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductLogRecord'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ProductMetricSample:
+      type: object
+      additionalProperties: false
+      required: [id, resource_id, name, unit, value, sampled_at, interval_seconds, synthetic]
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricSampleId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        name:
+          $ref: '#/components/schemas/MetricName'
+        unit:
+          $ref: '#/components/schemas/MetricUnit'
+        value:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        sampled_at:
+          $ref: '#/components/schemas/Timestamp'
+        interval_seconds:
+          type: integer
+          minimum: 0
+          maximum: 86400
+        synthetic:
+          type: boolean
+    ProductMetricResult:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductMetricSample'
+    ProductMetricHistoryResult:
+      type: object
+      additionalProperties: false
+      required: [availability, observed_at, completeness, items]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductMetricSample'
+    ProductEvent:
+      type: object
+      additionalProperties: false
+      required: [id, kind, severity, reason_code, summary, occurred_at, observed_at, synthetic]
+      properties:
+        id:
+          $ref: '#/components/schemas/EventId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        kind:
+          $ref: '#/components/schemas/NamespacedCode'
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        summary:
+          type: string
+          maxLength: 8192
+        occurred_at:
+          $ref: '#/components/schemas/Timestamp'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        synthetic:
+          type: boolean
+    ProductEventPage:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items, page]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductEvent'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ProductAlert:
+      type: object
+      additionalProperties: false
+      required: [id, rule_id, state, severity, summary_code, started_at, updated_at, synthetic]
+      properties:
+        id:
+          $ref: '#/components/schemas/AlertId'
+        rule_id:
+          $ref: '#/components/schemas/AlertRuleId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        state:
+          $ref: '#/components/schemas/AlertState'
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        started_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        acknowledged_at:
+          $ref: '#/components/schemas/Timestamp'
+        resolved_at:
+          $ref: '#/components/schemas/Timestamp'
+        synthetic:
+          type: boolean
+    ProductAlertPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductAlert'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    AlertRuleInput:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          source_id,
+          display_name,
+          kind,
+          enabled,
+          severity,
+          evaluation_interval_seconds,
+          pending_for_seconds,
+        ]
+      properties:
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        kind:
+          type: string
+          enum:
+            - resource_unavailable
+            - resource_unhealthy
+            - restart_threshold
+            - cpu_threshold
+            - memory_threshold
+            - workload_unavailable_replicas
+            - event_severity_match
+            - provider_connection_lost
+        enabled:
+          type: boolean
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        comparison_operator:
+          type: string
+          enum: [greater_than, greater_than_or_equal, less_than, less_than_or_equal, equal]
+        threshold_value:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        threshold_count:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        window_seconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        minimum_event_severity:
+          $ref: '#/components/schemas/EventSeverity'
+        evaluation_interval_seconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        pending_for_seconds:
+          type: integer
+          minimum: 0
+          maximum: 86400
+    AlertRuleRecord:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          source_id,
+          display_name,
+          kind,
+          enabled,
+          severity,
+          evaluation_interval_seconds,
+          pending_for_seconds,
+          created_at,
+          updated_at,
+          version,
+        ]
+      properties:
+        id:
+          $ref: '#/components/schemas/AlertRuleId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        kind:
+          type: string
+          enum:
+            [
+              resource_unavailable,
+              resource_unhealthy,
+              restart_threshold,
+              cpu_threshold,
+              memory_threshold,
+              workload_unavailable_replicas,
+              event_severity_match,
+              provider_connection_lost,
+            ]
+        enabled:
+          type: boolean
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        comparison_operator:
+          type: string
+          enum: [greater_than, greater_than_or_equal, less_than, less_than_or_equal, equal]
+        threshold_value:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        threshold_count:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        window_seconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        minimum_event_severity:
+          $ref: '#/components/schemas/EventSeverity'
+        evaluation_interval_seconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        pending_for_seconds:
+          type: integer
+          minimum: 0
+          maximum: 86400
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        version:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+    AlertRulePage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/AlertRuleRecord'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ProductNotification:
+      type: object
+      description: Safe in-application notification with optional alert and resource links.
+      additionalProperties: false
+      required: [id, kind, severity, summary_code, created_at, synthetic]
+      properties:
+        id:
+          $ref: '#/components/schemas/NotificationId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        alert_id:
+          $ref: '#/components/schemas/AlertId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        kind:
+          $ref: '#/components/schemas/NamespacedCode'
+        severity:
+          $ref: '#/components/schemas/EventSeverity'
+        summary_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        synthetic:
+          type: boolean
+    ProductNotificationPage:
+      type: object
+      description: Newest-first in-application notification page.
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductNotification'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    NotificationSettingsStatus:
+      description: Secret-free operator-owned outbound notification configuration state.
+      oneOf:
+        - $ref: '#/components/schemas/ConfiguredNotificationSettingsStatus'
+        - $ref: '#/components/schemas/DisabledNotificationSettingsStatus'
+    ConfiguredNotificationSettingsStatus:
+      type: object
+      description: Enabled generic webhook with only its safe operator reference exposed.
+      additionalProperties: false
+      required:
+        - adapter
+        - enabled
+        - destination_reference_id
+        - configuration_source
+        - delivery_semantics
+      properties:
+        adapter:
+          type: string
+          const: generic_webhook
+        enabled:
+          type: boolean
+          const: true
+        destination_reference_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        configuration_source:
+          type: string
+          const: operator_environment
+        delivery_semantics:
+          type: string
+          const: at_least_once
+    DisabledNotificationSettingsStatus:
+      type: object
+      description: Disabled generic webhook with no destination material exposed.
+      additionalProperties: false
+      required:
+        - adapter
+        - enabled
+        - configuration_source
+        - delivery_semantics
+      properties:
+        adapter:
+          type: string
+          const: generic_webhook
+        enabled:
+          type: boolean
+          const: false
+        configuration_source:
+          type: string
+          const: operator_environment
+        delivery_semantics:
+          type: string
+          const: at_least_once
+    NotificationTestResponse:
+      type: object
+      description: Safe acknowledgement for one durably queued test delivery.
+      additionalProperties: false
+      required:
+        - notification_id
+        - destination_reference_id
+        - state
+      properties:
+        notification_id:
+          $ref: '#/components/schemas/NotificationId'
+        destination_reference_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+        state:
+          type: string
+          const: queued
+    ProductAuditPage:
+      type: object
+      description: Newest-first protected audit history page.
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/AuditEntry'
+        page:
+          $ref: '#/components/schemas/PageInfo'
     SystemReadiness:
       type: object
       description: Administrator-only detailed readiness with a fixed check order.
@@ -1272,6 +3000,14 @@ components:
       pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
       examples:
         - alert_demo_01
+    NotificationId:
+      type: string
+      description: Stable opaque notification identifier.
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+      examples:
+        - notification_demo_01
     AuditEntryId:
       type: string
       description: Stable opaque audit entry identifier.
@@ -1385,6 +3121,7 @@ components:
         - log.read
         - log.tail
         - metric.current
+        - metric.history
         - event.history
         - event.watch
     LogStream:
@@ -2966,6 +4703,19 @@ components:
           const: metric.current
         status:
           $ref: '#/components/schemas/ObservationStatus'
+    MetricHistoryCapability:
+      type: object
+      description: Current metric history capability status.
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          const: metric.history
+        status:
+          $ref: '#/components/schemas/ObservationStatus'
     EventHistoryCapability:
       type: object
       description: Current event history capability status.
@@ -3002,6 +4752,7 @@ components:
         - $ref: '#/components/schemas/LogReadCapability'
         - $ref: '#/components/schemas/LogTailCapability'
         - $ref: '#/components/schemas/MetricCurrentCapability'
+        - $ref: '#/components/schemas/MetricHistoryCapability'
         - $ref: '#/components/schemas/EventHistoryCapability'
         - $ref: '#/components/schemas/EventWatchCapability'
     CapabilitySet:
@@ -3019,8 +4770,8 @@ components:
           $ref: '#/components/schemas/SourceId'
         items:
           type: array
-          minItems: 9
-          maxItems: 9
+          minItems: 10
+          maxItems: 10
           prefixItems:
             - $ref: '#/components/schemas/InventoryListCapability'
             - $ref: '#/components/schemas/InventoryDetailCapability'
@@ -3029,6 +4780,7 @@ components:
             - $ref: '#/components/schemas/LogReadCapability'
             - $ref: '#/components/schemas/LogTailCapability'
             - $ref: '#/components/schemas/MetricCurrentCapability'
+            - $ref: '#/components/schemas/MetricHistoryCapability'
             - $ref: '#/components/schemas/EventHistoryCapability'
             - $ref: '#/components/schemas/EventWatchCapability'
           items: false
@@ -3110,6 +4862,37 @@ components:
       description: Stable opaque local user identifier.
       schema:
         $ref: '#/components/schemas/UserId'
+    ResourceId:
+      name: resource_id
+      in: path
+      required: true
+      description: Stable provider-neutral resource identifier.
+      schema:
+        $ref: '#/components/schemas/ResourceId'
+    ProductResourceFilter:
+      name: resource_id
+      in: query
+      required: false
+      description: Optional exact provider-neutral resource filter.
+      schema:
+        $ref: '#/components/schemas/ResourceId'
+    ProductSourceSelection:
+      name: source_id
+      in: query
+      required: false
+      description: Selects one configured source. Omission selects the built-in demo source.
+      schema:
+        $ref: '#/components/schemas/SourceId'
+    LastEventId:
+      name: Last-Event-ID
+      in: header
+      required: false
+      description: Last fully handled decimal event ID used for bounded replay after reconnect.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 20
+        pattern: '^(?:0|[1-9][0-9]{0,19})$'
     IfMatch:
       name: If-Match
       in: header
@@ -3293,6 +5076,28 @@ components:
         maxLength: 18
         pattern: '^"[1-9][0-9]{0,15}"$'
   responses:
+    ProductEventStream:
+      description: Authenticated bounded SSE feed. Snapshot and reset frames carry versioned JSON data.
+      headers:
+        Cache-Control:
+          description: Prevents storage of transient infrastructure observations.
+          schema:
+            type: string
+            const: no-cache, no-store
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
+        X-Accel-Buffering:
+          description: Disables reverse-proxy response buffering for this stream.
+          schema:
+            type: string
+            const: 'no'
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        text/event-stream:
+          schema:
+            type: string
+            description: UTF-8 SSE frames with monotonic decimal IDs and single-line JSON data.
     UserCreated:
       description: Local user created.
       headers:

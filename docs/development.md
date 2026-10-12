@@ -1,336 +1,152 @@
 # Development
 
-Stackplore uses one pnpm workspace for browser and shared TypeScript packages
-and one Go module for the API. Root tasks keep both parts on the same check
-path.
+## Toolchain
 
-## Prerequisites
+- Node.js `24.18.0` from `.node-version`
+- pnpm `11.17.0` through Corepack
+- Go `1.26.5` from `apps/api/go.mod`
+- PostgreSQL 17 or newer for live persistence checks
 
-Install these exact tool versions with a local version manager or an official
-archive:
-
-| Tool | Version | Purpose |
-| --- | --- | --- |
-| Node.js | 24.18.0 LTS | JavaScript runtime and root task runner |
-| Corepack | 0.35.0, bundled with Node.js | Fetches the pinned pnpm release |
-| pnpm | 11.17.0 | Workspace package manager |
-| Go | 1.26.5 | API build and test toolchain |
-| Make | Optional | Short aliases for root tasks |
-
-Do not install repository tools globally. Corepack reads the exact pnpm version
-from `package.json`. Go reads the preferred patch from `apps/api/go.mod`.
-
-The web package pins TypeScript 6.0.3. TypeScript 7.0.2 does not yet expose the
-code API required by the current lint parser, whose supported range ends before
-6.1. Keeping one supported compiler avoids a split lint and type-check path.
-Revisit this pin in a focused dependency update when the parser supports the
-new compiler.
+Do not substitute a globally different toolchain when reviewing reproducibility. On Windows, invoke npm as `npm.cmd` when npm is needed.
 
 ## Bootstrap
 
-Clone the repository, enter its root, and run one command for the current
-shell.
+```sh
+node scripts/bootstrap.mjs
+```
 
-PowerShell:
+Bootstrap checks the pinned tools and installs the locked workspace. It does not create a database, mutate an existing database, or install system packages.
+
+## Local PostgreSQL
+
+The API requires `STACKPLORE_DATABASE_URL`. Development accepts a local password-free role or `sslmode=disable`; production requires an explicit HTTPS public origin and PostgreSQL `sslmode=verify-full`.
+
+Use a disposable database for tests. Never point `STACKPLORE_TEST_POSTGRES_URL` at development, staging, or production data. Integration tests create and drop isolated schemas inside the named database.
+
+Required development values are documented in `.env.example`. Do not commit a populated `.env`.
+
+The Go process does not load `.env` itself. Set `STACKPLORE_DATABASE_URL` in the
+operator process before running development. See the complete
+[configuration reference](configuration.md). Remove the test-only
+`STACKPLORE_TEST_POSTGRES_URL` before starting the application, because that
+name belongs to the test runner, not the strict runtime loader.
+
+On Windows, prepare the pinned tools before repository commands:
 
 ```powershell
-node .\scripts\bootstrap.mjs
+$repoRoot = (Get-Location).Path
+$env:PATH = "$repoRoot\.tools\node-v24.18.0-win-x64;$repoRoot\.tools\go\bin;$env:PATH"
+$env:CI = 'true'
+$env:GOCACHE = "$repoRoot\.tmp\go-build-v1"
+npm.cmd run bootstrap
 ```
-
-POSIX shell:
-
-```sh
-sh scripts/run.sh bootstrap
-```
-
-With Make:
-
-```sh
-make bootstrap
-```
-
-Bootstrap stops when Node.js, pnpm, or Go differs from the pinned version. It
-then installs the locked workspace packages and downloads the checksummed Go
-modules.
-
-## Environment
-
-Defaults bind both services to loopback. To override them, copy
-`.env.example` to `.env` and edit only local values. The root development task
-loads `.env` when it exists.
-
-The server recognizes only the exact names below. An unknown or wrong-case
-`STACKPLORE_*` name, duplicate process entry, blank value, surrounding space,
-non-canonical value, or out-of-range value stops startup. Errors identify only
-the field and failed rule; they do not copy its value.
-
-| Variable | Default when absent | Allowed value or range |
-| --- | --- | --- |
-| `STACKPLORE_ENVIRONMENT` | `development` | `development`, `production`, or `test` |
-| `STACKPLORE_HTTP_ADDRESS` | `127.0.0.1:8080` | Canonical lowercase host or IP plus port `1` through `65535` |
-| `STACKPLORE_PUBLIC_ORIGIN` | `http://` plus `STACKPLORE_HTTP_ADDRESS` | One canonical `http` or `https` origin with no user information, path, query, fragment, or redundant default port |
-| `STACKPLORE_TRUSTED_PROXY_PREFIXES` | No trusted proxy | Canonical comma-separated IPv4 or IPv6 CIDR prefixes, with no spaces, duplicates, host bits, or `/0` |
-| `STACKPLORE_METRICS_ALLOWED_PREFIXES` | `127.0.0.0/8,::1/128` | Canonical comma-separated client CIDR prefixes under the same list rules |
-| `STACKPLORE_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error` |
-| `STACKPLORE_LOG_FORMAT` | `json` | `json` or `text` |
-| `STACKPLORE_DATA_DIRECTORY` | `data` | Canonical non-root local path with no symlink component; relative only in development and test, absolute in production |
-| `STACKPLORE_DATABASE_BUSY_TIMEOUT` | `5s` | `100ms` through `30s`, exactly representable in whole milliseconds |
-| `STACKPLORE_SETUP_BOOTSTRAP_PROOF` | Absent | Canonical unpadded base64url encoding of exactly 32 random bytes; valid only when paired with the expiry |
-| `STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT` | Absent | Canonical whole-second UTC RFC 3339 time paired with the proof and no more than one hour in the future |
-| `STACKPLORE_HTTP_READ_HEADER_TIMEOUT` | `5s` | `1s` through `30s`; cannot exceed the read timeout |
-| `STACKPLORE_HTTP_READ_TIMEOUT` | `15s` | `1s` through `2m` |
-| `STACKPLORE_HTTP_WRITE_TIMEOUT` | `30s` | `1s` through `5m` |
-| `STACKPLORE_HTTP_IDLE_TIMEOUT` | `60s` | `1s` through `10m` |
-| `STACKPLORE_HTTP_REQUEST_TIMEOUT` | `15s` | `100ms` through `2m`; must be strictly shorter than the write timeout |
-| `STACKPLORE_HTTP_SHUTDOWN_TIMEOUT` | `15s` | `1s` through `2m` |
-| `STACKPLORE_HTTP_MAX_HEADER_BYTES` | `32768` | `4096` through `1048576` bytes |
-| `STACKPLORE_HTTP_MAX_REQUEST_BODY_BYTES` | `262144` | `1024` through `16777216` bytes for `/api/v1` request bodies |
-| `STACKPLORE_HTTP_MAX_RESPONSE_BYTES` | `16777216` | `65536` through `67108864` buffered response bytes |
-| `STACKPLORE_HTTP_MAX_CONNECTIONS` | `512` | `1` through `16384` accepted HTTP connections |
-| `STACKPLORE_HTTP_MAX_IN_FLIGHT` | `256` | `1` through `4096` active handlers |
-| `STACKPLORE_RATE_LIMIT_PER_SECOND` | `20` | `0.1` through `10000` tokens per second per verified client on non-operational paths |
-| `STACKPLORE_RATE_LIMIT_BURST` | `40` | `1` through `10000` tokens per client bucket |
-| `STACKPLORE_RATE_LIMIT_MAX_CLIENTS` | `4096` | `1` through `65536` tracked client buckets before a shared overflow bucket is used |
-| `STACKPLORE_DEV_API_ORIGIN` | `http://127.0.0.1:8080` | Canonical Vite-only `http` or `https` upstream origin under the public-origin syntax rules; not used as server trust configuration |
-
-Do not commit `.env`. The example contains no credential or private
-infrastructure value. A non-loopback production listener or origin additionally
-requires an HTTPS public origin and at least one trusted-proxy prefix. The
-server rejects production startup before listening when either gate is absent.
-An empty installation whose listener or public origin is beyond loopback also
-fails before listening unless the paired bootstrap values are present and
-unexpired. A closed installation does not need them. Generate, deliver, and
-remove the pair with the
-[first-run procedure](operations/account-recovery.md); do not commit it to
-`.env`.
-
-Forwarding headers are not a general deployment escape hatch. On
-non-operational paths and `/metrics`, a direct peer outside
-`STACKPLORE_TRUSTED_PROXY_PREFIXES` may not send `Forwarded` or any
-`X-Forwarded-*` field. The terse health and readiness probes do not use
-forwarding identity. A trusted peer still may not send `Forwarded`; it may send
-one canonical forwarded scheme, one unambiguous forwarded host, and an IP-only
-client chain of at most 16 hops. Its non-operational requests must yield one
-verified untrusted client from that chain. Every `/api/v1` request must also
-normalize to the exact configured public scheme and authority.
 
 ## Run
 
-Start the API and web development servers together:
-
-```powershell
+```sh
 corepack pnpm run dev
 ```
 
-The web page is available at `http://127.0.0.1:5173`. Vite proxies `/api`,
-`/healthz`, `/readyz`, and `/metrics` to the Go service and rewrites the
-upstream authority to the configured development API origin. This preserves
-the Phase 5 exact-origin gate while the browser uses one development origin.
-Probe the direct service with:
+This starts:
 
-```powershell
-Invoke-WebRequest http://127.0.0.1:8080/healthz
-Invoke-WebRequest http://127.0.0.1:8080/readyz
-Invoke-WebRequest http://127.0.0.1:8080/metrics
-curl.exe -i http://127.0.0.1:8080/api/v1/system/readiness
+- the Go API on `http://127.0.0.1:8080`;
+- the Vite web server on `http://127.0.0.1:5173`;
+- a same-origin development proxy from the web server to the API.
+
+The API exits if configuration, migration history, database ownership, the local digest key, or first-run bootstrap policy is invalid. `/healthz` proves the process can answer. `/readyz` additionally proves current database readiness.
+
+## Verification
+
+The full local gate is:
+
+```sh
+corepack pnpm run verify
 ```
 
-The final call has no session cookie and returns `401` by design. On an empty
-loopback installation, open `http://127.0.0.1:5173/setup` and create the first
-administrator. Later visits use `/login`. An enabled administrator receives
-the detailed readiness result through the browser client; a viewer receives
-`403`.
+It runs formatting, document inventory/links and version metadata checks, locale parity, OpenAPI policy and derived-client drift, web and Go lint, strict TypeScript checks, Go/client/web tests, and production builds.
 
-Run one service when focused work needs it:
+Focused commands:
 
-```powershell
-go -C apps/api run ./cmd/server
-corepack pnpm --filter @stackplore/web dev
+```sh
+corepack pnpm run format:check
+corepack pnpm run check:locales
+corepack pnpm run check:contracts
+corepack pnpm run lint
+corepack pnpm run typecheck
+corepack pnpm run test
+corepack pnpm run build
 ```
 
-### Operational endpoint meaning
+Real PostgreSQL integration:
 
-| Path | Current result | Gate and meaning |
-| --- | --- | --- |
-| `/healthz` | `200` and `ok` | Terse process liveness. It does not check storage, providers, or product data. |
-| `/readyz` | `503` and `not ready` before storage and service readiness, after storage health loss, or during stop; otherwise `200` and `ready` | Terse local readiness. It requires validated configuration, a current complete migration ledger, valid installation metadata, a responsive database, and the serving lifecycle. |
-| `/metrics` | `200` for an exact-origin, allowed verified client; plain `404` otherwise | Process-only, low-cardinality metrics. The default network allowlist permits IPv4 and IPv6 loopback. |
-| `/api/v1/system/readiness` | `200` for an enabled administrator, `403` for a current viewer, and `401` without a valid session | Detailed local readiness behind the live user and role check. Outer origin, request, concurrency, and rate gates still apply. |
+```sh
+STACKPLORE_TEST_POSTGRES_URL='postgresql://test-role@127.0.0.1:5432/stackplore_test?sslmode=disable' \
+  go -C apps/api test ./...
+```
 
-The readiness operation documents `200`, `400`, `401`, `403`, `413`, `429`,
-`500`, and `503`. No request header, query value, proxy claim, or environment
-setting substitutes for a valid server-side session and current administrator
-role.
+SQL and PostgreSQL-backed HTTP tests skip when the variable is absent. A skip
+is not PostgreSQL proof. Fixtures use a common test advisory gate to prevent
+different Go packages from contending for the installation ownership lock.
+See [the testing matrix](testing.md) and [current evidence](implementation-plan.md).
 
-All current responses receive a safe request ID, `no-store`, and fixed security
-headers. Every non-operational request requires verified network metadata and
-passes the per-client token bucket. Versioned API requests additionally require
-the exact public origin. Those outer gates may reject a request before the
-authentication or readiness handler runs.
+## Contracts
 
-If secure request-ID generation is unavailable, the operational endpoints keep
-serving with the fixed safe fallback `req_unavailable`. Other paths fail closed
-with `503`. Each failure increments a metric, while one bounded process log
-signals the repeated source fault without creating a log flood.
+`contracts/openapi.yaml` is the HTTP authority. After an intentional contract change:
 
-### Deadline and lifecycle meaning
-
-The server has separate read-header, read, write, idle, request, and shutdown
-timeouts plus a ceiling on accepted connections. Current versioned handlers run
-behind an in-flight ceiling and write to a bounded response buffer. A panic,
-bad status, overflow, cancellation, or total request deadline discards the
-partial buffer and returns a safe problem. A known API `Content-Length` over
-the body ceiling returns `413` before the handler; any future body-reading
-handler is also capped while reading. Client buckets are capped; once the
-tracked-client cap is full, new clients share one bounded overflow bucket.
-Tracked identities expire after 10 minutes without a request.
-
-An interrupt or termination signal marks readiness false and requests graceful
-HTTP drain within the shutdown timeout. It then cancels base request contexts
-and force-closes the server if the drain timed out. After HTTP drain, it closes
-SQLite and releases the process-ownership lock. There is no long-lived HTTP
-stream in Phase 6. A future SSE or log-tail route must define its own
-connection, idle, write, lifetime, concurrency, queue, and byte limits before
-it can receive a narrow exemption from the ordinary buffered request deadline.
-
-Through Phase 7, checks use deterministic unit tests, local in-process
-listeners, and temporary local SQLite databases. They cover migration history,
-repository transactions, retention bounds, second-process ownership,
-contention, backup, restore, readiness transitions, setup races, login
-enumeration and throttles, password hashing, cookie and CSRF rejection, session
-expiry and revocation, role changes, user administration, local recovery, and
-browser setup, login, password, and user-management flows. They do not prove a
-deployed TLS edge, external proxy, container image, orchestrator health check,
-network filesystem, or public-network installation; those deployment assets
-and live checks belong to their owning later phases.
-
-The root web route first resolves setup and session state. It routes an empty
-installation to `/setup`, a signed-out closed installation to `/login`, and an
-authenticated user to `/overview`. `/settings/users` is administrator-only;
-viewer navigation and direct routes cannot mount it. Every provider product
-route still shows an explicit planned or no-data state and does not simulate
-provider results. In development only, `/design-system` exposes the shared
-controls and their states for focused browser review.
-
-## Local storage operations
-
-The API owns `<data-directory>/stackplore.db` and permits exactly one active API
-process for that data directory. Startup takes the ownership lock, verifies the
-database identity and complete migration ledger, applies embedded forward
-migrations, and seeds installation metadata before the listener becomes ready.
-WAL, foreign keys, full synchronous durability, a bounded busy timeout, and a
-fixed connection cap are set by the storage adapter.
-
-Do not copy `stackplore.db` while the service is live. Use the local online
-backup command, and stop the API before any restore. Exact PowerShell and POSIX
-commands, path rules, ACL and mode limits, restore validation, and interrupted
-restore recovery are in
-[Local SQLite Backup and Restore](operations/backup-restore.md).
-First-run proof generation and offline administrator recovery are in
-[First-Run Setup and Account Recovery](operations/account-recovery.md).
-
-## Interface development
-
-Shared interface components and semantic CSS tokens live in
-`packages/ui/src`. Feature code imports controls from `@stackplore/ui` and
-icons from `@stackplore/ui/icons`; it does not import the wrapped primitive
-packages directly. Tailwind consumes the same semantic tokens for application
-layout.
-
-The theme control supports `light`, `dark`, and `system`. Its preference is
-stored locally under `stackplore.theme`, and a small head script resolves it
-before the application renders. Inter and Vazirmatn are bundled through the
-workspace packages, so the interface makes no runtime font request. Font
-credits and shipped license copies are listed in
-[`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
-
-The language control switches between English and Persian without a reload.
-Its local preference uses `stackplore.locale`; a separate head script applies
-`lang` and `dir` before paint. Paired catalogs live beside the application,
-shell, and route features. Add both messages together, use stable namespaced
-keys, and run `corepack pnpm run check:locales` to verify key, plural, and
-placeholder parity.
-
-Visible components use the locale provider rather than direct
-`toLocaleString` calls or assembled sentence fragments. The provider exposes
-the shared number, date, and plural formatters. Technical values use the shared
-left-to-right isolation component so Persian layout never mutates resource
-names, image names, addresses, or identifiers.
-
-When changing a shared component, check keyboard behavior, visible focus,
-accessible naming, both color themes, both writing directions, reduced motion,
-and layouts at 360, 768, 1024, 1440, and 1920 CSS pixels. Prefer logical CSS
-properties. Directional icons and keyboard order must follow the active
-writing direction without component forks.
-
-## Contract development
-
-The canonical transport contract is [`contracts/openapi.yaml`](../contracts/openapi.yaml).
-It uses OpenAPI 3.1 and the `/api/v1` server prefix. Phase 4 defined the shared
-schemas and Phase 5 introduced the readiness route. Phase 7 now defines 13 path
-forms and 16 implemented operations for setup, pre-auth, login, session,
-logout, recent authentication, self-password change, user administration,
-session revocation, and administrator readiness. Browser-session, CSRF,
-pre-auth, and recent-auth schemes match the runtime header and cookie boundary,
-and the derived output includes the current success and problem shapes.
-
-After changing the contract, re-derive the committed browser types and run the
-drift gate:
-
-```powershell
+```sh
 corepack pnpm run derive:api-client
 corepack pnpm run check:contracts
-corepack pnpm run test:client
 ```
 
-Contract-derived output lives at
-`packages/api-client/src/derived/types.derived.ts`. Do not edit it by hand.
-`check:contracts` applies the contract linter, repository-specific policy, and
-derived-output comparison. Handwritten request policy, problem parsing, and
-request-ID handling stay outside the derived directory in
-`packages/api-client/src`.
+The policy accepts only reviewed routes, methods, response codes, security requirements, components, and bounded schemas. Generated types are committed. Runtime browser adapters still parse unknown data because generated static types do not validate network input.
 
-The contract derivation tool is pinned exactly at `0.99.0`. It is a stable
-pre-1.0 release, so even a minor update may change its configuration or derived
-shape. Refresh it only in a focused dependency change and review the complete
-derived diff. The contract linter is also pinned exactly so every environment
-applies the same rule set.
+## Backend rules
 
-## Tasks
+- Keep domain packages free of transport, database, and provider client imports.
+- Validate provider results at the adapter boundary and again against the exact query.
+- Bind cursors to normalized query state and guarantee forward progress.
+- Keep external errors, raw provider payloads, credentials, and secret values out of public problems and logs.
+- Use parameterized SQL, bounded transactions, forward-only migrations, and the shared PostgreSQL advisory locks.
+- Run Go tests from `apps/api` or use `go -C apps/api ...`.
 
-Make, PowerShell, and shell commands all delegate to the root package scripts.
+## Frontend rules
 
-| Task | Make | PowerShell | POSIX shell |
-| --- | --- | --- | --- |
-| Bootstrap | `make bootstrap` | `node .\scripts\bootstrap.mjs` | `sh scripts/run.sh bootstrap` |
-| Develop | `make dev` | `corepack pnpm run dev` | `sh scripts/run.sh dev` |
-| Full check | `make verify` | `corepack pnpm run verify` | `sh scripts/run.sh verify` |
-| All tests | `make test` | `corepack pnpm run test` | `sh scripts/run.sh test` |
-| API tests | `make test-api` | `corepack pnpm run test:api` | `sh scripts/run.sh test-api` |
-| Client tests | `make test-client` | `corepack pnpm run test:client` | `sh scripts/run.sh test-client` |
-| Web tests | `make test-web` | `corepack pnpm run test:web` | `sh scripts/run.sh test-web` |
-| Build | `make build` | `corepack pnpm run build` | `sh scripts/run.sh build` |
-| Locale check | `make check-locales` | `corepack pnpm run check:locales` | `sh scripts/run.sh check-locales` |
-| Contract check | `make check-contracts` | `corepack pnpm run check:contracts` | `sh scripts/run.sh check-contracts` |
-| Derive API client | `make derive-api-client` | `corepack pnpm run derive:api-client` | `sh scripts/run.sh derive-api-client` |
-| Lint | `make lint` | `corepack pnpm run lint` | `sh scripts/run.sh lint` |
-| Type check | `make typecheck` | `corepack pnpm run typecheck` | `sh scripts/run.sh typecheck` |
-| Format | `make format` | `corepack pnpm run format` | `sh scripts/run.sh format` |
-| Format check | `make format-check` | `corepack pnpm run format:check` | `sh scripts/run.sh format-check` |
+- Keep strict TypeScript and runtime response guards.
+- Add English and Persian keys together; locale parity is a hard gate.
+- Test keyboard use, focus, semantic names, LTR and RTL, technical-text isolation, and narrow widths.
+- Do not represent a network mutation as successful before its API result.
+- Keep synthetic data visibly marked.
 
-The optional PowerShell wrapper maps the same names. Local execution policy may
-block direct script files. This process-only form does not change machine or
-user policy:
+## Deployment checks
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run.ps1 verify
+Static assets can be parsed locally without container tools, but real deployment evidence requires the named tool:
+
+```sh
+docker compose --env-file deploy/compose.env.example config --quiet
+helm lint deploy/helm/stackplore --strict
 ```
 
-`verify` checks formatting, catalog parity, contract policy and derived
-output, Go and TypeScript lint rules, strict TypeScript types, API, client, and
-web tests, and both builds. Unit tests make no network request. The web suite
-also covers English and Persian direct routes,
-runtime language and theme persistence, locale formatting, bidirectional
-keyboard behavior, unknown routes, exact isolated resource parameters,
-mobile-drawer focus return, shared primitive behavior, and representative
-automated accessibility rules.
+The CI workflow also builds both images and runs the PostgreSQL integration suite. A workflow file is not proof until a run passes. See [deployment](operations/deployment.md).
+
+## Operator commands
+
+Account recovery:
+
+```sh
+go -C apps/api run ./cmd/operator recover-admin --login-name operator --display-name 'Primary Operator'
+```
+
+The new password must arrive through standard input. Backup and restore use `cmd/storage`; see [backup/restore](operations/backup-restore.md). Never put passwords or PostgreSQL URLs with credentials in command arguments, shell history, logs, tickets, or commits.
+
+## Evidence labels
+
+Report each proof at its real level:
+
+- unit or static local check;
+- local real PostgreSQL integration;
+- container build or Compose run;
+- cluster chart render/install;
+- target environment backup/restore and rollback;
+- browser accessibility and performance run.
+
+Do not use one level as proof of another.

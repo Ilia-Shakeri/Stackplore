@@ -24,9 +24,11 @@ export interface NavigationItem {
     | '/overview'
     | '/topology'
     | '/resources'
+    | '/search'
     | '/logs'
     | '/events'
     | '/alerts'
+    | '/notifications'
     | '/audit'
     | '/settings'
     | '/settings/preferences'
@@ -84,9 +86,11 @@ const fixedBreadcrumbs = new Map<string, readonly BreadcrumbDefinition[]>([
   ['/overview', [{ labelKey: 'route.overview.title' }]],
   ['/topology', [{ labelKey: 'route.topology.title' }]],
   ['/resources', [{ labelKey: 'route.resources.title' }]],
+  ['/search', [{ labelKey: 'route.search.title' }]],
   ['/logs', [{ labelKey: 'route.logs.title' }]],
   ['/events', [{ labelKey: 'route.events.title' }]],
   ['/alerts', [{ labelKey: 'route.alerts.title' }]],
+  ['/notifications', [{ labelKey: 'route.notificationCenter.title' }]],
   ['/audit', [{ labelKey: 'route.audit.title' }]],
   ['/settings', [{ labelKey: 'route.settings.title' }]],
   [

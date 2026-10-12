@@ -99,6 +99,20 @@ func safeExecutionMiddleware(
 	slots := make(chan struct{}, maximumInFlight)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if isStreamPath(r.URL.Path) {
+				defer func() {
+					if recover() != nil {
+						metrics.recordPanic()
+						logger.ErrorContext(r.Context(), "stream panic recovered",
+							"request_id", requestIDFromContext(r.Context()),
+							"method", methodLabel(r.Method),
+							"route", routeLabel(r.URL.Path),
+						)
+					}
+				}()
+				next.ServeHTTP(w, r)
+				return
+			}
 			if !isAPIPath(r.URL.Path) {
 				next.ServeHTTP(w, r)
 				return

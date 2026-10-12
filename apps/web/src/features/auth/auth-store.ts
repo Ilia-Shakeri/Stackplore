@@ -268,6 +268,21 @@ export class AuthStore {
     return result;
   };
 
+  runSessionAction = async <Result>(
+    action: (protection: SessionProtection) => Promise<Result>,
+  ): Promise<Result> => {
+    if (this.#snapshot.status !== 'authenticated' || this.#csrfProof === null) {
+      throw new AuthStateError();
+    }
+    const csrfProof = this.#csrfProof;
+    const generation = this.#generation;
+    const result = await action({ csrfToken: csrfProof, kind: 'session' });
+    if (generation !== this.#generation || this.#csrfProof !== csrfProof) {
+      throw new AuthStateError();
+    }
+    return result;
+  };
+
   changePassword = async (currentPassword: string, newPassword: string) => {
     const session = await this.runRecentAction(
       'account.password_change',

@@ -12,8 +12,12 @@ const (
 	CapabilityLogRead         CapabilityName = "log.read"
 	CapabilityLogTail         CapabilityName = "log.tail"
 	CapabilityMetricCurrent   CapabilityName = "metric.current"
+	CapabilityMetricHistory   CapabilityName = "metric.history"
 	CapabilityEventHistory    CapabilityName = "event.history"
 	CapabilityEventWatch      CapabilityName = "event.watch"
+	CapabilityDockerRestart   CapabilityName = "operation.docker_restart"
+	CapabilityWorkloadRestart CapabilityName = "operation.workload_restart"
+	CapabilityWorkloadScale   CapabilityName = "operation.workload_scale"
 )
 
 var requiredCapabilities = [...]CapabilityName{
@@ -24,8 +28,12 @@ var requiredCapabilities = [...]CapabilityName{
 	CapabilityLogRead,
 	CapabilityLogTail,
 	CapabilityMetricCurrent,
+	CapabilityMetricHistory,
 	CapabilityEventHistory,
 	CapabilityEventWatch,
+	CapabilityDockerRestart,
+	CapabilityWorkloadRestart,
+	CapabilityWorkloadScale,
 }
 
 func (name CapabilityName) Validate() error {
