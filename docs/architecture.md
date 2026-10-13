@@ -128,6 +128,10 @@ The cluster chart uses an external PostgreSQL Secret, one API replica with a Rea
 
 CI defines locked package installation, full code verification, a real PostgreSQL integration service, Compose model validation, chart lint, and both image builds. These definitions are not target-environment proof until they run successfully in the release system.
 
+Both code/deploy jobs passed for the 0.1.0 tagged revision, including Linux race
+tests and image builds; see [exact run evidence](implementation-plan.md).
+Compose startup, cluster installation and live provider checks remain open.
+
 ## Security and reliability rules
 
 - Read-only provider access is the default.

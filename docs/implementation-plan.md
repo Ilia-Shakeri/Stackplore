@@ -75,7 +75,17 @@ The test URL contains no password and names only a disposable test database. Rem
 | Restored runtime | Ready200, old session401, fresh admin login/source/audit reads passed |
 | Own ownership-session termination | Runtime stopped with failure within monitor bound; latest marker `NATIVE_BACKUP_RESTORE_SESSION_REVOCATION_AND_OWNERSHIP_STOP_PASS` |
 | Final `npm.cmd run verify` | Passed exit0 with real PostgreSQL URL: all Go packages,36 client tests,160 web tests,345 locale messages,181 schemas, lint/types/builds |
-| Remote workflow/race/images | Not yet observed for the release revision |
+| Remote workflow/race/images | Passed for tagged implementation `72f8e466cbf81d5e00c541ce09e60d5e886a9e81`; links below |
+
+Remote evidence for the immutable 0.1.0 implementation revision:
+
+- [Tag run 38262601532](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/38262601532): completed successfully; code and deploy jobs passed.
+- [Main run 38262599330](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/38262599330): completed successfully; code and deploy jobs passed.
+- The code job ran the full gate against real PostgreSQL and `go -C apps/api test -race ./...` on Linux.
+- The deploy job validated the Compose model, linted/rendered the reviewed chart profiles, and built both images. It did not start Compose or install a cluster.
+
+The follow-up evidence documentation commit does not change runtime code or
+retag the tested implementation. It records these results after the runs ended.
 
 Failures were repaired: entry Go operation formatting; later web test formatting; version-check URL import/regex lint; empty annotation-map Helm YAML. Native helper field-name errors were corrected using fresh disposable databases. An interrupted validation session stopped tool jobs; the disposable PostgreSQL cluster recovered its own WAL, then final checks/native drill were rerun. This does not prove a production recovery.
 

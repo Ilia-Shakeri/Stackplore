@@ -37,6 +37,10 @@ No later roadmap stage is complete.
 - Accepted built-web serving and vendor-client architecture need alignment before 1.0.
 - Local PostgreSQL17.11 and Helm3.17.3 proof does not prove containers, browser accessibility/performance, a live provider/receiver, a cluster or a production restore. Linux race/remote CI outcomes are recorded separately in the evidence plan.
 
+Remote follow-up: both main/tag workflows passed for the implementation revision,
+including Linux race tests, real PostgreSQL, image builds, Compose model and
+chart gates. This does not prove container startup or a cluster install.
+
 ## [0.0.0] - Historical foundation record
 
 The entries below preserve the earlier phase snapshot; retired storage and planned-product descriptions are historical, not current support claims.
