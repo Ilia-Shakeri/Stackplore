@@ -1,6 +1,6 @@
 # Security Model
 
-Status: implemented foundation plus explicit 1.0 gaps
+Status: implemented foundation and locally verified 0.2 boundaries; tagged CI, target proof and 1.0 gaps remain explicit
 
 ## Assets
 
@@ -38,7 +38,7 @@ The browser, proxy headers, provider payloads, resource names, log lines, event 
 - Every authenticated request resolves the current enabled user and current installation-wide role.
 - Unsafe browser requests require the exact public origin and a session-bound CSRF proof.
 - First setup is transactional and closes permanently. A non-loopback empty install needs a short-lived one-use operator bootstrap proof.
-- High-risk account changes require the current password and a one-use recent-auth proof bound to the exact operation.
+- High-risk account, source-toggle and notification-test changes require the current password and a one-use recent-auth proof bound to the exact operation.
 - Administrator recovery is an offline operator command. It takes the shared maintenance lock, reads the new password from standard input, advances authorization state, and revokes sessions and grants.
 
 Sign-in and setup errors stay deliberately coarse. Rate limits cover source and account scopes without revealing whether an account exists.
@@ -65,7 +65,24 @@ Every capability is explicit. Unsupported, denied, unavailable, stale, and parti
 
 Docker socket access is effectively host-root access. A production Docker adapter should prefer a narrowly scoped proxy or remote read-only API and must document remaining authority. Kubernetes credentials should use a dedicated ServiceAccount and the smallest resource/verb/namespace set needed for enabled capabilities. Secret read permission is not needed for the planned default feature set.
 
-Docker and Kubernetes read adapters are wired behind operator flags. The Docker direct socket profile is restricted to loopback development; production support waits for the narrow proxy design. Kubernetes currently requires explicit cluster observation rights, and its chart defaults off. Persistent source/credential workflows and namespace-scoped fidelity remain open.
+Docker and Kubernetes read adapters are wired behind operator flags. The Docker
+direct socket profile is restricted to loopback development; production support
+waits for the narrow proxy design. Kubernetes currently requires explicit cluster
+observation rights, and its chart defaults off. PostgreSQL stores safe fixed
+profile references and enabled state. Browser APIs can only preview/toggle a
+registered profile; they cannot create one, set an endpoint/path or upload
+credentials. Namespace-scoped fidelity and broader operator-reference rotation
+remain open. Provider credential values remain operator-owned mounted/runtime
+material and are not persisted in application tables.
+
+Source changes require administrator role, exact same origin, CSRF, quoted
+version, exact target/state impact preview, an expiring one-use confirmation and
+a `source.update` one-use recent-auth grant. The final transaction serializes
+with account changes and rechecks the live administrator/session before
+consuming confirmation and grant, changing configuration and inserting audit.
+Only digests are stored; failure rolls the transaction back. A missing operator
+profile may be disabled but cannot be enabled. This workflow changes observation
+settings and sends no provider write. See [source settings](observations.md).
 
 ## PostgreSQL
 
@@ -75,11 +92,19 @@ Startup validates pool and deadline bounds, acquires ownership before migrations
 
 The local digest key is separate from PostgreSQL. A database-only attacker should not be able to turn stored browser digests into bearer tokens. The key directory must be private, persistent, backed up separately when recovery policy requires session continuity, and never placed in the database backup artifact.
 
-The current live server wires PostgreSQL authentication, product history, alert evaluation and management, in-app notifications, audit reads, and an opt-in generic webhook worker. Webhook URL and signing material come only from operator configuration, stay redacted in formatted settings, and are never returned through browser APIs. Local tests do not prove a real receiver or target network.
+The server wires PostgreSQL authentication, source settings, normalized
+observation storage/read ports, bounded collection and retention, alert
+evaluation/management, in-app notifications, audit reads and an opt-in generic
+webhook worker. Product reads do not initiate estate collection. Capture must
+match the active source version; incomplete/failed collection cannot prove
+absence. No raw provider payload, mounted credential or log body is stored by
+the collection worker. Webhook URL and signing material come only from operator
+configuration, stay redacted in formatted settings and are never returned
+through browser APIs. Local tests do not prove a real receiver or target network.
 
 ## Backup and restore
 
-Backup uses custom-format `pg_dump` to a temporary file, validates it with `pg_restore --list`, then publishes it by atomic rename. Password material uses the child environment, not command arguments.
+Backup uses custom-format `pg_dump` to a temporary file, validates it with `pg_restore --list`, then publishes it through an atomic no-overwrite hard link. Password material uses the child environment, not command arguments.
 
 Restore accepts an empty target only, uses one transaction, and verifies the exact migration ledger after import. Finalization advances restore generation and removes all sessions and pre-auth challenges. A successful command still needs target readiness, sign-in, data sampling, and rollback checks.
 
@@ -101,7 +126,14 @@ Logs are potentially sensitive even after provider fields are filtered. Bound li
 
 Metric values must be finite, non-negative, correctly unit-tagged, and bounded to safe integers where required. Events and topology evidence need stable IDs, source ownership, normalized reason codes, safe text, deterministic order, and explicit provenance.
 
-A bounded PostgreSQL prune method covers named non-audit history classes. A scheduled retention worker, quota settings and the separately audited audit lifecycle remain unimplemented. Operators must not assume a helper or table schema performs automatic cleanup.
+A scheduled retention worker uses fixed ages, one aggregate deadline and bounded
+transactions with fair quotas across eligible metrics, health, events and
+terminal ordinary deliveries. Synthetic facts, current state, newest current
+metric samples, pending/audit-linked deliveries and audit rows are excluded.
+Audit has a protected retain-all lifecycle; operator quotas, minimum retention,
+reviewed cleanup and archive/export custody remain stage 6 work. Monitor growth;
+bounded cleanup is not a production capacity guarantee. Exact limits are in
+[observations](observations.md).
 
 ## Guarded operations
 
@@ -125,9 +157,9 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 
 ## Known gaps
 
-- Production restricted Docker access, namespace-scoped Kubernetes/partial-permission fidelity and persistent least-privilege connection flows
-- encrypted provider credential persistence and rotation
-- persistent discovery/observation/retention scheduling and quotas
+- Production restricted Docker access and namespace-scoped Kubernetes/partial-permission fidelity
+- broader safe operator-owned profile/credential-reference setup and rotation; raw credential values must not be persisted
+- configurable retention quotas and protected audit cleanup/archive lifecycle
 - correct historical alert windows, connection-loss/event evidence, durable alert streams and real receiver proof
 - guarded infrastructure operations
 - target production PostgreSQL/restore/TLS, Compose, cluster, browser, accessibility and performance proof

@@ -28,29 +28,49 @@ const wireSession = () => {
 const response = (data: unknown, status = 200) => ({ data, requestId, status });
 
 describe('auth API adapter', () => {
-  it('binds a recent grant to the exact purpose and current session proof', async () => {
-    const recentProof = `${'B'.repeat(42)}A`;
+  it.each(['user.delete', 'source.update'] as const)(
+    'binds a recent grant to %s and current session proof',
+    async (purpose) => {
+      const recentProof = `${'B'.repeat(42)}A`;
+      const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+        response(
+          {
+            expires_at: '2026-01-02T03:09:05Z',
+            purpose,
+            recent_auth_proof: recentProof,
+          },
+          201,
+        ),
+      );
+      const api = createAuthApi({ request: request as ApiClient['request'] });
+
+      await expect(api.createRecentAuthGrant('admin-password', purpose, testProof)).resolves.toBe(
+        recentProof,
+      );
+      expect(request).toHaveBeenCalledWith({
+        body: { current_password: 'admin-password', purpose },
+        method: 'POST',
+        path: '/auth/recent-grants',
+        protection: { csrfToken: testProof, kind: 'session' },
+      });
+    },
+  );
+
+  it('rejects a source grant returned for another purpose', async () => {
     const request = vi.fn<ApiClient['request']>().mockResolvedValue(
       response(
         {
           expires_at: '2026-01-02T03:09:05Z',
-          purpose: 'user.delete',
-          recent_auth_proof: recentProof,
+          purpose: 'user.update',
+          recent_auth_proof: testProof,
         },
         201,
       ),
     );
     const api = createAuthApi({ request: request as ApiClient['request'] });
-
     await expect(
-      api.createRecentAuthGrant('admin-password', 'user.delete', testProof),
-    ).resolves.toBe(recentProof);
-    expect(request).toHaveBeenCalledWith({
-      body: { current_password: 'admin-password', purpose: 'user.delete' },
-      method: 'POST',
-      path: '/auth/recent-grants',
-      protection: { csrfToken: testProof, kind: 'session' },
-    });
+      api.createRecentAuthGrant('admin-password', 'source.update', testProof),
+    ).rejects.toBeInstanceOf(AuthResponseError);
   });
 
   it('uses the exact public session paths and protects logout', async () => {

@@ -13,6 +13,7 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | Threat model and private reporting | [Security model](security.md), [policy](../SECURITY.md) |
 | Local tools and commands | [Development](development.md) |
 | Runtime names, defaults and bounds | [Configuration](configuration.md) |
+| Collection, source toggles and retention | [Observations](observations.md), [مشاهده‌ها](observations.fa.md) |
 | Proof levels and test gates | [Testing](testing.md) |
 | Install and first administrator | [Deployment](operations/deployment.md), [setup/recovery](operations/account-recovery.md) |
 | Protect and recover data | [Backup/restore](operations/backup-restore.md), [upgrade/rollback](operations/upgrade-rollback.md) |

@@ -32,6 +32,9 @@ guarantee. This is not a cluster-wide PostgreSQL server backup.
 - After install, Stackplore verifies the exact migration ledger, revokes all
   restored sessions and pre-authentication proofs, and increments the restore
   generation. A failed final check makes the target untrusted; do not use it.
+- Restore uses the storage executable from the archive's matching release.
+  An older archive is not upgraded by the restore command. Restore and verify
+  first, then use the controlled [forward upgrade](upgrade-rollback.md).
 - Archive encryption, remote replication, retention, and PostgreSQL server
   backups are operator duties. Do not rely on one local archive.
 

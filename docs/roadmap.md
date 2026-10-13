@@ -7,6 +7,12 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
+Current status (2026-10-13): stage 1 is the verified tagged `0.1.0` baseline.
+Stage 2 core code and documents form the locally verified `0.2.0` checkpoint.
+Full local, real PostgreSQL, restart and disposable restore checks passed.
+Tagged CI and live target gates are separate evidence. [Observations](observations.md)
+([فارسی](observations.fa.md)) describe the current stage 2 boundaries.
+
 ## Version and delivery rules
 
 Each completed stage receives one version in the root and workspace manifests,
@@ -21,6 +27,8 @@ Prerelease stages are development checkpoints, with limitations stated in the
 changelog and README. No production support promise follows from a 0.x tag.
 
 ## Stage 1 — Safe and reproducible baseline — 0.1.0
+
+Status: complete development baseline; exact local/CI proof is in the evidence plan.
 
 Fix confirmed security and correctness blockers in the current read-only
 implementation: PostgreSQL ownership and last-administrator serialization,
@@ -40,20 +48,33 @@ Helm install, and live infrastructure evidence remain separate named gates.
 
 ## Stage 2 — Durable observations and connections — 0.2.0
 
+Status: core checkpoint passed full local and disposable PostgreSQL gates.
+Live target and remaining 1.0 work stay named below.
+
 Add use cases and repository ports for persistent safe source references,
 environment/resource snapshots, relationship evidence, health and metric history,
-event ingestion, and settings. Add bounded discovery jobs, cancellation,
-reconnect, backoff, retention batches, and protected audit lifecycle. Never
-accept browser-supplied paths/endpoints or persist credential values. Namespace
-selection uses reviewed operator-owned profiles. Restrict production Docker
-access through the accepted narrow proxy/authorization design.
+event ingestion and fixed operator profile settings. Add bounded discovery jobs,
+cancellation, reconnect/backoff and fair ordinary-history retention. Audit has a
+protected retain-all lifecycle at this checkpoint. Administrator enable/disable
+uses exact target/version preview, expiring one-use confirmation, a `source.update`
+recent-auth grant and atomic configuration/audit commit. Browser profile creation
+is outside this checkpoint; browser paths/endpoints and credential values are
+never accepted. Production restricted
+Docker access and namespace-scoped Kubernetes fidelity belong to stage 5;
+operator quotas, protected audit cleanup/export and broader settings belong to
+stage 6.
 
 Exit: real PostgreSQL repository/transaction tests, restart persistence,
 retention boundary tests, audited source changes and one-use recent-auth gates,
 reviewed `EXPLAIN (ANALYZE, BUFFERS)` for inventory/history/audit hot paths,
-least-privilege fixtures and separately labeled live provider checks.
+source isolation, interrupted/partial capture, fair retention and authority/
+replay fixtures. Keep live provider/target checks separately labeled and open
+until their owning stage proves them.
 
 ## Stage 3 — Correct alert evidence and live delivery — 0.3.0
+
+Status: open. Existing predicate implementations do not prove correct windows,
+restart rate semantics or connection/event evidence.
 
 Honor alert windows and restart rate semantics; connection failures must produce
 connection-loss evidence. Search the whole bounded event window. Stream durable
@@ -72,13 +93,15 @@ redirect/SSRF/timeout and uncertain outcome checks.
 ## Stage 4 — Complete exploration journeys — 0.4.0
 
 Paginate inventory, topology, alerts/rules, logs, and search; show partial results
-honestly. Synchronize URL source/filter state with navigation. Finish overview
-unavailable/partial metric states, source counts, time range correlation, log
-tail/pause/wrap/copy/download/container controls, and detail links. Split the
+honestly. Extend the existing URL source/search synchronization to all shareable
+filters. Preserve truthful unavailable/partial metric states and finish source
+counts, time range correlation, log tail/pause/wrap/copy/download/container
+controls and detail links. Split the
 large product/API modules by feature while retaining runtime transport guards.
 Complete topology grouping, evidence, correct directions and accessible node/
-edge navigation, including isolated nodes. Name all real alert predicates in
-both locales. Keep sessions alive while valid activity extends their idle limit.
+edge navigation, including isolated nodes. Retain the existing English/Persian
+names for all real alert predicates. Keep sessions alive while valid activity
+extends their idle limit.
 
 Exit: component/client regressions and real browser setup/login/resource/log/
 topology/alert journeys in English/Persian, LTR/RTL, both themes, and all required
@@ -86,7 +109,8 @@ widths; keyboard and screen-reader checks; large-fixture budgets.
 
 ## Stage 5 — Provider fidelity and deterministic demo — 0.5.0
 
-Complete Docker Engine/Compose inventory, current stats, bounded historic logs,
+Implement the accepted restricted production Docker access profile; direct
+socket access remains loopback development only. Complete Docker Engine/Compose inventory, current stats, bounded historic logs,
 event collection, and evidence-backed relationships. Align collectors with the accepted vendor-client decision. Complete namespace-scoped
 Kubernetes discovery, partial/denied capabilities, current/previous container
 logs, metrics/events, and topology. Do not fail a whole source when one optional
@@ -107,6 +131,11 @@ rollout restart, and supported replica scaling. All deployment permission,
 administrator, CSRF, target/version, preview, expiry, replay, timeout and
 synthetic-source gates are mandatory. Finish non-secret settings/export/cleanup
 previews and personal preferences with bounded audited lifecycle.
+
+Replace audit retain-all with an explicitly reviewed operator quota/minimum
+retention/archive policy and guarded cleanup that preserves protected history.
+Complete safe operator-owned profile/credential-reference rotation without
+storing raw provider credential values.
 
 Exit: complete allow/deny matrix, concurrent/replayed operation tests, real
 PostgreSQL transaction tests, uncertain timeout reconciliation, viewer/guest

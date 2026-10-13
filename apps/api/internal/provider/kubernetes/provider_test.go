@@ -436,3 +436,54 @@ func fixtureSnapshot() Snapshot {
 		Secrets:        []ObjectRef{{UID: "secret-one", Namespace: "shop", Name: "shop-token"}},
 	}
 }
+
+func TestCaptureInventoryCollectsOneSnapshotAndReplicaEvidence(t *testing.T) {
+	calls := 0
+	provider, err := New("source_cluster", "Fixture cluster", collectorFunc(func(context.Context) (Snapshot, error) { calls++; return fixtureSnapshot(), nil }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	capture, err := provider.CaptureInventory(context.Background())
+	if err != nil || calls != 1 || capture.ValidateFor(domain.ProviderRef{Provider: domain.ProviderKubernetes, SourceID: "source_cluster"}) != nil || len(capture.Resources) != 14 || len(capture.Health) != 14 || len(capture.WorkloadReplicas) != 2 || !capture.Complete {
+		t.Fatal("inventory capture repolled or lost workload evidence")
+	}
+}
+
+func TestEventIdentityChangesOnlyWithEventFacts(t *testing.T) {
+	snapshot := fixtureSnapshot()
+	collector := &eventFixtureCollector{snapshot: snapshot, events: []ClusterEvent{{UID: "event-one", InvolvedUID: "pod-one", Reason: "BackOff", Message: "request token=synth-private-9 stopped", Type: "Warning", OccurredAt: snapshot.ObservedAt.Add(-time.Minute), Occurrences: 1}}}
+	provider, err := New("source_cluster", "Fixture cluster", collector)
+	if err != nil {
+		t.Fatal(err)
+	}
+	query := domain.EventQuery{Source: domain.ProviderRef{Provider: domain.ProviderKubernetes, SourceID: "source_cluster"}, Range: domain.TimeRange{Start: snapshot.ObservedAt.Add(-time.Hour), End: snapshot.ObservedAt.Add(time.Minute)}, Page: domain.PageRequest{Limit: 10}}
+	first, err := provider.ListEvents(context.Background(), query)
+	if err != nil || len(first.Events) != 1 || strings.Contains(first.Events[0].Summary, "synth-private-9") {
+		t.Fatal("event facts leaked or fixture failed")
+	}
+	collector.snapshot.ObservedAt = collector.snapshot.ObservedAt.Add(time.Second)
+	second, err := provider.ListEvents(context.Background(), query)
+	if err != nil || second.Events[0].ID != first.Events[0].ID || second.Events[0].ObservedAt == first.Events[0].ObservedAt {
+		t.Fatal("poll receipt changed immutable event ID or lost receipt time")
+	}
+	collector.events[0].Occurrences++
+	third, err := provider.ListEvents(context.Background(), query)
+	if err != nil || third.Events[0].ID == first.Events[0].ID {
+		t.Fatal("native event revision kept old immutable ID")
+	}
+	other, err := New("source_other_cluster", "Other fixture cluster", collector)
+	if err != nil {
+		t.Fatal(err)
+	}
+	otherQuery := query
+	otherQuery.Source.SourceID = "source_other_cluster"
+	otherPage, err := other.ListEvents(context.Background(), otherQuery)
+	if err != nil || len(otherPage.Events) != 1 || otherPage.Events[0].ID == third.Events[0].ID {
+		t.Fatal("event ID crossed source boundary")
+	}
+	collector.snapshot.Pods = nil
+	unscoped, err := provider.ListEvents(context.Background(), query)
+	if err != nil || len(unscoped.Events) != 1 || unscoped.Events[0].ResourceID != nil || unscoped.Events[0].ID == third.Events[0].ID {
+		t.Fatal("changed resource fact kept old immutable ID")
+	}
+}

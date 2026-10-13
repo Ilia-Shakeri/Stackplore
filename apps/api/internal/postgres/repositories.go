@@ -298,6 +298,11 @@ func mapRepositoryWriteError(ctx context.Context, err error) error {
 	if ctx != nil && ctx.Err() != nil {
 		return errors.Join(domain.ErrRepositoryUnavailable, ctx.Err())
 	}
+	for _, owned := range []error{domain.ErrRepositoryConflict, domain.ErrRepositoryInvalidInput, domain.ErrRepositoryNotFound, domain.ErrRepositoryUnavailable} {
+		if errors.Is(err, owned) {
+			return owned
+		}
+	}
 	var postgresError *pgconn.PgError
 	if errors.As(err, &postgresError) && len(postgresError.Code) == 5 && postgresError.Code[:2] == "23" {
 		return domain.ErrRepositoryConflict

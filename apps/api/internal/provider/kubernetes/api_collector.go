@@ -144,7 +144,8 @@ func (collector *APICollector) ClusterEvents(ctx context.Context) ([]ClusterEven
 		result = append(result, ClusterEvent{
 			UID: item.Metadata.UID, InvolvedUID: item.InvolvedObject.UID,
 			Reason: item.Reason, Message: item.Message, Type: item.Type,
-			OccurredAt: occurredAt.UTC().Truncate(time.Microsecond),
+			OccurredAt:  occurredAt.UTC().Truncate(time.Microsecond),
+			Occurrences: eventOccurrences(item),
 		})
 	}
 	return result, nil
@@ -505,9 +506,18 @@ type eventObject struct {
 	Type          string    `json:"type"`
 	EventTime     time.Time `json:"eventTime"`
 	LastTimestamp time.Time `json:"lastTimestamp"`
+	Count         uint64    `json:"count"`
 	Series        struct {
 		LastObservedTime time.Time `json:"lastObservedTime"`
+		Count            uint64    `json:"count"`
 	} `json:"series"`
+}
+
+func eventOccurrences(item eventObject) uint64 {
+	if item.Series.Count > 0 {
+		return item.Series.Count
+	}
+	return max(item.Count, 1)
 }
 
 type ownerReference struct {

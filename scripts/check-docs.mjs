@@ -23,6 +23,8 @@ const required = [
   'docs/security.md',
   'docs/development.md',
   'docs/configuration.md',
+  'docs/observations.md',
+  'docs/observations.fa.md',
   'docs/testing.md',
   'docs/user-guide.md',
   'docs/user-guide.fa.md',

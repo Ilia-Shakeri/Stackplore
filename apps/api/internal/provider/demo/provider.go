@@ -122,6 +122,25 @@ func ObservationTime() time.Time {
 	return observedAt
 }
 
+func (provider *Provider) CaptureInventory(ctx context.Context) (domain.InventoryCapture, error) {
+	ref := domain.ProviderRef{Provider: domain.ProviderDemo, SourceID: SourceID}
+	if err := provider.validateContext(ctx, ref); err != nil {
+		return domain.InventoryCapture{}, invalid("demo.inventory.capture", err)
+	}
+	capture := domain.InventoryCapture{
+		Source: ref, Status: availableStatus(), Environments: []domain.Environment{provider.environment},
+		Resources: slices.Clone(provider.resources), Relationships: slices.Clone(provider.relationships), Complete: true,
+		Health: make([]domain.HealthSnapshot, 0, len(provider.health)),
+	}
+	for _, resource := range provider.resources {
+		capture.Health = append(capture.Health, provider.health[resource.Resource.Ref.ID])
+	}
+	if err := capture.ValidateFor(ref); err != nil {
+		return domain.InventoryCapture{}, invalid("demo.inventory.capture", err)
+	}
+	return capture, nil
+}
+
 func (provider *Provider) ListEnvironments(ctx context.Context, query domain.EnvironmentQuery) (domain.EnvironmentPage, error) {
 	if err := provider.validateContext(ctx, query.Source); err != nil || query.Validate() != nil {
 		return domain.EnvironmentPage{}, invalid("demo.inventory.environments", err)

@@ -427,6 +427,65 @@ const routePolicies = new Map([
     },
   ],
   [
+    '/settings/sources',
+    {
+      get: {
+        operationId: 'listSourceSettings',
+        requestBody: false,
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+        security: browserSession,
+      },
+    },
+  ],
+  [
+    '/settings/sources/{source_id}/preview',
+    {
+      post: {
+        operationId: 'previewSourceUpdate',
+        requestBody: true,
+        responses: [
+          '200',
+          '400',
+          '401',
+          '403',
+          '404',
+          '409',
+          '413',
+          '415',
+          '422',
+          '429',
+          '500',
+          '503',
+        ],
+        security: sessionMutation,
+      },
+    },
+  ],
+  [
+    '/settings/sources/{source_id}',
+    {
+      patch: {
+        operationId: 'updateSourceSettings',
+        requestBody: true,
+        responses: [
+          '200',
+          '400',
+          '401',
+          '403',
+          '404',
+          '409',
+          '413',
+          '415',
+          '422',
+          '429',
+          '500',
+          '503',
+        ],
+        security: highRiskMutation,
+      },
+    },
+  ],
+  [
     '/streams/health',
     {
       get: {
@@ -530,8 +589,10 @@ const allowedParameterNames = [
   'Search',
   'SortDirection',
   'SourceFilter',
+  'SourceSettingsId',
   'To',
   'UserEnabledFilter',
+  'UserCursor',
   'UserId',
   'UserRoleFilter',
 ];
@@ -729,6 +790,11 @@ const allowedSchemaNames = [
   'SetupStatus',
   'SortDirection',
   'SourceId',
+  'SourceSettingsRecord',
+  'SourceSettingsPage',
+  'SourceUpdatePreview',
+  'SourceUpdateRequest',
+  'SourcePreviewRequest',
   'SourceSummary',
   'StaleObservation',
   'SystemAuditActor',
@@ -775,6 +841,8 @@ const sensitiveInputFieldAllowlist = new Set([
   'RecentAuthRequest:current_password',
   'ResetPassphraseRequest:new_password',
   'SetupRequest:password',
+  'SourceUpdateRequest:confirmation_token',
+  'SourceUpdatePreview:confirmation_token',
 ]);
 const schemaAssertionKeywords = new Set([
   '$ref',
@@ -1797,6 +1865,7 @@ const main = async () => {
           'user.password_reset',
           'user.sessions_revoke',
           'notification.test',
+          'source.update',
         ],
       ],
       ['RelationshipDirection', ['source_to_target', 'bidirectional', 'undirected']],
@@ -1930,7 +1999,7 @@ const main = async () => {
     if (
       !isRecord(cursor) ||
       cursor.minLength !== 1 ||
-      cursor.maxLength !== 1024 ||
+      cursor.maxLength !== 4096 ||
       cursor.pattern !== canonicalCursorPattern ||
       !Array.isArray(cursor.examples) ||
       cursor.examples.length !== 1 ||

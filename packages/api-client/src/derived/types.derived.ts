@@ -2,6 +2,38 @@ export type ClientOptions = {
   baseUrl: `${string}://${string}/api/v1` | (string & {});
 };
 
+export type SourceSettingsRecord = {
+  id: SourceId;
+  provider: ProviderKind;
+  name: DisplayText;
+  synthetic: boolean;
+  enabled: boolean;
+  version: number;
+  profile_available: boolean;
+};
+
+export type SourceSettingsPage = {
+  items: Array<SourceSettingsRecord>;
+  page: PageInfo;
+};
+
+export type SourcePreviewRequest = {
+  enabled: boolean;
+};
+
+export type SourceUpdateRequest = {
+  enabled: boolean;
+  confirmation_token: Proof;
+};
+
+export type SourceUpdatePreview = {
+  source: SourceSettingsRecord;
+  requested_enabled: boolean;
+  impact: 'collection.start' | 'collection.stop';
+  confirmation_token: Proof;
+  expires_at: Timestamp;
+};
+
 /**
  * Stable opaque local user identifier.
  */
@@ -109,7 +141,7 @@ export type SessionContext = {
 };
 
 /**
- * Exact Phase 7 high-risk change bound to a one-use proof.
+ * Exact high-risk change bound to a one-use proof.
  */
 export type RecentAuthPurpose =
   | 'account.password_change'
@@ -118,7 +150,8 @@ export type RecentAuthPurpose =
   | 'user.delete'
   | 'user.password_reset'
   | 'user.sessions_revoke'
-  | 'notification.test';
+  | 'notification.test'
+  | 'source.update';
 
 /**
  * Current-password proof request for one exact high-risk purpose.
@@ -1719,9 +1752,16 @@ export type ProductSourceSelection = SourceId;
 export type LastEventId = string;
 
 /**
- * Strong quoted decimal form of the last observed user version.
+ * Strong quoted decimal form of the last observed entity version.
  */
 export type IfMatch = string;
+
+export type SourceSettingsId = SourceId;
+
+/**
+ * Opaque local account continuation cursor, bounded separately from infrastructure cursors.
+ */
+export type UserCursor = Cursor;
 
 /**
  * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
@@ -2263,7 +2303,7 @@ export type ListUsersData = {
   path?: never;
   query?: {
     /**
-     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     * Opaque local account continuation cursor, bounded separately from infrastructure cursors.
      */
     cursor?: Cursor;
     /**
@@ -2399,7 +2439,7 @@ export type DeleteUserData = {
      */
     'X-Request-ID'?: RequestId;
     /**
-     * Strong quoted decimal form of the last observed user version.
+     * Strong quoted decimal form of the last observed entity version.
      */
     'If-Match': string;
   };
@@ -2535,7 +2575,7 @@ export type UpdateUserData = {
      */
     'X-Request-ID'?: RequestId;
     /**
-     * Strong quoted decimal form of the last observed user version.
+     * Strong quoted decimal form of the last observed entity version.
      */
     'If-Match': string;
   };
@@ -2611,7 +2651,7 @@ export type ResetUserPasswordData = {
      */
     'X-Request-ID'?: RequestId;
     /**
-     * Strong quoted decimal form of the last observed user version.
+     * Strong quoted decimal form of the last observed entity version.
      */
     'If-Match': string;
   };
@@ -3701,7 +3741,7 @@ export type DeleteAlertRuleData = {
      */
     'X-Request-ID'?: RequestId;
     /**
-     * Strong quoted decimal form of the last observed user version.
+     * Strong quoted decimal form of the last observed entity version.
      */
     'If-Match': string;
   };
@@ -3770,7 +3810,7 @@ export type ReplaceAlertRuleData = {
      */
     'X-Request-ID'?: RequestId;
     /**
-     * Strong quoted decimal form of the last observed user version.
+     * Strong quoted decimal form of the last observed entity version.
      */
     'If-Match': string;
   };
@@ -4009,6 +4049,225 @@ export type TestNotificationDeliveryResponses = {
 
 export type TestNotificationDeliveryResponse =
   TestNotificationDeliveryResponses[keyof TestNotificationDeliveryResponses];
+
+export type ListSourceSettingsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+    limit?: number;
+  };
+  url: '/settings/sources';
+};
+
+export type ListSourceSettingsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListSourceSettingsError = ListSourceSettingsErrors[keyof ListSourceSettingsErrors];
+
+export type ListSourceSettingsResponses = {
+  /**
+   * Bounded source registry page.
+   */
+  200: SourceSettingsPage;
+};
+
+export type ListSourceSettingsResponse =
+  ListSourceSettingsResponses[keyof ListSourceSettingsResponses];
+
+export type PreviewSourceUpdateData = {
+  body: SourcePreviewRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed entity version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    source_id: SourceId;
+  };
+  query?: never;
+  url: '/settings/sources/{source_id}/preview';
+};
+
+export type PreviewSourceUpdateErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * Source version changed or requested state is unchanged. Codes source.version_conflict and source.state_unchanged.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * Operator profile unavailable. Code source.profile_unavailable.
+   */
+  422: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type PreviewSourceUpdateError = PreviewSourceUpdateErrors[keyof PreviewSourceUpdateErrors];
+
+export type PreviewSourceUpdateResponses = {
+  /**
+   * Exact collection impact and one-use confirmation.
+   */
+  200: SourceUpdatePreview;
+};
+
+export type PreviewSourceUpdateResponse =
+  PreviewSourceUpdateResponses[keyof PreviewSourceUpdateResponses];
+
+export type UpdateSourceSettingsData = {
+  body: SourceUpdateRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed entity version.
+     */
+    'If-Match': string;
+  };
+  path: {
+    source_id: SourceId;
+  };
+  query?: never;
+  url: '/settings/sources/{source_id}';
+};
+
+export type UpdateSourceSettingsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * Source version, state or confirmation conflict. Codes source.version_conflict, source.state_unchanged and source.confirmation_rejected.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * Operator profile unavailable. Code source.profile_unavailable.
+   */
+  422: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type UpdateSourceSettingsError =
+  UpdateSourceSettingsErrors[keyof UpdateSourceSettingsErrors];
+
+export type UpdateSourceSettingsResponses = {
+  /**
+   * Committed source state and new version.
+   */
+  200: SourceSettingsRecord;
+};
+
+export type UpdateSourceSettingsResponse =
+  UpdateSourceSettingsResponses[keyof UpdateSourceSettingsResponses];
 
 export type ListAuditEntriesData = {
   body?: never;

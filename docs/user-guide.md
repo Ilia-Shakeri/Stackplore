@@ -1,7 +1,8 @@
 # Current user guide
 
-This describes the authenticated 0.1 baseline. It is not a promise that every
-1.0 feature exists. See [remaining work](roadmap.md) and
+This describes the authenticated 0.2 checkpoint. Its full local gate and disposable
+PostgreSQL/restart/restore proof passed; live browser and target deployment
+evidence remain separate. It is not a promise that every 1.0 feature exists. See [remaining work](roadmap.md) and
 [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
@@ -10,8 +11,10 @@ This describes the authenticated 0.1 baseline. It is not a promise that every
 2. Open `/setup`, choose the language, enter the required operator proof, and
    create the first administrator. Later users sign in at `/login`.
 3. Choose a source in the product header. Demo data is synthetic. Real Docker
-   and Kubernetes reads are operator enabled; the connection page reports
-   status, and does not create a persistent connection through the browser.
+   and Kubernetes profiles are operator supplied. Administrators can preview and
+   toggle registered profiles at `/settings/connections`; browsers cannot create
+   profiles, change endpoints/paths or upload credentials. Profile availability
+   means configured, not a successful live connection check.
 4. Inspect `/overview`, `/resources`, and a resource's stable detail link. Health
    and capability status distinguish available, stale, unavailable, unsupported,
    and denied data. A displayed partial page is not the whole estate.
@@ -30,12 +33,44 @@ This describes the authenticated 0.1 baseline. It is not a promise that every
    locally; the broader preference settings page is planned. Sign out through
    the account menu.
 
+## Administrator source changes
+
+1. Open `/settings/connections` and find the exact registered source. Enabled
+   state persists across restart. An unavailable operator profile can be
+   disabled, but cannot be enabled until the operator supplies it.
+2. Choose enable/disable and review the server's exact source ID, current version,
+   collection impact and two-minute expiry. No infrastructure resource changes.
+3. Confirm the named change and enter the current password. A one-use
+   `source.update` grant, one-use confirmation, version change and audit commit
+   together. Viewers cannot read or mutate this administrator registry.
+4. After stale, expired, used or uncertain results, reload actual profiles and
+   obtain a fresh preview. The interface does not replay a lost write response.
+
+Inventory, details, health, topology, metrics and events read stored normalized
+observations. Collection runs independently with bounded polling and backoff;
+loading a page does not recollect the estate. Outages can show old data as stale.
+Disabling a source keeps stored observations, marks them stale and blocks live
+log reads. Missing metrics are unavailable, rather than fabricated zero totals.
+See [collection, source settings and retention](observations.md).
+
+Metric status can be partial when resource support or connection results differ
+within a source. Stored samples keep their own timestamps; a source-level metric
+status does not prove each resource is currently supported or freshly observed.
+Exact per-resource metric availability is still stage 5 work.
+
 Viewers cannot administer users/rules/global settings or mutate infrastructure.
 The current baseline exposes no live restart/scale action. The installable PWA,
-guest demonstration deployment, persistent browser source setup, full detail
+guest demonstration deployment, broader safe profile setup, full detail
 tabs, and complete history/export/cleanup flows remain roadmap work.
 
 Loading, denied, unavailable and disconnected states deserve attention. Retry a
 failed read; if it persists, give the operator only the safe error code and
 request ID. Do not share raw logs, credentials, session data or private targets.
 See [troubleshooting](operations/troubleshooting.md).
+
+Alert rules implement the declared predicate kinds, but historical windows,
+restart semantics and connection/event evidence still need stage 3 corrections.
+Use current evidence and the roadmap before relying on complete alert semantics.
+Ordinary history has fixed bounded retention; audit currently retains all rows.
+Configurable quotas, protected audit cleanup, exports and archive custody are
+later-stage work.

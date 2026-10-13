@@ -566,6 +566,7 @@ func (address testAddress) String() string  { return string(address) }
 
 type fakeDatabase struct {
 	auth.Repository
+	observationDatabase
 	available     atomic.Bool
 	closed        atomic.Bool
 	setupRequired bool

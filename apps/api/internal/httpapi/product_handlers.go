@@ -38,6 +38,7 @@ type productHTTP struct {
 	notificationSettingsReader NotificationSettingsReader
 	notificationTester         NotificationTester
 	alertManager               AlertManager
+	sourceSettings             SourceSettings
 }
 
 type AlertManager interface {

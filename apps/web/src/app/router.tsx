@@ -354,7 +354,7 @@ function SettingsEntryRoute() {
 }
 
 const settingsConnectionsRoute = createRoute({
-  getParentRoute: () => administratorRoute,
+  getParentRoute: () => appRoute,
   path: '/settings/connections',
   component: ConnectionsSettingsPage,
 });
@@ -422,15 +422,11 @@ const routeTree = rootRoute.addChildren([
     notificationsRoute,
     settingsRoute,
     settingsPreferencesRoute,
+    settingsConnectionsRoute,
     aboutRoute,
     notFoundRoute,
     designSystemRoute,
-    administratorRoute.addChildren([
-      auditRoute,
-      settingsConnectionsRoute,
-      settingsUsersRoute,
-      settingsNotificationsRoute,
-    ]),
+    administratorRoute.addChildren([auditRoute, settingsUsersRoute, settingsNotificationsRoute]),
   ]),
 ]);
 

@@ -7,6 +7,12 @@ import (
 
 const MaximumRetentionBatch = 1000
 
+// Current metric reads select the newest point, with the lowest ID as the tie break.
+// Keep that point when pruning history so an old cutoff cannot erase current data.
+const historicalMetricPredicate = `item.id<>(SELECT newest.id FROM metric_samples AS newest
+WHERE newest.resource_id=item.resource_id AND newest.metric_name=item.metric_name
+ORDER BY newest.sampled_at_us DESC,newest.id COLLATE "C" LIMIT 1)`
+
 // RetentionClass names a fixed observation cleanup target. Audit is excluded.
 type RetentionClass string
 
@@ -19,8 +25,8 @@ const (
 
 var retentionStatements = map[RetentionClass]string{
 	RetentionMetricSamples: `WITH expired AS (
-    SELECT id FROM metric_samples WHERE sampled_at_us < $1
-    ORDER BY sampled_at_us, id LIMIT $2 FOR UPDATE SKIP LOCKED
+    SELECT item.id FROM metric_samples AS item WHERE item.sampled_at_us < $1 AND ` + historicalMetricPredicate + `
+    ORDER BY item.sampled_at_us, item.id LIMIT $2 FOR UPDATE OF item SKIP LOCKED
 ) DELETE FROM metric_samples USING expired WHERE metric_samples.id = expired.id`,
 	RetentionHealthHistory: `WITH expired AS (
     SELECT id FROM health_history WHERE observed_at_us < $1

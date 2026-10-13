@@ -198,6 +198,7 @@ const (
 	RecentAuthPurposeUserPasswordReset     RecentAuthPurpose = "user.password_reset"
 	RecentAuthPurposeUserSessionsRevoke    RecentAuthPurpose = "user.sessions_revoke"
 	RecentAuthPurposeNotificationTest      RecentAuthPurpose = "notification.test"
+	RecentAuthPurposeSourceUpdate          RecentAuthPurpose = "source.update"
 	RecentAuthPurposeOperationExecute      RecentAuthPurpose = "operation.execute"
 )
 
@@ -210,6 +211,7 @@ func (purpose RecentAuthPurpose) Validate() error {
 		RecentAuthPurposeUserPasswordReset,
 		RecentAuthPurposeUserSessionsRevoke,
 		RecentAuthPurposeNotificationTest,
+		RecentAuthPurposeSourceUpdate,
 		RecentAuthPurposeOperationExecute:
 		return nil
 	default:

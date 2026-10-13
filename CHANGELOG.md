@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.2.0] - 2026-10-13
+
+### Added
+
+- Persistent operator-owned source registry and typed PostgreSQL inventory,
+  topology, health, replica, metric and event capture/read ports; migrations 7–8
+  extend the immutable six-migration 0.1 baseline.
+- Bounded collection jobs, capped provider-neutral aggregate capture, versioned
+  generation reconciliation, reconnect backoff and cached reads. Logs remain live
+  and bounded; provider bodies and credential values are not persisted.
+- Administrator source toggle UI in English/Persian with exact preview,
+  two-minute one-use confirmation, current-password `source.update` grant,
+  version conflict checks and atomic configuration/grant/confirmation/audit.
+- Fair bounded history cleanup, newest-metric protection, unchanged-health
+  deduplication, synthetic fixture protection and a separate retain-all audit
+  lifecycle. Audit quota/expiry controls remain planned.
+- Signed query-bound keysets carrying immutable sort values, a 4,096-byte
+  infrastructure cursor ceiling and separate 1,024-byte account cursor input.
+- Real PostgreSQL capture/restart/upgrade/keyset/authority/retention regressions,
+  reviewed disposable query plans and bilingual observation documentation.
+
+### Corrected
+
+- Cached reads preserve stale/partial/denied/unsupported status by source and
+  optional port; an unfinished capture cannot claim a complete fresh estate.
+- Repeated event revisions preserve immutable facts and first stored observation
+  time. Event text uses the shared credential scrubber.
+- Source authorization time is refreshed after request decoding and after the
+  PostgreSQL auth lock, preventing an old prepared time from extending expiry.
+
+### Limits
+
+This is a development checkpoint. Namespace-scoped/partial-rights Kubernetes,
+restricted production Docker access, operator audit quotas, complete historical
+alert semantics and durable alert streams, live browser/provider/container/cluster
+proof and the remaining roadmap stages are open. Demo alarm compatibility remains
+an explicitly static fixture until the durable alert stage. Exact checks and
+remote outcomes are recorded in the active evidence plan; no production claim is
+made by source versioning.
+
 All notable changes to Stackplore will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioned releases will follow [Semantic Versioning](https://semver.org/) once release work begins.

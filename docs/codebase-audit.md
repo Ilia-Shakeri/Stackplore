@@ -62,12 +62,29 @@ styles/motion/theme/direction; client transport/generated types; tests and build
 configuration. Operations review covers Compose, images, edge, Helm, workflow,
 toolchain and scripts, governance, all ADRs and current documentation.
 
-Major unfinished scope: persistent source/observation/discovery/retention use
-cases, full demo/guest profile, namespace least privilege, historical fidelity,
+Major unfinished scope after the 0.2 checkpoint: source creation through reviewed
+operator profiles, audit quota/cleanup controls, full demo/guest profile,
+namespace least privilege, historical fidelity,
 complete paging/filter/navigation/log controls, durable live alert changes,
 guarded actions, settings/export/cleanup, safe PWA, browser/live provider/
 deployment/performance/accessibility/security/release evidence. Tests currently
 mock many of these boundaries; their existence does not prove target behavior.
+
+## Stage 2 follow-up review — 2026-10-13
+
+The registry, observation domain ports, PostgreSQL adapters, bounded collection
+and fair retention jobs, cached provider facade, source management use case/HTTP,
+generated contracts, bilingual source UI and all affected documents were reviewed.
+The implementation is a development checkpoint; it does not close the separate
+least-privilege/live-target or audit quota requirements.
+
+Corrections found during review included mutable cursor anchor rereads, source
+and optional-port denial leaking old available status, incomplete capture showing
+fresh complete data, metric pruning deleting current values, one retention class
+starving another, repeated health refresh expanding history, and authorization
+time captured before a slow request body or transaction lock. These have targeted
+real SQL or boundary regressions. Static demo alarm compatibility is explicit;
+durable alert seeding/reads/streams remain the next stage.
 
 ## Correction loop
 

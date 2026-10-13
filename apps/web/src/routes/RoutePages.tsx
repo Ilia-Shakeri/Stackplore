@@ -22,7 +22,11 @@ const ProductAlertsPage = productPage('ProductAlertsPage');
 const ProductNotificationsPage = productPage('ProductNotificationsPage');
 const ProductAuditPage = productPage('ProductAuditPage');
 const ProductSystemSettingsPage = productPage('ProductSystemSettingsPage');
-const ProductConnectionsSettingsPage = productPage('ProductConnectionsSettingsPage');
+const SourceSettingsPage = lazy(() =>
+  import('../features/product/SourceSettingsPage').then((module) => ({
+    default: module.SourceSettingsPage,
+  })),
+);
 const ProductAlertRulesSettingsPage = lazy(() =>
   import('../features/product/AlertRulesSettingsPage').then((module) => ({
     default: module.ProductAlertRulesSettingsPage,
@@ -188,7 +192,7 @@ export function SettingsPage() {
 export function ConnectionsSettingsPage() {
   return (
     <ProductBoundary>
-      <ProductConnectionsSettingsPage toolbar={<SettingsNavigation />} />
+      <SourceSettingsPage toolbar={<SettingsNavigation />} />
     </ProductBoundary>
   );
 }

@@ -53,6 +53,7 @@ var (
 	errProductStart     = errors.New("infrastructure source could not start")
 	errAlertStart       = errors.New("alert worker could not start")
 	errDeliveryStart    = errors.New("notification delivery could not start")
+	errObservationStart = errors.New("observation runtime could not start")
 )
 
 type listenerFactory func(network string, address string) (net.Listener, error)
@@ -160,13 +161,19 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errors.Join(errHTTPBoundary, errProductStart))
 	}
+	observations, err := buildObservationRuntime(serviceContext, settings, database, providers, logger)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errObservationStart)
+	}
+	providers = observations.providers
 	alertManager, err := alerting.NewManagementService(database, alerting.SecureIdentifierFactory{}, time.Now)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errAlertStart)
 	}
 	historyReader, _ := database.(productHistoryReader)
-	server, err := newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, alertManager, historyReader)
+	server, err := newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, alertManager, observations.settings, historyReader)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(err)
@@ -201,6 +208,8 @@ func runWithStorage(
 	monitorDone := make(chan struct{})
 	alertDone := make(chan struct{})
 	deliveryDone := make(chan struct{})
+	observationDone := make(chan struct{})
+	retentionDone := make(chan struct{})
 	go func() {
 		defer close(monitorDone)
 		monitorDatabase(monitorContext, database, readiness, databaseHealthInterval, settings.DatabaseHealthTimeout)
@@ -208,6 +217,14 @@ func runWithStorage(
 	go func() {
 		defer close(alertDone)
 		alertWorker.Run(monitorContext)
+	}()
+	go func() {
+		defer close(observationDone)
+		observations.collection.Run(monitorContext)
+	}()
+	go func() {
+		defer close(retentionDone)
+		observations.retention.Run(monitorContext)
 	}()
 	if deliveryWorker == nil {
 		close(deliveryDone)
@@ -224,6 +241,8 @@ func runWithStorage(
 	<-monitorDone
 	<-alertDone
 	<-deliveryDone
+	<-observationDone
+	<-retentionDone
 	readiness.SetDatabaseReady(false)
 	if ownership, ok := database.(interface{ OwnershipLost() <-chan struct{} }); ok {
 		select {
@@ -348,7 +367,7 @@ func newHTTPServer(
 	if err != nil {
 		return nil, errors.Join(errHTTPBoundary, errProductStart)
 	}
-	return newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, nil, historyReaders...)
+	return newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, nil, nil, historyReaders...)
 }
 
 func newHTTPServerWithProviders(
@@ -358,6 +377,7 @@ func newHTTPServerWithProviders(
 	authentication *auth.Service,
 	providers []httpapi.ProductProvider,
 	alertManager httpapi.AlertManager,
+	sourceSettings httpapi.SourceSettings,
 	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
 	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil ||
@@ -405,6 +425,7 @@ func newHTTPServerWithProviders(
 		NotificationSettings:   notificationSettings,
 		NotificationTester:     notificationTester,
 		AlertManager:           alertManager,
+		SourceSettings:         sourceSettings,
 		RateLimit: httpapi.RateLimitConfig{
 			RequestsPerSecond: settings.RatePerSecond,
 			Burst:             settings.RateBurst,
@@ -691,6 +712,8 @@ func lifecycleReason(err error) string {
 		return "alert_start"
 	case errors.Is(err, errDeliveryStart):
 		return "notification_delivery_start"
+	case errors.Is(err, errObservationStart):
+		return "observation_start"
 	default:
 		return "unexpected_stop"
 	}

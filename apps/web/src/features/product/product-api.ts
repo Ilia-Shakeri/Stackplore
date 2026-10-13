@@ -23,8 +23,9 @@ import type {
   SystemReadiness,
 } from '@stackplore/api-client';
 import type { SessionProtection } from '../auth/auth-api';
+import { createSourceSettingsApi, type SourceSettingsApi } from './source-settings-api';
 
-export interface ProductApi {
+export interface ProductApi extends SourceSettingsApi {
   acknowledgeAlert(alertId: string): Promise<ProductAlert>;
   createAlertRule(input: AlertRuleInput): Promise<AlertRuleRecord>;
   deleteAlertRule(ruleId: string, version: number): Promise<void>;
@@ -66,7 +67,7 @@ export interface ProductApi {
 
 export interface SessionActionRunner {
   runRecentAction?<Result>(
-    purpose: 'notification.test',
+    purpose: 'notification.test' | 'source.update',
     currentPassword: string,
     action: (protection: SessionProtection) => Promise<Result>,
   ): Promise<Result>;
@@ -108,7 +109,7 @@ const hasExactKeys = (
 };
 
 const resourceIdPattern = /^r1_[A-Za-z0-9_-]{43}$/u;
-const cursorPattern = /^[A-Za-z0-9_-]{1,1024}$/u;
+const cursorPattern = /^[A-Za-z0-9_-]{1,4096}$/u;
 const relationshipIdPattern = /^rel1_[A-Za-z0-9_-]{43}$/u;
 const tokenPattern = /^[A-Za-z][A-Za-z0-9_-]{0,127}$/u;
 const namespacedCodePattern = /^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/u;
@@ -795,6 +796,7 @@ export function createProductApi(
   sessionActions?: SessionActionRunner,
 ): ProductApi {
   return {
+    ...createSourceSettingsApi(client, sessionActions),
     async acknowledgeAlert(alertId) {
       if (!tokenPattern.test(alertId) || sessionActions === undefined) {
         throw new Error('Alert acknowledgement is unavailable.');

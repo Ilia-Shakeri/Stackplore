@@ -4,8 +4,12 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Stackplore 1.0 implementation active; PostgreSQL
-  persistence migration in progress on top of the local authentication foundation
+- **Implementation status:** Stackplore 1.0 implementation active; tagged 0.1.0
+  baseline verified. The 0.2.0 checkpoint implements persisted source settings,
+  normalized observations, cached reads and bounded collection/retention; its
+  local gate and disposable PostgreSQL/restart/restore proof passed. Correct historical
+  alert evidence, provider fidelity, protected audit policy and remaining 1.0
+  requirements are still open.
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
@@ -786,6 +790,16 @@ production drills remain separate. Non-root API/web images and Compose/Helm
 definitions exist; local chart lint/render ran, while container and cluster
 startup are still unproved. The current static web edge differs from the
 accepted Go-built-web serving target in ADR-0001 and must be aligned before 1.0.
+The 0.2 checkpoint stores safe operator profile references and normalized
+observations, runs bounded collection/backoff and fair ordinary-history
+retention, and serves cached product reads; logs remain bounded live reads.
+Administrator source toggles require exact-version preview, one-use confirmation,
+purpose-bound recent authentication and atomic audit. Browser profile creation,
+endpoint/path/credential editing, production restricted Docker access,
+namespace-scoped Kubernetes fidelity and audit quota/cleanup policy are not
+implemented. Audit currently retains all rows. See [current observation
+boundaries](docs/observations.md) and the roadmap for remaining work; these status
+notes do not reduce the required 1.0 behavior above.
 Configuration is validated before listen. Unknown names and non-canonical,
 blank or out-of-bound values fail without logging values. The current reference
 is [configuration](docs/configuration.md).
@@ -819,9 +833,9 @@ not-ready before shutdown. Loss of one observed provider later changes that
 source status but does not make the whole API unready.
 
 The operator command uses PostgreSQL-native custom archives and empty-target
-restore. The development SQLite adapter is retired only after real repository
-parity and restore checks pass; no automatic old-development-data import is
-promised. See [the native runbook](docs/operations/backup-restore.md).
+restore. The old development SQLite adapter is retired following real repository
+parity and restore checks; no automatic old-development-data import is supported.
+See [the native runbook](docs/operations/backup-restore.md).
 
 Health and readiness responses expose only terse process state. Detailed
 readiness is administrator-only at `/api/v1/system/readiness`; Phase 7 enforces

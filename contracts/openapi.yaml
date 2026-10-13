@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.1.0
+  version: 0.2.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -433,7 +433,7 @@ paths:
         - BrowserSession: []
       parameters:
         - $ref: '#/components/parameters/RequestId'
-        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/UserCursor'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Search'
         - $ref: '#/components/parameters/UserRoleFilter'
@@ -780,7 +780,7 @@ paths:
           schema:
             type: string
             minLength: 1
-            maxLength: 1024
+            maxLength: 4096
             pattern: ^[A-Za-z0-9_-]+$
       responses:
         '200':
@@ -839,7 +839,7 @@ paths:
           schema:
             type: string
             minLength: 1
-            maxLength: 1024
+            maxLength: 4096
             pattern: ^[A-Za-z0-9_-]+$
         - name: sort
           in: query
@@ -1536,6 +1536,159 @@ paths:
           $ref: '#/components/responses/InternalProblem'
         '503':
           $ref: '#/components/responses/ServiceUnavailableProblem'
+  /settings/sources:
+    get:
+      operationId: listSourceSettings
+      summary: List operator-owned collection profiles
+      description: Administrator-only source registry. No endpoints, paths or credentials are exposed. Disabled profiles retain observation history. Missing runtime profiles may be disabled but cannot be enabled.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Cursor'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Bounded source registry page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceSettingsPage'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /settings/sources/{source_id}/preview:
+    post:
+      operationId: previewSourceUpdate
+      summary: Review one source collection change
+      description: Returns a two-minute opaque confirmation bound to the exact source, current row version, requested state, administrator and session. A new preview replaces that session's previous preview for this source. No provider write occurs.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/SourceSettingsId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SourcePreviewRequest'
+      responses:
+        '200':
+          description: Exact collection impact and one-use confirmation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceUpdatePreview'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          description: Source version changed or requested state is unchanged. Codes source.version_conflict and source.state_unchanged.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '422':
+          description: Operator profile unavailable. Code source.profile_unavailable.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /settings/sources/{source_id}:
+    patch:
+      operationId: updateSourceSettings
+      summary: Commit one exact source collection change
+      description: Consumes the exact preview confirmation and a source.update recent-authentication grant in the same PostgreSQL transaction as the versioned toggle and durable audit fact. Expired, replayed, other-session and other-target confirmations are rejected. No provider write occurs. History is retained; ongoing stale captures cannot commit after a change.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/SourceSettingsId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SourceUpdateRequest'
+      responses:
+        '200':
+          description: Committed source state and new version.
+          headers:
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceSettingsRecord'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          description: Source version, state or confirmation conflict. Codes source.version_conflict, source.state_unchanged and source.confirmation_rejected.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '422':
+          description: Operator profile unavailable. Code source.profile_unavailable.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
   /audit:
     get:
       operationId: listAuditEntries
@@ -1798,6 +1951,71 @@ components:
         idle_expires_at: 2026-01-02T03:34:05Z
         absolute_expires_at: 2026-01-02T15:04:05Z
   schemas:
+    SourceSettingsRecord:
+      type: object
+      additionalProperties: false
+      required: [id, provider, name, synthetic, enabled, version, profile_available]
+      properties:
+        id:
+          $ref: '#/components/schemas/SourceId'
+        provider:
+          $ref: '#/components/schemas/ProviderKind'
+        name:
+          $ref: '#/components/schemas/DisplayText'
+        synthetic:
+          type: boolean
+        enabled:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        profile_available:
+          type: boolean
+    SourceSettingsPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/SourceSettingsRecord'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    SourcePreviewRequest:
+      type: object
+      additionalProperties: false
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+    SourceUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [enabled, confirmation_token]
+      properties:
+        enabled:
+          type: boolean
+        confirmation_token:
+          $ref: '#/components/schemas/Proof'
+    SourceUpdatePreview:
+      type: object
+      additionalProperties: false
+      required: [source, requested_enabled, impact, confirmation_token, expires_at]
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceSettingsRecord'
+        requested_enabled:
+          type: boolean
+        impact:
+          type: string
+          enum: [collection.start, collection.stop]
+        confirmation_token:
+          $ref: '#/components/schemas/Proof'
+        expires_at:
+          $ref: '#/components/schemas/Timestamp'
     UserId:
       type: string
       description: Stable opaque local user identifier.
@@ -1959,7 +2177,7 @@ components:
           $ref: '#/components/schemas/Timestamp'
     RecentAuthPurpose:
       type: string
-      description: Exact Phase 7 high-risk change bound to a one-use proof.
+      description: Exact high-risk change bound to a one-use proof.
       enum:
         - account.password_change
         - user.create
@@ -1968,6 +2186,7 @@ components:
         - user.password_reset
         - user.sessions_revoke
         - notification.test
+        - source.update
     RecentAuthRequest:
       type: object
       description: Current-password proof request for one exact high-risk purpose.
@@ -2905,7 +3124,7 @@ components:
       type: string
       description: Opaque server-owned continuation cursor.
       minLength: 1
-      maxLength: 1024
+      maxLength: 4096
       pattern: ^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?$
       examples:
         - bmV4dA
@@ -4897,12 +5116,26 @@ components:
       name: If-Match
       in: header
       required: true
-      description: Strong quoted decimal form of the last observed user version.
+      description: Strong quoted decimal form of the last observed entity version.
       schema:
         type: string
         minLength: 3
         maxLength: 18
         pattern: '^"[1-9][0-9]{0,15}"$'
+    SourceSettingsId:
+      name: source_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/SourceId'
+    UserCursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque local account continuation cursor, bounded separately from infrastructure cursors.
+      schema:
+        $ref: '#/components/schemas/Cursor'
+        maxLength: 1024
     Cursor:
       name: cursor
       in: query

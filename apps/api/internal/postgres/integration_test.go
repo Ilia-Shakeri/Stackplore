@@ -64,8 +64,8 @@ func TestPostgreSQLMigrationsOnRealDatabase(t *testing.T) {
 		t.Fatalf("concurrent Open() error = %v; want ownership rejection", contenderErr)
 	}
 	var migrationsApplied int
-	if err := store.pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations`).Scan(&migrationsApplied); err != nil || migrationsApplied != 6 {
-		t.Fatalf("migration count = %d, error = %v; want 6", migrationsApplied, err)
+	if err := store.pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations`).Scan(&migrationsApplied); err != nil || migrationsApplied != len(store.expectedMigrations) {
+		t.Fatalf("migration count = %d, error = %v; want %d", migrationsApplied, err, len(store.expectedMigrations))
 	}
 	var installations int
 	if err := store.pool.QueryRow(ctx, `SELECT count(*) FROM installation_metadata`).Scan(&installations); err != nil || installations != 1 {

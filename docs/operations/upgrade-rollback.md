@@ -11,6 +11,22 @@ build; it is not an automatic 0.1.0 upgrade. Do not edit ledger digests. Use a
 new verified target or a separately reviewed data migration if retaining that
 development database is required.
 
+## 0.1.0 to 0.2.0
+
+The first six released migration bytes are unchanged. The new runtime adds
+migration 7 for collection generations, typed snapshot fields and query indexes,
+then migration 8 for digest-only source confirmations. Real PostgreSQL tests
+verify the forward upgrade from the exact six-version ledger. Existing users,
+sources and observations are retained. Startup inserts only missing operator
+profiles; it does not overwrite an existing administrator's source enabled state.
+
+Restore an older archive with the storage command from its matching release.
+The 0.2 command expects the exact eight-version ledger and rejects a six-version
+0.1 archive. After restoring and verifying it with 0.1, stop that runtime and
+perform the normal single-owner 0.2 forward upgrade against the disposable copy.
+Do not change ledger digests to bypass this gate. Repeat representative reads
+before applying the reviewed upgrade procedure to an actual installation.
+
 ## Before an upgrade
 
 1. Read the exact target changelog and migration/contract changes.

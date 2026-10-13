@@ -40,13 +40,13 @@ func (store *Store) ListAuditEntries(ctx context.Context, request domain.PageReq
 	const columns = `SELECT id, occurred_at_us, actor_kind, actor_user_id, operator_id,
        action, target_kind, target_id, outcome, request_id, reason_code
 FROM audit_entries`
-	const order = ` ORDER BY occurred_at_us DESC, id ASC LIMIT $1`
+	const order = ` ORDER BY occurred_at_us DESC, id COLLATE "C" ASC LIMIT $1`
 	statement := columns + order
 	arguments := []any{request.Limit + 1}
 	if cursor != nil {
 		statement = columns + `
-WHERE occurred_at_us < $1 OR (occurred_at_us = $1 AND id > $2)
-ORDER BY occurred_at_us DESC, id ASC LIMIT $3`
+WHERE occurred_at_us <= $1 AND (occurred_at_us < $1 OR (occurred_at_us = $1 AND id COLLATE "C" > $2 COLLATE "C"))
+ORDER BY occurred_at_us DESC, id COLLATE "C" ASC LIMIT $3`
 		arguments = []any{cursor.OccurredAtUS, cursor.ID, request.Limit + 1}
 	}
 	rows, err := store.pool.Query(queryContext, statement, arguments...)

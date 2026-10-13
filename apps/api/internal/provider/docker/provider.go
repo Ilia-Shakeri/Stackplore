@@ -134,6 +134,29 @@ func New(sourceID domain.SourceID, name string, collector Collector) (*Provider,
 
 func (provider *Provider) Source() domain.InfrastructureSource { return provider.source }
 
+func (provider *Provider) CaptureInventory(ctx context.Context) (domain.InventoryCapture, error) {
+	if err := provider.validate(ctx, domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: provider.source.ID}); err != nil {
+		return domain.InventoryCapture{}, providerError("docker.inventory.capture", err)
+	}
+	state, err := provider.observe(ctx)
+	if err != nil {
+		return domain.InventoryCapture{}, err
+	}
+	capture := domain.InventoryCapture{
+		Source: domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: provider.source.ID}, Status: state.status,
+		Environments: []domain.Environment{{ID: provider.environment, SourceID: provider.source.ID, Provider: domain.ProviderDocker, Name: "Docker Engine", Status: state.status}},
+		Resources:    state.resources, Relationships: state.relationships, Complete: true,
+		Health: make([]domain.HealthSnapshot, 0, len(state.health)),
+	}
+	for _, resource := range state.resources {
+		capture.Health = append(capture.Health, state.health[resource.Resource.Ref.ID])
+	}
+	if err := capture.ValidateFor(capture.Source); err != nil {
+		return domain.InventoryCapture{}, providerError("docker.inventory.capture", ErrUnavailable)
+	}
+	return capture, nil
+}
+
 func (provider *Provider) ListEnvironments(ctx context.Context, query domain.EnvironmentQuery) (domain.EnvironmentPage, error) {
 	if err := provider.validate(ctx, query.Source); err != nil || query.Validate() != nil {
 		return domain.EnvironmentPage{}, providerError("docker.inventory.environments", err)
@@ -512,7 +535,7 @@ func (provider *Provider) ListEvents(ctx context.Context, query domain.EventQuer
 		typeCode := dockerEventCode(raw.Type)
 		actionCode := dockerEventCode(raw.Action)
 		event := domain.InfrastructureEvent{
-			ID:       domain.EventID("event_docker_" + shortDigest(raw.Type+"\x00"+raw.Action+"\x00"+raw.ActorID+"\x00"+raw.OccurredAt.Format(time.RFC3339Nano))),
+			ID:       domain.EventID("event_docker_" + shortDigest(string(provider.source.ID)+"\x00"+raw.Type+"\x00"+raw.Action+"\x00"+raw.ActorID+"\x00"+raw.OccurredAt.Format(time.RFC3339Nano)+"\x00"+string(resourceID))),
 			Provider: domain.ProviderDocker, SourceID: provider.source.ID, EnvironmentID: &provider.environment,
 			Kind: domain.EventKind("docker." + typeCode + ".changed"), Severity: severity,
 			ReasonCode: domain.ReasonCode("docker.event." + actionCode),
@@ -715,6 +738,9 @@ func (provider *Provider) observe(ctx context.Context) (normalized, error) {
 	state := normalized{status: status, health: make(map[domain.ResourceID]domain.HealthSnapshot)}
 	byNative := make(map[string]domain.ResourceRef)
 	add := func(kind domain.ResourceKind, scope domain.Scope, nativeID, name string, health domain.HealthState, reason domain.ReasonCode) error {
+		if len(state.resources) >= domain.MaxInventoryCaptureItems {
+			return ErrUnavailable
+		}
 		identity, err := domain.NewResourceIdentity(domain.ProviderDocker, provider.source.ID, provider.environment, kind, scope, domain.NativeResourceID(nativeID))
 		if err != nil {
 			return err
@@ -804,6 +830,9 @@ func (provider *Provider) observe(ctx context.Context) (normalized, error) {
 
 func (provider *Provider) buildRelationships(state *normalized, refs map[string]domain.ResourceRef, snapshot Snapshot) error {
 	add := func(from, to domain.ResourceRef, kind domain.RelationshipKind, provenance domain.RelationshipProvenance, evidenceID string) error {
+		if len(state.relationships) >= domain.MaxInventoryCaptureItems {
+			return ErrUnavailable
+		}
 		evidence := domain.RelationshipEvidence{ID: domain.EvidenceID(evidenceID), Provider: domain.ProviderDocker, SourceID: provider.source.ID, Provenance: provenance, Certainty: domain.EvidenceExplicit, Confidence: 1, ObservedAt: snapshot.ObservedAt}
 		relationship, err := domain.NewRelationship(from.ID, to.ID, kind, domain.RelationshipSourceToTarget, []domain.RelationshipEvidence{evidence})
 		if err == nil {

@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe"
@@ -63,6 +62,7 @@ type ClusterEvent struct {
 	Message     string
 	Type        string
 	OccurredAt  time.Time
+	Occurrences uint64
 }
 
 type PodMetric struct {
@@ -221,6 +221,36 @@ func New(sourceID domain.SourceID, name string, collector Collector) (*Provider,
 }
 
 func (provider *Provider) Source() domain.InfrastructureSource { return provider.source }
+
+func (provider *Provider) CaptureInventory(ctx context.Context) (domain.InventoryCapture, error) {
+	if err := provider.validate(ctx, domain.ProviderRef{Provider: domain.ProviderKubernetes, SourceID: provider.source.ID}); err != nil {
+		return domain.InventoryCapture{}, providerError("kubernetes.inventory.capture", err)
+	}
+	state, snapshot, err := provider.observe(ctx)
+	if err != nil {
+		return domain.InventoryCapture{}, err
+	}
+	name := snapshot.ClusterName
+	if snapshot.ContextName != "" {
+		name += " (" + snapshot.ContextName + ")"
+	}
+	capture := domain.InventoryCapture{
+		Source: domain.ProviderRef{Provider: domain.ProviderKubernetes, SourceID: provider.source.ID}, Status: state.status,
+		Environments: []domain.Environment{{ID: provider.environment, SourceID: provider.source.ID, Provider: domain.ProviderKubernetes, Name: name, Status: state.status}},
+		Resources:    state.resources, Relationships: state.relationships, Complete: true,
+		Health: make([]domain.HealthSnapshot, 0, len(state.health)),
+	}
+	for _, resource := range state.resources {
+		capture.Health = append(capture.Health, state.health[resource.Resource.Ref.ID])
+		if replicas, known := state.workloadReplicas[resource.Resource.Ref.ID]; known {
+			capture.WorkloadReplicas = append(capture.WorkloadReplicas, replicas)
+		}
+	}
+	if err := capture.ValidateFor(capture.Source); err != nil {
+		return domain.InventoryCapture{}, providerError("kubernetes.inventory.capture", ErrUnavailable)
+	}
+	return capture, nil
+}
 
 func (provider *Provider) ListEnvironments(ctx context.Context, query domain.EnvironmentQuery) (domain.EnvironmentPage, error) {
 	if err := provider.validate(ctx, query.Source); err != nil || query.Validate() != nil {
@@ -846,7 +876,7 @@ func (provider *Provider) ListEvents(ctx context.Context, query domain.EventQuer
 			summary = "Kubernetes event"
 		}
 		event := domain.InfrastructureEvent{
-			ID: domain.EventID("event_kubernetes_" + shortDigest(raw.UID)), Provider: domain.ProviderKubernetes,
+			ID: domain.EventID("event_kubernetes_" + shortDigest(string(provider.source.ID)+"\x00"+raw.UID+"\x00"+raw.OccurredAt.Format(time.RFC3339Nano)+"\x00"+strconv.FormatUint(raw.Occurrences, 10)+"\x00"+string(severity)+"\x00"+string(kubernetesEventReason(raw.Reason))+"\x00"+summary+"\x00"+string(resourceID))), Provider: domain.ProviderKubernetes,
 			SourceID: provider.source.ID, EnvironmentID: &provider.environment,
 			Kind: domain.EventKind("kubernetes.event." + string(severity)), Severity: severity,
 			ReasonCode: kubernetesEventReason(raw.Reason), Summary: summary,
@@ -903,20 +933,19 @@ func kubernetesEventReason(value string) domain.ReasonCode {
 }
 
 func safeEventSummary(value string) string {
-	value = strings.TrimSpace(value)
-	var result strings.Builder
-	for _, character := range value {
-		if unicode.IsControl(character) || unicode.In(character, unicode.Cf, unicode.Zl, unicode.Zp) && character != '\u200c' && character != '\u200d' {
-			continue
+	message, _, _ := logsafe.Message(strings.TrimSpace(value), false)
+	if len(message) > domain.MaxEventSummaryLength {
+		end := 0
+		for index := range message {
+			if index > domain.MaxEventSummaryLength {
+				break
+			}
+			end = index
 		}
-		if result.Len()+len(string(character)) > domain.MaxEventSummaryLength {
-			break
-		}
-		result.WriteRune(character)
+		message = message[:end]
 	}
-	return strings.TrimSpace(result.String())
+	return strings.TrimSpace(message)
 }
-
 func eventFingerprint(query domain.EventQuery) string {
 	resources := make([]string, len(query.Resources))
 	for index, resource := range query.Resources {
@@ -945,6 +974,9 @@ func (provider *Provider) observe(ctx context.Context) (normalized, Snapshot, er
 	refs := make(map[string]domain.ResourceRef)
 	names := make(map[string]string)
 	add := func(kind domain.ResourceKind, scope domain.Scope, nativeID, name string, health domain.HealthState, reason domain.ReasonCode) error {
+		if len(state.resources) >= domain.MaxInventoryCaptureItems {
+			return ErrUnavailable
+		}
 		identity, err := domain.NewResourceIdentity(domain.ProviderKubernetes, provider.source.ID, provider.environment, kind, scope, domain.NativeResourceID(nativeID))
 		if err != nil {
 			return err
@@ -1076,6 +1108,9 @@ func (provider *Provider) buildRelationships(state *normalized, refs map[string]
 		to, toOK := refs[toKey]
 		if !fromOK || !toOK {
 			return nil
+		}
+		if len(state.relationships) >= domain.MaxInventoryCaptureItems {
+			return ErrUnavailable
 		}
 		counter++
 		evidence := domain.RelationshipEvidence{

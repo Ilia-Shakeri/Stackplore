@@ -36,6 +36,11 @@ var requiredCapabilities = [...]CapabilityName{
 	CapabilityWorkloadScale,
 }
 
+// CapabilityNames returns the fixed safe capability order without shared mutable state.
+func CapabilityNames() []CapabilityName {
+	return append([]CapabilityName(nil), requiredCapabilities[:]...)
+}
+
 func (name CapabilityName) Validate() error {
 	for _, known := range requiredCapabilities {
 		if name == known {

@@ -283,6 +283,41 @@ func TestProviderReturnsDockerEventHistory(t *testing.T) {
 	}
 }
 
+func TestDockerEventIdentityBindsSourceAndNormalizedResourceFacts(t *testing.T) {
+	at := time.Date(2026, time.August, 16, 8, 0, 0, 0, time.UTC)
+	collector := &eventFixtureCollector{snapshot: Snapshot{ObservedAt: at, EngineID: "engine-one", EngineName: "Fixture engine",
+		Containers: []Container{{ID: "container-one", Name: "fixture-api", State: "running"}}},
+		batch: DockerEventBatch{Events: []DockerEvent{{Type: "container", Action: "die", ActorID: "container-one", OccurredAt: at.Add(-time.Minute)}}}}
+	read := func(source domain.SourceID) domain.InfrastructureEvent {
+		t.Helper()
+		provider, err := New(source, "Fixture engine", collector)
+		if err != nil {
+			t.Fatal(err)
+		}
+		page, err := provider.ListEvents(context.Background(), domain.EventQuery{Source: domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: source},
+			Range: domain.TimeRange{Start: at.Add(-time.Hour), End: at.Add(time.Minute)}, Page: domain.PageRequest{Limit: 10}})
+		if err != nil || len(page.Events) != 1 {
+			t.Fatal("fixture event failed")
+		}
+		return page.Events[0]
+	}
+	first := read("source_docker_one")
+	other := read("source_docker_two")
+	if first.ID == other.ID || first.ResourceID == nil {
+		t.Fatal("event ID crossed source boundary")
+	}
+	collector.snapshot.ObservedAt = at.Add(time.Second)
+	later := read("source_docker_one")
+	if later.ID != first.ID || later.ObservedAt == first.ObservedAt {
+		t.Fatal("poll receipt changed immutable event ID")
+	}
+	collector.snapshot.Containers = nil
+	unscoped := read("source_docker_one")
+	if unscoped.ResourceID != nil || unscoped.ID == first.ID {
+		t.Fatal("changed resource fact kept old immutable ID")
+	}
+}
+
 func TestProviderPreviewsAndRestartsOnlyExactContainerVersion(t *testing.T) {
 	collector := &operationFixtureCollector{snapshot: fixtureSnapshotForOperation()}
 	provider, err := New("source_docker", "Local Docker", collector)
@@ -324,6 +359,18 @@ func fixtureSnapshotForOperation() Snapshot {
 		ObservedAt: time.Date(2026, time.August, 16, 8, 0, 0, 0, time.UTC),
 		EngineID:   "engine-one", EngineName: "Local engine",
 		Containers: []Container{{ID: "container-one", Name: "shop-api-1", Version: "dv_before", State: "running"}},
+	}
+}
+
+func TestCaptureInventoryCollectsExactlyOneSnapshot(t *testing.T) {
+	calls := 0
+	provider, err := New("source_docker", "Fixture engine", collectorFunc(func(context.Context) (Snapshot, error) { calls++; return fixtureSnapshotForOperation(), nil }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	capture, err := provider.CaptureInventory(context.Background())
+	if err != nil || calls != 1 || capture.ValidateFor(domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: "source_docker"}) != nil || len(capture.Resources) != 2 || len(capture.Health) != 2 || !capture.Complete {
+		t.Fatal("inventory capture repolled or failed normalized boundary")
 	}
 }
 

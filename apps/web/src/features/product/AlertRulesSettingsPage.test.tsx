@@ -25,6 +25,9 @@ const rule: AlertRuleRecord = {
 
 function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
   return {
+    listSourceSettings: vi.fn(),
+    previewSourceUpdate: vi.fn(),
+    updateSource: vi.fn(),
     acknowledgeAlert: vi.fn(),
     createAlertRule: vi.fn(),
     deleteAlertRule: vi.fn(),

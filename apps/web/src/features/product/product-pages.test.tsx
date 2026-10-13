@@ -5,7 +5,6 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ProductAuditPage,
   ProductAlertsPage,
-  ProductConnectionsSettingsPage,
   ProductLogsPage,
   ProductOverviewPage,
   ProductResourceDetailPage,
@@ -21,6 +20,9 @@ const resourceId = `r1_${'A'.repeat(43)}`;
 const observedAt = '2026-08-16T08:00:00Z';
 
 const productApi: ProductApi = {
+  listSourceSettings: vi.fn(),
+  previewSourceUpdate: vi.fn(),
+  updateSource: vi.fn(),
   acknowledgeAlert: vi.fn(),
   createAlertRule: vi.fn(),
   deleteAlertRule: vi.fn(),
@@ -450,38 +452,5 @@ describe('system settings readiness', () => {
     ).not.toBeNull();
     expect(screen.getByText('Database')).not.toBeNull();
     expect(screen.getAllByText('Not ready')).toHaveLength(2);
-  });
-});
-
-describe('connection settings', () => {
-  it('shows operator-configured source state as read-only facts', async () => {
-    const api: ProductApi = {
-      ...productApi,
-      listSources: vi.fn().mockResolvedValue([
-        {
-          availability: 'available',
-          completeness: 'complete',
-          health: { degraded: 0, healthy: 1, unhealthy: 0, unknown: 0 },
-          id: 'source_docker',
-          name: 'Local Docker',
-          observed_at: observedAt,
-          provider: 'docker',
-          resource_count: 1,
-          synthetic: false,
-        },
-      ]),
-    };
-    render(
-      <LocaleProvider defaultLocale="en" storageKey="stackplore.connections-test.locale">
-        <ProductProvider api={api}>
-          <ProductConnectionsSettingsPage toolbar={<nav aria-label="Settings sections" />} />
-        </ProductProvider>
-      </LocaleProvider>,
-    );
-
-    expect(await screen.findByRole('heading', { level: 2, name: 'Local Docker' })).not.toBeNull();
-    expect(screen.getByText('source_docker').getAttribute('dir')).toBe('ltr');
-    expect(screen.getByText('Observed data')).not.toBeNull();
-    expect(screen.queryByRole('button')).toBeNull();
   });
 });

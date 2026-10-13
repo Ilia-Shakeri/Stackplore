@@ -36,6 +36,18 @@ Without the URL, environment-gated SQL and HTTP integration tests skip. Report
 that skip. The [evidence plan](implementation-plan.md) records exact versions,
 commands, failures, fixes and proof levels for each delivered version.
 
+The 0.2 observation suite includes real forward upgrades, restart persistence,
+generation/version races, coherent logical read snapshots, immutable signed
+keysets, source/port permission truth and protected fair retention. Focused SQL
+plan output can be reproduced with the same disposable test URL:
+
+```powershell
+go -C apps/api test ./internal/postgres -run TestObservationHotPathQueryPlansOnRealPostgreSQL -count=1 -v
+```
+
+The fixture uses synthetic and invented native data; warm-cache SQL timings
+are not end-to-end API, browser, production or capacity proof.
+
 ## Coverage and performance
 
 The specification requires measured meaningful coverage; do not estimate it from

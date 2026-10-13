@@ -18,6 +18,7 @@ export type UserRole = 'administrator' | 'viewer';
 export type RecentAuthPurpose =
   | 'account.password_change'
   | 'notification.test'
+  | 'source.update'
   | 'user.create'
   | 'user.delete'
   | 'user.password_reset'

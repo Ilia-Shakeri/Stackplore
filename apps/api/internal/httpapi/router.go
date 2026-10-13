@@ -43,6 +43,7 @@ type Options struct {
 	NotificationSettings   NotificationSettingsReader
 	NotificationTester     NotificationTester
 	AlertManager           AlertManager
+	SourceSettings         SourceSettings
 
 	requestIDs requestIDSource
 	now        func() time.Time
@@ -90,6 +91,7 @@ func NewHandler(options Options) (http.Handler, error) {
 		options.NotificationSettings,
 		options.NotificationTester,
 		options.AlertManager,
+		options.SourceSettings,
 	))
 	root.NotFound(plainNotFound)
 	root.MethodNotAllowed(rootMethodNotAllowed)
@@ -152,12 +154,13 @@ func validPrefixes(prefixes []netip.Prefix) bool {
 	return true
 }
 
-func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager) http.Handler {
+func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings) http.Handler {
 	authRoutes := newAuthHTTP(authentication, proxy.origin, readiness, now, maximumBody)
 	if len(providers) == 0 {
 		providers = []ProductProvider{demo.MustNew()}
 	}
 	productRoutes := newProductHTTP(authRoutes, providers, auditReader, alertReader, notificationReader, notificationSettings, notificationTester, alertManager)
+	productRoutes.sourceSettings = sourceSettings
 	router := chi.NewRouter()
 	router.Use(proxy.requirePublicOrigin)
 	router.Use(limitRequestBody(maximumBody))
@@ -196,6 +199,9 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	router.Delete("/alert-rules/{rule_id}", productRoutes.deleteAlertRule)
 	router.Get("/notifications", productRoutes.notifications)
 	router.Get("/settings/notifications", productRoutes.notificationSettings)
+	router.Get("/settings/sources", productRoutes.listSourceSettings)
+	router.Post("/settings/sources/{source_id}/preview", productRoutes.previewSourceUpdate)
+	router.Patch("/settings/sources/{source_id}", productRoutes.updateSourceSettings)
 	router.Post("/settings/notifications/test", productRoutes.testNotification)
 	router.Get("/audit", productRoutes.audit)
 	router.Get("/streams/health", productRoutes.streamHealth)

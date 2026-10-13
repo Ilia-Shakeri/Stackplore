@@ -355,6 +355,34 @@ describe('product API adapter', () => {
     await expect(api.listSources()).rejects.toThrow('Source response is invalid.');
   });
 
+  it.each([1025, 4096])('accepts bounded observation cursor length %s', async (length) => {
+    const cursor = 'A'.repeat(length);
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+      response({
+        ...observation(),
+        items: [resource()],
+        page: { has_more: true, limit: 50, next_cursor: cursor },
+      }),
+    );
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    const page = await api.listResources();
+    expect(page.page.has_more).toBe(true);
+    if (!page.page.has_more) throw new Error('Expected another observation page.');
+    expect(page.page.next_cursor).toBe(cursor);
+  });
+
+  it('rejects an observation cursor beyond the shared cap', async () => {
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+      response({
+        ...observation(),
+        items: [resource()],
+        page: { has_more: true, limit: 50, next_cursor: 'A'.repeat(4097) },
+      }),
+    );
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await expect(api.listResources()).rejects.toThrow('Resource page is invalid.');
+  });
+
   it('rejects malformed identifiers before transport', async () => {
     const request = vi.fn<ApiClient['request']>();
     const api = createProductApi({ request: request as ApiClient['request'] });

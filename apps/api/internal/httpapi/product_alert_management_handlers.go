@@ -192,6 +192,18 @@ func (handler productHTTP) deleteAlertRule(w http.ResponseWriter, r *http.Reques
 }
 
 func (handler productHTTP) authorizeAlertRuleMutation(w http.ResponseWriter, r *http.Request) (auth.Authentication, string, bool) {
+	identity, token, ok := handler.authorizeAdministratorMutation(w, r)
+	if !ok {
+		return auth.Authentication{}, "", false
+	}
+	if handler.alertManager == nil {
+		writeProblem(w, r, unavailableProblem)
+		return auth.Authentication{}, "", false
+	}
+	return identity, token, true
+}
+
+func (handler productHTTP) authorizeAdministratorMutation(w http.ResponseWriter, r *http.Request) (auth.Authentication, string, bool) {
 	if !handler.auth.requireSameOrigin(w, r) || !requireNoQuery(w, r) {
 		return auth.Authentication{}, "", false
 	}
@@ -207,10 +219,6 @@ func (handler productHTTP) authorizeAlertRuleMutation(w http.ResponseWriter, r *
 	}
 	if identity.Principal.Role != auth.RoleAdministrator {
 		writeProblem(w, r, forbiddenProblem)
-		return auth.Authentication{}, "", false
-	}
-	if handler.alertManager == nil {
-		writeProblem(w, r, unavailableProblem)
 		return auth.Authentication{}, "", false
 	}
 	return identity, sessionToken, true

@@ -7,7 +7,7 @@ import (
 
 const (
 	MaxPageSize        = 200
-	MaxPageCursorBytes = 1024
+	MaxPageCursorBytes = 4096
 	MaxFilterValues    = 64
 	MaxSearchLength    = 200
 )

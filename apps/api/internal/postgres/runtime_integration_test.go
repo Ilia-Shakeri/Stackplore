@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"sync"
 	"testing"
@@ -17,7 +18,7 @@ import (
 func TestRuntimeOwnershipRejectsBeforePendingMigration(t *testing.T) {
 	store, options, _ := openIntegrationStore(t)
 	files := migrationFixture(t)
-	files["000007_blocked.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE must_not_exist (id bigint PRIMARY KEY);")}
+	files[fmt.Sprintf("%06d_blocked.sql", len(files)+1)] = &fstest.MapFile{Data: []byte("CREATE TABLE must_not_exist (id bigint PRIMARY KEY);")}
 	second, err := Open(context.Background(), options, files)
 	if second != nil {
 		_ = second.Close()
@@ -136,7 +137,7 @@ func TestMigrationUpgradeFailureAndChangedHistoryAreRejected(t *testing.T) {
 		t.Fatal("close migration fixture")
 	}
 	files := migrationFixture(t)
-	files["000007_failed.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE rollback_probe (id bigint PRIMARY KEY); SELECT missing_column;")}
+	files[fmt.Sprintf("%06d_failed.sql", len(files)+1)] = &fstest.MapFile{Data: []byte("CREATE TABLE rollback_probe (id bigint PRIMARY KEY); SELECT missing_column;")}
 	if candidate, err := Open(context.Background(), options, files); !errors.Is(err, ErrMigrationRejected) {
 		if candidate != nil {
 			_ = candidate.Close()
@@ -214,7 +215,7 @@ func TestUnknownMigrationLedgerRefusesReadinessAndReopen(t *testing.T) {
 	store, options, _ := openIntegrationStore(t)
 	if _, err := store.pool.Exec(context.Background(), `INSERT INTO schema_migrations
 (version, filename, checksum_sha256, applied_at)
-VALUES(7, '000007_unknown.sql', $1, $2)`, make([]byte, 32), time.Now().UTC()); err != nil {
+VALUES($1, $2, $3, $4)`, len(store.expectedMigrations)+1, fmt.Sprintf("%06d_unknown.sql", len(store.expectedMigrations)+1), make([]byte, 32), time.Now().UTC()); err != nil {
 		t.Fatal("seed future migration ledger")
 	}
 	if err := store.Health(context.Background()); !errors.Is(err, ErrDatabaseUnavailable) {

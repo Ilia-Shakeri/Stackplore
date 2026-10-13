@@ -5,6 +5,13 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. `0.x` checkpoints
 do not claim production support or publish images merely by tagging source.
 
+Current state: `0.1.0` is the historical verified/tagged baseline. `0.2.0` is the
+verified local development checkpoint for durable observations and source settings;
+the full gate and disposable PostgreSQL/restart/restore proof passed. Tagged CI
+is recorded separately in the evidence plan.
+See [observation boundaries](observations.md). Preserve old proof as historical;
+rerun applicable gates for the changed tree before marking this stage complete.
+
 1. Read the [roadmap](roadmap.md), [audit](codebase-audit.md) and current
    [evidence](implementation-plan.md). Preserve unrelated work.
 2. Finish the stage's tests, contract output, both locales and affected docs.
@@ -19,13 +26,13 @@ do not claim production support or publish images merely by tagging source.
 7. Inspect CI for the pushed revision. Report failed, pending or unobserved
    remote gates honestly. CI definitions are not CI proof.
 
-Example after all checks, with an actual reviewed release version:
+Example for the 0.2 checkpoint only after all milestone checks and release review:
 
 ```sh
-git commit -m "feat: establish verified PostgreSQL baseline"
-git tag -a v0.1.0 -m "Stackplore 0.1.0 development baseline"
+git commit -m "feat: persist observations and guard source settings"
+git tag -a v0.2.0 -m "Stackplore 0.2.0 durable observations checkpoint"
 git push origin HEAD
-git push origin v0.1.0
+git push origin v0.2.0
 ```
 
 Use the task's existing branch or a focused `main/` branch. Never force push,
@@ -39,4 +46,5 @@ Compose/Helm/cluster/TLS, backup/restore/upgrade, security/dependency/image scan
 SBOM, signed artifact provenance, checksums, supported-version policy and final
 independent review. Screenshots must come from the running final demo. The
 current workflow validates/builds; registry publication, SBOM/signing and final
-release packaging remain stage 8 work. Do not label the current 0.1 tag as 1.0.
+release packaging remain stage 8 work. Do not label the 0.2 development checkpoint
+as a completed 1.0 release.

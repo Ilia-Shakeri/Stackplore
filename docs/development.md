@@ -25,8 +25,12 @@ Use a disposable database for tests. Never point `STACKPLORE_TEST_POSTGRES_URL` 
 
 Required development values are documented in `.env.example`. Do not commit a populated `.env`.
 
-The Go process does not load `.env` itself. Set `STACKPLORE_DATABASE_URL` in the
-operator process before running development. See the complete
+The development launcher `scripts/dev.mjs` loads the root `.env` before starting
+Go and Vite. Direct Go commands do not load that file; supply their configuration
+through process environment. Use `.env.example` as the development template.
+The Compose template contains `STACKPLORE_COMPOSE_*` deployment-only names;
+reusing it as the root `.env` for development makes the strict runtime loader
+reject startup. Keep these environments separate. See the complete
 [configuration reference](configuration.md). Remove the test-only
 `STACKPLORE_TEST_POSTGRES_URL` before starting the application, because that
 name belongs to the test runner, not the strict runtime loader.
@@ -54,6 +58,14 @@ This starts:
 - a same-origin development proxy from the web server to the API.
 
 The API exits if configuration, migration history, database ownership, the local digest key, or first-run bootstrap policy is invalid. `/healthz` proves the process can answer. `/readyz` additionally proves current database readiness.
+
+Startup preserves existing source settings while registering missing fixed
+operator profiles. Collection and retention run in the Go process; normalized
+product reads come from PostgreSQL and logs remain live reads. Use the
+[observation/source guide](observations.md) for fixed bounds and stale/disabled
+behavior. The 0.2 checkpoint passed its full local gate and disposable
+PostgreSQL/restart/restore checks. Current results are in the evidence plan;
+historical 0.1 results are separate proof.
 
 ## Verification
 
