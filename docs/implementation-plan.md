@@ -203,3 +203,24 @@ review. The first six migration byte diffs remain empty. Real live provider,
 browser geometry/accessibility, local race tooling, Compose startup, cluster
 install/TLS and target production evidence remain open. Remote CI must be
 checked for the exact tagged implementation before claiming that boundary.
+
+## Final 0.2 remote evidence
+
+Implementation commit `b8448bf2016a466e522263ae32983e1f2c6af232` and annotated
+tag `v0.2.0` were pushed without force. The remote tag peels to that exact
+implementation revision. Both workflows completed successfully on 2026-10-13:
+
+- [Tag run 38381333991](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/38381333991): code and deploy jobs passed.
+- [Main run 38381330095](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/38381330095): code and deploy jobs passed.
+- Code ran the complete gate with real PostgreSQL and the Linux Go concurrency
+  gate (`go -C apps/api test -race ./...`). Local Windows race tooling remains
+  absent; the Linux result is actual separate proof.
+- Deploy validated the Compose model, linted/rendered reviewed Helm profiles
+  and built both images. It did not start the application through Compose,
+  install a cluster or prove live infrastructure/receiver/browser flows.
+
+This follow-up documentation records completed remote results. It changes no
+runtime behavior and does not rewrite the implementation tag. The unknown
+dashboard image remains unstaged; private test cluster/data/archive artifacts
+remain ignored. The disposable PostgreSQL process was stopped after proof;
+the system PostgreSQL service was not changed.

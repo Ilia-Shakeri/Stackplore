@@ -40,6 +40,11 @@ an explicitly static fixture until the durable alert stage. Exact checks and
 remote outcomes are recorded in the active evidence plan; no production claim is
 made by source versioning.
 
+Remote follow-up: main and `v0.2.0` workflows passed for implementation
+`b8448bf`, including the complete real-PostgreSQL gate, Linux race tests,
+image builds, Compose model and Helm gates. This proves the named checks;
+container startup, cluster install and live provider/browser proof remain open.
+
 All notable changes to Stackplore will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioned releases will follow [Semantic Versioning](https://semver.org/) once release work begins.
