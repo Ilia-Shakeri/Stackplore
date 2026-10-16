@@ -9,22 +9,45 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 )
 
+const defaultMaximumCollectionGap = 90 * time.Second
+
 type EvidenceProvider interface {
 	domain.InventoryProvider
 	domain.HealthProvider
 	Source() domain.InfrastructureSource
 }
 
-type ProviderEvidence struct {
-	providers map[domain.SourceID]EvidenceProvider
+type ProviderEvidenceOptions struct {
+	Providers            []EvidenceProvider
+	Collections          domain.SourceCollectionReader
+	Metrics              domain.AlertMetricHistoryProvider
+	Replicas             domain.WorkloadReplicaHistoryProvider
+	MaximumCollectionGap time.Duration
 }
 
-func NewProviderEvidence(providers []EvidenceProvider) (*ProviderEvidence, error) {
-	if len(providers) == 0 {
-		return nil, fmt.Errorf("alert evidence providers are required")
+type ProviderEvidence struct {
+	providers   map[domain.SourceID]EvidenceProvider
+	collections domain.SourceCollectionReader
+	metrics     domain.AlertMetricHistoryProvider
+	replicas    domain.WorkloadReplicaHistoryProvider
+	maximumGap  time.Duration
+}
+
+func NewProviderEvidence(providers []EvidenceProvider, collections ...domain.SourceCollectionReader) (*ProviderEvidence, error) {
+	if len(collections) != 1 {
+		return nil, fmt.Errorf("raw source collection evidence is required")
 	}
-	byID := make(map[domain.SourceID]EvidenceProvider, len(providers))
-	for _, provider := range providers {
+	return NewProviderEvidenceWithOptions(ProviderEvidenceOptions{
+		Providers: providers, Collections: collections[0], MaximumCollectionGap: defaultMaximumCollectionGap,
+	})
+}
+
+func NewProviderEvidenceWithOptions(options ProviderEvidenceOptions) (*ProviderEvidence, error) {
+	if len(options.Providers) == 0 || options.Collections == nil || options.MaximumCollectionGap < time.Second || options.MaximumCollectionGap > 5*time.Minute {
+		return nil, fmt.Errorf("alert evidence options are invalid")
+	}
+	byID := make(map[domain.SourceID]EvidenceProvider, len(options.Providers))
+	for _, provider := range options.Providers {
 		if provider == nil || provider.Source().Validate() != nil {
 			return nil, fmt.Errorf("alert evidence provider is invalid")
 		}
@@ -33,7 +56,14 @@ func NewProviderEvidence(providers []EvidenceProvider) (*ProviderEvidence, error
 		}
 		byID[provider.Source().ID] = provider
 	}
-	return &ProviderEvidence{providers: byID}, nil
+	if options.Metrics == nil {
+		options.Metrics, _ = options.Collections.(domain.AlertMetricHistoryProvider)
+	}
+	if options.Replicas == nil {
+		options.Replicas, _ = options.Collections.(domain.WorkloadReplicaHistoryProvider)
+	}
+	return &ProviderEvidence{providers: byID, collections: options.Collections, metrics: options.Metrics,
+		replicas: options.Replicas, maximumGap: options.MaximumCollectionGap}, nil
 }
 
 func (resolver *ProviderEvidence) ResolveAlertEvidence(ctx context.Context, task EvaluationTask, evaluatedAt time.Time) (ConditionResult, error) {
@@ -41,120 +71,110 @@ func (resolver *ProviderEvidence) ResolveAlertEvidence(ctx context.Context, task
 		return ConditionResult{}, ErrEvaluationUnavailable
 	}
 	provider, exists := resolver.providers[task.Source.SourceID]
-	if !exists || provider.Source().Provider != task.Source.Provider {
+	if !exists || provider.Source().Provider != task.Source.Provider || provider.Source().Synthetic != task.Synthetic {
+		return ConditionResult{}, ErrEvaluationUnavailable
+	}
+	collection, err := resolver.collections.GetSourceCollectionStatus(ctx, task.Source)
+	if err != nil || !resolver.freshCollection(collection, evaluatedAt) {
+		return ConditionResult{}, errors.Join(ErrEvaluationUnavailable, err)
+	}
+	if task.Source.Provider != domain.ProviderDemo && !resolver.freshStatus(collection.Status, evaluatedAt) {
+		return ConditionResult{}, ErrEvaluationUnavailable
+	}
+	if task.Rule.Kind == domain.AlertRuleProviderConnectionLost {
+		return connectionCondition(task.Rule, collection)
+	}
+	if !completeStatus(collection.Status) {
+		return ConditionResult{}, ErrEvaluationUnavailable
+	}
+	evidenceAt := evaluatedAt
+	if task.Synthetic {
+		if clock, ok := provider.(interface{ ObservationTime() time.Time }); ok {
+			evidenceAt = clock.ObservationTime()
+		}
+	}
+	if validateEvaluationTime(evidenceAt) != nil || evidenceAt.After(evaluatedAt) {
+		return ConditionResult{}, ErrEvaluationUnavailable
+	}
+	if !resolver.freshCompleteStatus(collection.Status, evidenceAt) {
 		return ConditionResult{}, ErrEvaluationUnavailable
 	}
 	switch task.Rule.Kind {
 	case domain.AlertRuleResourceUnavailable:
-		snapshot, err := provider.GetResource(ctx, domain.ResourceDetailQuery{Source: task.Source, ResourceID: task.Resource.ID})
-		if err != nil {
-			return ConditionResult{}, err
+		query := domain.ResourceDetailQuery{Source: task.Source, ResourceID: task.Resource.ID}
+		snapshot, err := provider.GetResource(ctx, query)
+		if errors.Is(err, domain.ErrRepositoryNotFound) {
+			availability := domain.AvailabilityUnavailable
+			return Evaluate(task.Rule, EvaluationInput{
+				SourceID: task.Source.SourceID, EnvironmentID: &task.Resource.Identity.EnvironmentID,
+				ResourceID: &task.Resource.ID, EvidenceRange: statusRange(collection.CollectedAt), Availability: &availability,
+			})
+		}
+		if err != nil || snapshot.ValidateFor(query) != nil || snapshot.Resource.Synthetic != task.Synthetic || !resolver.freshStatus(snapshot.Status, evidenceAt) ||
+			snapshot.Status.Completeness != domain.CompletenessComplete {
+			return ConditionResult{}, errors.Join(ErrEvaluationUnavailable, err)
 		}
 		availability := snapshot.Status.State
 		return Evaluate(task.Rule, EvaluationInput{
 			SourceID: task.Source.SourceID, EnvironmentID: &task.Resource.Identity.EnvironmentID,
-			ResourceID: &task.Resource.ID, EvidenceRange: statusRange(snapshot.Status.ObservedAt),
-			Availability: &availability,
+			ResourceID: &task.Resource.ID, EvidenceRange: statusRange(snapshot.Status.ObservedAt), Availability: &availability,
 		})
 	case domain.AlertRuleResourceUnhealthy:
-		result, err := provider.GetHealth(ctx, domain.HealthQuery{Source: task.Source, Resources: []domain.ResourceRef{*task.Resource}})
-		if err != nil || len(result.Snapshots) != 1 {
+		query := domain.HealthQuery{Source: task.Source, Resources: []domain.ResourceRef{*task.Resource}}
+		result, err := provider.GetHealth(ctx, query)
+		if err != nil || result.ValidateFor(query) != nil || len(result.Snapshots) != 1 ||
+			!resolver.freshCompleteStatus(result.Status, evidenceAt) || !resolver.freshCompleteStatus(result.Snapshots[0].Status, evidenceAt) {
 			return ConditionResult{}, errors.Join(ErrEvaluationUnavailable, err)
+		}
+		for _, evidence := range result.Snapshots[0].Evidence {
+			if evidence.Synthetic != task.Synthetic || evidenceAt.Sub(evidence.ObservedAt) > resolver.maximumGap {
+				return ConditionResult{}, ErrEvaluationUnavailable
+			}
 		}
 		health := result.Snapshots[0].State
 		return Evaluate(task.Rule, EvaluationInput{
 			SourceID: task.Source.SourceID, EnvironmentID: &task.Resource.Identity.EnvironmentID,
-			ResourceID: &task.Resource.ID, EvidenceRange: statusRange(result.Snapshots[0].Status.ObservedAt),
-			Health: &health,
-		})
-	case domain.AlertRuleProviderConnectionLost:
-		page, err := provider.ListEnvironments(ctx, domain.EnvironmentQuery{
-			Source: task.Source, Page: domain.PageRequest{Limit: 1},
-		})
-		if err != nil {
-			return ConditionResult{}, err
-		}
-		availability := page.Status.State
-		return Evaluate(task.Rule, EvaluationInput{
-			SourceID: task.Source.SourceID, EvidenceRange: statusRange(page.Status.ObservedAt),
-			Availability: &availability,
+			ResourceID: &task.Resource.ID, EvidenceRange: statusRange(result.Snapshots[0].Status.ObservedAt), Health: &health,
 		})
 	case domain.AlertRuleCPUThreshold, domain.AlertRuleMemoryThreshold, domain.AlertRuleRestartThreshold:
-		metricProvider, ok := provider.(domain.CurrentMetricProvider)
-		if !ok {
-			return ConditionResult{}, ErrEvaluationUnavailable
-		}
-		name := metricName(task.Rule.Kind)
-		result, err := metricProvider.GetCurrentMetrics(ctx, domain.CurrentMetricQuery{
-			Source: task.Source, Resources: []domain.ResourceRef{*task.Resource}, Names: []domain.MetricName{name},
-		})
-		if err != nil || len(result.Sets) != 1 || len(result.Sets[0].Samples) != 1 {
-			return ConditionResult{}, errors.Join(ErrEvaluationUnavailable, err)
-		}
-		sample := result.Sets[0].Samples[0]
-		value := sample.Value
-		return Evaluate(task.Rule, EvaluationInput{
-			SourceID: task.Source.SourceID, EnvironmentID: &task.Resource.Identity.EnvironmentID,
-			ResourceID: &task.Resource.ID, EvidenceRange: sampleRange(sample), WindowValue: &value,
-		})
+		return resolver.metricCondition(ctx, provider, task, collection, evaluatedAt, evidenceAt)
 	case domain.AlertRuleEventSeverityMatch:
-		eventProvider, ok := provider.(domain.EventHistoryProvider)
-		if !ok {
-			return ConditionResult{}, ErrEvaluationUnavailable
-		}
-		start := evaluatedAt.Add(-task.Rule.EvaluationInterval)
-		query := domain.EventQuery{
-			Source: task.Source, Range: domain.TimeRange{Start: start, End: evaluatedAt},
-			Page: domain.PageRequest{Limit: 1},
-		}
-		if task.Resource != nil {
-			query.Resources = []domain.ResourceRef{*task.Resource}
-		}
-		page, err := eventProvider.ListEvents(ctx, query)
-		if err != nil {
-			return ConditionResult{}, err
-		}
-		if len(page.Events) == 0 {
-			return ConditionResult{
-				Matched: false, EvidenceRange: domain.TimeRange{Start: start, End: evaluatedAt},
-				SummaryCode: "alert.event_severity_match.clear",
-			}, nil
-		}
-		severity := page.Events[0].Severity
-		end := page.Events[0].ObservedAt
-		if end.After(evaluatedAt) {
-			end = evaluatedAt
-		}
-		evidenceStart := page.Events[0].OccurredAt
-		if !evidenceStart.Before(end) {
-			evidenceStart = end.Add(-time.Microsecond)
-		}
-		return Evaluate(task.Rule, EvaluationInput{
-			SourceID: task.Source.SourceID, EnvironmentID: task.Rule.EnvironmentID,
-			ResourceID:    task.Rule.ResourceID,
-			EvidenceRange: domain.TimeRange{Start: evidenceStart, End: end},
-			EventSeverity: &severity,
-		})
+		return resolver.eventCondition(ctx, provider, task, collection, evaluatedAt, evidenceAt)
 	case domain.AlertRuleWorkloadUnavailableReplicas:
-		replicaProvider, ok := provider.(domain.WorkloadReplicaProvider)
-		if !ok {
-			return ConditionResult{}, ErrEvaluationUnavailable
-		}
-		snapshot, err := replicaProvider.GetWorkloadReplicas(ctx, domain.ResourceDetailQuery{
-			Source: task.Source, ResourceID: task.Resource.ID,
-		})
-		if err != nil {
-			return ConditionResult{}, errors.Join(ErrEvaluationUnavailable, err)
-		}
-		unavailable := float64(snapshot.Desired - snapshot.Ready)
-		return Evaluate(task.Rule, EvaluationInput{
-			SourceID: task.Source.SourceID, EnvironmentID: &task.Resource.Identity.EnvironmentID,
-			ResourceID: &task.Resource.ID, EvidenceRange: statusRange(snapshot.Status.ObservedAt),
-			WindowValue: &unavailable,
-		})
+		return resolver.replicaCondition(ctx, provider, task, evaluatedAt, evidenceAt)
 	default:
 		return ConditionResult{}, ErrEvaluationUnavailable
 	}
+}
+
+func connectionCondition(rule domain.AlertRule, collection domain.SourceCollectionOutcome) (ConditionResult, error) {
+	status := collection.Status
+	if status.Completeness != domain.CompletenessComplete || status.State != domain.AvailabilityAvailable &&
+		(status.State != domain.AvailabilityUnavailable || status.ReasonCode != "observation.provider_unavailable" && status.ReasonCode != "observation.deadline_exceeded") {
+		return ConditionResult{}, ErrEvaluationUnavailable
+	}
+	availability := status.State
+	return Evaluate(rule, EvaluationInput{
+		SourceID: rule.SourceID, EvidenceRange: statusRange(collection.CollectedAt), Availability: &availability,
+	})
+}
+
+func completeStatus(status domain.ObservationStatus) bool {
+	return status.Validate() == nil && status.State == domain.AvailabilityAvailable && status.Completeness == domain.CompletenessComplete
+}
+
+func (resolver *ProviderEvidence) freshStatus(status domain.ObservationStatus, at time.Time) bool {
+	return status.Validate() == nil && !status.ObservedAt.After(at) && at.Sub(status.ObservedAt) <= resolver.maximumGap
+}
+
+func (resolver *ProviderEvidence) freshCompleteStatus(status domain.ObservationStatus, at time.Time) bool {
+	return completeStatus(status) && resolver.freshStatus(status, at)
+}
+
+func (resolver *ProviderEvidence) freshCollection(collection domain.SourceCollectionOutcome, evaluatedAt time.Time) bool {
+	return validateEvaluationTime(collection.CollectedAt) == nil && !collection.CollectedAt.After(evaluatedAt) &&
+		evaluatedAt.Sub(collection.CollectedAt) <= resolver.maximumGap && collection.Status.Validate() == nil &&
+		!collection.Status.ObservedAt.After(evaluatedAt)
 }
 
 func metricName(kind domain.AlertRuleKind) domain.MetricName {
@@ -170,12 +190,4 @@ func metricName(kind domain.AlertRuleKind) domain.MetricName {
 
 func statusRange(observedAt time.Time) domain.TimeRange {
 	return domain.TimeRange{Start: observedAt.Add(-time.Microsecond), End: observedAt}
-}
-
-func sampleRange(sample domain.MetricSample) domain.TimeRange {
-	start := sample.SampledAt.Add(-sample.Interval)
-	if !start.Before(sample.SampledAt) {
-		start = sample.SampledAt.Add(-time.Microsecond)
-	}
-	return domain.TimeRange{Start: start, End: sample.SampledAt}
 }

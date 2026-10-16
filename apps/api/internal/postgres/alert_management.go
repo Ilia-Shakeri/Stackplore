@@ -24,6 +24,9 @@ func (store *Store) AcknowledgeAlert(ctx context.Context, command domain.AlertAc
 	}
 	var acknowledged domain.Alert
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
+		if err := lockAlertChanges(ctx, transaction); err != nil {
+			return err
+		}
 		current, err := scanAlert(transaction.transaction.QueryRow(ctx, alertForAcknowledgementStatement, string(command.AlertID)))
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.ErrRepositoryNotFound

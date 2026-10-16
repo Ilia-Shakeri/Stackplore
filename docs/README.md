@@ -14,6 +14,7 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | Local tools and commands | [Development](development.md) |
 | Runtime names, defaults and bounds | [Configuration](configuration.md) |
 | Collection, source toggles and retention | [Observations](observations.md), [مشاهده‌ها](observations.fa.md) |
+| Alert evidence, durable streams and outbound delivery | [Alerts and notifications](alerts-notifications.md), [هشدار و اعلان](alerts-notifications.fa.md) |
 | Proof levels and test gates | [Testing](testing.md) |
 | Install and first administrator | [Deployment](operations/deployment.md), [setup/recovery](operations/account-recovery.md) |
 | Protect and recover data | [Backup/restore](operations/backup-restore.md), [upgrade/rollback](operations/upgrade-rollback.md) |

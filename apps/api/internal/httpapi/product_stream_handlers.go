@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"sync"
@@ -123,7 +124,19 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	initial, err := buildStreamSnapshot(r.Context(), topic, provider)
+	if topic == streamAlerts {
+		if changes, ok := handler.alertReader.(domain.AlertChangeReader); ok {
+			if lastID > math.MaxInt64 {
+				writeProblem(w, r, invalidRequestProblem)
+				return
+			}
+			handler.durableAlertStream(w, r, provider.Source().ID, changes, int64(lastID))
+			return
+		}
+	}
+	readContext, cancelRead := context.WithTimeout(r.Context(), streamReadTimeout)
+	initial, err := buildStreamSnapshot(readContext, topic, provider)
+	cancelRead()
 	if err != nil {
 		var providerError *domain.ProviderError
 		if errors.As(err, &providerError) {
@@ -166,7 +179,10 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 			_ = writeSSE(w, 0, "stream.reset.v1", []byte(`{"reason":"lifetime"}`))
 			return
 		case <-authCheck.C:
-			if _, err := handler.auth.service.Authenticate(r.Context(), sessionToken); err != nil {
+			readContext, cancelRead := context.WithTimeout(r.Context(), streamReadTimeout)
+			_, err := handler.auth.service.Authenticate(readContext, sessionToken)
+			cancelRead()
+			if err != nil {
 				return
 			}
 		case <-keepalive.C:
@@ -182,20 +198,26 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 }
 
 func streamProducer(topic streamTopic, provider ProductProvider, initial []byte) realtime.Producer {
+	return streamProducerWithInterval(topic, provider, initial, streamPollInterval)
+}
+
+func streamProducerWithInterval(topic streamTopic, provider ProductProvider, initial []byte, interval time.Duration) realtime.Producer {
 	return func(ctx context.Context, publish func(string, []byte) error) {
 		last := bytes.Clone(initial)
 		sourceUnavailable := false
 		if publish(string(topic)+".snapshot.v1", last) != nil {
 			return
 		}
-		ticker := time.NewTicker(streamPollInterval)
+		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				data, err := buildStreamSnapshot(ctx, topic, provider)
+				readContext, cancelRead := context.WithTimeout(ctx, streamReadTimeout)
+				data, err := buildStreamSnapshot(readContext, topic, provider)
+				cancelRead()
 				if err != nil {
 					if !sourceUnavailable {
 						_ = publish("stream.reset.v1", []byte(`{"reason":"source_unavailable"}`))
@@ -203,8 +225,9 @@ func streamProducer(topic streamTopic, provider ProductProvider, initial []byte)
 					}
 					continue
 				}
+				recovered := sourceUnavailable
 				sourceUnavailable = false
-				if !bytes.Equal(data, last) {
+				if recovered || !bytes.Equal(data, last) {
 					if publish(string(topic)+".snapshot.v1", data) != nil {
 						return
 					}
@@ -378,6 +401,10 @@ func writeSSE(w http.ResponseWriter, id uint64, event string, data []byte) error
 	_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(streamWriteTimeout))
 	if id > 0 {
 		if _, err := fmt.Fprintf(w, "id: %d\n", id); err != nil {
+			return err
+		}
+	} else if event == "alerts.snapshot.v1" {
+		if _, err := w.Write([]byte("id:\n")); err != nil {
 			return err
 		}
 	}

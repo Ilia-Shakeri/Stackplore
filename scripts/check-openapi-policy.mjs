@@ -579,6 +579,7 @@ const allowedParameterNames = [
   'HealthFilter',
   'IfMatch',
   'LastEventId',
+  'NotificationTestAdapter',
   'Limit',
   'ProviderFilter',
   'ProductResourceFilter',
@@ -623,6 +624,12 @@ const successResponseNames = new Set([
 const allowedResponseKeys = ['content', 'description', 'headers'];
 const problemMediaType = 'application/problem+json';
 const allowedSchemaNames = [
+  'MatrixNotificationSettingsStatus',
+  'ConfiguredMatrixNotificationSettingsStatus',
+  'DisabledMatrixNotificationSettingsStatus',
+  'ProductAlertChange',
+  'ProductAlertChangesEnvelope',
+  'ProductAlertSnapshotEnvelope',
   'AcknowledgedAlert',
   'ActiveAlert',
   'Alert',

@@ -10,6 +10,41 @@ import (
 
 const MaximumDeliveryBatch = 32
 
+type DeliveryAdapter string
+
+const (
+	DeliveryAdapterWebhook DeliveryAdapter = "webhook"
+	DeliveryAdapterMatrix  DeliveryAdapter = "matrix"
+)
+
+func (adapter DeliveryAdapter) Valid() bool {
+	return adapter == DeliveryAdapterWebhook || adapter == DeliveryAdapterMatrix
+}
+
+type AdapterDeliveryRepository interface {
+	EnqueueDeliveries(context.Context, DeliveryAdapter, string, int, time.Time, int) (int, error)
+	ClaimDeliveries(context.Context, DeliveryAdapter, string, string, time.Time, time.Duration, int) ([]DeliveryTask, error)
+	CompleteDelivery(context.Context, DeliveryAdapter, string, DeliveryCompletion) error
+}
+
+type DeliveryAttempt func(context.Context, DeliveryTask) (int, error)
+
+type scopedDeliveryRepository struct {
+	repository AdapterDeliveryRepository
+	adapter    DeliveryAdapter
+	reference  string
+}
+
+func (repository scopedDeliveryRepository) EnqueueWebhookDeliveries(ctx context.Context, reference string, attempts int, at time.Time, limit int) (int, error) {
+	return repository.repository.EnqueueDeliveries(ctx, repository.adapter, reference, attempts, at, limit)
+}
+func (repository scopedDeliveryRepository) ClaimWebhookDeliveries(ctx context.Context, owner string, at time.Time, lease time.Duration, limit int) ([]DeliveryTask, error) {
+	return repository.repository.ClaimDeliveries(ctx, repository.adapter, repository.reference, owner, at, lease, limit)
+}
+func (repository scopedDeliveryRepository) CompleteWebhookDelivery(ctx context.Context, completion DeliveryCompletion) error {
+	return repository.repository.CompleteDelivery(ctx, repository.adapter, repository.reference, completion)
+}
+
 var ErrDeliveryUnavailable = errors.New("notification delivery is unavailable")
 
 type DeliveryTask struct {
@@ -100,6 +135,9 @@ type WebhookAttemptSender interface {
 
 type DeliveryWorkerOptions struct {
 	Repository             DeliveryRepository
+	AdapterRepository      AdapterDeliveryRepository
+	Adapter                DeliveryAdapter
+	Attempt                DeliveryAttempt
 	Targets                WebhookTargetResolver
 	Sender                 WebhookAttemptSender
 	DestinationReferenceID string
@@ -126,16 +164,27 @@ type DeliveryWorker struct {
 	batchSize              int
 	maximumAttempts        int
 	retrySchedule          []time.Duration
+	attempt                DeliveryAttempt
+	scoped                 bool
 }
 
 func NewDeliveryWorker(options DeliveryWorkerOptions) (*DeliveryWorker, error) {
-	if options.Repository == nil || options.Targets == nil || options.Sender == nil || options.Now == nil ||
+	if options.Adapter != "" && options.AdapterRepository == nil {
+		return nil, ErrDeliveryUnavailable
+	}
+	if options.AdapterRepository != nil {
+		if !options.Adapter.Valid() {
+			return nil, ErrDeliveryUnavailable
+		}
+		options.Repository = scopedDeliveryRepository{repository: options.AdapterRepository, adapter: options.Adapter, reference: options.DestinationReferenceID}
+	}
+	if options.Repository == nil || options.Attempt == nil && (options.Targets == nil || options.Sender == nil) || options.Now == nil ||
 		!validDeliveryID(options.DestinationReferenceID) || !validDeliveryID(options.LeaseOwner) ||
 		options.PollInterval < 100*time.Millisecond || options.PollInterval > time.Minute ||
 		options.LeaseDuration < time.Second || options.LeaseDuration > 10*time.Minute ||
 		options.BatchSize < 1 || options.BatchSize > MaximumDeliveryBatch ||
 		options.MaximumAttempts < 1 || options.MaximumAttempts > 100 || len(options.RetrySchedule) < 1 ||
-		len(options.RetrySchedule) > options.MaximumAttempts {
+		len(options.RetrySchedule) > options.MaximumAttempts || options.Adapter == DeliveryAdapterMatrix && options.Attempt == nil {
 		return nil, ErrDeliveryUnavailable
 	}
 	for index, delay := range options.RetrySchedule {
@@ -152,6 +201,7 @@ func NewDeliveryWorker(options DeliveryWorkerOptions) (*DeliveryWorker, error) {
 		now: options.Now, onError: options.OnError, pollInterval: options.PollInterval,
 		leaseDuration: options.LeaseDuration, batchSize: options.BatchSize,
 		maximumAttempts: options.MaximumAttempts, retrySchedule: append([]time.Duration(nil), options.RetrySchedule...),
+		attempt: options.Attempt, scoped: options.AdapterRepository != nil,
 	}, nil
 }
 
@@ -191,6 +241,28 @@ func (worker *DeliveryWorker) RunOnce(ctx context.Context) error {
 	); err != nil {
 		return errors.Join(ErrDeliveryUnavailable, err)
 	}
+	if worker.scoped {
+		for range worker.batchSize {
+			claimedAt := worker.now().UTC().Truncate(time.Microsecond)
+			tasks, err := worker.repository.ClaimWebhookDeliveries(ctx, worker.leaseOwner, claimedAt, worker.leaseDuration, 1)
+			if err != nil {
+				return ErrDeliveryUnavailable
+			}
+			if len(tasks) == 0 {
+				break
+			}
+			if len(tasks) != 1 {
+				return ErrDeliveryUnavailable
+			}
+			if err := worker.deliver(ctx, tasks[0], claimedAt); err != nil && ctx.Err() == nil {
+				worker.onError(ErrDeliveryUnavailable)
+			}
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+		}
+		return nil
+	}
 	tasks, err := worker.repository.ClaimWebhookDeliveries(ctx, worker.leaseOwner, now, worker.leaseDuration, worker.batchSize)
 	if err != nil {
 		return errors.Join(ErrDeliveryUnavailable, err)
@@ -210,11 +282,22 @@ func (worker *DeliveryWorker) deliver(ctx context.Context, task DeliveryTask, cl
 	if err := task.Validate(claimedAt); err != nil {
 		return err
 	}
-	target, err := worker.targets.ResolveWebhookTarget(ctx, task.DestinationReferenceID)
+	if task.DestinationReferenceID != worker.destinationReferenceID {
+		return ErrDeliveryUnavailable
+	}
+	attemptContext, cancel := context.WithTimeout(ctx, task.LeaseExpiresAt.Sub(claimedAt))
+	defer cancel()
+	var err error
 	result := WebhookResult{}
-	if err == nil {
-		defer clear(target.SigningKey)
-		result, err = worker.sender.Send(ctx, target, WebhookDelivery{ID: task.ID, Payload: task.Payload})
+	if worker.attempt != nil {
+		result.Status, err = worker.attempt(attemptContext, task)
+	} else {
+		var target WebhookTarget
+		target, err = worker.targets.ResolveWebhookTarget(attemptContext, task.DestinationReferenceID)
+		if err == nil {
+			defer clear(target.SigningKey)
+			result, err = worker.sender.Send(attemptContext, target, WebhookDelivery{ID: task.ID, Payload: task.Payload})
+		}
 	}
 	finishedAt := worker.now().UTC().Truncate(time.Microsecond)
 	if finishedAt.Before(claimedAt) {

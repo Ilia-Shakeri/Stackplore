@@ -27,6 +27,24 @@ perform the normal single-owner 0.2 forward upgrade against the disposable copy.
 Do not change ledger digests to bypass this gate. Repeat representative reads
 before applying the reviewed upgrade procedure to an actual installation.
 
+## 0.2.0 to 0.3.0
+
+The first eight released migration bytes remain unchanged. Migration 9 adds
+configuration-version-bound collection history, replica history, fenced alert
+claims, durable change replay and versioned demo seed markers. Migration 10
+separates outbound adapter/destination cursors and lanes. Existing webhook cursor
+positions are preserved. Legacy synthetic pending/in-flight deliveries become
+canceled, with unfinished attempts closed; they must not reach external targets.
+Sources, accounts, existing alerts and delivery history remain stored. Earlier static demo alerts
+become durable after an enabled administrator and resource capture are present.
+Seeding does not resurrect acknowledged or deleted state after its marker exists.
+
+The 0.3 storage tool expects its exact ten-version ledger. Restore an eight-version
+archive with the matching 0.2 tool, verify it, stop that runtime, then run the 0.3
+forward upgrade on the disposable copy. Never rewrite migration digests or start
+both runtimes against one database. Old runtime rollback requires the separately
+verified pre-upgrade backup; there are no reverse migrations.
+
 ## Before an upgrade
 
 1. Read the exact target changelog and migration/contract changes.

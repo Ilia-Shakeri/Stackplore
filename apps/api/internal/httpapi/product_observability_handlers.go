@@ -398,7 +398,7 @@ func (handler productHTTP) alerts(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	if handler.alertReader != nil && provider.Source().Provider != domain.ProviderDemo {
+	if handler.alertReader != nil {
 		page, err := handler.alertReader.ListAlerts(r.Context(), provider.Source().ID, pageRequest)
 		if err != nil {
 			switch {

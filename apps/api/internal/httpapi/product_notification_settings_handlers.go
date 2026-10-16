@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"net/http"
+	"net/url"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -17,12 +18,23 @@ type NotificationTester interface {
 	RequestTest(context.Context, domain.UserID, domain.RequestID) (domain.Notification, error)
 }
 
-type notificationSettingsResponse struct {
+type MatrixNotificationTester interface {
+	RequestMatrixTest(context.Context, domain.UserID, domain.RequestID) (domain.Notification, error)
+}
+
+type matrixNotificationSettingsResponse struct {
 	Adapter                string `json:"adapter"`
 	Enabled                bool   `json:"enabled"`
 	DestinationReferenceID string `json:"destination_reference_id,omitempty"`
-	ConfigurationSource    string `json:"configuration_source"`
-	DeliverySemantics      string `json:"delivery_semantics"`
+}
+
+type notificationSettingsResponse struct {
+	Adapter                string                             `json:"adapter"`
+	Enabled                bool                               `json:"enabled"`
+	DestinationReferenceID string                             `json:"destination_reference_id,omitempty"`
+	ConfigurationSource    string                             `json:"configuration_source"`
+	DeliverySemantics      string                             `json:"delivery_semantics"`
+	Matrix                 matrixNotificationSettingsResponse `json:"matrix"`
 }
 
 type notificationTestResponse struct {
@@ -56,20 +68,21 @@ func (handler productHTTP) notificationSettings(w http.ResponseWriter, r *http.R
 		Adapter: notification.WebhookAdapter, Enabled: settings.Enabled,
 		DestinationReferenceID: settings.DestinationReferenceID,
 		ConfigurationSource:    "operator_environment", DeliverySemantics: "at_least_once",
+		Matrix: matrixNotificationSettingsResponse{Adapter: "matrix", Enabled: settings.MatrixEnabled, DestinationReferenceID: settings.MatrixDestinationReferenceID},
 	})
 }
 
 func (handler productHTTP) testNotification(w http.ResponseWriter, r *http.Request) {
-	if handler.notificationTester == nil || handler.notificationSettingsReader == nil {
-		writeProblem(w, r, unavailableProblem)
+	if !handler.auth.requireSameOrigin(w, r) {
 		return
 	}
-	settings, err := handler.notificationSettingsReader.GetNotificationSettings(r.Context())
-	if err != nil || !settings.Enabled {
-		writeProblem(w, r, unavailableProblem)
-		return
+	query, queryError := url.ParseQuery(r.URL.RawQuery)
+	adapter := query.Get("adapter")
+	if adapter == "" {
+		adapter = notification.WebhookAdapter
 	}
-	if !handler.auth.requireSameOrigin(w, r) || !requireNoBodyAndQuery(w, r) {
+	if queryError != nil || !requestHasNoBody(r) || len(query) > 1 || (len(query) == 1 && (len(query["adapter"]) != 1 || query.Get("adapter") == "")) || (adapter != notification.WebhookAdapter && adapter != "matrix") {
+		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
 	sessionToken, csrfProof, recentProof, failure, ok := readAuthenticationMaterial(r, true, true)
@@ -86,15 +99,34 @@ func (handler productHTTP) testNotification(w http.ResponseWriter, r *http.Reque
 		handler.auth.writeAuthenticatedError(w, r, sessionToken, err)
 		return
 	}
-	item, err := handler.notificationTester.RequestTest(
-		r.Context(), domain.UserID(identity.Principal.UserID), requestID,
-	)
+	if handler.notificationTester == nil || handler.notificationSettingsReader == nil {
+		writeProblem(w, r, unavailableProblem)
+		return
+	}
+	settings, err := handler.notificationSettingsReader.GetNotificationSettings(r.Context())
+	if err != nil || (adapter == notification.WebhookAdapter && !settings.Enabled) || (adapter == "matrix" && !settings.MatrixEnabled) {
+		writeProblem(w, r, unavailableProblem)
+		return
+	}
+	var item domain.Notification
+	destination := settings.DestinationReferenceID
+	if adapter == "matrix" {
+		tester, ok := handler.notificationTester.(MatrixNotificationTester)
+		if !ok {
+			writeProblem(w, r, unavailableProblem)
+			return
+		}
+		destination = settings.MatrixDestinationReferenceID
+		item, err = tester.RequestMatrixTest(r.Context(), domain.UserID(identity.Principal.UserID), requestID)
+	} else {
+		item, err = handler.notificationTester.RequestTest(r.Context(), domain.UserID(identity.Principal.UserID), requestID)
+	}
 	if err != nil {
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
 	handler.auth.renewSessionCookie(w, r, sessionToken)
 	writeJSON(w, http.StatusAccepted, notificationTestResponse{
-		NotificationID: item.ID, DestinationReferenceID: settings.DestinationReferenceID, State: "queued",
+		NotificationID: item.ID, DestinationReferenceID: destination, State: "queued",
 	})
 }

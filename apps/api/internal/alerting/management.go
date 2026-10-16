@@ -98,6 +98,10 @@ func (service *ManagementService) Acknowledge(ctx context.Context, alertID domai
 			return domain.Alert{}, ErrManagementUnavailable
 		}
 	}
+	if alert.Validate() != nil || alert.ID != alertID || alert.State != domain.AlertAcknowledged ||
+		alert.AcknowledgedAt == nil || !alert.AcknowledgedAt.Equal(now) {
+		return domain.Alert{}, ErrManagementUnavailable
+	}
 	return alert, nil
 }
 
@@ -151,8 +155,14 @@ func (service *ManagementService) ReplaceRule(ctx context.Context, ruleID domain
 	if err != nil {
 		return domain.AlertRuleRecord{}, mapManagementError(err)
 	}
+	if current.Validate() != nil || current.Rule.ID != ruleID {
+		return domain.AlertRuleRecord{}, ErrManagementUnavailable
+	}
 	if current.Version != expectedVersion {
 		return domain.AlertRuleRecord{}, ErrAlertStateConflict
+	}
+	if input.SourceID != current.Rule.SourceID {
+		return domain.AlertRuleRecord{}, ErrManagementInvalid
 	}
 	rule := input.rule(ruleID)
 	if rule.Validate() != nil {

@@ -5,10 +5,13 @@
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
 - **Implementation status:** Stackplore 1.0 implementation active; tagged 0.1.0
-  baseline verified. The 0.2.0 checkpoint implements persisted source settings,
+  baseline verified. The verified/tagged 0.2.0 checkpoint implements persisted source settings,
   normalized observations, cached reads and bounded collection/retention; its
-  local gate and disposable PostgreSQL/restart/restore proof passed. Correct historical
-  alert evidence, provider fidelity, protected audit policy and remaining 1.0
+  local gate and disposable PostgreSQL/restart/restore proof passed. The 0.3.0
+  locally verified development checkpoint adds covered alert windows, durable
+  changes and webhook/Matrix lanes. Its full local/real PostgreSQL, disposable
+  native restart/restore, HTTPS receiver and Helm lint/render results are recorded
+  in the active evidence plan. Stages 4–9, provider fidelity, protected audit policy and remaining 1.0
   requirements are still open.
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
@@ -428,6 +431,24 @@ Initial rule types:
 Rules support create, edit, enable, disable, validation, and an evaluation
 interval. Alert states are pending, firing, acknowledged, and resolved.
 
+CPU and memory thresholds compare covered time-weighted gauge means. Workload
+unavailable replicas compare the covered time-weighted desired-minus-ready
+deficit. Restart thresholds count observed positive counter increments within
+the configured window; a reset contributes its new count, never an inflated
+delta. Missing, stale, future, partial or unsupported evidence is unknown and
+does not clear or fire. Event rules examine their complete bounded evaluation-
+interval history with exact scope. Connection-loss rules require raw provider
+outage/timeout evidence independent of cached stale observations. Rule source
+is immutable after creation; replacement closes the old active episode and
+invalidates its claim atomically. A later match after resolution opens a new
+episode. Pending periods require continuous proven matches.
+
+Evaluation completion must reject an expired/replaced claim, a changed rule,
+newer episode state or a changed/disabled source configuration. Raw collection
+evidence must belong to the current source configuration. Durable alert replay
+uses committed ordered positions and a protected prune watermark, resets stale
+positions to a bounded snapshot, and refetches authoritative paginated state.
+
 Notification delivery includes:
 
 - in-application notifications;
@@ -458,6 +479,9 @@ identifier as an idempotency key and bind it into the signature; Matrix uses
 the same stable value as its transaction identifier. A timeout is reported as
 an uncertain outcome, and destination operators remain responsible for
 deduplication.
+Matrix transaction identity is scoped to the device and endpoint. Operators must
+reconcile pending deliveries before changing destination or credential context;
+reusing a transaction ID across a different context does not establish deduplication.
 
 ### 6.12 Guarded operations
 
@@ -800,6 +824,12 @@ namespace-scoped Kubernetes fidelity and audit quota/cleanup policy are not
 implemented. Audit currently retains all rows. See [current observation
 boundaries](docs/observations.md) and the roadmap for remaining work; these status
 notes do not reduce the required 1.0 behavior above.
+The locally verified 0.3.0 development checkpoint adds current-configuration raw collection evidence,
+covered alert windows, source/rule/lease-fenced completion, committed replay with
+a prune watermark and isolated webhook/Matrix lanes. Its local gate and separate
+disposable/Helm proof are recorded in the evidence plan; operator receiver, browser/proxy and live
+provider proof remain separate target work. See [alert and delivery
+boundaries](docs/alerts-notifications.md).
 Configuration is validated before listen. Unknown names and non-canonical,
 blank or out-of-bound values fail without logging values. The current reference
 is [configuration](docs/configuration.md).

@@ -71,7 +71,7 @@ func TestPostgreSQLMigrationsOnRealDatabase(t *testing.T) {
 	if err := store.pool.QueryRow(ctx, `SELECT count(*) FROM installation_metadata`).Scan(&installations); err != nil || installations != 1 {
 		t.Fatalf("installation count = %d, error = %v; want 1", installations, err)
 	}
-	for _, table := range []string{"users", "sessions", "resources", "metric_samples", "infrastructure_events", "alert_rules", "alerts", "notification_deliveries", "notification_delivery_cursors", "audit_entries"} {
+	for _, table := range []string{"users", "sessions", "resources", "metric_samples", "infrastructure_events", "alert_rules", "alerts", "alert_changes", "alert_change_retention_positions", "source_collection_outcomes", "workload_replica_history", "demo_alert_seeds", "notification_deliveries", "notification_delivery_cursors", "audit_entries"} {
 		var exists bool
 		if err := store.pool.QueryRow(ctx, `SELECT EXISTS (
     SELECT 1 FROM information_schema.tables
@@ -336,6 +336,13 @@ func verifyObservationRepositories(t *testing.T, ctx context.Context, store *Sto
 func verifyWebhookDeliveryRepository(t *testing.T, ctx context.Context, store *Store, now time.Time, actor domain.UserID) {
 	t.Helper()
 	created, err := store.EnqueueWebhookDeliveries(ctx, "webhook_integration", 3, now, 4)
+	if err != nil || created != 0 {
+		t.Fatal("synthetic notification escaped to outbound delivery")
+	}
+	if _, err := store.pool.Exec(ctx, insertNotificationStatement, "notification_real_delivery_integration", nil, nil, nil, "notification.alert_firing", "error", "alert.condition_matched", now.UnixMicro(), 0); err != nil {
+		t.Fatal("seed isolated nonsynthetic delivery fixture")
+	}
+	created, err = store.EnqueueWebhookDeliveries(ctx, "webhook_integration", 3, now, 4)
 	if err != nil || created != 1 {
 		t.Fatalf("EnqueueWebhookDeliveries() = (%d, %v); want one", created, err)
 	}
@@ -345,7 +352,7 @@ func verifyWebhookDeliveryRepository(t *testing.T, ctx context.Context, store *S
 	}
 	tasks, err := store.ClaimWebhookDeliveries(ctx, "worker_integration", now, time.Minute, 4)
 	if err != nil || len(tasks) != 1 || tasks[0].AttemptNumber != 1 ||
-		tasks[0].NotificationID != "notification_integration" || tasks[0].Validate(now) != nil {
+		tasks[0].NotificationID != "notification_real_delivery_integration" || tasks[0].Validate(now) != nil {
 		t.Fatalf("ClaimWebhookDeliveries() = (%#v, %v); want one", tasks, err)
 	}
 	firstID := tasks[0].ID
@@ -393,7 +400,7 @@ func verifyWebhookDeliveryRepository(t *testing.T, ctx context.Context, store *S
     summary_code, created_at_us, synthetic
 ) SELECT 'notification_lease_integration', source_id, alert_id, resource_id,
          notification_kind, severity, summary_code, $1, synthetic
-  FROM notifications WHERE id = 'notification_integration'`, leaseNotificationAt.UnixMicro()); err != nil {
+  FROM notifications WHERE id = 'notification_real_delivery_integration'`, leaseNotificationAt.UnixMicro()); err != nil {
 		t.Fatal("seed lease recovery notification")
 	}
 	created, err = store.EnqueueWebhookDeliveries(ctx, "webhook_integration", 3, leaseNotificationAt, 4)

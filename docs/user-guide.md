@@ -1,8 +1,8 @@
 # Current user guide
 
-This describes the authenticated 0.2 checkpoint. Its full local gate and disposable
-PostgreSQL/restart/restore proof passed; live browser and target deployment
-evidence remain separate. It is not a promise that every 1.0 feature exists. See [remaining work](roadmap.md) and
+This describes the authenticated 0.3 checkpoint. Current local/PostgreSQL proof
+is recorded in the evidence plan; live browser and target deployment evidence
+remain separate. It is not a promise that every 1.0 feature exists. See [remaining work](roadmap.md) and
 [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
@@ -24,7 +24,8 @@ evidence remain separate. It is not a promise that every 1.0 feature exists. See
    and full log controls are still being completed.
 6. Read `/alerts` and `/notifications`. Administrators can acknowledge an alert,
    manage alert rules, inspect safe notification status, and request a guarded
-   test delivery when operator webhook configuration allows it. A queued test
+   test delivery when operator webhook or Matrix configuration allows it. Select
+   the configured test lane and supply the current password. A queued test
    is not proof that a receiver accepted it.
 7. Administrators use `/settings/users` for account management and `/audit` for
    protected history. High-risk account/test operations request the current
@@ -68,9 +69,11 @@ failed read; if it persists, give the operator only the safe error code and
 request ID. Do not share raw logs, credentials, session data or private targets.
 See [troubleshooting](operations/troubleshooting.md).
 
-Alert rules implement the declared predicate kinds, but historical windows,
-restart semantics and connection/event evidence still need stage 3 corrections.
-Use current evidence and the roadmap before relying on complete alert semantics.
+Alert windows require covered fresh history; incomplete evidence remains unknown.
+Restart thresholds count observed increases per configured window. Alert changes
+and resets refetch durable state, including acknowledgement after restart. Rule
+source is immutable during editing; create a new rule to move to another source.
+See [exact alert and delivery semantics](alerts-notifications.md).
 Ordinary history has fixed bounded retention; audit currently retains all rows.
 Configurable quotas, protected audit cleanup, exports and archive custody are
 later-stage work.

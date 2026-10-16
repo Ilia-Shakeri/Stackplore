@@ -194,6 +194,7 @@ describe('product API adapter', () => {
   it('accepts only secret-free notification settings', async () => {
     const status = {
       adapter: 'generic_webhook',
+      matrix: { adapter: 'matrix', enabled: false },
       configuration_source: 'operator_environment',
       delivery_semantics: 'at_least_once',
       destination_reference_id: 'webhook_primary',
@@ -209,6 +210,27 @@ describe('product API adapter', () => {
     await expect(api.getNotificationSettings()).rejects.toThrow(
       'Notification settings response is invalid.',
     );
+    for (const matrix of [
+      {
+        adapter: 'matrix',
+        enabled: true,
+        destination_reference_id: 'matrix_primary',
+        access_token: 'fixture-only',
+      },
+      {
+        adapter: 'matrix',
+        enabled: true,
+        destination_reference_id: 'matrix_primary',
+        url: 'https://example.test',
+      },
+      { adapter: 'matrix', enabled: true },
+      { adapter: 'matrix', enabled: false, destination_reference_id: 'matrix_primary' },
+    ]) {
+      request.mockResolvedValueOnce(response({ ...status, matrix }));
+      await expect(api.getNotificationSettings()).rejects.toThrow(
+        'Notification settings response is invalid.',
+      );
+    }
   });
 
   it('queues a notification test with an exact one-use recent proof', async () => {
@@ -243,6 +265,12 @@ describe('product API adapter', () => {
         kind: 'session',
         recentAuthToken: 'B'.repeat(43),
       },
+    });
+    await expect(api.testNotification('admin-password', 'matrix')).resolves.toEqual(queued);
+    expect(request).toHaveBeenLastCalledWith({
+      method: 'POST',
+      path: '/settings/notifications/test?adapter=matrix',
+      protection: { csrfToken: 'A'.repeat(43), kind: 'session', recentAuthToken: 'B'.repeat(43) },
     });
   });
 

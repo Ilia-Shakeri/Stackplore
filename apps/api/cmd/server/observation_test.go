@@ -27,6 +27,14 @@ func (*fakeDatabase) BeginCapture(context.Context, domain.SourceID, int64, time.
 func (*fakeDatabase) PruneObservationHistory(context.Context, domain.ObservationRetentionPolicy, int) (int64, error) {
 	return 0, nil
 }
+func (*fakeDatabase) GetSourceCollectionStatus(context.Context, domain.ProviderRef) (domain.SourceCollectionOutcome, error) {
+	return domain.SourceCollectionOutcome{}, domain.ErrRepositoryNotFound
+}
+func (*fakeDatabase) ListSourceCollectionHistory(context.Context, domain.ProviderRef, domain.TimeRange, int) (domain.SourceCollectionHistory, error) {
+	return domain.SourceCollectionHistory{}, domain.ErrRepositoryNotFound
+}
+func (*fakeDatabase) EnsureDemoAlerts(context.Context, domain.DemoAlertSeed) error     { return nil }
+func (*fakeDatabase) PruneAlertHistory(context.Context, time.Time, int) (int64, error) { return 0, nil }
 
 type databaseWithoutObservations struct{ databaseRuntime }
 

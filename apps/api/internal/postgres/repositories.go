@@ -170,6 +170,9 @@ func (repositories *transactionRepositories) SaveAlertMutation(ctx context.Conte
 	if err := repositories.beginWrite(ctx, 1, mutation.Validate()); err != nil {
 		return err
 	}
+	if err := lockAlertChanges(ctx, repositories.transaction); err != nil {
+		return repositories.latchFailure(mapRepositoryWriteError(ctx, err))
+	}
 	alert := mutation.Alert
 	acknowledgedAt := optionalTime(alert.AcknowledgedAt)
 	acknowledgedBy := optionalUserID(mutation.AcknowledgedByUserID)
@@ -224,6 +227,9 @@ func (repositories *transactionRepositories) SaveAlertMutation(ctx context.Conte
 		if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
 			return repositories.latchFailure(err)
 		}
+	}
+	if err := appendAlertChange(ctx, repositories.transaction, alert.SourceID, alert.RuleID, &alert.ID, domain.AlertChangeAlert, alert.UpdatedAt); err != nil {
+		return repositories.latchFailure(mapRepositoryWriteError(ctx, err))
 	}
 	return nil
 }

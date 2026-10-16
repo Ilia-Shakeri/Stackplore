@@ -126,14 +126,37 @@ When enabled, all destination fields are required. Browser settings expose
 only safe status and guarded one-attempt test delivery. Targets/signing keys
 remain operator owned. DNS, IP, redirect, timeout and response-size policy
 applies per attempt. Delivery is at-least-once; receivers must deduplicate.
+Host case, host syntax, ports, fragments and empty queries must be canonical at
+startup. Runtime destination checks still repeat for every attempt.
+
+## Matrix
+
+| Name                              | Default | Rule                                                                     |
+| --------------------------------- | ------- | ------------------------------------------------------------------------ |
+| `MATRIX_ENABLED`                  | `false` | Reject nonempty destination fields while disabled                        |
+| `MATRIX_DESTINATION_REFERENCE_ID` | absent  | Safe bounded reference, distinct from webhook reference                  |
+| `MATRIX_ORIGIN`                   | absent  | One canonical HTTPS origin; no user information, path, query or fragment |
+| `MATRIX_ROOM_ID`                  | absent  | Exact bounded operator room ID; never returned to the browser            |
+| `MATRIX_ACCESS_TOKEN`             | absent  | Operator-owned bearer token; never logged or exposed                     |
+
+All five values use the `STACKPLORE_` prefix. Enabling Matrix requires all four
+destination fields. There is no homeserver discovery and no redirect following.
+Each attempt validates and pins DNS/IP destinations under the same outbound
+policy as webhook. Configured public HTTPS receivers must provide valid TLS.
+The canonical origin has no trailing slash or explicit default `:443`. Room IDs
+are bounded to 255 printable ASCII bytes, start with `!`, and exclude path/query
+delimiters and percent escapes. Tokens are bounded to 4,096 bearer-token bytes.
+Settings expose only enabled state and logical references. The guarded test
+selects `?adapter=matrix`; omission selects the generic webhook. Read
+[alert and delivery semantics](alerts-notifications.md) before enabling either lane.
 
 ## Deployment-only values
 
 Compose reads `STACKPLORE_COMPOSE_DATABASE_PASSWORD`,
 `STACKPLORE_COMPOSE_DATABASE_URL`, and `STACKPLORE_COMPOSE_PORT` (default 8080).
 These values belong to Compose, not the Go process loader. The two setup values
-pass through from the operator shell; unset values remain absent. Webhook
-configuration passes through explicitly. Do not use `docker compose config`
+pass through from the operator shell; unset values remain absent. Webhook and
+Matrix configuration pass through explicitly. Do not use `docker compose config`
 without `--quiet` when real private values are present.
 
 Helm reads [values/schema](../deploy/helm/stackplore/values.schema.json).

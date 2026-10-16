@@ -53,7 +53,12 @@ func (managementIDsStub) NewRuleID() (domain.AlertRuleID, error)   { return "rul
 func TestManagementServiceBuildsAuditedAcknowledgement(t *testing.T) {
 	t.Parallel()
 	now := time.Date(2026, time.August, 20, 9, 0, 0, 0, time.UTC)
-	repository := &managementRepositoryStub{alert: domain.Alert{ID: "alert_one"}}
+	current := advanceMatched(t, fixtureRule(0), nil, now.Add(-time.Minute), "alert_one").Alert
+	acknowledged, err := Acknowledge(*current, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repository := &managementRepositoryStub{alert: acknowledged}
 	service, err := NewManagementService(repository, managementIDsStub{}, func() time.Time { return now })
 	if err != nil {
 		t.Fatal(err)
@@ -135,5 +140,23 @@ func TestManagementServiceBuildsAuditedRuleLifecycle(t *testing.T) {
 	if repository.deleteCommand.Validate() != nil || repository.deleteCommand.Audit.Action != "alert.rule_delete" ||
 		repository.deleteCommand.Audit.RequestID != "request_delete" {
 		t.Fatalf("delete command = %#v", repository.deleteCommand)
+	}
+}
+
+func TestManagementRuleSourceStaysFixedAcrossEdits(t *testing.T) {
+	now := time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
+	rule := fixtureRule(0)
+	repository := &managementRepositoryStub{currentRule: domain.AlertRuleRecord{
+		Rule: rule, CreatedByUserID: "user_admin", UpdatedByUserID: "user_admin",
+		CreatedAt: now.Add(-time.Hour), UpdatedAt: now.Add(-time.Hour), Version: 1,
+	}}
+	service, err := NewManagementService(repository, managementIDsStub{}, func() time.Time { return now })
+	if err != nil {
+		t.Fatal(err)
+	}
+	input := RuleInput{SourceID: "source_other", ResourceID: rule.ResourceID, DisplayName: rule.DisplayName,
+		Kind: rule.Kind, Enabled: true, Severity: rule.Severity, EvaluationInterval: rule.EvaluationInterval}
+	if _, err := service.ReplaceRule(context.Background(), rule.ID, 1, input, "user_admin", "request_replace"); !errors.Is(err, ErrManagementInvalid) || repository.replaceCommand.Record.Rule.ID != "" {
+		t.Fatalf("source edit = %v; must fail before persistence", err)
 	}
 }

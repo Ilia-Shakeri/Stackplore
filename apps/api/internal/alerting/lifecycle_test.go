@@ -63,6 +63,38 @@ func TestLifecycleResolvesWhenRuleIsDisabledAndRejectsWrongOwner(t *testing.T) {
 	}
 }
 
+func TestPendingDoesNotCountMissingEvaluationTime(t *testing.T) {
+	start := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
+	rule := fixtureRule(2 * time.Minute)
+	first := advanceMatched(t, rule, nil, start, "alert_pending")
+	// Unknown evidence caused the intervening scheduled evaluation to make no write.
+	second := advanceMatched(t, rule, first.Alert, start.Add(2*time.Minute), "")
+	if second.Alert.State != domain.AlertPending || !second.Alert.StartedAt.Equal(start.Add(2*time.Minute)) {
+		t.Fatalf("pending after missing poll = %#v; unknown time must not fire", second.Alert)
+	}
+	third := advanceMatched(t, rule, second.Alert, start.Add(3*time.Minute), "")
+	fourth := advanceMatched(t, rule, third.Alert, start.Add(4*time.Minute), "")
+	if fourth.Alert.State != domain.AlertFiring {
+		t.Fatalf("continuous pending after gap = %#v", fourth.Alert)
+	}
+}
+
+func TestResolvedEpisodeReopensWithNewIdentityAndClearEvidence(t *testing.T) {
+	start := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
+	rule := fixtureRule(0)
+	first := advanceMatched(t, rule, nil, start, "alert_first")
+	clear := condition(false, start.Add(time.Minute))
+	clear.SummaryCode = "alert.resource_unhealthy.clear"
+	resolved, err := Advance(AdvanceRequest{Rule: rule, Current: first.Alert, Condition: clear, EvaluatedAt: start.Add(time.Minute), Synthetic: true})
+	if err != nil || resolved.Alert.SummaryCode != clear.SummaryCode || !resolved.Alert.EvidenceRange.End.Equal(clear.EvidenceRange.End) {
+		t.Fatalf("resolved evidence = %#v, %v", resolved.Alert, err)
+	}
+	second := advanceMatched(t, rule, resolved.Alert, start.Add(2*time.Minute), "alert_second")
+	if second.Alert.ID != "alert_second" || second.Alert.ResolvedAt != nil || second.Previous != nil {
+		t.Fatalf("new episode = %#v", second)
+	}
+}
+
 func advanceMatched(t *testing.T, rule domain.AlertRule, current *domain.Alert, at time.Time, id domain.AlertID) LifecycleResult {
 	t.Helper()
 	result, err := Advance(AdvanceRequest{

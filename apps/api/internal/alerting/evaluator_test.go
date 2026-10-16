@@ -17,7 +17,7 @@ func TestEvaluateHealthAvailabilityThresholdAndSeverity(t *testing.T) {
 	}
 
 	rule.Kind = domain.AlertRuleResourceUnavailable
-	availability := domain.AvailabilityStale
+	availability := domain.AvailabilityUnavailable
 	result, err = Evaluate(rule, evaluationInput(at, nil, &availability, nil, nil))
 	if err != nil || !result.Matched {
 		t.Fatalf("availability evaluation = (%#v, %v)", result, err)
@@ -67,6 +67,22 @@ func TestEvaluateRejectsCrossScopeAndFractionalCounts(t *testing.T) {
 	value := 2.5
 	if _, err := Evaluate(rule, evaluationInput(at, nil, nil, &value, nil)); err == nil {
 		t.Fatal("fractional restart evidence was accepted")
+	}
+}
+
+func TestEvaluateUnknownAvailabilityAndHealthCannotResolve(t *testing.T) {
+	at := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
+	rule := fixtureRule(0)
+	rule.Kind = domain.AlertRuleResourceUnavailable
+	for _, state := range []domain.AvailabilityState{domain.AvailabilityStale, domain.AvailabilityUnsupported, domain.AvailabilityPermissionDenied} {
+		if _, err := Evaluate(rule, evaluationInput(at, nil, &state, nil, nil)); err == nil {
+			t.Fatalf("%s evidence produced a condition", state)
+		}
+	}
+	rule.Kind = domain.AlertRuleResourceUnhealthy
+	health := domain.HealthUnknown
+	if _, err := Evaluate(rule, evaluationInput(at, &health, nil, nil, nil)); err == nil {
+		t.Fatal("unknown health produced a clear condition")
 	}
 }
 

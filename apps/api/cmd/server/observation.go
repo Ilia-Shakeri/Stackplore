@@ -18,13 +18,20 @@ type observationDatabase interface {
 	observation.ObservationReader
 	domain.ObservationRetentionRepository
 	sourcesettings.Repository
+	domain.SourceCollectionReader
+	domain.AlertMetricHistoryProvider
+	domain.WorkloadReplicaHistoryProvider
+	domain.DemoAlertSeedRepository
+	domain.AlertHistoryRetentionRepository
 }
 
 type observationRuntime struct {
-	providers  []httpapi.ProductProvider
-	settings   *sourcesettings.Service
-	collection *observation.Worker
-	retention  *observation.RetentionWorker
+	providers    []httpapi.ProductProvider
+	settings     *sourcesettings.Service
+	collection   *observation.Worker
+	retention    *observation.RetentionWorker
+	alertHistory observationDatabase
+	demoSeeds    []domain.DemoAlertSeed
 }
 
 func buildObservationRuntime(ctx context.Context, settings config.Config, database databaseRuntime, providers []httpapi.ProductProvider, logger *slog.Logger) (observationRuntime, error) {
@@ -35,9 +42,17 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 	profiles := make(map[domain.SourceID]domain.SourceProfileID, len(providers))
 	byID := make(map[domain.SourceID]observation.LiveProvider, len(providers))
 	defaults := make([]domain.SourceConfiguration, 0, len(providers))
+	seeds := make([]domain.DemoAlertSeed, 0, 1)
 	at := time.Now().UTC().Truncate(time.Microsecond)
 	for _, provider := range providers {
 		source := provider.Source()
+		if fixture, ok := provider.(*demo.Provider); ok {
+			seed, err := buildDemoAlertSeed(ctx, fixture)
+			if err != nil {
+				return observationRuntime{}, errObservationStart
+			}
+			seeds = append(seeds, seed)
+		}
 		profile := profileFor(source.Provider)
 		profiles[source.ID] = profile
 		byID[source.ID] = provider
@@ -52,11 +67,11 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 	}
 	resolver := observation.ProviderResolverFunc(func(ctx context.Context, configuration domain.SourceConfiguration) (observation.LiveProvider, error) {
 		if ctx == nil || ctx.Err() != nil || !configuration.Enabled || profiles[configuration.Source.ID] != configuration.ProfileID {
-			return nil, observation.ErrUnavailable
+			return nil, observation.ErrProfileUnavailable
 		}
 		provider := byID[configuration.Source.ID]
 		if provider == nil || provider.Source().Provider != configuration.Source.Provider || provider.Source().Synthetic != configuration.Source.Synthetic {
-			return nil, observation.ErrUnavailable
+			return nil, observation.ErrProfileUnavailable
 		}
 		return provider, nil
 	})
@@ -77,14 +92,7 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 		if err != nil {
 			return observationRuntime{}, errObservationStart
 		}
-		var productProvider httpapi.ProductProvider = provider
-		if fixture, ok := byID[configuration.Source.ID].(interface{ Alerts() []domain.Alert }); ok && configuration.Source.Provider == domain.ProviderDemo {
-			productProvider, err = newDemoAlertProvider(provider, fixture.Alerts())
-			if err != nil {
-				return observationRuntime{}, errObservationStart
-			}
-		}
-		cached = append(cached, productProvider)
+		cached = append(cached, provider)
 	}
 	manager, err := sourcesettings.New(repository, profiles, time.Now)
 	if err != nil {
@@ -105,7 +113,7 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 	if err != nil {
 		return observationRuntime{}, errObservationStart
 	}
-	return observationRuntime{providers: cached, settings: manager, collection: collection, retention: retention}, nil
+	return observationRuntime{providers: cached, settings: manager, collection: collection, retention: retention, alertHistory: repository, demoSeeds: seeds}, nil
 }
 
 func profileFor(provider domain.ProviderKind) domain.SourceProfileID {

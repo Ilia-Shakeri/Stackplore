@@ -25,6 +25,8 @@ const required = [
   'docs/configuration.md',
   'docs/observations.md',
   'docs/observations.fa.md',
+  'docs/alerts-notifications.md',
+  'docs/alerts-notifications.fa.md',
   'docs/testing.md',
   'docs/user-guide.md',
   'docs/user-guide.fa.md',

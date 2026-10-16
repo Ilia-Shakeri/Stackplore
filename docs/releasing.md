@@ -5,12 +5,14 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. `0.x` checkpoints
 do not claim production support or publish images merely by tagging source.
 
-Current state: `0.1.0` is the historical verified/tagged baseline. `0.2.0` is the
-verified local development checkpoint for durable observations and source settings;
-the full gate and disposable PostgreSQL/restart/restore proof passed. Tagged CI
-is recorded separately in the evidence plan.
-See [observation boundaries](observations.md). Preserve old proof as historical;
-rerun applicable gates for the changed tree before marking this stage complete.
+Current state: `0.1.0` and `0.2.0` are verified/tagged checkpoints. The `0.3.0`
+development checkpoint is locally verified: covered alert evidence, durable replay
+and isolated outbound lanes. Full local/real PostgreSQL, disposable HTTPS/native
+and Helm lint/render checks passed; exact results live in the evidence plan.
+Commit/tag identities are recorded there only after they exist. The replacement
+repository instructions on 2026-10-16 prohibit push; no new remote result is claimed.
+See [observation boundaries](observations.md) and [alert/delivery boundaries](alerts-notifications.md). Preserve old proof as historical;
+rerun applicable gates when code changes after the recorded verification.
 
 1. Read the [roadmap](roadmap.md), [audit](codebase-audit.md) and current
    [evidence](implementation-plan.md). Preserve unrelated work.
@@ -21,18 +23,16 @@ rerun applicable gates for the changed tree before marking this stage complete.
 5. Inspect the full diff, untracked files and `git diff --check`. Exclude runtime
    data, generated builds, unknown screenshots, local secrets and tool caches.
 6. Commit one reviewed stage using Conventional Commits. Create an annotated
-   `vVERSION` tag at that commit. Push the branch and exact tag without force.
-   The maintainer authorized these actions for the current delivery request.
-7. Inspect CI for the pushed revision. Report failed, pending or unobserved
+   `vVERSION` tag at that commit. Current work stays local under the no-push rule.
+7. If later explicitly authorized to push, inspect CI for that exact revision.
+   Report failed, pending or unobserved
    remote gates honestly. CI definitions are not CI proof.
 
-Example for the 0.2 checkpoint only after all milestone checks and release review:
+Example for the 0.3 checkpoint only after all milestone checks and release review:
 
 ```sh
-git commit -m "feat: persist observations and guard source settings"
-git tag -a v0.2.0 -m "Stackplore 0.2.0 durable observations checkpoint"
-git push origin HEAD
-git push origin v0.2.0
+git commit -m "feat: complete covered alert evidence and durable delivery for 0.3.0"
+git tag -a v0.3.0 -m "Stackplore 0.3.0 alert and delivery checkpoint"
 ```
 
 Use the task's existing branch or a focused `main/` branch. Never force push,
@@ -46,5 +46,5 @@ Compose/Helm/cluster/TLS, backup/restore/upgrade, security/dependency/image scan
 SBOM, signed artifact provenance, checksums, supported-version policy and final
 independent review. Screenshots must come from the running final demo. The
 current workflow validates/builds; registry publication, SBOM/signing and final
-release packaging remain stage 8 work. Do not label the 0.2 development checkpoint
+release packaging remain stage 8 work. Do not label a 0.x development checkpoint
 as a completed 1.0 release.

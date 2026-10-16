@@ -3,12 +3,15 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
 )
 
 type streamRecorder struct {
@@ -16,6 +19,56 @@ type streamRecorder struct {
 	header http.Header
 	status int
 	writes chan []byte
+}
+
+type recoveringHealthProvider struct {
+	*demo.Provider
+	calls int
+}
+
+func (provider *recoveringHealthProvider) GetHealth(ctx context.Context, query domain.HealthQuery) (domain.HealthResult, error) {
+	provider.calls++
+	if provider.calls == 1 {
+		return domain.HealthResult{}, errors.New("health temporarily unavailable")
+	}
+	return provider.Provider.GetHealth(ctx, query)
+}
+
+func TestStreamRecoveryRepublishesUnchangedSnapshot(t *testing.T) {
+	provider := &recoveringHealthProvider{Provider: demo.MustNew()}
+	initial, err := buildStreamSnapshot(context.Background(), streamHealth, provider.Provider)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	events := make(chan string, 4)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		streamProducerWithInterval(streamHealth, provider, initial, time.Millisecond)(ctx, func(event string, data []byte) error {
+			events <- event
+			if event == "health.snapshot.v1" && provider.calls > 0 {
+				cancel()
+			}
+			return nil
+		})
+	}()
+	for _, expected := range []string{"health.snapshot.v1", "stream.reset.v1", "health.snapshot.v1"} {
+		select {
+		case event := <-events:
+			if event != expected {
+				t.Fatal("recovery did not publish new freshness")
+			}
+		case <-time.After(time.Second):
+			t.Fatal("unchanged recovery left stream stale")
+		}
+	}
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("recovery producer did not cancel")
+	}
 }
 
 func newStreamRecorder() *streamRecorder {

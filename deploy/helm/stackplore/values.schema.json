@@ -14,6 +14,7 @@
         "setup",
         "kubernetes",
         "webhook",
+        "matrix",
         "image",
         "persistence"
       ],
@@ -50,6 +51,27 @@
             },
             "urlSecretKey": { "type": "string", "minLength": 1, "maxLength": 253 },
             "signingKeySecretKey": { "type": "string", "minLength": 1, "maxLength": 253 }
+          }
+        },
+        "matrix": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "destinationReferenceId",
+            "originSecretKey",
+            "roomIdSecretKey",
+            "accessTokenSecretKey"
+          ],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "destinationReferenceId": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+            },
+            "originSecretKey": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "roomIdSecretKey": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "accessTokenSecretKey": { "type": "string", "minLength": 1, "maxLength": 253 }
           }
         },
         "image": {

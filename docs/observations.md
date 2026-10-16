@@ -1,6 +1,7 @@
 # Durable observations and source settings
 
-This describes the 0.2 development checkpoint. [فارسی](observations.fa.md),
+This describes observations in the locally verified 0.3.0 development checkpoint, building on the tagged
+0.2.0 checkpoint. [فارسی](observations.fa.md),
 [architecture](architecture.md), [configuration](configuration.md) and
 [current evidence](implementation-plan.md) cover the surrounding boundaries.
 
@@ -32,8 +33,10 @@ unseen resources.
 Inventory, detail, topology, health, replicas, metrics, history and events use
 PostgreSQL read ports. A browser read or SSE poll does not recollect the estate.
 Logs remain bounded live provider reads and are never stored by this worker.
-The existing demo alarm is still an explicitly static compatibility fixture;
-durable demo alert seeding and alert streams are the next alert stage.
+The demo alert is seeded into durable rule/episode/transition/notification state
+after an enabled administrator and resource capture are present. All alert reads
+and replay use PostgreSQL; fixture startup preserves acknowledgement and rule
+deletion. See [alert evidence and delivery](alerts-notifications.md).
 PostgreSQL contains normalized facts and safe profile references, not raw
 provider payloads, Secret values, mounted credentials or log bodies.
 
@@ -44,6 +47,13 @@ Each optional port retains its own status and clock. Collection in progress and
 interrupted batched writes must not appear as a complete fresh estate. The demo
 keeps its fixture observation timestamps; a new polling attempt does not invent
 new synthetic evidence.
+
+Raw collection outcomes are stored separately and bound to the current source
+configuration version. Alert evidence does not equate cached stale inventory
+with provider connection failure. Re-enabling a source requires a collection
+under the new version; an evaluation claimed under the old source version cannot
+commit after the change. Missing operator profiles produce explicit unknown
+evidence rather than extending a previous success.
 
 Current metric status is conservative across the source when resource support
 or availability is mixed. Denied sets block that port; mixed support/outage can
@@ -102,6 +112,12 @@ work; there is no automatic audit expiry or browser retention override. Monitor
 database growth and preserve PostgreSQL-native verified backups. A backlog can
 outgrow the bounded cleanup rate and needs operator attention; these caps are
 not a production capacity claim.
+
+A separate bounded alert-history job retains the newest replay position and raw
+collection outcome per source and the newest replica fact per resource. Its
+seven-day eligibility, prune watermark and limits are described in
+[alert history retention](alerts-notifications.md). It does not expire audit,
+alert episodes or transitions.
 
 ## Verification limits
 

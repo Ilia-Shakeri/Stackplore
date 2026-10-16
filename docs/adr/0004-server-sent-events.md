@@ -1,5 +1,8 @@
 # ADR-0004: Use Server-Sent Events for Live Browser Streams
 
+Alert replay scope is refined by [ADR-0012](0012-durable-alert-change-replay.md).
+Other observation feeds retain this record's transient replay ring.
+
 - Status: Accepted
 - Date: 2026-07-28
 - Owners: Project maintainers

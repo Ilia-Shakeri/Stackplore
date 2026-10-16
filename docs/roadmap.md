@@ -7,21 +7,26 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-13): stage 1 is the verified tagged `0.1.0` baseline.
-Stage 2 core code and documents form the locally verified `0.2.0` checkpoint.
-Full local, real PostgreSQL, restart and disposable restore checks passed.
-Tagged CI and live target gates are separate evidence. [Observations](observations.md)
-([فارسی](observations.fa.md)) describe the current stage 2 boundaries.
+Current status (2026-10-16): stages 1 and 2 are the verified tagged `0.1.0` and
+`0.2.0` checkpoints. Their full local, real PostgreSQL, restart, disposable restore
+and exact tagged CI results are recorded separately. Stage 3 is the locally verified
+`0.3.0` development checkpoint. Its full local gate with real PostgreSQL,
+disposable native restart/restore and HTTPS receiver checks, and Helm lint/render
+passed; exact results are in the evidence plan.
+[Observations](observations.md) ([فارسی](observations.fa.md)) and
+[alerts and delivery](alerts-notifications.md) describe the implemented boundaries.
+Live target checks remain distinct; stages 4 through 9 remain open.
 
 ## Version and delivery rules
 
 Each completed stage receives one version in the root and workspace manifests,
 HTTP contract metadata, chart metadata, and changelog. A release check rejects
 drift. Commit reviewed source, tests, generated transport types, and documents;
-create the matching annotated `vVERSION` tag; push the commit and tag without
-force. Keep existing contributor work and secrets out of accidental edits.
-The maintainer authorized commits, tags, and pushes for this delivery on
-2026-10-12. No 1.0 tag is made before all final evidence exists.
+create the matching annotated `vVERSION` tag. Keep existing contributor work and
+secrets out of accidental edits. The replacement repository instructions on
+2026-10-16 prohibit push and supersede the earlier push authorization; current
+commits and tags stay local. No new remote CI result follows from local work.
+No 1.0 tag is made before all final evidence exists.
 
 Prerelease stages are development checkpoints, with limitations stated in the
 changelog and README. No production support promise follows from a 0.x tag.
@@ -73,22 +78,27 @@ until their owning stage proves them.
 
 ## Stage 3 — Correct alert evidence and live delivery — 0.3.0
 
-Status: open. Existing predicate implementations do not prove correct windows,
-restart rate semantics or connection/event evidence.
+Status: complete locally verified development checkpoint. Full local/real
+PostgreSQL, disposable native restart/restore, HTTPS receiver and Helm lint/render
+proof is recorded in the active evidence plan. Current instructions prohibit
+push; no new remote CI result is claimed. Stages 4–9 remain open.
 
-Honor alert windows and restart rate semantics; connection failures must produce
-connection-loss evidence. Search the whole bounded event window. Stream durable
-alert state rather than provider fixture alerts. Complete replay/reset refetch,
-signed webhook attempts, notification setting policy, and receiver verification.
-Add the required Matrix adapter through the same outbound destination, secret,
-size, timeout, retry and audit controls, with separate disposable receiver proof.
-Keep deployment-owned notification targets until an audited safe mutation flow
-has an accepted contract. Do not let a UI overwrite hidden operator secrets.
+Delivered covered alert windows and observed restart increments per window,
+raw connection-loss evidence and the whole bounded scoped event window. Alert
+streams read durable state with replay/reset refetch. Webhook and Matrix lanes
+share outbound destination, secret, size, timeout, retry and audit controls,
+with separate disposable receiver proof. Targets remain deployment-owned until
+an audited safe mutation flow has an accepted contract; the UI cannot overwrite
+hidden operator secrets.
 
-Exit: episode re-fire, unavailable evidence, time window, state transition,
+Passed exit checks: episode re-fire, unavailable evidence, time window, state transition,
 acknowledgement stream, slow-client/replay/reset tests; real PostgreSQL worker
 leases and recovery; disposable HTTPS receiver with signature/idempotency,
 redirect/SSRF/timeout and uncertain outcome checks.
+
+Implemented semantics and explicit limits are in [alerts and notifications](alerts-notifications.md).
+Remaining browser/proxy/live operator receiver and provider fidelity checks stay
+in their later target stages; disposable HTTPS is not an operator production claim.
 
 ## Stage 4 — Complete exploration journeys — 0.4.0
 

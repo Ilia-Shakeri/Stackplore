@@ -71,6 +71,7 @@ jobs:
         run: |
           helm template verify deploy/helm/stackplore >/dev/null
           helm template verify deploy/helm/stackplore --set api.setup.enabled=true --set api.kubernetes.enabled=true --set ingress.enabled=true >/dev/null
+          helm template verify deploy/helm/stackplore --set api.webhook.enabled=true --set api.matrix.enabled=true >/dev/null
           helm template verify deploy/helm/stackplore --set podAnnotations.test=verify >/dev/null
       - name: Build API image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6

@@ -33,6 +33,7 @@ changing the decision.
 | [ADR-0009](0009-feature-owned-localization-runtime.md) | Accepted | Use feature-owned catalogs and one localization runtime |
 | [ADR-0010](0010-versioned-contract-and-derived-client.md) | Accepted | Version the HTTP contract and derive the browser client |
 | [ADR-0011](0011-postgresql-primary-persistence.md) | Accepted | Use PostgreSQL as the primary persistence system |
+| [ADR-0012](0012-durable-alert-change-replay.md) | Accepted | Replay committed source-scoped alert changes across restarts |
 
 ## Adding a record
 

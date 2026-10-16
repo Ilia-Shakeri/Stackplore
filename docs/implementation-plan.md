@@ -1,12 +1,14 @@
 # Stackplore active implementation evidence
 
-Review dates: 2026-10-12–13. Target: 1.0.0. Current checkpoint: 0.2.0,
-stage 2 durable observation checkpoint. Stage 1 is verified, committed and tagged.
-Stage 2 core passed the final local/PostgreSQL/native gates recorded below.
-Tagged CI and target deployment evidence remain separate.
+Review dates: 2026-10-12–16. Target: 1.0.0. Current checkpoint: 0.3.0,
+stage 3 alert evidence and delivery, locally verified. Stages 1–2 are verified,
+committed and tagged with separate recorded CI results. Current stage 3 local
+proof follows the historical stage 2 section. No new remote outcome is claimed.
 [Roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) defines delivery order and exit gates.
 [Audit](codebase-audit.md) records defects/coverage. [Historical evidence](history/implementation-plan-2026-08.md) preserves earlier timing and is not current proof.
-The maintainer authorized implementation, versions, commits, tags and pushes in this request.
+Implementation, versions, commits and tags remain authorized. Replacement
+repository instructions on 2026-10-16 prohibit push, superseding earlier push
+authorization. Stage 3 remains local; target deployment evidence is separate.
 
 ## Review entry and boundaries
 
@@ -21,12 +23,12 @@ development database history was not changed; see [upgrade constraints](operatio
 
 ## Correction loop
 
-| Pass | Scoped score | Remaining baseline problems | Correction |
-| --- | --- | --- | --- |
-| Entry | 5/10 | Auth/ownership/outbox races, log leaks, invalid success replies, source races, first boot and contradictory docs | Whole-code review and ordered roadmap |
-| 1 | 7/10 | Key lifetime race, restore ownership/scope/durability, chart YAML/mount/forwarded scheme and false metric states | Fixes plus real SQL/HTTP/provider/frontend regressions |
-| 2 | 8/10 | New version check import/lint, web test formatting, incomplete setup quick start and unchecked final gates | Fix scripts/docs/format and rerun relevant gates |
-| Independent scope review | 9/10 | No known severe defect in delivered stage-1 fixes | Backend/frontend/PostgreSQL review; final gate and release diff required before completion |
+| Pass                     | Scoped score | Remaining baseline problems                                                                                      | Correction                                                                                 |
+| ------------------------ | ------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Entry                    | 5/10         | Auth/ownership/outbox races, log leaks, invalid success replies, source races, first boot and contradictory docs | Whole-code review and ordered roadmap                                                      |
+| 1                        | 7/10         | Key lifetime race, restore ownership/scope/durability, chart YAML/mount/forwarded scheme and false metric states | Fixes plus real SQL/HTTP/provider/frontend regressions                                     |
+| 2                        | 8/10         | New version check import/lint, web test formatting, incomplete setup quick start and unchecked final gates       | Fix scripts/docs/format and rerun relevant gates                                           |
+| Independent scope review | 9/10         | No known severe defect in delivered stage-1 fixes                                                                | Backend/frontend/PostgreSQL review; final gate and release diff required before completion |
 
 These historical scores judge stage-1 infrastructure and corrected code, not
 measured coverage or whole-product completion. At that baseline, stages 2–9 and
@@ -68,21 +70,21 @@ The test URL contains no password and names only a disposable test database. Rem
 
 ## Historical 0.1 checks
 
-| Command/check | Result |
-| --- | --- |
-| `npm.cmd run bootstrap` | Passed pinned tools/frozen lock |
-| Focused HTTP/provider/notification Go suite | Passed; real PostgreSQL HTTP setup/login/session/grant/user/logout and protected-data scan ran |
-| `go -C apps/api test ./...` with real URL | Passed after legacy removal; latest ledger/maintenance regressions also passed |
-| PostgreSQL parity/concurrency |18 auth/product contracts plus ownership, query deadlines, migration rollback/unknown/changed history, outbox commit order and protected retention passed |
-| Web tests/types/lint |160 tests passed, types/lint passed, locale parity 345 |
-| `check:contracts` |181 bounded schemas and generated output parity passed |
-| `check:docs`, `check:version` | Inventory/217 local links and consistent 0.1.0 metadata passed after final document edits |
-| Helm lint/default/setup+cluster+ingress/annotation renders | Actual Helm 3.17.3 passed; no pod/cluster claim |
-| Native backup/archive-list/empty-target restore | Passed17.11; ledger6, users1, sessions0, preauth0, generation1 checked |
-| Restored runtime | Ready200, old session401, fresh admin login/source/audit reads passed |
-| Own ownership-session termination | Runtime stopped with failure within monitor bound; latest marker `NATIVE_BACKUP_RESTORE_SESSION_REVOCATION_AND_OWNERSHIP_STOP_PASS` |
-| Final `npm.cmd run verify` | Passed exit0 with real PostgreSQL URL: all Go packages,36 client tests,160 web tests,345 locale messages,181 schemas, lint/types/builds |
-| Remote workflow/race/images | Passed for tagged implementation `72f8e466cbf81d5e00c541ce09e60d5e886a9e81`; links below |
+| Command/check                                              | Result                                                                                                                                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd run bootstrap`                                    | Passed pinned tools/frozen lock                                                                                                                           |
+| Focused HTTP/provider/notification Go suite                | Passed; real PostgreSQL HTTP setup/login/session/grant/user/logout and protected-data scan ran                                                            |
+| `go -C apps/api test ./...` with real URL                  | Passed after legacy removal; latest ledger/maintenance regressions also passed                                                                            |
+| PostgreSQL parity/concurrency                              | 18 auth/product contracts plus ownership, query deadlines, migration rollback/unknown/changed history, outbox commit order and protected retention passed |
+| Web tests/types/lint                                       | 160 tests passed, types/lint passed, locale parity 345                                                                                                    |
+| `check:contracts`                                          | 181 bounded schemas and generated output parity passed                                                                                                    |
+| `check:docs`, `check:version`                              | Inventory/217 local links and consistent 0.1.0 metadata passed after final document edits                                                                 |
+| Helm lint/default/setup+cluster+ingress/annotation renders | Actual Helm 3.17.3 passed; no pod/cluster claim                                                                                                           |
+| Native backup/archive-list/empty-target restore            | Passed17.11; ledger6, users1, sessions0, preauth0, generation1 checked                                                                                    |
+| Restored runtime                                           | Ready200, old session401, fresh admin login/source/audit reads passed                                                                                     |
+| Own ownership-session termination                          | Runtime stopped with failure within monitor bound; latest marker `NATIVE_BACKUP_RESTORE_SESSION_REVOCATION_AND_OWNERSHIP_STOP_PASS`                       |
+| Final `npm.cmd run verify`                                 | Passed exit0 with real PostgreSQL URL: all Go packages,36 client tests,160 web tests,345 locale messages,181 schemas, lint/types/builds                   |
+| Remote workflow/race/images                                | Passed for tagged implementation `72f8e466cbf81d5e00c541ce09e60d5e886a9e81`; links below                                                                  |
 
 Remote evidence for the immutable 0.1.0 implementation revision:
 
@@ -131,12 +133,12 @@ profiles and restricted production Docker remain stage 5, with their live proof
 separate. The static demo alarm is preserved through a narrowly validated
 compatibility wrapper until the durable alert stage.
 
-| Correction pass | Scoped score | Remaining issue | Applied correction |
-| --- | --- | --- | --- |
-| Initial implementation | 7/10 | Missing runtime job wiring, incomplete source UI/contract and safe mutation proof | Composition lifecycle, closed routes/types, bilingual UI, exact transaction tests |
-| First self review | 8/10 | Mutable cursor anchors, denied/stale cache truth, retention starvation/current deletion, unfinished capture truth | Immutable signed sort values, source/port status overlays, fair quotas/latest protection, partial in-progress status |
-| Independent review | 8/10 | Old authorization timestamp, multi-read snapshot race, cross-source event IDs, demo metadata/alarm regression | Decode then prepare, database clock after auth lock, coherent bounded SQL read snapshot, source/revision IDs and explicit fixture compatibility |
-| Final scope review | 9/10 | No known severe defect within the delivered checkpoint; broader 1.0 and target gates remain open | Independent backend/SQL/frontend/docs review, complete local gate and exact-tree native drill |
+| Correction pass        | Scoped score | Remaining issue                                                                                                   | Applied correction                                                                                                                              |
+| ---------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial implementation | 7/10         | Missing runtime job wiring, incomplete source UI/contract and safe mutation proof                                 | Composition lifecycle, closed routes/types, bilingual UI, exact transaction tests                                                               |
+| First self review      | 8/10         | Mutable cursor anchors, denied/stale cache truth, retention starvation/current deletion, unfinished capture truth | Immutable signed sort values, source/port status overlays, fair quotas/latest protection, partial in-progress status                            |
+| Independent review     | 8/10         | Old authorization timestamp, multi-read snapshot race, cross-source event IDs, demo metadata/alarm regression     | Decode then prepare, database clock after auth lock, coherent bounded SQL read snapshot, source/revision IDs and explicit fixture compatibility |
+| Final scope review     | 9/10         | No known severe defect within the delivered checkpoint; broader 1.0 and target gates remain open                  | Independent backend/SQL/frontend/docs review, complete local gate and exact-tree native drill                                                   |
 
 These scores apply only to the delivered checkpoint. Whole 1.0 completion,
 accepted target architecture alignment and live deployment evidence are still
@@ -170,19 +172,19 @@ commands and final outcomes are recorded below after the completed gate.
 
 ## Final 0.2 local evidence
 
-| Exact command/check | Observed result |
-| --- | --- |
-| `npm.cmd run bootstrap` | Passed pinned tools and frozen lock; four workspace manifests agree at 0.2.0 |
-| `npm.cmd run verify` with the same disposable real PostgreSQL URL above | Exit 0: format/docs/version/locales/contracts/lint/types/all Go tests/client/web tests/API and web builds |
-| PostgreSQL within the full gate | Passed 46.013s; no environment-gated SQL skip in this run |
-| Client/web | 36 client tests and 206 web tests passed; 391 locale keys matched |
-| Contract output | 186 bounded schemas and regenerated TypeScript output matched |
-| SQL focused upgrade/capture/read/retention suite | 21 new test functions; full package 41.759s, final focused snapshot/history/progress checks 4.066s |
-| `go -C apps/api test ./internal/postgres -run TestObservationHotPathQueryPlansOnRealPostgreSQL -count=1 -v` | Passed; five plans reviewed, final log 3.270s. Exact seed: 2,103 resources, 2,003 snapshots, 21,003 metric samples, 10,003 events and 10,000 audit rows |
-| Helm 3.17.3 `lint` and `template` with `api.setup.enabled=true`, `api.kubernetes.enabled=true`, `ingress.enabled=true` | Passed; actual cluster binding appeared. No cluster-install claim |
-| Latest compiled API/storage native drill on new whole disposable databases | Passed `STAGE2_CAPTURE_TOGGLE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS` |
-| Native invariants | Ledger 8, users 1, resources 6, metrics 54, disabled source/version 2 retained; sessions/preauth 0 and restore generation 1 |
-| Actual HTTP/lifecycle drill | First persisted capture/fixture metadata, exact authenticated toggle, replay 409, stale reads, process restart, native backup/list/restore, old-session 401, fresh login/source/audit reads and terminal ownership loss passed |
+| Exact command/check                                                                                                    | Observed result                                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm.cmd run bootstrap`                                                                                                | Passed pinned tools and frozen lock; four workspace manifests agree at 0.2.0                                                                                                                                                   |
+| `npm.cmd run verify` with the same disposable real PostgreSQL URL above                                                | Exit 0: format/docs/version/locales/contracts/lint/types/all Go tests/client/web tests/API and web builds                                                                                                                      |
+| PostgreSQL within the full gate                                                                                        | Passed 46.013s; no environment-gated SQL skip in this run                                                                                                                                                                      |
+| Client/web                                                                                                             | 36 client tests and 206 web tests passed; 391 locale keys matched                                                                                                                                                              |
+| Contract output                                                                                                        | 186 bounded schemas and regenerated TypeScript output matched                                                                                                                                                                  |
+| SQL focused upgrade/capture/read/retention suite                                                                       | 21 new test functions; full package 41.759s, final focused snapshot/history/progress checks 4.066s                                                                                                                             |
+| `go -C apps/api test ./internal/postgres -run TestObservationHotPathQueryPlansOnRealPostgreSQL -count=1 -v`            | Passed; five plans reviewed, final log 3.270s. Exact seed: 2,103 resources, 2,003 snapshots, 21,003 metric samples, 10,003 events and 10,000 audit rows                                                                        |
+| Helm 3.17.3 `lint` and `template` with `api.setup.enabled=true`, `api.kubernetes.enabled=true`, `ingress.enabled=true` | Passed; actual cluster binding appeared. No cluster-install claim                                                                                                                                                              |
+| Latest compiled API/storage native drill on new whole disposable databases                                             | Passed `STAGE2_CAPTURE_TOGGLE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS`                                                                                                                                                    |
+| Native invariants                                                                                                      | Ledger 8, users 1, resources 6, metrics 54, disabled source/version 2 retained; sessions/preauth 0 and restore generation 1                                                                                                    |
+| Actual HTTP/lifecycle drill                                                                                            | First persisted capture/fixture metadata, exact authenticated toggle, replay 409, stale reads, process restart, native backup/list/restore, old-session 401, fresh login/source/audit reads and terminal ownership loss passed |
 
 The final native drill used PostgreSQL/native tools 17.11 and fresh private
 test databases `stackplore_stage2_native_d` and `stackplore_stage2_restore_d`
@@ -224,3 +226,80 @@ runtime behavior and does not rewrite the implementation tag. The unknown
 dashboard image remains unstaged; private test cluster/data/archive artifacts
 remain ignored. The disposable PostgreSQL process was stopped after proof;
 the system PostgreSQL service was not changed.
+
+## Stage 3 — 0.3.0 alert evidence and delivery
+
+Date: 2026-10-16. Scope includes covered alert evaluation, fresh claim fencing,
+durable source-scoped replay, idempotent demo seed, webhook/Matrix lanes,
+secret-free settings/test transport, bilingual interface and operator documents.
+The first eight released migrations remain byte-identical; new migrations 9–10
+are canonical LF before final native/SQL verification. Existing unknown
+`artifacts/stackplore-dashboard-example.png` remains outside the change.
+
+### Correction loop
+
+| Pass                              | Scoped score | Remaining issue                                                                                                          | Correction                                                                                                                                      |
+| --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial implementation            | 7/10         | Latest-only windows, incomplete event scope, cache/outage confusion, transient replay and missing Matrix lane            | Covered raw evidence ports, durable changes, shared safe outbound and separate lanes                                                            |
+| Review                            | 8/10         | Claims age in serial queues, configuration changes reuse evidence, backdated middle-prune gap, stale lease/result writes | Fresh one-at-a-time claims, configuration/version fences, durable prune watermark and atomic episode closure                                    |
+| Integration review                | 8/10         | Unchecked stream metadata/query, reset freshness, late interface writes and open-stream shutdown                         | Closed typed metadata/query, reset/change refetch, recovered snapshot publication, interface generation fences and stream shutdown cancellation |
+| Final independent review and gate | 9/10         | No known severe defect in the delivered stage; target and later-stage limits stay open                                   | All local gates, real PostgreSQL, disposable HTTPS, final native C and reviewed migration bytes passed                                          |
+
+Scores judge this delivered stage, not whole-project completion, measured test
+coverage or production capacity. Stage 3 is a completed local development
+checkpoint. Stages 4–9 remain open; no whole-product or target-readiness claim is made.
+
+### Executed focused proof
+
+| Command/check                                                                              | Result                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd run bootstrap`                                                                    | Passed pinned tools and frozen lock at 0.3.0                                                                                                                                                                                                                                                                    |
+| `go -C apps/api test -count=1 ./internal/alerting ./internal/observation` and scoped `vet` | Passed 1.227s / 1.031s; raw freshness, coverage, resets, replicas/events, pending continuity and fresh claims                                                                                                                                                                                                   |
+| `go -C apps/api test -count=1 ./internal/notification ./internal/config` and scoped `vet`  | Passed 5.308s / 0.706s; DNS/IP/redirect/TLS/size/timeout policy and closed Matrix settings                                                                                                                                                                                                                      |
+| Real PostgreSQL focused alert/collection suite                                             | Passed 24.625s: eight-ledger upgrade, configuration fences, seed/ack/restart/delete, ordered replay, middle-prune reset, edit/delete lease invalidation, audit rollback and concurrent acknowledgement                                                                                                          |
+| Real PostgreSQL cursor follow-up                                                           | Passed 5.613s: a nonzero cursor must be a committed row in the same source; foreign-source and rolled-back sequence gaps reset without hiding a later valid change                                                                                                                                              |
+| Real PostgreSQL delivery suite                                                             | Seven focused tests passed 11.551s: upgrade from 8 and 9, legacy synthetic cancellation, adapter/reference isolation, stale ownership, lease expiry/recovery, retry exhaustion and Matrix test intent/result audits                                                                                             |
+| Persisted disposable HTTPS receiver                                                        | Passed actual TLS server with injected checked-address/dial seam: webhook signature/idempotency and canonical retry bytes; Matrix PUT transaction ID and plain `m.notice` retry after repository reopen. No public endpoint or complete homeserver claim                                                        |
+| `npm.cmd run check:contracts`                                                              | Final gate passed 192 bounded schemas, contract validation and generated parity                                                                                                                                                                                                                                 |
+| Web/interface focused run                                                                  | 208 tests passed before final response-race regressions; final gate reruns the final tree                                                                                                                                                                                                                       |
+| Native API/storage drill B                                                                 | Passed seed -> firing -> acknowledgement -> SSE change -> process restart -> replay/ack preservation -> native backup/list/empty-target restore -> old session401/new login -> ownership-loss failure stop. Initial helper A had a mistyped fixture filter; corrected on fresh B, no application failure hidden |
+| Restored native invariants                                                                 | Ledger10, users1, resources6, metrics54, demo seed1, acknowledged alert1, outbound deliveries0, disabled source version2, sessions0/preauth0 and restore generation1                                                                                                                                            |
+| Helm 3.17.3 lint and configured render                                                     | Passed actual local strict lint/render with setup, Kubernetes read profile, ingress, webhook and Matrix. Matrix token references the existing Secret; no cluster install claim                                                                                                                                  |
+| Final `npm.cmd run verify` with real PostgreSQL                                            | Passed exit0 on frozen runtime tree: PostgreSQL package68.899s, all Go packages,36 client tests,211 web tests,394 locale messages,192 bounded schemas, format/lint/types and both builds. Log `.tmp/stage3-verify.log`                                                                                          |
+| Final native drill after last runtime correction                                           | Fresh C passed on final compiled API/storage: `STAGE3_SEED_ACK_SSE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS`; source `stackplore_stage3_native_c`, restore `stackplore_stage3_restore_c`, private key directory `.tools/stage3-native-key-c`, ignored archive `.tools/stage3-review/native-backup-c.dump`   |
+| New remote CI/race/images/Compose/cluster/browser/live operator receiver                   | Not run for 0.3.0; push prohibited. Earlier 0.2 CI does not prove changed code                                                                                                                                                                                                                                  |
+
+Native helpers and private data remain under ignored `.tools/stage3-review` and
+repo-local test directories. Local proof logs stay in ignored `.tmp`; no credential,
+cookie, full destination, private key or notification response body is copied
+into committed evidence. Windows has no local C race toolchain or Docker/Compose
+runtime; no new race/image/startup claim is made.
+
+After all proof finished, the separate repo-local PostgreSQL process shut down
+cleanly; the system service was untouched. Version metadata, documents and
+reviewed release paths were rechecked after the final evidence update. The
+checkpoint is committed and tagged locally as `v0.3.0`; current instructions
+prohibit push, so no new remote revision or workflow outcome is claimed.
+
+### Disposable query plans
+
+`go -C apps/api test -count=1 ./internal/postgres -run TestAlertHistoryHotPathQueryPlansOnRealPostgreSQL -v`
+captured `EXPLAIN (ANALYZE, BUFFERS)` in the scoped test (13.928s). The corpus
+has one source, 10,002 changes, 10,001 collection outcomes, 10,001 replica facts
+and 10,003 metrics. Warm SQL-only rows/execution milliseconds:
+
+| Query                  | Rows  | ms    |
+| ---------------------- | ----- | ----- |
+| Ordered replay         | 100   | 0.122 |
+| Collection window      | 1,361 | 1.553 |
+| Current collection     | 1     | 0.040 |
+| Replica window         | 1,362 | 1.597 |
+| Metric window          | 1,362 | 2.615 |
+| Replay prune quota     | 33    | 0.295 |
+| Collection prune quota | 33    | 0.452 |
+
+This one-source corpus used primary-key/retention indexes; it did not demonstrate
+selection of the added range indexes. These numbers are not end-to-end latency,
+target scale, multi-source planner evidence or a service-level objective. The
+source, caps, predicates and aggregate deadlines are part of the reviewed query
+boundary. Broader measured capacity remains later-stage work.

@@ -28,8 +28,7 @@ func Evaluate(rule domain.AlertRule, input EvaluationInput) (ConditionResult, er
 	matched := false
 	switch rule.Kind {
 	case domain.AlertRuleResourceUnavailable, domain.AlertRuleProviderConnectionLost:
-		matched = *input.Availability == domain.AvailabilityUnavailable ||
-			*input.Availability == domain.AvailabilityStale
+		matched = *input.Availability == domain.AvailabilityUnavailable
 	case domain.AlertRuleResourceUnhealthy:
 		matched = *input.Health == domain.HealthUnhealthy
 	case domain.AlertRuleCPUThreshold, domain.AlertRuleMemoryThreshold:
@@ -90,16 +89,22 @@ func validateEvaluationInput(rule domain.AlertRule, input EvaluationInput) error
 		if !exact(true, false, false, false) {
 			return fmt.Errorf("availability rule requires only availability evidence")
 		}
+		if *input.Availability != domain.AvailabilityAvailable && *input.Availability != domain.AvailabilityUnavailable {
+			return ErrEvaluationUnavailable
+		}
 	case domain.AlertRuleResourceUnhealthy:
 		if !exact(false, true, false, false) {
 			return fmt.Errorf("health rule requires only health evidence")
+		}
+		if *input.Health == domain.HealthUnknown {
+			return ErrEvaluationUnavailable
 		}
 	case domain.AlertRuleCPUThreshold, domain.AlertRuleMemoryThreshold,
 		domain.AlertRuleRestartThreshold, domain.AlertRuleWorkloadUnavailableReplicas:
 		if !exact(false, false, true, false) {
 			return fmt.Errorf("threshold rule requires only one window value")
 		}
-		if (rule.Kind == domain.AlertRuleRestartThreshold || rule.Kind == domain.AlertRuleWorkloadUnavailableReplicas) &&
+		if rule.Kind == domain.AlertRuleRestartThreshold &&
 			math.Trunc(*input.WindowValue) != *input.WindowValue {
 			return fmt.Errorf("count threshold evidence must be a whole value")
 		}

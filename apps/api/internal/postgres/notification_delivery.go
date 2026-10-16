@@ -25,13 +25,14 @@ const insertWebhookDelivery = `INSERT INTO notification_deliveries (
     id, notification_id, adapter_kind, delivery_purpose, audit_intent_id, destination_reference_id,
     render_revision, canonical_payload_bytes, payload_sha256, state, attempt_count,
     max_attempts, next_attempt_at_us, created_at_us, updated_at_us, row_version
-) VALUES ($1, $2, 'webhook', $3, $4, $5, 1, $6, $7, 'pending', 0, $8, $9, $9, $9, 1)
+) VALUES ($1, $2, $10, $3, $4, $5, 1, $6, $7, 'pending', 0, $8, $9, $9, $9, 1)
 ON CONFLICT (id) DO NOTHING`
 
 const recoverExpiredWebhookLeases = `WITH expired AS (
     SELECT id, attempt_count, max_attempts, updated_at_us
     FROM notification_deliveries
-    WHERE adapter_kind = 'webhook'
+    WHERE adapter_kind = $3
+      AND ($4 = '' OR destination_reference_id = $4)
       AND state = 'in_flight'
       AND lease_expires_at_us <= $1
     ORDER BY lease_expires_at_us, id
@@ -82,7 +83,9 @@ WHERE recovered.state = 'uncertain'
 const claimWebhookDeliveries = `WITH due AS (
     SELECT id
     FROM notification_deliveries
-    WHERE adapter_kind = 'webhook'
+    WHERE adapter_kind = $5
+      AND ($6 = '' OR destination_reference_id = $6)
+      AND EXISTS (SELECT 1 FROM notifications WHERE notifications.id = notification_deliveries.notification_id AND synthetic = 0)
       AND state = 'pending'
       AND next_attempt_at_us <= $1
       AND attempt_count < max_attempts
@@ -110,7 +113,9 @@ FROM claimed
 ORDER BY lease_expires_at_us, id`
 
 var _ notification.DeliveryRepository = (*Store)(nil)
+var _ notification.AdapterDeliveryRepository = (*Store)(nil)
 var _ notification.TestRepository = (*Store)(nil)
+var _ notification.AdapterTestRepository = (*Store)(nil)
 
 type webhookPayload struct {
 	Version        int    `json:"version"`
@@ -132,8 +137,12 @@ func (store *Store) EnqueueWebhookDeliveries(
 	enqueuedAt time.Time,
 	limit int,
 ) (int, error) {
+	return store.EnqueueDeliveries(ctx, notification.DeliveryAdapterWebhook, destinationReferenceID, maximumAttempts, enqueuedAt, limit)
+}
+
+func (store *Store) EnqueueDeliveries(ctx context.Context, adapter notification.DeliveryAdapter, destinationReferenceID string, maximumAttempts int, enqueuedAt time.Time, limit int) (int, error) {
 	if !validDeliveryRepositoryInput(store, ctx, destinationReferenceID, enqueuedAt, limit) ||
-		maximumAttempts < 1 || maximumAttempts > 100 {
+		maximumAttempts < 1 || maximumAttempts > 100 || !adapter.Valid() {
 		return 0, domain.ErrRepositoryInvalidInput
 	}
 	created := 0
@@ -142,16 +151,16 @@ func (store *Store) EnqueueWebhookDeliveries(
 			return mapRepositoryWriteError(ctx, err)
 		}
 		if _, err := transaction.transaction.Exec(ctx, `INSERT INTO notification_delivery_cursors (
-    destination_reference_id, last_notification_sequence, created_at_us, updated_at_us
-) VALUES ($1, 0, $2, $2)
-ON CONFLICT (destination_reference_id) DO NOTHING`, destinationReferenceID, enqueuedAt.UnixMicro()); err != nil {
+    destination_reference_id, last_notification_sequence, created_at_us, updated_at_us, adapter_kind
+) VALUES ($1, 0, $2, $2, $3)
+ON CONFLICT (adapter_kind, destination_reference_id) DO NOTHING`, destinationReferenceID, enqueuedAt.UnixMicro(), string(adapter)); err != nil {
 			return mapRepositoryWriteError(ctx, err)
 		}
 		var lastSequence int64
 		if err := transaction.transaction.QueryRow(ctx, `SELECT last_notification_sequence
 FROM notification_delivery_cursors
-WHERE destination_reference_id = $1
-FOR UPDATE`, destinationReferenceID).Scan(&lastSequence); err != nil {
+WHERE destination_reference_id = $1 AND adapter_kind = $2
+FOR UPDATE`, destinationReferenceID, string(adapter)).Scan(&lastSequence); err != nil {
 			return mapRepositoryReadError(ctx, err)
 		}
 		rows, err := transaction.transaction.Query(ctx, selectUnqueuedWebhookNotifications, lastSequence, limit)
@@ -173,13 +182,16 @@ FOR UPDATE`, destinationReferenceID).Scan(&lastSequence); err != nil {
 		}
 		rows.Close()
 		for _, item := range notifications {
-			payload, deliveryID, digest, err := renderWebhookDelivery(destinationReferenceID, item.Notification)
+			if item.Notification.Synthetic || item.Notification.Kind == notification.TestNotificationKind {
+				continue
+			}
+			payload, deliveryID, digest, err := renderAdapterDelivery(adapter, destinationReferenceID, item.Notification)
 			if err != nil {
 				return domain.ErrRepositoryUnavailable
 			}
 			result, err := transaction.transaction.Exec(
 				ctx, insertWebhookDelivery, deliveryID, string(item.Notification.ID), "alert", nil, destinationReferenceID,
-				payload, digest[:], maximumAttempts, enqueuedAt.UnixMicro(),
+				payload, digest[:], maximumAttempts, enqueuedAt.UnixMicro(), string(adapter),
 			)
 			if err != nil {
 				return mapRepositoryWriteError(ctx, err)
@@ -193,7 +205,7 @@ FOR UPDATE`, destinationReferenceID).Scan(&lastSequence); err != nil {
 			result, err := transaction.transaction.Exec(ctx, `UPDATE notification_delivery_cursors SET
     last_notification_sequence = $1,
     updated_at_us = GREATEST(updated_at_us, $2)
-WHERE destination_reference_id = $3`, lastSequence, enqueuedAt.UnixMicro(), destinationReferenceID)
+WHERE destination_reference_id = $3 AND adapter_kind = $4`, lastSequence, enqueuedAt.UnixMicro(), destinationReferenceID, string(adapter))
 			if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
 				return err
 			}
@@ -207,11 +219,15 @@ WHERE destination_reference_id = $3`, lastSequence, enqueuedAt.UnixMicro(), dest
 }
 
 func (store *Store) CreateWebhookTest(ctx context.Context, command notification.WebhookTestCommand) error {
-	if store == nil || ctx == nil || ctx.Err() != nil || command.Validate() != nil {
+	return store.CreateNotificationTest(ctx, notification.DeliveryAdapterWebhook, command)
+}
+
+func (store *Store) CreateNotificationTest(ctx context.Context, adapter notification.DeliveryAdapter, command notification.WebhookTestCommand) error {
+	if store == nil || ctx == nil || ctx.Err() != nil || command.Validate() != nil || !adapter.Valid() {
 		return domain.ErrRepositoryInvalidInput
 	}
 	item := command.Notification
-	payload, deliveryID, digest, err := renderWebhookDelivery(command.DestinationReferenceID, item)
+	payload, deliveryID, digest, err := renderAdapterDelivery(adapter, command.DestinationReferenceID, item)
 	if err != nil {
 		return domain.ErrRepositoryInvalidInput
 	}
@@ -238,7 +254,7 @@ func (store *Store) CreateWebhookTest(ctx context.Context, command notification.
 		}
 		result, err = transaction.transaction.Exec(ctx, insertWebhookDelivery,
 			deliveryID, string(item.ID), "test", string(audit.ID), command.DestinationReferenceID,
-			payload, digest[:], command.MaximumAttempts, item.CreatedAt.UnixMicro(),
+			payload, digest[:], command.MaximumAttempts, item.CreatedAt.UnixMicro(), string(adapter),
 		)
 		return exactInsertResult(ctx, result.RowsAffected(), err)
 	})
@@ -294,17 +310,28 @@ func (store *Store) ClaimWebhookDeliveries(
 	leaseDuration time.Duration,
 	limit int,
 ) ([]notification.DeliveryTask, error) {
+	return store.claimDeliveries(ctx, notification.DeliveryAdapterWebhook, "", leaseOwner, claimedAt, leaseDuration, limit)
+}
+
+func (store *Store) ClaimDeliveries(ctx context.Context, adapter notification.DeliveryAdapter, reference, leaseOwner string, claimedAt time.Time, leaseDuration time.Duration, limit int) ([]notification.DeliveryTask, error) {
+	if !validDeliveryToken(reference) {
+		return nil, domain.ErrRepositoryInvalidInput
+	}
+	return store.claimDeliveries(ctx, adapter, reference, leaseOwner, claimedAt, leaseDuration, limit)
+}
+
+func (store *Store) claimDeliveries(ctx context.Context, adapter notification.DeliveryAdapter, reference, leaseOwner string, claimedAt time.Time, leaseDuration time.Duration, limit int) ([]notification.DeliveryTask, error) {
 	if !validDeliveryRepositoryInput(store, ctx, leaseOwner, claimedAt, limit) ||
-		leaseDuration < time.Second || leaseDuration > 10*time.Minute || leaseDuration%time.Microsecond != 0 {
+		leaseDuration < time.Second || leaseDuration > 10*time.Minute || leaseDuration%time.Microsecond != 0 || !adapter.Valid() {
 		return nil, domain.ErrRepositoryInvalidInput
 	}
 	tasks := make([]notification.DeliveryTask, 0, limit)
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
-		if _, err := transaction.transaction.Exec(ctx, recoverExpiredWebhookLeases, claimedAt.UnixMicro(), limit); err != nil {
+		if _, err := transaction.transaction.Exec(ctx, recoverExpiredWebhookLeases, claimedAt.UnixMicro(), limit, string(adapter), reference); err != nil {
 			return mapRepositoryWriteError(ctx, err)
 		}
 		rows, err := transaction.transaction.Query(
-			ctx, claimWebhookDeliveries, claimedAt.UnixMicro(), limit, leaseOwner, leaseDuration.Microseconds(),
+			ctx, claimWebhookDeliveries, claimedAt.UnixMicro(), limit, leaseOwner, leaseDuration.Microseconds(), string(adapter), reference,
 		)
 		if err != nil {
 			return mapRepositoryReadError(ctx, err)
@@ -348,20 +375,34 @@ func (store *Store) ClaimWebhookDeliveries(
 }
 
 func (store *Store) CompleteWebhookDelivery(ctx context.Context, completion notification.DeliveryCompletion) error {
-	if !store.available() || ctx == nil || ctx.Err() != nil || completion.Validate() != nil {
+	return store.completeDelivery(ctx, notification.DeliveryAdapterWebhook, "", completion)
+}
+
+func (store *Store) CompleteDelivery(ctx context.Context, adapter notification.DeliveryAdapter, reference string, completion notification.DeliveryCompletion) error {
+	if !validDeliveryToken(reference) {
+		return domain.ErrRepositoryInvalidInput
+	}
+	return store.completeDelivery(ctx, adapter, reference, completion)
+}
+
+func (store *Store) completeDelivery(ctx context.Context, adapter notification.DeliveryAdapter, reference string, completion notification.DeliveryCompletion) error {
+	if !store.available() || ctx == nil || ctx.Err() != nil || completion.Validate() != nil || !adapter.Valid() {
 		return domain.ErrRepositoryInvalidInput
 	}
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
-		var state, owner, purpose string
+		var state, purpose, storedAdapter, storedReference string
+		var owner sql.NullString
+		var leaseExpiresUS sql.NullInt64
 		var auditIntentID sql.NullString
-		var attemptCount int
-		if err := transaction.transaction.QueryRow(ctx, `SELECT state, attempt_count, lease_owner, delivery_purpose, audit_intent_id
+		var attemptCount, maximumAttempts int
+		var claimedAtUS int64
+		if err := transaction.transaction.QueryRow(ctx, `SELECT state, attempt_count, lease_owner, delivery_purpose, audit_intent_id, adapter_kind, destination_reference_id, lease_expires_at_us, max_attempts, updated_at_us
 FROM notification_deliveries
 WHERE id = $1
-FOR UPDATE`, completion.DeliveryID).Scan(&state, &attemptCount, &owner, &purpose, &auditIntentID); err != nil {
+FOR UPDATE`, completion.DeliveryID).Scan(&state, &attemptCount, &owner, &purpose, &auditIntentID, &storedAdapter, &storedReference, &leaseExpiresUS, &maximumAttempts, &claimedAtUS); err != nil {
 			return mapRepositoryReadError(ctx, err)
 		}
-		if state != "in_flight" || attemptCount != completion.AttemptNumber || owner != completion.LeaseOwner {
+		if state != "in_flight" || attemptCount != completion.AttemptNumber || !owner.Valid || owner.String != completion.LeaseOwner || storedAdapter != string(adapter) || reference != "" && storedReference != reference || !leaseExpiresUS.Valid || completion.FinishedAt.UnixMicro() >= leaseExpiresUS.Int64 || completion.FinishedAt.UnixMicro() < claimedAtUS || completion.RetryAt != nil && attemptCount >= maximumAttempts {
 			return domain.ErrRepositoryConflict
 		}
 		result, err := transaction.transaction.Exec(ctx, `UPDATE notification_delivery_attempts SET
@@ -466,6 +507,23 @@ func renderWebhookDelivery(destinationReferenceID string, item domain.Notificati
 	deliveryID := "delivery_" + base64.RawURLEncoding.EncodeToString(idInput[:])
 	payloadDigest := sha256.Sum256(payload)
 	return payload, deliveryID, payloadDigest, nil
+}
+
+func renderAdapterDelivery(adapter notification.DeliveryAdapter, reference string, item domain.Notification) ([]byte, string, [sha256.Size]byte, error) {
+	if !adapter.Valid() || !validDeliveryToken(reference) || item.Validate() != nil || item.Synthetic {
+		return nil, "", [sha256.Size]byte{}, domain.ErrRepositoryInvalidInput
+	}
+	if adapter == notification.DeliveryAdapterWebhook {
+		return renderWebhookDelivery(reference, item)
+	}
+	payload, err := notification.RenderMatrixPayload(item)
+	if err != nil {
+		return nil, "", [sha256.Size]byte{}, domain.ErrRepositoryInvalidInput
+	}
+	idInput := sha256.Sum256([]byte("stackplore-matrix/v1\x00" + reference + "\x00" + string(item.ID)))
+	deliveryID := "delivery_" + base64.RawURLEncoding.EncodeToString(idInput[:])
+	digest := sha256.Sum256(payload)
+	return payload, deliveryID, digest, nil
 }
 
 func validDeliveryRepositoryInput(store *Store, ctx context.Context, token string, at time.Time, limit int) bool {

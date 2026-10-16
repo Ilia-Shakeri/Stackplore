@@ -96,7 +96,7 @@ func TestWebhookSendsStableHeadersAndBoundsRemoteResponse(t *testing.T) {
 		if request.Method != http.MethodPost || string(body) != string(delivery.Payload) ||
 			request.Header.Get("Idempotency-Key") != delivery.ID ||
 			request.Header.Get("X-Stackplore-Signature") != "sha256="+signPayload(key, delivery) {
-			t.Errorf("webhook request = (%s, %q, %#v)", request.Method, body, request.Header)
+			t.Error("webhook fixture method, body, idempotency key, or signature differs")
 		}
 		response.WriteHeader(http.StatusNoContent)
 	}))
@@ -114,7 +114,7 @@ func TestWebhookSendsStableHeadersAndBoundsRemoteResponse(t *testing.T) {
 	sender = senderForTLSServer(t, large, 64)
 	_, err = sender.Send(context.Background(), WebhookTarget{URL: large.URL, SigningKey: key}, delivery)
 	var failure *DeliveryError
-	if !errors.As(err, &failure) || failure.Code != "notification.response_too_large" || failure.Retryable {
+	if !errors.As(err, &failure) || failure.Code != "notification.response_too_large" || !failure.Retryable || !failure.Uncertain {
 		t.Fatalf("large response error = %#v", err)
 	}
 }

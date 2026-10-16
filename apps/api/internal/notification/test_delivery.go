@@ -43,6 +43,25 @@ type TestRepository interface {
 	CreateWebhookTest(context.Context, WebhookTestCommand) error
 }
 
+type AdapterTestRepository interface {
+	CreateNotificationTest(context.Context, DeliveryAdapter, WebhookTestCommand) error
+}
+type scopedTestRepository struct {
+	repository AdapterTestRepository
+	adapter    DeliveryAdapter
+}
+
+func (repository scopedTestRepository) CreateWebhookTest(ctx context.Context, command WebhookTestCommand) error {
+	return repository.repository.CreateNotificationTest(ctx, repository.adapter, command)
+}
+
+func NewAdapterTestService(repository AdapterTestRepository, identifiers TestIdentifierFactory, adapter DeliveryAdapter, reference string, now func() time.Time) (*TestService, error) {
+	if repository == nil || !adapter.Valid() {
+		return nil, ErrDeliveryUnavailable
+	}
+	return NewTestService(scopedTestRepository{repository: repository, adapter: adapter}, identifiers, reference, now)
+}
+
 type TestIdentifierFactory interface {
 	NewNotificationID() (domain.NotificationID, error)
 	NewAuditID() (domain.AuditEntryID, error)

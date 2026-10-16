@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. The tagged 0.1.0 baseline has local PostgreSQL, disposable native backup/restore, local Helm render/lint and passing CI evidence. The 0.2.0 checkpoint adds persisted source settings and observations, bounded collection/retention workers, cached product reads and exact administrator source toggles; its full local gate, real PostgreSQL, restart and disposable native restore checks passed. Tagged CI is recorded separately in the evidence plan. Alert predicate implementations exist, but historical windows, restart semantics and connection/event evidence still need stage 3 fixes. Guarded actions, provider depth, broader settings, live receiver and target-environment proof remain open. A development checkpoint is not a production-ready 1.0 release.
+> **Status:** 1.0 work is active. The 0.1.0 and 0.2.0 tagged checkpoints have recorded local, PostgreSQL, native restore and CI proof. Stage 3 is the locally verified 0.3.0 development checkpoint: covered alert windows, fenced claims, durable alert replay and isolated webhook/Matrix delivery. The full local gate with real PostgreSQL, disposable native restart/restore and HTTPS receiver checks, and Helm lint/render passed; exact evidence is recorded in the plan. Stages 4–9, provider fidelity, guarded actions, broader settings, browser/container/cluster and live operator receiver proof remain open. The current instructions prohibit push, so this stage has no new remote CI claim. A development checkpoint does not complete 1.0.
 
 ## Implemented
 
@@ -17,14 +17,14 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 - Versioned OpenAPI contract, generated browser types, strict runtime response parsing, safe problems, request bounds, rate limits, proxy trust, liveness, readiness, and guarded process metrics
 - Responsive overview, resources, detail, topology, logs, and events in English and Persian RTL
 - Administrator source enable/disable with exact target/version, impact preview, expiring one-use confirmation, purpose-bound recent authentication and atomic audit; profiles and credentials remain operator supplied
-- Implementations for all eight declared alert predicates, administrator rule management, linked in-app notifications, and opt-in SSRF-guarded generic webhook delivery with secret-free status, one-use recent-auth test delivery, stable payloads, leases, retries, and terminal attempt history; historical evidence correctness remains stage 3 work
+- Covered evidence for all eight declared alert predicates, administrator rule management, persistent synthetic demo episodes, durable alert change replay and linked in-app notifications. Opt-in guarded webhook and Matrix lanes have safe status, recent-auth test delivery, stable retry payloads, fenced leases and terminal audit. See [semantics and limits](docs/alerts-notifications.md).
 - Non-root API and web images, a persistent local Compose profile, an external-PostgreSQL cluster chart, and CI definitions for code, PostgreSQL integration, image, Compose, and chart gates
 
 ## Still required for 1.0
 
 - Restricted production Docker access, namespace-scoped Kubernetes and partial-permission fidelity, plus live-provider proof
 - Broader safe profile setup and operator-owned credential-reference rotation; configurable quotas, protected audit cleanup, export and preferences
-- Durable alert streaming, correct historical alert evidence, real receiver proof, and immutable audit coverage for unfinished mutation paths
+- Live operator receiver and proxy/browser proof, plus immutable audit coverage for unfinished mutation paths
 - Explicitly guarded supported operations with authorization, confirmation, idempotency, timeouts, and audit records
 - Live target proof for PostgreSQL backup/restore, Compose, cluster install/upgrade/rollback, browser flows, accessibility, and performance budgets
 

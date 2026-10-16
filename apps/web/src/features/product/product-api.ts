@@ -62,7 +62,10 @@ export interface ProductApi extends SourceSettingsApi {
     version: number,
     input: AlertRuleInput,
   ): Promise<AlertRuleRecord>;
-  testNotification(currentPassword: string): Promise<NotificationTestResponse>;
+  testNotification(
+    currentPassword: string,
+    adapter?: 'generic_webhook' | 'matrix',
+  ): Promise<NotificationTestResponse>;
 }
 
 export interface SessionActionRunner {
@@ -739,7 +742,8 @@ const isNotificationSettings = (value: unknown): value is NotificationSettingsSt
     value.adapter !== 'generic_webhook' ||
     value.configuration_source !== 'operator_environment' ||
     value.delivery_semantics !== 'at_least_once' ||
-    typeof value.enabled !== 'boolean'
+    typeof value.enabled !== 'boolean' ||
+    !isMatrixNotificationSettings(value.matrix)
   )
     return false;
   if (value.enabled) {
@@ -750,12 +754,29 @@ const isNotificationSettings = (value: unknown): value is NotificationSettingsSt
         'destination_reference_id',
         'configuration_source',
         'delivery_semantics',
+        'matrix',
       ]) &&
       typeof value.destination_reference_id === 'string' &&
       tokenPattern.test(value.destination_reference_id)
     );
   }
-  return hasExactKeys(value, ['adapter', 'enabled', 'configuration_source', 'delivery_semantics']);
+  return hasExactKeys(value, [
+    'adapter',
+    'enabled',
+    'configuration_source',
+    'delivery_semantics',
+    'matrix',
+  ]);
+};
+
+const isMatrixNotificationSettings = (value: unknown): boolean => {
+  if (!isRecord(value) || value.adapter !== 'matrix' || typeof value.enabled !== 'boolean')
+    return false;
+  return value.enabled
+    ? hasExactKeys(value, ['adapter', 'enabled', 'destination_reference_id']) &&
+        typeof value.destination_reference_id === 'string' &&
+        tokenPattern.test(value.destination_reference_id)
+    : hasExactKeys(value, ['adapter', 'enabled']);
 };
 
 const isNotificationTestResponse = (value: unknown): value is NotificationTestResponse =>
@@ -852,7 +873,7 @@ export function createProductApi(
       }
       return response.data;
     },
-    async testNotification(currentPassword) {
+    async testNotification(currentPassword, adapter = 'generic_webhook') {
       if (sessionActions?.runRecentAction === undefined) {
         throw new Error('Notification test delivery is unavailable.');
       }
@@ -862,7 +883,10 @@ export function createProductApi(
         async (protection) => {
           const response = await client.request<unknown>({
             method: 'POST',
-            path: '/settings/notifications/test',
+            path:
+              adapter === 'matrix'
+                ? '/settings/notifications/test?adapter=matrix'
+                : '/settings/notifications/test',
             protection,
           });
           if (!isNotificationTestResponse(response.data)) {

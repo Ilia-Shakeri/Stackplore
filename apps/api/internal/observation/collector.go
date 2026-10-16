@@ -20,7 +20,7 @@ func (worker *Worker) collect(ctx context.Context, configuration domain.SourceCo
 	ref := domain.ProviderRef{Provider: configuration.Source.Provider, SourceID: configuration.Source.ID}
 	live, err := worker.resolver.ResolveProvider(ctx, configuration)
 	if err != nil || live == nil || live.Source().ID != ref.SourceID || live.Source().Provider != ref.Provider {
-		return collection{}, ErrUnavailable
+		return collection{}, errors.Join(ErrUnavailable, err)
 	}
 	capabilities, err := live.GetCapabilities(ctx, ref)
 	if err != nil || capabilities.ValidateFor(ref) != nil {
@@ -428,6 +428,9 @@ func unavailableCapabilities(source domain.ProviderRef, status domain.Observatio
 
 func errorStatus(err error, at time.Time) domain.ObservationStatus {
 	state, reason := domain.AvailabilityUnavailable, domain.ReasonCode("observation.provider_unavailable")
+	if errors.Is(err, ErrProfileUnavailable) {
+		return unavailableStatus(domain.AvailabilityUnavailable, at, "observation.profile_unavailable")
+	}
 	var providerError *domain.ProviderError
 	if errors.As(err, &providerError) {
 		switch providerError.Code {

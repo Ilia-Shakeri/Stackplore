@@ -22,6 +22,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/database"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/notification"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
@@ -203,11 +204,21 @@ func runWithStorage(
 	if deliveryTargets != nil {
 		defer deliveryTargets.Close()
 	}
+	matrixWorker, matrixTargets, err := buildMatrixDeliveryWorker(settings, database, logger)
+	if err != nil {
+		_ = listener.Close()
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errDeliveryStart)
+	}
+	if matrixTargets != nil {
+		defer matrixTargets.Close()
+	}
 
 	monitorContext, stopMonitor := context.WithCancel(serviceContext)
 	monitorDone := make(chan struct{})
 	alertDone := make(chan struct{})
 	deliveryDone := make(chan struct{})
+	matrixDone := make(chan struct{})
 	observationDone := make(chan struct{})
 	retentionDone := make(chan struct{})
 	go func() {
@@ -224,7 +235,7 @@ func runWithStorage(
 	}()
 	go func() {
 		defer close(retentionDone)
-		observations.retention.Run(monitorContext)
+		observations.runRetention(monitorContext, logger)
 	}()
 	if deliveryWorker == nil {
 		close(deliveryDone)
@@ -234,6 +245,11 @@ func runWithStorage(
 			deliveryWorker.Run(monitorContext)
 		}()
 	}
+	if matrixWorker == nil {
+		close(matrixDone)
+	} else {
+		go func() { defer close(matrixDone); matrixWorker.Run(monitorContext) }()
+	}
 
 	logger.Info("service listener ready", "environment", string(settings.Environment))
 	err = serveServer(serviceContext, server, listener, readiness, settings.ShutdownTimeout)
@@ -241,6 +257,7 @@ func runWithStorage(
 	<-monitorDone
 	<-alertDone
 	<-deliveryDone
+	<-matrixDone
 	<-observationDone
 	<-retentionDone
 	readiness.SetDatabaseReady(false)
@@ -388,24 +405,15 @@ func newHTTPServerWithProviders(
 	if len(historyReaders) == 1 {
 		historyReader = historyReaders[0]
 	}
-	notificationSettings, err := notification.NewRuntimeSettings(
-		settings.WebhookEnabled, settings.WebhookDestinationReferenceID,
+	notificationSettings, err := notification.NewCombinedRuntimeSettings(
+		settings.WebhookEnabled, settings.WebhookDestinationReferenceID, settings.MatrixEnabled, settings.MatrixDestinationReferenceID,
 	)
 	if err != nil {
 		return nil, errHTTPBoundary
 	}
-	var notificationTester httpapi.NotificationTester
-	if settings.WebhookEnabled {
-		if repository, ok := any(historyReader).(notification.TestRepository); ok {
-			tester, err := notification.NewTestService(
-				repository, notification.SecureTestIdentifierFactory{},
-				settings.WebhookDestinationReferenceID, time.Now,
-			)
-			if err != nil {
-				return nil, errHTTPBoundary
-			}
-			notificationTester = tester
-		}
+	notificationTester, err := buildNotificationTesters(settings, historyReader)
+	if err != nil {
+		return nil, errHTTPBoundary
 	}
 	handler, err := httpapi.NewHandler(httpapi.Options{
 		Logger:                 logger,
@@ -464,7 +472,13 @@ func buildAlertWorker(
 	for _, provider := range providers {
 		evidenceProviders = append(evidenceProviders, provider)
 	}
-	evidence, err := alerting.NewProviderEvidence(evidenceProviders)
+	collections, ok := store.(domain.SourceCollectionReader)
+	if !ok {
+		return nil, errAlertStart
+	}
+	evidence, err := alerting.NewProviderEvidenceWithOptions(alerting.ProviderEvidenceOptions{
+		Providers: evidenceProviders, Collections: collections, MaximumCollectionGap: 90 * time.Second,
+	})
 	if err != nil {
 		return nil, errAlertStart
 	}
@@ -490,7 +504,7 @@ func buildDeliveryWorker(
 	if !settings.WebhookEnabled {
 		return nil, nil, nil
 	}
-	repository, ok := database.(notification.DeliveryRepository)
+	repository, ok := database.(notification.AdapterDeliveryRepository)
 	if !ok || logger == nil {
 		return nil, nil, errDeliveryStart
 	}
@@ -523,7 +537,7 @@ func buildDeliveryWorker(
 		return nil, nil, errDeliveryStart
 	}
 	worker, err := notification.NewDeliveryWorker(notification.DeliveryWorkerOptions{
-		Repository: repository, Targets: targets, Sender: sender,
+		AdapterRepository: repository, Adapter: notification.DeliveryAdapterWebhook, Targets: targets, Sender: sender,
 		DestinationReferenceID: settings.WebhookDestinationReferenceID, LeaseOwner: workerID,
 		Now: time.Now, PollInterval: deliveryPollInterval, LeaseDuration: deliveryLeaseDuration,
 		BatchSize: deliveryBatchSize, MaximumAttempts: 3,
@@ -642,6 +656,9 @@ func serveServer(
 	baseContext, cancelBase := context.WithCancel(context.Background())
 	defer cancelBase()
 	server.BaseContext = func(net.Listener) context.Context { return baseContext }
+	streamContext, cancelStreams := context.WithCancel(context.Background())
+	defer cancelStreams()
+	server.Handler = withStreamShutdown(server.Handler, streamContext)
 
 	serveDone := make(chan error, 1)
 	readiness.SetServiceReady(true)
@@ -658,6 +675,7 @@ func serveServer(
 		return errServe
 	case <-ctx.Done():
 		readiness.SetServiceReady(false)
+		cancelStreams()
 
 		shutdownContext, cancelShutdown := context.WithTimeout(context.Background(), shutdownTimeout)
 		shutdownErr := server.Shutdown(shutdownContext)

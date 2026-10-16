@@ -1,16 +1,14 @@
 package notification
 
 import (
-	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"io"
+	"fmt"
 	"net"
 	"net/http"
 	"net/netip"
@@ -38,6 +36,7 @@ type WebhookSenderOptions struct {
 	Dialer               ContextDialer
 	Timeout              time.Duration
 	MaximumResponseBytes int64
+	RootCAs              *x509.CertPool
 }
 
 type WebhookSender struct {
@@ -49,8 +48,12 @@ type WebhookSender struct {
 }
 
 type WebhookTarget struct {
-	URL        string
-	SigningKey []byte
+	URL        string `json:"-"`
+	SigningKey []byte `json:"-"`
+}
+
+func (WebhookTarget) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("[redacted webhook target]"))
 }
 
 type WebhookDelivery struct {
@@ -76,14 +79,13 @@ func (failure *DeliveryError) Error() string {
 }
 
 func NewWebhookSender(options WebhookSenderOptions) (*WebhookSender, error) {
-	if options.Resolver == nil || options.Dialer == nil || options.Timeout < time.Second ||
-		options.Timeout > 30*time.Second || options.MaximumResponseBytes < 1 ||
-		options.MaximumResponseBytes > 1024*1024 {
+	if !validOutboundOptions(outboundOptions{resolver: options.Resolver, dialer: options.Dialer, timeout: options.Timeout, maximumResponseBytes: options.MaximumResponseBytes}) {
 		return nil, errors.New("webhook sender options are invalid")
 	}
 	return &WebhookSender{
 		resolver: options.Resolver, dialer: options.Dialer, timeout: options.Timeout,
 		maximumResponseBytes: options.MaximumResponseBytes,
+		rootCAs:              options.RootCAs,
 	}, nil
 }
 
@@ -97,69 +99,15 @@ func (sender *WebhookSender) Send(ctx context.Context, target WebhookTarget, del
 	if err != nil {
 		return WebhookResult{}, deliveryFailure("notification.destination_rejected", false)
 	}
-	attemptContext, cancel := context.WithTimeout(ctx, sender.timeout)
-	defer cancel()
-	host := strings.ToLower(strings.TrimSuffix(destination.Hostname(), "."))
-	addresses, err := sender.resolver.LookupNetIP(attemptContext, "ip", host)
-	if err != nil || len(addresses) == 0 || !allPublicAddresses(addresses) {
-		return WebhookResult{}, deliveryFailure("notification.destination_rejected", false)
-	}
-	request, err := http.NewRequestWithContext(attemptContext, http.MethodPost, destination.String(), bytes.NewReader(delivery.Payload))
-	if err != nil {
-		return WebhookResult{}, deliveryFailure("notification.invalid_request", false)
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Idempotency-Key", delivery.ID)
-	request.Header.Set("X-Stackplore-Delivery-ID", delivery.ID)
-	request.Header.Set("X-Stackplore-Signature", "sha256="+signPayload(target.SigningKey, delivery))
-	client := sender.client(host, addresses)
-	defer client.CloseIdleConnections()
-	response, err := client.Do(request)
-	if err != nil {
-		if errors.Is(err, errWebhookRedirect) {
-			return WebhookResult{}, deliveryFailure("notification.redirect_rejected", false)
-		}
-		if attemptContext.Err() != nil {
-			return WebhookResult{}, uncertainDeliveryFailure("notification.timeout")
-		}
-		return WebhookResult{}, uncertainDeliveryFailure("notification.network_failed")
-	}
-	defer response.Body.Close()
-	reader := io.LimitReader(response.Body, sender.maximumResponseBytes+1)
-	body, err := io.ReadAll(reader)
-	if err != nil {
-		return WebhookResult{}, uncertainDeliveryFailure("notification.network_failed")
-	}
-	if int64(len(body)) > sender.maximumResponseBytes {
-		return WebhookResult{}, deliveryFailure("notification.response_too_large", false)
-	}
-	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return WebhookResult{Status: response.StatusCode}, deliveryFailure(
-			"notification.remote_rejected", response.StatusCode == http.StatusTooManyRequests || response.StatusCode >= 500,
-		)
-	}
-	return WebhookResult{Status: response.StatusCode}, nil
-}
-
-func (sender *WebhookSender) client(host string, addresses []netip.Addr) *http.Client {
-	transport := &http.Transport{
-		Proxy: nil, DisableCompression: true, DisableKeepAlives: true, ForceAttemptHTTP2: false,
-		TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: sender.rootCAs},
-		DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
-			requestedHost, port, err := net.SplitHostPort(address)
-			if err != nil || !strings.EqualFold(strings.TrimSuffix(requestedHost, "."), host) {
-				return nil, errors.New("webhook dial target changed")
-			}
-			return sender.dialer.DialContext(ctx, network, net.JoinHostPort(addresses[0].String(), port))
-		},
-	}
-	return &http.Client{
-		Transport: transport,
-		Timeout:   sender.timeout,
-		CheckRedirect: func(*http.Request, []*http.Request) error {
-			return errWebhookRedirect
-		},
-	}
+	headers := make(http.Header)
+	headers.Set("Content-Type", "application/json")
+	headers.Set("Idempotency-Key", delivery.ID)
+	headers.Set("X-Stackplore-Delivery-ID", delivery.ID)
+	headers.Set("X-Stackplore-Signature", "sha256="+signPayload(target.SigningKey, delivery))
+	status, _, err := sendOutbound(ctx, outboundOptions{resolver: sender.resolver, dialer: sender.dialer,
+		timeout: sender.timeout, maximumResponseBytes: sender.maximumResponseBytes, rootCAs: sender.rootCAs},
+		destination, http.MethodPost, delivery.Payload, headers)
+	return WebhookResult{Status: status}, err
 }
 
 var errWebhookRedirect = errors.New("webhook redirects are rejected")
@@ -169,29 +117,63 @@ func parseDestination(raw string) (*url.URL, error) {
 		return nil, errors.New("webhook URL is invalid")
 	}
 	destination, err := url.Parse(raw)
-	if err != nil || destination.Scheme != "https" || destination.Hostname() == "" ||
-		destination.User != nil || destination.Fragment != "" || destination.RawQuery == "" && strings.Contains(raw, "?") {
+	if err != nil || destination.Scheme != "https" || destination.Hostname() == "" || destination.Opaque != "" ||
+		destination.User != nil || strings.Contains(raw, "#") || destination.RawQuery == "" && strings.Contains(raw, "?") || destination.String() != raw ||
+		!validDestinationHost(destination.Hostname()) {
 		return nil, errors.New("webhook URL is invalid")
 	}
 	if destination.Port() != "" {
-		port, err := strconv.Atoi(destination.Port())
-		if err != nil || port < 1 || port > 65535 {
+		if !validDestinationPort(destination.Port()) {
 			return nil, errors.New("webhook port is invalid")
 		}
 	}
 	return destination, nil
 }
 
+func validDestinationHost(host string) bool {
+	if host == "" || len(host) > 253 || host != strings.ToLower(host) || strings.HasSuffix(host, ".") {
+		return false
+	}
+	if address, err := netip.ParseAddr(host); err == nil {
+		return address.Zone() == "" && address.String() == host
+	}
+	for _, label := range strings.Split(host, ".") {
+		if len(label) == 0 || len(label) > 63 || label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+		for _, character := range label {
+			if character < 'a' || character > 'z' {
+				if character < '0' || character > '9' {
+					if character != '-' {
+						return false
+					}
+				}
+			}
+		}
+	}
+	return true
+}
+
+func validDestinationPort(port string) bool {
+	if len(port) < 1 || len(port) > 5 || len(port) > 1 && port[0] == '0' {
+		return false
+	}
+	value, err := strconv.Atoi(port)
+	return err == nil && value >= 1 && value <= 65535
+}
+
 func allPublicAddresses(addresses []netip.Addr) bool {
 	for _, address := range addresses {
 		address = address.Unmap()
 		if !address.IsValid() || address.Zone() != "" || !address.IsGlobalUnicast() || address.IsPrivate() || address.IsLoopback() ||
-			address.IsLinkLocalUnicast() || reservedAddress(address) {
+			address.IsLinkLocalUnicast() || address.Is6() && !publicIPv6Prefix.Contains(address) || reservedAddress(address) {
 			return false
 		}
 	}
 	return true
 }
+
+var publicIPv6Prefix = netip.MustParsePrefix("2000::/3")
 
 func reservedAddress(address netip.Addr) bool {
 	for _, prefix := range reservedPrefixes {
@@ -209,6 +191,7 @@ var reservedPrefixes = []netip.Prefix{
 	netip.MustParsePrefix("169.254.0.0/16"),
 	netip.MustParsePrefix("192.0.0.0/24"),
 	netip.MustParsePrefix("192.0.2.0/24"),
+	netip.MustParsePrefix("192.88.99.0/24"),
 	netip.MustParsePrefix("198.18.0.0/15"),
 	netip.MustParsePrefix("198.51.100.0/24"),
 	netip.MustParsePrefix("203.0.113.0/24"),
@@ -216,7 +199,11 @@ var reservedPrefixes = []netip.Prefix{
 	netip.MustParsePrefix("240.0.0.0/4"),
 	netip.MustParsePrefix("::/128"),
 	netip.MustParsePrefix("::1/128"),
+	// Protocol and transition ranges can encode another destination address.
+	netip.MustParsePrefix("2001::/23"),
 	netip.MustParsePrefix("2001:db8::/32"),
+	netip.MustParsePrefix("2002::/16"),
+	netip.MustParsePrefix("3fff::/20"),
 	netip.MustParsePrefix("fc00::/7"),
 	netip.MustParsePrefix("fe80::/10"),
 	netip.MustParsePrefix("ff00::/8"),

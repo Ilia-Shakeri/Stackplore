@@ -4,7 +4,7 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-The candidate 0.1 baseline has a Go API, strict React/TypeScript frontend, PostgreSQL runtime and native maintenance commands, secure local accounts, Demo/Docker/Kubernetes read adapters, connected exploration pages, bounded streams, alert rule management and leased generic webhook delivery. Persistent source/observation scheduling, full UI journeys, namespace provider fidelity, guarded actions, safe PWA and target release proof remain work. [Audit](docs/codebase-audit.md) and [roadmap](docs/roadmap.md) name those gaps.
+The tagged 0.1.0 and 0.2.0 checkpoints establish the Go API, strict React/TypeScript frontend, PostgreSQL runtime and native maintenance commands, secure local accounts, persisted source settings, bounded collection and cached observations. Stage 3 is the locally verified 0.3.0 development checkpoint: covered alert evidence, configuration/version-fenced evaluation, durable alert replay and separate webhook/Matrix delivery lanes. The full local gate with real PostgreSQL, disposable native restart/restore and HTTPS receiver checks, and Helm lint/render passed; exact commands and proof levels are recorded in the evidence plan. Stages 4–9 remain open, including full exploration journeys, namespace provider fidelity, guarded actions, safe PWA and target release proof. [Audit](docs/codebase-audit.md) and [roadmap](docs/roadmap.md) name those gaps.
 
 ## Delivery contract
 
@@ -14,9 +14,9 @@ The candidate 0.1 baseline has a Go API, strict React/TypeScript frontend, Postg
 4. Use pinned tools; run focused regressions, then the full gate and named real-environment checks.
 5. Review the complete diff and untracked files for secrets, runtime artifacts, wrong line endings and unrelated work.
 6. Record accurate commands, failures and fixes. Score the current work, list remaining defects and repeat corrections until the quality bar is justified. Keep product completeness distinct.
-7. Set one consistent stage version, update CHANGELOG, commit, annotate the exact version tag and push only when the maintainer authorizes these actions. That authorization exists for the delivery requested on 2026-10-12. Never force push or rewrite release history.
+7. Set one consistent stage version, update CHANGELOG, commit and annotate the exact version tag only after the milestone gate passes. The replacement repository instructions on 2026-10-16 prohibit push and supersede the earlier push authorization. Keep current work local; do not claim a new remote gate. Never rewrite release history.
 
-The old phase stop/maintainer-commit procedure is historical, superseded by the active plan and this explicit delivery authorization. Tools may be prepared locally in ignored directories; do not change unrelated system installations.
+The old phase stop/maintainer-commit procedure is historical; use the active plan and current instructions. Tools may be prepared locally in ignored directories; do not change unrelated system installations.
 
 ## Architecture and data
 

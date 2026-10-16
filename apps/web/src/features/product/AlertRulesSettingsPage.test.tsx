@@ -35,6 +35,7 @@ function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
     getResourceHealth: vi.fn(),
     getNotificationSettings: vi.fn().mockResolvedValue({
       adapter: 'generic_webhook',
+      matrix: { adapter: 'matrix', enabled: false },
       configuration_source: 'operator_environment',
       delivery_semantics: 'at_least_once',
       enabled: false,
@@ -65,6 +66,7 @@ describe('alert rule settings', () => {
     const api = productApi({
       getNotificationSettings: vi.fn().mockResolvedValue({
         adapter: 'generic_webhook',
+        matrix: { adapter: 'matrix', enabled: false },
         configuration_source: 'operator_environment',
         delivery_semantics: 'at_least_once',
         destination_reference_id: 'webhook_primary',
@@ -97,6 +99,7 @@ describe('alert rule settings', () => {
     const api = productApi({
       getNotificationSettings: vi.fn().mockResolvedValue({
         adapter: 'generic_webhook',
+        matrix: { adapter: 'matrix', enabled: false },
         configuration_source: 'operator_environment',
         delivery_semantics: 'at_least_once',
         destination_reference_id: 'webhook_primary',
@@ -131,8 +134,41 @@ describe('alert rule settings', () => {
       </LocaleProvider>,
     );
 
-    expect(await screen.findByText('Not configured')).not.toBeNull();
+    expect(await screen.findAllByText('Not configured')).toHaveLength(2);
     expect(screen.queryByRole('button', { name: 'Send test' })).toBeNull();
+  });
+
+  it('selects Matrix when only that lane is configured', async () => {
+    const testNotification = vi.fn().mockResolvedValue({
+      destination_reference_id: 'matrix_primary',
+      notification_id: 'notification_matrix_test',
+      state: 'queued',
+    });
+    const api = productApi({
+      getNotificationSettings: vi.fn().mockResolvedValue({
+        adapter: 'generic_webhook',
+        enabled: false,
+        matrix: { adapter: 'matrix', enabled: true, destination_reference_id: 'matrix_primary' },
+        configuration_source: 'operator_environment',
+        delivery_semantics: 'at_least_once',
+      }),
+      testNotification,
+    });
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={api}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    expect(await screen.findByText('matrix_primary')).not.toBeNull();
+    expect(screen.getByLabelText<HTMLSelectElement>('Test destination').value).toBe('matrix');
+    await user.type(screen.getByLabelText('Your current password'), 'admin-password');
+    await user.click(screen.getByRole('button', { name: 'Send test' }));
+    await waitFor(() => {
+      expect(testNotification).toHaveBeenCalledWith('admin-password', 'matrix');
+    });
   });
 
   it('lists and disables a persisted rule at its current version', async () => {

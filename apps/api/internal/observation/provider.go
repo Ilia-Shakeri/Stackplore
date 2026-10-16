@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	ErrInvalidOptions = errors.New("observation options are invalid")
-	ErrUnavailable    = errors.New("observation is unavailable")
+	ErrInvalidOptions     = errors.New("observation options are invalid")
+	ErrUnavailable        = errors.New("observation is unavailable")
+	ErrProfileUnavailable = errors.New("operator observation profile is unavailable")
 )
 
 // LiveProvider owns the safe operator-selected read boundary used by collection.

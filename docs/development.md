@@ -67,6 +67,15 @@ behavior. The 0.2 checkpoint passed its full local gate and disposable
 PostgreSQL/restart/restore checks. Current results are in the evidence plan;
 historical 0.1 results are separate proof.
 
+The locally verified 0.3.0 development checkpoint adds covered alert evidence,
+durable alert replay and opt-in webhook/Matrix workers. The full local gate with
+real PostgreSQL, disposable native restart/restore and HTTPS receiver checks, and
+Helm lint/render passed; exact results are in the evidence plan. Both outbound lanes use operator-owned secret
+configuration; enable them only against an intended public HTTPS destination.
+For semantics, fixed bounds, unknown evidence and stable retries, use the
+[alert guide](alerts-notifications.md). Current repository instructions prohibit
+push, so local checks cannot imply a new remote CI result.
+
 ## Verification
 
 The full local gate is:

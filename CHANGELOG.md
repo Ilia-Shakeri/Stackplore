@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.3.0] - 2026-10-16
+
+### Added
+
+- Covered CPU/memory and unavailable-replica time-weighted windows, observed
+  restart increments, complete scoped event evaluation and raw source-outcome
+  evidence. Unknown/stale/partial/future evidence never fabricates clear or fire.
+- Fenced fresh evaluation claims, continuous pending windows, new episode IDs,
+  atomic rule-edit episode closure, and durable idempotent synthetic demo seeding.
+- Committed source-scoped alert change replay across restarts, bounded SSE
+  snapshots/change metadata, explicit backpressure/reset and browser refetch.
+- Optional Matrix `m.notice` delivery through the same guarded HTTPS boundary,
+  independent adapter/reference outbox lanes, stable retry bodies and transaction
+  IDs, secret-free bilingual status and protected per-lane test delivery.
+- Forward migrations 9–10, bounded alert-evidence retention, real PostgreSQL and
+  disposable HTTPS regressions, deployment Secret inputs and bilingual operator
+  references. The first eight released migrations remain unchanged.
+
+### Limits
+
+This is a development checkpoint; current proof is recorded in the evidence
+plan. Full browser, real provider, container/cluster, live operator receiver,
+production scale and remaining roadmap gates stay open. Matrix deduplication
+assumes stable access-token/device context and transaction ID; timeout can leave
+an uncertain accepted message. Source is immutable when replacing a rule; use
+a new rule to move source. The replacement repository instruction prohibits push,
+so local version/commit/tag does not imply new remote CI or image publication.
+
 ## [0.2.0] - 2026-10-13
 
 ### Added

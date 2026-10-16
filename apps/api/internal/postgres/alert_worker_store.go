@@ -8,6 +8,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 const claimDueAlertEvaluationsStatement = `WITH due AS (
@@ -16,15 +17,16 @@ const claimDueAlertEvaluationsStatement = `WITH due AS (
     WHERE enabled = 1
       AND deleted_at_us IS NULL
       AND COALESCE(next_evaluation_at_us, created_at_us) <= $1
+      AND (evaluation_lease_until_us IS NULL OR evaluation_lease_until_us <= $1)
+      AND EXISTS(SELECT 1 FROM infrastructure_sources AS source WHERE source.id=alert_rules.source_id AND source.enabled=1 AND source.deleted_at_us IS NULL)
     ORDER BY COALESCE(next_evaluation_at_us, created_at_us), id
     FOR UPDATE SKIP LOCKED
     LIMIT $2
 ), claimed AS (
     UPDATE alert_rules AS rule SET
-        last_evaluated_at_us = $1,
         next_evaluation_at_us = $1 + rule.evaluation_interval_seconds * 1000000,
-        updated_at_us = GREATEST(rule.updated_at_us, $1),
-        row_version = rule.row_version + 1
+        evaluation_generation = rule.evaluation_generation + 1,
+        evaluation_lease_until_us = $1 + 60000000
     FROM due
     WHERE rule.id = due.id
     RETURNING rule.id, rule.source_id, rule.environment_id, rule.resource_id,
@@ -32,15 +34,15 @@ const claimDueAlertEvaluationsStatement = `WITH due AS (
         rule.comparison_operator, rule.threshold_value, rule.threshold_count,
         rule.window_seconds, rule.minimum_event_severity,
         rule.evaluation_interval_seconds, rule.pending_for_seconds,
-        rule.next_evaluation_at_us
+        rule.next_evaluation_at_us,rule.row_version,rule.evaluation_generation,rule.evaluation_lease_until_us
 )
 SELECT claimed.id, claimed.source_id, claimed.environment_id, claimed.resource_id,
        claimed.display_name, claimed.rule_kind, claimed.enabled, claimed.severity,
        claimed.comparison_operator, claimed.threshold_value, claimed.threshold_count,
        claimed.window_seconds, claimed.minimum_event_severity,
        claimed.evaluation_interval_seconds, claimed.pending_for_seconds,
-       claimed.next_evaluation_at_us,
-       source.provider, source.synthetic,
+       claimed.next_evaluation_at_us,claimed.row_version,claimed.evaluation_generation,claimed.evaluation_lease_until_us,
+       source.provider, source.synthetic,source.row_version,
        resource.id, resource.provider, resource.environment_id, resource.kind,
        resource.scope_kind, resource.scope_name, resource.native_id,
        current_alert.id, current_alert.rule_id, current_alert.source_id,
@@ -98,6 +100,42 @@ func (store *Store) ClaimDueAlertEvaluations(ctx context.Context, claimedAt time
 	return tasks, nil
 }
 
+// Completion fences both lease recovery and edits that happened during evidence reads.
+func (store *Store) CompleteAlertEvaluation(ctx context.Context, task alerting.EvaluationTask, mutation *domain.AlertMutation) error {
+	if ctx == nil || task.Validate() != nil || mutation != nil && mutation.Validate() != nil {
+		return domain.ErrRepositoryInvalidInput
+	}
+	if mutation != nil && (mutation.Alert.RuleID != task.Rule.ID || mutation.Alert.SourceID != task.Source.SourceID || mutation.DedupeKey != task.DedupeKey || mutation.Alert.Synthetic != task.Synthetic) {
+		return domain.ErrRepositoryInvalidInput
+	}
+	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
+		if err := lockAlertChanges(ctx, transaction); err != nil {
+			return err
+		}
+		// Hold the source configuration stable through the evidence commit.
+		var sourceVersion int64
+		if err := transaction.transaction.QueryRow(ctx, `SELECT row_version FROM infrastructure_sources WHERE id=$1 AND provider=$2 AND enabled=1 AND deleted_at_us IS NULL FOR SHARE`, string(task.Source.SourceID), string(task.Source.Provider)).Scan(&sourceVersion); errors.Is(err, pgx.ErrNoRows) {
+			return domain.ErrRepositoryConflict
+		} else if err != nil {
+			return err
+		}
+		if sourceVersion != task.SourceConfigurationVersion {
+			return domain.ErrRepositoryConflict
+		}
+		result, err := transaction.transaction.Exec(ctx, `UPDATE alert_rules SET evaluation_lease_until_us=NULL,last_evaluated_at_us=$1
+WHERE id=$2 AND source_id=$3 AND enabled=1 AND deleted_at_us IS NULL AND row_version=$4 AND evaluation_generation=$5
+AND evaluation_lease_until_us=$6 AND evaluation_lease_until_us>floor(extract(epoch FROM clock_timestamp())*1000000)::bigint`, task.ClaimedAt.UnixMicro(), string(task.Rule.ID), string(task.Source.SourceID), task.RuleVersion, task.ClaimGeneration, task.LeaseExpiresAt.UnixMicro())
+		if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
+			return err
+		}
+		if mutation == nil {
+			return nil
+		}
+		return (&transactionRepositories{transaction: transaction}).SaveAlertMutation(ctx, *mutation)
+	})
+	return mapRepositoryWriteError(ctx, err)
+}
+
 func scanEvaluationTask(row rowScanner, claimedAt time.Time) (alerting.EvaluationTask, error) {
 	var task alerting.EvaluationTask
 	var ruleEnvironmentID, ruleResourceID sql.NullString
@@ -107,6 +145,7 @@ func scanEvaluationTask(row rowScanner, claimedAt time.Time) (alerting.Evaluatio
 	var ruleKind, ruleSeverity, sourceProvider string
 	var enabled, sourceSynthetic int64
 	var evaluationSeconds, pendingSeconds, nextEvaluationUS int64
+	var leaseExpiresUS int64
 	var resourceID, resourceProvider, resourceEnvironmentID, resourceKind sql.NullString
 	var resourceScopeKind, resourceScopeName, resourceNativeID sql.NullString
 	var currentID, currentRuleID, currentSourceID sql.NullString
@@ -120,8 +159,8 @@ func scanEvaluationTask(row rowScanner, claimedAt time.Time) (alerting.Evaluatio
 		&task.Rule.ID, &task.Rule.SourceID, &ruleEnvironmentID, &ruleResourceID,
 		&task.Rule.DisplayName, &ruleKind, &enabled, &ruleSeverity,
 		&comparison, &thresholdValue, &thresholdCount, &windowSeconds, &minimumSeverity,
-		&evaluationSeconds, &pendingSeconds, &nextEvaluationUS,
-		&sourceProvider, &sourceSynthetic,
+		&evaluationSeconds, &pendingSeconds, &nextEvaluationUS, &task.RuleVersion, &task.ClaimGeneration, &leaseExpiresUS,
+		&sourceProvider, &sourceSynthetic, &task.SourceConfigurationVersion,
 		&resourceID, &resourceProvider, &resourceEnvironmentID, &resourceKind,
 		&resourceScopeKind, &resourceScopeName, &resourceNativeID,
 		&currentID, &currentRuleID, &currentSourceID, &currentEnvironmentID,
@@ -143,6 +182,7 @@ func scanEvaluationTask(row rowScanner, claimedAt time.Time) (alerting.Evaluatio
 	task.Synthetic = sourceSynthetic == 1
 	task.ClaimedAt = claimedAt
 	task.NextEvaluationAt = time.UnixMicro(nextEvaluationUS).UTC()
+	task.LeaseExpiresAt = time.UnixMicro(leaseExpiresUS).UTC()
 	task.DedupeKey = string(task.Rule.ID)
 	if ruleEnvironmentID.Valid {
 		value := domain.EnvironmentID(ruleEnvironmentID.String)

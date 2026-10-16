@@ -95,6 +95,27 @@ spec:
                   name: {{ .Values.api.existingSecret }}
                   key: {{ .Values.api.webhook.signingKeySecretKey }}
             {{- end }}
+            - name: STACKPLORE_MATRIX_ENABLED
+              value: {{ .Values.api.matrix.enabled | quote }}
+            {{- if .Values.api.matrix.enabled }}
+            - name: STACKPLORE_MATRIX_DESTINATION_REFERENCE_ID
+              value: {{ .Values.api.matrix.destinationReferenceId | quote }}
+            - name: STACKPLORE_MATRIX_ORIGIN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.matrix.originSecretKey }}
+            - name: STACKPLORE_MATRIX_ROOM_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.matrix.roomIdSecretKey }}
+            - name: STACKPLORE_MATRIX_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.existingSecret }}
+                  key: {{ .Values.api.matrix.accessTokenSecretKey }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080

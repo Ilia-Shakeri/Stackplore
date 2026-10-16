@@ -187,6 +187,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
     | { readonly kind: 'ready'; readonly status: NotificationSettingsStatus }
   >({ kind: 'loading' });
   const [testPassword, setTestPassword] = useState('');
+  const [testAdapter, setTestAdapter] = useState<'generic_webhook' | 'matrix'>('generic_webhook');
   const [testDelivery, setTestDelivery] = useState<
     | { readonly kind: 'idle' | 'sending' | 'error' }
     | { readonly kind: 'queued'; readonly notificationId: string }
@@ -214,6 +215,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
     void api.getNotificationSettings(controller.signal).then(
       (status) => {
         setDelivery({ kind: 'ready', status });
+        if (!status.enabled && status.matrix.enabled) setTestAdapter('matrix');
       },
       (error: unknown) => {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
@@ -283,7 +285,10 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
     if (testPassword === '' || testDelivery.kind === 'sending') return;
     setTestDelivery({ kind: 'sending' });
     try {
-      const result = await api.testNotification(testPassword);
+      const result =
+        testAdapter === 'matrix'
+          ? await api.testNotification(testPassword, 'matrix')
+          : await api.testNotification(testPassword);
       setTestDelivery({ kind: 'queued', notificationId: result.notification_id });
     } catch {
       setTestDelivery({ kind: 'error' });
@@ -308,9 +313,9 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
           </div>
           {delivery.kind === 'ready' ? (
             <span
-              className={`readiness-state readiness-state--${delivery.status.enabled ? 'ready' : 'not_ready'}`}
+              className={`readiness-state readiness-state--${delivery.status.enabled || delivery.status.matrix.enabled ? 'ready' : 'not_ready'}`}
             >
-              {delivery.status.enabled
+              {delivery.status.enabled || delivery.status.matrix.enabled
                 ? t('notifications.settings.enabled')
                 : t('notifications.settings.disabled')}
             </span>
@@ -342,16 +347,56 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
                 </dd>
               </div>
             </dl>
+            <dl>
+              <div>
+                <dt>{t('notifications.settings.adapter.matrix')}</dt>
+                <dd>
+                  {delivery.status.matrix.enabled
+                    ? t('notifications.settings.enabled')
+                    : t('notifications.settings.disabled')}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('notifications.settings.destination.matrix')}</dt>
+                <dd>
+                  <code dir="ltr">
+                    {delivery.status.matrix.enabled
+                      ? delivery.status.matrix.destination_reference_id
+                      : t('notifications.settings.none')}
+                  </code>
+                </dd>
+              </div>
+            </dl>
             <p className="notification-delivery-panel__note">
               {t('notifications.settings.operatorNote')}
             </p>
-            {delivery.status.enabled ? (
+            {delivery.status.enabled || delivery.status.matrix.enabled ? (
               <form
                 className="notification-delivery-panel__test"
                 onSubmit={(event) => {
                   void sendTest(event);
                 }}
               >
+                <label>
+                  <span>{t('notifications.settings.test.adapter')}</span>
+                  <select
+                    value={testAdapter}
+                    disabled={testDelivery.kind === 'sending'}
+                    onChange={(event) => {
+                      setTestAdapter(
+                        event.target.value === 'matrix' ? 'matrix' : 'generic_webhook',
+                      );
+                      setTestDelivery({ kind: 'idle' });
+                    }}
+                  >
+                    <option value="generic_webhook" disabled={!delivery.status.enabled}>
+                      {t('notifications.settings.adapter.webhook')}
+                    </option>
+                    <option value="matrix" disabled={!delivery.status.matrix.enabled}>
+                      {t('notifications.settings.adapter.matrix')}
+                    </option>
+                  </select>
+                </label>
                 <label>
                   <span>{t('notifications.settings.test.password')}</span>
                   <input
@@ -420,6 +465,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
               required
               maxLength={128}
               value={draft.sourceId}
+              readOnly={editing !== null}
               onChange={(event) => {
                 update('sourceId', event.target.value);
               }}

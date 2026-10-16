@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.2.0
+  version: 0.3.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -1332,7 +1332,10 @@ paths:
     put:
       operationId: replaceAlertRule
       summary: Replace an alert rule
-      description: Replaces one rule at its expected version and atomically writes its audit event.
+      description: >-
+        Replaces one rule at its expected version. Source is immutable; create a new
+        rule to move source. The transaction closes any active old episode, invalidates
+        its evaluation claim, appends committed change metadata and writes audit.
       security:
         - BrowserSession: []
           CSRFRequestProof: []
@@ -1456,7 +1459,7 @@ paths:
       operationId: getNotificationSettings
       summary: Read outbound notification status
       description: >-
-        Returns administrator-only generic webhook status and its operator-owned destination
+        Returns administrator-only webhook and Matrix status and safe operator-owned destination
         reference. Full URLs, signing keys, and credential material are never returned.
       security:
         - BrowserSession: []
@@ -1482,6 +1485,9 @@ paths:
                     destination_reference_id: webhook_primary
                     configuration_source: operator_environment
                     delivery_semantics: at_least_once
+                    matrix:
+                      adapter: matrix
+                      enabled: false
         '400':
           $ref: '#/components/responses/BadRequestProblem'
         '401':
@@ -1499,17 +1505,20 @@ paths:
   /settings/notifications/test:
     post:
       operationId: testNotificationDelivery
-      summary: Queue one generic webhook test
+      summary: Queue one outbound adapter test
       description: >-
         Consumes a notification.test recent-authentication proof and atomically stores one
-        audit intent, test notification, and single-attempt webhook delivery. The response
-        exposes no destination URL or signing key.
+        audit intent, test notification, and single-attempt delivery. The optional adapter
+        selects generic_webhook or matrix; omission selects generic_webhook. The response
+        exposes no destination URL, room, signing key, or access token. Grant consumption
+        precedes the delivery-intent transaction; a failed request requires a fresh proof.
       security:
         - BrowserSession: []
           CSRFRequestProof: []
           RecentAuthProof: []
       parameters:
         - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/NotificationTestAdapter'
       responses:
         '202':
           description: Test delivery durably queued.
@@ -1834,7 +1843,16 @@ paths:
     get:
       operationId: streamProductAlerts
       summary: Stream bounded alert snapshots
-      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      description: >-
+        Source-scoped committed PostgreSQL changes with restart-stable decimal SSE IDs.
+        alerts.snapshot.v1 data follows ProductAlertSnapshotEnvelope, a bounded first page.
+        alerts.changed.v1 data follows ProductAlertChangesEnvelope and triggers HTTP refetch.
+        Last-Event-ID replays retained changes; missing header starts a snapshot, while a
+        future, absent-from-history or expired position resets then snapshots. A zero
+        snapshot position clears the old cursor. Queue16, page100, frame256KiB, read10s,
+        poll2s, keepalive15s, auth30s, lifetime30m, write5s; global64 and per-user4 caps.
+        Backpressure closes that connection with reset when writable. Seven-day eligible
+        bounded retention preserves the newest position; actual history may last longer.
       security:
         - BrowserSession: []
       parameters:
@@ -2839,6 +2857,7 @@ components:
           minimum: 1
           maximum: 9007199254740991
         window_seconds:
+          description: Covered window; CPU/memory and unavailable replicas use time-weighted means, restart uses observed positive increments. Missing coverage is unknown.
           type: integer
           minimum: 1
           maximum: 86400
@@ -2911,6 +2930,7 @@ components:
           minimum: 1
           maximum: 9007199254740991
         window_seconds:
+          description: Covered window; CPU/memory and unavailable replicas use time-weighted means, restart uses observed positive increments. Missing coverage is unknown.
           type: integer
           minimum: 1
           maximum: 86400
@@ -2996,7 +3016,10 @@ components:
         - destination_reference_id
         - configuration_source
         - delivery_semantics
+        - matrix
       properties:
+        matrix:
+          $ref: '#/components/schemas/MatrixNotificationSettingsStatus'
         adapter:
           type: string
           const: generic_webhook
@@ -3023,7 +3046,10 @@ components:
         - enabled
         - configuration_source
         - delivery_semantics
+        - matrix
       properties:
+        matrix:
+          $ref: '#/components/schemas/MatrixNotificationSettingsStatus'
         adapter:
           type: string
           const: generic_webhook
@@ -3036,6 +3062,101 @@ components:
         delivery_semantics:
           type: string
           const: at_least_once
+    MatrixNotificationSettingsStatus:
+      description: Secret-free Matrix delivery status; origin, room, and access token stay with the operator.
+      oneOf:
+        - $ref: '#/components/schemas/ConfiguredMatrixNotificationSettingsStatus'
+        - $ref: '#/components/schemas/DisabledMatrixNotificationSettingsStatus'
+    ConfiguredMatrixNotificationSettingsStatus:
+      type: object
+      description: Enabled Matrix lane and safe reference.
+      additionalProperties: false
+      required: [adapter, enabled, destination_reference_id]
+      properties:
+        adapter:
+          type: string
+          const: matrix
+        enabled:
+          type: boolean
+          const: true
+        destination_reference_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+    DisabledMatrixNotificationSettingsStatus:
+      type: object
+      description: Disabled Matrix lane.
+      additionalProperties: false
+      required: [adapter, enabled]
+      properties:
+        adapter:
+          type: string
+          const: matrix
+        enabled:
+          type: boolean
+          const: false
+    ProductAlertChange:
+      type: object
+      description: Committed source-scoped change metadata; refetch authoritative paginated HTTP data.
+      additionalProperties: false
+      required: [id, source_id, rule_id, kind, occurred_at]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 19
+          pattern: ^[1-9][0-9]{0,18}$
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        rule_id:
+          $ref: '#/components/schemas/AlertRuleId'
+        alert_id:
+          $ref: '#/components/schemas/AlertId'
+        kind:
+          type: string
+          enum: [alert.changed, rule.created, rule.changed, rule.deleted]
+        occurred_at:
+          $ref: '#/components/schemas/Timestamp'
+    ProductAlertChangesEnvelope:
+      type: object
+      description: alerts.changed.v1 SSE data. Frame ID equals last committed change ID in data.
+      additionalProperties: false
+      required: [version, topic, observed_at, data]
+      properties:
+        version:
+          type: integer
+          const: 1
+          minimum: 1
+          maximum: 1
+        topic:
+          type: string
+          const: alerts
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        data:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/ProductAlertChange'
+    ProductAlertSnapshotEnvelope:
+      type: object
+      description: alerts.snapshot.v1 SSE data; data is a bounded first page, never a complete-list claim.
+      additionalProperties: false
+      required: [version, topic, observed_at, data]
+      properties:
+        version:
+          type: integer
+          const: 1
+          minimum: 1
+          maximum: 1
+        topic:
+          type: string
+          const: alerts
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        data:
+          $ref: '#/components/schemas/ProductAlertPage'
     NotificationTestResponse:
       type: object
       description: Safe acknowledgement for one durably queued test delivery.
@@ -5067,6 +5188,14 @@ components:
           items:
             $ref: '#/components/schemas/InvalidParameter'
   parameters:
+    NotificationTestAdapter:
+      name: adapter
+      in: query
+      required: false
+      description: Exact operator-owned adapter lane; omission selects generic_webhook.
+      schema:
+        type: string
+        enum: [generic_webhook, matrix]
     RequestId:
       name: X-Request-ID
       in: header

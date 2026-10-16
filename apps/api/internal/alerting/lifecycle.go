@@ -65,12 +65,22 @@ func Advance(request AdvanceRequest) (LifecycleResult, error) {
 		current.State = domain.AlertResolved
 		current.ResolvedAt = &resolved
 		current.UpdatedAt = request.EvaluatedAt
+		current.EvidenceRange = mergeRange(current.EvidenceRange, request.Condition.EvidenceRange)
+		current.SummaryCode = request.Condition.SummaryCode
 		if err := current.Validate(); err != nil {
 			return LifecycleResult{}, err
 		}
 		return LifecycleResult{Alert: current, Previous: &previous, Changed: true}, nil
 	}
-	current.EvidenceRange = mergeRange(current.EvidenceRange, request.Condition.EvidenceRange)
+	// A missed or unknown evaluation cannot count toward a continuous pending period.
+	// The small margin allows ordinary scheduling delay without counting a skipped poll.
+	margin := min(request.Rule.EvaluationInterval/10, 5*time.Second)
+	if current.State == domain.AlertPending && request.EvaluatedAt.Sub(current.UpdatedAt) > request.Rule.EvaluationInterval+margin {
+		current.StartedAt = request.EvaluatedAt
+		current.EvidenceRange = request.Condition.EvidenceRange
+	} else {
+		current.EvidenceRange = mergeRange(current.EvidenceRange, request.Condition.EvidenceRange)
+	}
 	current.SummaryCode = request.Condition.SummaryCode
 	current.Severity = request.Rule.Severity
 	current.UpdatedAt = request.EvaluatedAt

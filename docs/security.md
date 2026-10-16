@@ -1,6 +1,6 @@
 # Security Model
 
-Status: implemented foundation and locally verified 0.2 boundaries; tagged CI, target proof and 1.0 gaps remain explicit
+Status: tagged 0.1/0.2 foundations and the locally verified 0.3.0 development checkpoint; current local outcomes, prior tagged CI, target proof and 1.0 gaps remain explicit
 
 ## Assets
 
@@ -94,13 +94,26 @@ The local digest key is separate from PostgreSQL. A database-only attacker shoul
 
 The server wires PostgreSQL authentication, source settings, normalized
 observation storage/read ports, bounded collection and retention, alert
-evaluation/management, in-app notifications, audit reads and an opt-in generic
-webhook worker. Product reads do not initiate estate collection. Capture must
+evaluation/management, in-app notifications, audit reads and opt-in webhook/Matrix
+workers with separate destination leases and cursors. Product reads do not initiate estate collection. Capture must
 match the active source version; incomplete/failed collection cannot prove
 absence. No raw provider payload, mounted credential or log body is stored by
-the collection worker. Webhook URL and signing material come only from operator
-configuration, stay redacted in formatted settings and are never returned
-through browser APIs. Local tests do not prove a real receiver or target network.
+the collection worker. Webhook URLs, signing material, Matrix origin/room/token
+come only from operator configuration, stay redacted in formatting and structured
+encoding and are never returned through browser APIs. Every attempt revalidates
+DNS and public addresses, pins the checked destination, verifies TLS, rejects
+redirects and bounds time and response bytes. IPv6 uses a conservative global
+range policy. Retries retain canonical bytes and delivery identity; ambiguous
+receipt stays uncertain. Synthetic notices are excluded from both lanes. See
+[delivery semantics and limits](alerts-notifications.md). Disposable local HTTPS
+tests do not prove an operator receiver or target network.
+
+Alert evaluation requires covered evidence and a current raw collection outcome
+bound to the enabled source version. Commit rechecks source configuration,
+rule version, claim generation, actual database-clock lease expiry and current
+episode state. Rule edits/deletion close the old episode atomically. Alert replay
+publishes committed metadata under a commit-order lock, uses bounded client queues
+and preserves a pruning watermark; stale cursors reset and refetch paginated state.
 
 ## Backup and restore
 
@@ -160,7 +173,7 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 - Production restricted Docker access and namespace-scoped Kubernetes/partial-permission fidelity
 - broader safe operator-owned profile/credential-reference setup and rotation; raw credential values must not be persisted
 - configurable retention quotas and protected audit cleanup/archive lifecycle
-- correct historical alert windows, connection-loss/event evidence, durable alert streams and real receiver proof
+- live operator receiver, reverse-proxy/browser and provider-fidelity proof for the implemented alert windows and durable replay
 - guarded infrastructure operations
 - target production PostgreSQL/restore/TLS, Compose, cluster, browser, accessibility and performance proof
 

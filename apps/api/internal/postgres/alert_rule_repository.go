@@ -103,6 +103,9 @@ func (store *Store) CreateAlertRule(ctx context.Context, command domain.AlertRul
 		return domain.ErrRepositoryInvalidInput
 	}
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
+		if err := lockAlertChanges(ctx, transaction); err != nil {
+			return err
+		}
 		record := command.Record
 		nextEvaluation := any(nil)
 		if record.Rule.Enabled {
@@ -124,6 +127,9 @@ func (store *Store) CreateAlertRule(ctx context.Context, command domain.AlertRul
 		if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
 			return err
 		}
+		if err := appendAlertChange(ctx, transaction, record.Rule.SourceID, record.Rule.ID, nil, domain.AlertChangeRuleCreated, record.UpdatedAt); err != nil {
+			return err
+		}
 		return (&transactionRepositories{transaction: transaction}).AppendAuditEntries(ctx, []domain.AuditEntry{command.Audit})
 	})
 	return mapAlertRuleWriteResult(err)
@@ -134,7 +140,20 @@ func (store *Store) ReplaceAlertRule(ctx context.Context, command domain.AlertRu
 		return domain.ErrRepositoryInvalidInput
 	}
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
+		if err := lockAlertChanges(ctx, transaction); err != nil {
+			return err
+		}
 		record := command.Record
+		var previousSource domain.SourceID
+		if err := transaction.transaction.QueryRow(ctx, `SELECT source_id FROM alert_rules WHERE id=$1 AND row_version=$2 AND deleted_at_us IS NULL FOR UPDATE`, string(record.Rule.ID), command.ExpectedVersion).Scan(&previousSource); err != nil {
+			if !errors.Is(err, pgx.ErrNoRows) {
+				return mapRepositoryWriteError(ctx, err)
+			}
+			return domain.ErrRepositoryConflict
+		}
+		if previousSource != record.Rule.SourceID {
+			return domain.ErrRepositoryInvalidInput
+		}
 		nextEvaluation := any(nil)
 		if record.Rule.Enabled {
 			nextEvaluation = record.UpdatedAt.UnixMicro()
@@ -144,7 +163,8 @@ func (store *Store) ReplaceAlertRule(ctx context.Context, command domain.AlertRu
     enabled=$6, severity=$7, comparison_operator=$8, threshold_value=$9, threshold_count=$10,
     window_seconds=$11, minimum_event_severity=$12, evaluation_interval_seconds=$13,
     pending_for_seconds=$14, last_evaluated_at_us=NULL, next_evaluation_at_us=$15,
-    updated_by_user_id=$16, updated_at_us=$17, row_version=row_version+1
+    updated_by_user_id=$16, updated_at_us=$17, row_version=row_version+1,
+    evaluation_generation=evaluation_generation+1,evaluation_lease_until_us=NULL
 WHERE id=$18 AND row_version=$19 AND deleted_at_us IS NULL`,
 			string(record.Rule.SourceID), optionalEnvironmentID(record.Rule.EnvironmentID), optionalResourceID(record.Rule.ResourceID),
 			record.Rule.DisplayName, string(record.Rule.Kind), boolInteger(record.Rule.Enabled), string(record.Rule.Severity),
@@ -153,6 +173,12 @@ WHERE id=$18 AND row_version=$19 AND deleted_at_us IS NULL`,
 			int64(record.Rule.EvaluationInterval/time.Second), int64(record.Rule.PendingFor/time.Second), nextEvaluation,
 			string(record.UpdatedByUserID), record.UpdatedAt.UnixMicro(), string(record.Rule.ID), command.ExpectedVersion)
 		if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
+			return err
+		}
+		if err := resolveRuleAlerts(ctx, transaction, record.Rule.ID, record.UpdatedAt); err != nil {
+			return err
+		}
+		if err := appendAlertChange(ctx, transaction, previousSource, record.Rule.ID, nil, domain.AlertChangeRuleChanged, record.UpdatedAt); err != nil {
 			return err
 		}
 		return (&transactionRepositories{transaction: transaction}).AppendAuditEntries(ctx, []domain.AuditEntry{command.Audit})
@@ -165,12 +191,29 @@ func (store *Store) DeleteAlertRule(ctx context.Context, command domain.AlertRul
 		return domain.ErrRepositoryInvalidInput
 	}
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
+		if err := lockAlertChanges(ctx, transaction); err != nil {
+			return err
+		}
+		var sourceID domain.SourceID
+		if err := transaction.transaction.QueryRow(ctx, `SELECT source_id FROM alert_rules WHERE id=$1 AND row_version=$2 AND deleted_at_us IS NULL FOR UPDATE`, string(command.RuleID), command.ExpectedVersion).Scan(&sourceID); err != nil {
+			if !errors.Is(err, pgx.ErrNoRows) {
+				return mapRepositoryWriteError(ctx, err)
+			}
+			return domain.ErrRepositoryConflict
+		}
 		result, err := transaction.transaction.Exec(ctx, `UPDATE alert_rules SET enabled=0,
     last_evaluated_at_us=NULL, next_evaluation_at_us=NULL, updated_by_user_id=$1,
-    updated_at_us=$2, deleted_at_us=$2, row_version=row_version+1
+    updated_at_us=$2, deleted_at_us=$2, row_version=row_version+1,
+    evaluation_generation=evaluation_generation+1,evaluation_lease_until_us=NULL
 WHERE id=$3 AND row_version=$4 AND deleted_at_us IS NULL`,
 			string(command.UpdatedByUserID), command.DeletedAt.UnixMicro(), string(command.RuleID), command.ExpectedVersion)
 		if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
+			return err
+		}
+		if err := resolveRuleAlerts(ctx, transaction, command.RuleID, command.DeletedAt); err != nil {
+			return err
+		}
+		if err := appendAlertChange(ctx, transaction, sourceID, command.RuleID, nil, domain.AlertChangeRuleDeleted, command.DeletedAt); err != nil {
 			return err
 		}
 		return (&transactionRepositories{transaction: transaction}).AppendAuditEntries(ctx, []domain.AuditEntry{command.Audit})

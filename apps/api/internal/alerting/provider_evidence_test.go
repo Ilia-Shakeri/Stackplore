@@ -41,6 +41,15 @@ func (provider replicaEvidenceProvider) GetWorkloadReplicas(_ context.Context, _
 	}, nil
 }
 
+func (provider replicaEvidenceProvider) GetWorkloadReplicaHistory(_ context.Context, query domain.WorkloadReplicaHistoryQuery) (domain.WorkloadReplicaHistoryResult, error) {
+	baseline := provider.status
+	baseline.ObservedAt = query.Range.Start.Add(defaultMaximumCollectionGap)
+	return domain.WorkloadReplicaHistoryResult{Status: provider.status, Samples: []domain.WorkloadReplicaSnapshot{
+		{Resource: provider.resource, Desired: provider.desired, Ready: provider.ready, Status: baseline},
+		{Resource: provider.resource, Desired: provider.desired, Ready: provider.ready, Status: provider.status},
+	}}, nil
+}
+
 func TestProviderEvidenceEvaluatesUnavailableWorkloadReplicas(t *testing.T) {
 	at := time.Date(2026, time.August, 21, 14, 0, 0, 0, time.UTC)
 	identity, err := domain.NewResourceIdentity(
@@ -60,7 +69,7 @@ func TestProviderEvidenceEvaluatesUnavailableWorkloadReplicas(t *testing.T) {
 			State: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, ObservedAt: at.Add(-time.Second),
 		},
 	}
-	resolver, err := NewProviderEvidence([]EvidenceProvider{provider})
+	resolver, err := NewProviderEvidence([]EvidenceProvider{provider}, coveredCollections(at, time.Minute))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,6 +84,7 @@ func TestProviderEvidenceEvaluatesUnavailableWorkloadReplicas(t *testing.T) {
 	task := EvaluationTask{
 		Rule: rule, Source: domain.ProviderRef{Provider: domain.ProviderKubernetes, SourceID: "source_cluster"},
 		Resource: &resource, DedupeKey: "rule_workload_replicas", ClaimedAt: at, NextEvaluationAt: at.Add(time.Minute),
+		RuleVersion: 1, SourceConfigurationVersion: 1, ClaimGeneration: 1, LeaseExpiresAt: at.Add(30 * time.Second),
 	}
 	result, err := resolver.ResolveAlertEvidence(context.Background(), task, at)
 	if err != nil || !result.Matched || result.SummaryCode != "alert.workload_unavailable_replicas.matched" {

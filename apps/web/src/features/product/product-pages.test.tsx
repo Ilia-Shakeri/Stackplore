@@ -1,4 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
+import type { ProductAlert, ProductAlertPage } from '@stackplore/api-client';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -68,6 +69,7 @@ const productApi: ProductApi = {
   }),
   getNotificationSettings: vi.fn().mockResolvedValue({
     adapter: 'generic_webhook',
+    matrix: { adapter: 'matrix', enabled: false },
     configuration_source: 'operator_environment',
     delivery_semantics: 'at_least_once',
     enabled: false,
@@ -287,6 +289,136 @@ describe('product audit history', () => {
 });
 
 describe('product alert history', () => {
+  const alertFixture = (
+    id: string,
+    summaryCode = 'alert.resource_unhealthy.matched',
+  ): ProductAlert => ({
+    id,
+    rule_id: `rule_${id}`,
+    severity: 'warning',
+    started_at: observedAt,
+    updated_at: observedAt,
+    state: 'firing',
+    summary_code: summaryCode,
+    synthetic: false,
+  });
+  const deferred = <T,>() => {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((accept) => {
+      resolve = accept;
+    });
+    return { promise, resolve };
+  };
+  const stubAlertStreams = () => {
+    const streams: EventTarget[] = [];
+    class Stream extends EventTarget {
+      constructor() {
+        super();
+        streams.push(this);
+      }
+      close() {}
+    }
+    vi.stubGlobal('EventSource', Stream);
+    return streams;
+  };
+
+  it('keeps refreshed alerts and a newer resolution when acknowledgement replies late', async () => {
+    const streams = stubAlertStreams();
+    try {
+      const firing = alertFixture('alert_live');
+      const fresh = alertFixture('alert_fresh', 'alert.provider_connection_lost.matched');
+      const ack = deferred<ProductAlert>();
+      const listAlerts = vi
+        .fn<ProductApi['listAlerts']>()
+        .mockResolvedValueOnce({ items: [firing], page: { has_more: false, limit: 100 } })
+        .mockResolvedValueOnce({
+          items: [{ ...firing, state: 'resolved', resolved_at: observedAt }, fresh],
+          page: { has_more: false, limit: 100 },
+        });
+      const api: ProductApi = {
+        ...productApi,
+        listAlerts,
+        acknowledgeAlert: vi.fn().mockReturnValue(ack.promise),
+      };
+      const user = userEvent.setup();
+      const { container } = render(
+        <LocaleProvider defaultLocale="en">
+          <AuthProvider store={createAuthenticatedAuthStore()}>
+            <ProductProvider api={api}>
+              <ProductAlertsPage />
+            </ProductProvider>
+          </AuthProvider>
+        </LocaleProvider>,
+      );
+      await user.click(await screen.findByRole('button', { name: 'Acknowledge' }));
+      act(() => {
+        streams[0]?.dispatchEvent(new Event('alerts.changed.v1'));
+      });
+      expect(await screen.findByText('Provider connection lost')).not.toBeNull();
+      await act(async () => {
+        ack.resolve({ ...firing, state: 'acknowledged', acknowledged_at: observedAt });
+        await ack.promise;
+      });
+      expect(container.querySelector('#alert-alert_fresh')).not.toBeNull();
+      expect(screen.getByText('Resolved')).not.toBeNull();
+      expect(screen.queryByText('Acknowledged')).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it.each(['reset', 'source_change'] as const)(
+    'discards an older-page reply after %s',
+    async (change) => {
+      const streams = stubAlertStreams();
+      try {
+        const older = deferred<ProductAlertPage>();
+        const listAlerts = vi
+          .fn<ProductApi['listAlerts']>()
+          .mockResolvedValueOnce({
+            items: [alertFixture('alert_first')],
+            page: { has_more: true, limit: 100, next_cursor: 'older_alerts' },
+          })
+          .mockReturnValueOnce(older.promise)
+          .mockResolvedValueOnce({
+            items: [alertFixture('alert_current', 'alert.provider_connection_lost.matched')],
+            page: { has_more: false, limit: 100 },
+          });
+        const api: ProductApi = { ...productApi, listAlerts };
+        const store = createAuthenticatedAuthStore();
+        const view = (sourceId: string) => (
+          <LocaleProvider defaultLocale="en">
+            <AuthProvider store={store}>
+              <ProductProvider api={api} sourceId={sourceId} onSourceChange={() => {}}>
+                <ProductAlertsPage />
+              </ProductProvider>
+            </AuthProvider>
+          </LocaleProvider>
+        );
+        const user = userEvent.setup();
+        const { container, rerender } = render(view('source_demo'));
+        await user.click(await screen.findByRole('button', { name: 'Load older alerts' }));
+        if (change === 'reset')
+          act(() => {
+            streams[0]?.dispatchEvent(new Event('stream.reset.v1'));
+          });
+        else rerender(view('source_cluster'));
+        expect(await screen.findByText('Provider connection lost')).not.toBeNull();
+        await act(async () => {
+          older.resolve({
+            items: [alertFixture('alert_old')],
+            page: { has_more: false, limit: 100 },
+          });
+          await older.promise;
+        });
+        expect(container.querySelector('#alert-alert_current')).not.toBeNull();
+        expect(container.querySelector('#alert-alert_first')).toBeNull();
+        expect(container.querySelector('#alert-alert_old')).toBeNull();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    },
+  );
   it.each([
     ['en', 'Resource is unhealthy', 'Infrastructure alert'],
     ['fa', 'منبع ناسالم است', 'هشدار زیرساخت'],

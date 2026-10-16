@@ -1,6 +1,6 @@
 # Architecture
 
-Status: active 1.0 implementation; 0.1.0 baseline and 0.2.0 local checkpoint verified
+Status: active 1.0 implementation; locally verified 0.3.0 development checkpoint, with exact proof in the active evidence plan
 
 ## System shape
 
@@ -80,8 +80,12 @@ observations, topology, health, metrics, events, alerts, notifications, audit
 history, source confirmation digests and authentication throttles. The server
 wires authentication, cached product reads, collection and retention workers,
 source settings, alert evaluation/management, in-app notification reads and the
-opt-in PostgreSQL-leased generic webhook worker. Correct historical alert
-evidence and broader product settings remain later-stage work.
+opt-in PostgreSQL-leased webhook and Matrix workers. Raw collection outcomes,
+covered metric/replica windows, fenced evaluation claims and committed alert
+change metadata have explicit domain ports. Broader product settings remain work.
+The versioned demo seed uses the evaluator/lifecycle and durable fixture marker.
+See [alert and delivery boundaries](alerts-notifications.md) and
+[ADR-0012](adr/0012-durable-alert-change-replay.md).
 
 Collection is bounded by source, concurrency, page, item and aggregate deadline
 limits, with cancellation and retry backoff. Complete successful inventory
@@ -123,7 +127,8 @@ metric view requests three names per resource; collection requests all nine
 supported names and stores 54 fixture samples across the six resources. Provider
 tail/watch capabilities are explicitly unsupported. Authenticated HTTP SSE sends
 bounded polled snapshots; it does not prove a native provider watch or durable
-alert-change feed.
+provider event feed. Alert SSE is a separate PostgreSQL-backed committed change
+feed, including demo alerts; it does not depend on provider watch support.
 
 Cached metric status is conservative at source/port level. A mix of supported,
 unsupported, denied or failed resource metric sets can produce partial metrics.
@@ -177,8 +182,10 @@ The cluster chart uses an external PostgreSQL Secret, one API replica with a Rea
 
 CI defines locked package installation, full code verification, a real PostgreSQL integration service, Compose model validation, chart lint, and both image builds. These definitions are not target-environment proof until they run successfully in the release system.
 
-Both code/deploy jobs passed for the 0.1.0 tagged revision, including Linux race
-tests and image builds; see [exact run evidence](implementation-plan.md).
+Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
+Linux race tests and image builds; see [exact run evidence](implementation-plan.md).
+The verified 0.3.0 checkpoint stays local under the current no-push rule and has no new
+remote CI claim.
 Compose startup, cluster installation and live provider checks remain open.
 
 ## Security and reliability rules
@@ -194,12 +201,12 @@ Compose startup, cluster installation and live provider checks remain open.
 
 ## Current limits
 
-- Fixed operator profiles, persisted enabled state, collection/retry scheduling and cached observation reads are implemented in the 0.2 checkpoint. Local/PostgreSQL/native gates passed; tagged CI and target proof are separate.
+- Fixed operator profiles, persisted enabled state, collection/retry scheduling and cached observation reads are implemented in the tagged 0.2 checkpoint. Local/PostgreSQL/native and exact tagged CI results are recorded separately; target proof remains open.
 - Browser source creation, endpoint/path/credential editing, operator-reference rotation and configurable retention are not implemented.
 - Audit retains all rows. Quotas, protected cleanup and archive/export policy remain stage 6 work.
 - Production restricted Docker access and namespace-scoped Kubernetes fidelity remain stage 5 work.
-- Alert predicate implementations do not yet prove correct historical windows, restart rates or connection/event evidence; stage 3 owns these corrections.
-- Generic webhook delivery is opt-in and locally verified; a real receiver run remains target-environment proof.
+- Covered alert evidence and durable replay are implemented in the locally verified 0.3 checkpoint; unsupported or incomplete windows stay unknown. Full local and separately named disposable/Helm proof passed; exact outcomes live in the evidence plan.
+- Webhook and Matrix are opt-in. Disposable local HTTPS proof and live operator receiver proof are separate; no live production receiver claim follows from unit or SQL tests.
 - Guarded operations are not live.
 - Real local PostgreSQL 17.11 tests and a native backup/restore drill ran on a disposable private cluster. Helm 3.17.3 lint/render ran locally. Container startup, real browser geometry, live Docker/Kubernetes and target production drills are still unproved.
 - The current separate static web edge and custom fixed HTTP collectors differ from ADR-0001 built-web serving and ADR-0002 vendor clients. Stage 5/7 must align these implementations with accepted decisions, or obtain a justified superseding decision before 1.0.

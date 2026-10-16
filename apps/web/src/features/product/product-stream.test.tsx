@@ -42,7 +42,7 @@ describe('product stream', () => {
     act(() => {
       stream?.dispatchEvent(new Event('stream.reset.v1'));
     });
-    expect(result.current.status).toBe('stale');
+    expect(result.current).toEqual({ revision: 2, status: 'stale' });
     act(() => {
       stream?.dispatchEvent(new Event('error'));
     });
@@ -50,6 +50,25 @@ describe('product stream', () => {
 
     unmount();
     expect(stream?.close).toHaveBeenCalledOnce();
+  });
+
+  it('refreshes alert reads after durable changes and replay reset', () => {
+    vi.stubGlobal('EventSource', FakeEventSource);
+    const { result, unmount } = renderHook(() => useProductStream('alerts', 'source_demo'));
+    const stream = FakeEventSource.instances[0];
+    act(() => {
+      stream?.dispatchEvent(new Event('alerts.changed.v1'));
+    });
+    expect(result.current).toEqual({ revision: 1, status: 'connected' });
+    act(() => {
+      stream?.dispatchEvent(new Event('stream.reset.v1'));
+    });
+    expect(result.current).toEqual({ revision: 2, status: 'stale' });
+    unmount();
+    act(() => {
+      stream?.dispatchEvent(new Event('alerts.changed.v1'));
+    });
+    expect(result.current.revision).toBe(2);
   });
 
   it('reports unavailable when the browser lacks stream support', () => {

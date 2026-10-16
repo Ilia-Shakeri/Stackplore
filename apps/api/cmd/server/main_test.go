@@ -577,6 +577,16 @@ type fakeDatabase struct {
 
 type fakeDeliveryDatabase struct{ *fakeDatabase }
 
+func (*fakeDeliveryDatabase) EnqueueDeliveries(context.Context, notification.DeliveryAdapter, string, int, time.Time, int) (int, error) {
+	return 0, nil
+}
+func (*fakeDeliveryDatabase) ClaimDeliveries(context.Context, notification.DeliveryAdapter, string, string, time.Time, time.Duration, int) ([]notification.DeliveryTask, error) {
+	return nil, nil
+}
+func (*fakeDeliveryDatabase) CompleteDelivery(context.Context, notification.DeliveryAdapter, string, notification.DeliveryCompletion) error {
+	return nil
+}
+
 func (*fakeDeliveryDatabase) EnqueueWebhookDeliveries(context.Context, string, int, time.Time, int) (int, error) {
 	return 0, nil
 }
@@ -615,6 +625,10 @@ func (database *fakeDatabase) ClaimDueAlertEvaluations(context.Context, time.Tim
 }
 
 func (database *fakeDatabase) SaveAlertMutation(context.Context, domain.AlertMutation) error {
+	return nil
+}
+
+func (*fakeDatabase) CompleteAlertEvaluation(context.Context, alerting.EvaluationTask, *domain.AlertMutation) error {
 	return nil
 }
 

@@ -61,6 +61,18 @@ partial-permission collection remain roadmap work. Do not grant cluster-admin.
 
 Generic webhook delivery stays off by default. For Compose, set `STACKPLORE_WEBHOOK_ENABLED=true`, a stable safe `STACKPLORE_WEBHOOK_DESTINATION_REFERENCE_ID`, an HTTPS `STACKPLORE_WEBHOOK_URL`, and a canonical unpadded base64url 32-byte `STACKPLORE_WEBHOOK_SIGNING_KEY`. For the chart, set `api.webhook.enabled=true`; place the URL and signing key under `api.webhook.urlSecretKey` and `api.webhook.signingKeySecretKey` in `api.existingSecret`. Never put either secret value in a values file. Delivery uses stable idempotency keys, fixed signed payload bytes, bounded attempts, and PostgreSQL leases. Live receiver proof remains a separate target-environment check.
 
+Matrix also defaults off. Compose forwards `STACKPLORE_MATRIX_ENABLED`,
+`STACKPLORE_MATRIX_DESTINATION_REFERENCE_ID`, `STACKPLORE_MATRIX_ORIGIN`,
+`STACKPLORE_MATRIX_ROOM_ID` and `STACKPLORE_MATRIX_ACCESS_TOKEN`. Use one exact
+canonical HTTPS origin and an existing room; discovery is disabled. In Helm,
+enable `api.matrix.enabled`, set its safe `destinationReferenceId`, and place
+origin, room and token under `originSecretKey`, `roomIdSecretKey` and
+`accessTokenSecretKey` in `api.existingSecret`. No credential belongs in values
+or rendered reports. Both lanes reject private destinations and redirects;
+preserve their logical references across restarts for stable delivery identity.
+Use a new guarded test for each lane and inspect terminal audit; queued is not
+receipt. See [notification semantics](../alerts-notifications.md).
+
 The Compose profile keeps both live sources off. The current direct Docker
 socket adapter is accepted only in an explicit loopback development profile;
 production startup rejects it. A restricted production proxy is roadmap work.

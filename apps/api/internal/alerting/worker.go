@@ -22,15 +22,19 @@ const (
 var ErrEvaluationUnavailable = errors.New("alert evaluation is unavailable")
 
 type EvaluationTask struct {
-	Rule                 domain.AlertRule
-	Source               domain.ProviderRef
-	Resource             *domain.ResourceRef
-	Current              *domain.Alert
-	AcknowledgedByUserID *domain.UserID
-	DedupeKey            string
-	Synthetic            bool
-	ClaimedAt            time.Time
-	NextEvaluationAt     time.Time
+	Rule                       domain.AlertRule
+	Source                     domain.ProviderRef
+	Resource                   *domain.ResourceRef
+	Current                    *domain.Alert
+	AcknowledgedByUserID       *domain.UserID
+	DedupeKey                  string
+	Synthetic                  bool
+	ClaimedAt                  time.Time
+	NextEvaluationAt           time.Time
+	RuleVersion                int64
+	SourceConfigurationVersion int64
+	ClaimGeneration            int64
+	LeaseExpiresAt             time.Time
 }
 
 func (task EvaluationTask) Validate() error {
@@ -79,12 +83,15 @@ func (task EvaluationTask) Validate() error {
 	if err := validateEvaluationTime(task.NextEvaluationAt); err != nil || !task.NextEvaluationAt.After(task.ClaimedAt) {
 		return fmt.Errorf("alert task next evaluation time is invalid")
 	}
+	if task.RuleVersion < 1 || task.SourceConfigurationVersion < 1 || task.ClaimGeneration < 1 || validateEvaluationTime(task.LeaseExpiresAt) != nil || !task.LeaseExpiresAt.After(task.ClaimedAt) {
+		return fmt.Errorf("alert task lease is invalid")
+	}
 	return nil
 }
 
 type TaskStore interface {
 	ClaimDueAlertEvaluations(context.Context, time.Time, int) ([]EvaluationTask, error)
-	domain.AlertMutationRepository
+	CompleteAlertEvaluation(context.Context, EvaluationTask, *domain.AlertMutation) error
 }
 
 type EvidenceResolver interface {
@@ -163,38 +170,46 @@ func (worker *Worker) RunOnce(ctx context.Context) error {
 	if worker == nil || ctx == nil || ctx.Err() != nil {
 		return ErrEvaluationUnavailable
 	}
-	now := worker.now().UTC().Truncate(time.Microsecond)
-	if err := validateEvaluationTime(now); err != nil {
-		return ErrEvaluationUnavailable
-	}
-	tasks, err := worker.store.ClaimDueAlertEvaluations(ctx, now, worker.batchSize)
-	if err != nil {
-		return errors.Join(ErrEvaluationUnavailable, err)
-	}
-	if len(tasks) > worker.batchSize {
-		return ErrEvaluationUnavailable
-	}
-	for _, task := range tasks {
+	// Claim only when ready to read. A slow earlier task must not age later leases.
+	for range worker.batchSize {
+		if ctx.Err() != nil {
+			return errors.Join(ErrEvaluationUnavailable, ctx.Err())
+		}
+		now := worker.now().UTC().Truncate(time.Microsecond)
+		if err := validateEvaluationTime(now); err != nil {
+			return ErrEvaluationUnavailable
+		}
+		tasks, err := worker.store.ClaimDueAlertEvaluations(ctx, now, 1)
+		if err != nil {
+			return errors.Join(ErrEvaluationUnavailable, err)
+		}
+		if len(tasks) > 1 {
+			return ErrEvaluationUnavailable
+		}
+		if len(tasks) == 0 {
+			return nil
+		}
+		task := tasks[0]
 		if err := task.Validate(); err != nil {
 			worker.onError(errors.Join(ErrEvaluationUnavailable, err))
 			continue
 		}
 		readContext, cancel := context.WithTimeout(ctx, worker.readTimeout)
 		condition, err := worker.evidence.ResolveAlertEvidence(readContext, task, now)
+		if err == nil {
+			err = readContext.Err()
+		}
 		cancel()
+		var mutation *domain.AlertMutation
+		if err == nil {
+			mutation, err = worker.buildMutation(task, condition, now)
+		}
 		if err != nil {
+			mutation = nil
 			worker.onError(errors.Join(ErrEvaluationUnavailable, err))
-			continue
 		}
-		mutation, err := worker.buildMutation(task, condition, now)
-		if err != nil {
-			worker.onError(errors.Join(ErrEvaluationUnavailable, err))
-			continue
-		}
-		if mutation == nil {
-			continue
-		}
-		if err := worker.store.SaveAlertMutation(ctx, *mutation); err != nil {
+		// Unknown evidence changes no alert state, but still releases its claim.
+		if err := worker.store.CompleteAlertEvaluation(ctx, task, mutation); err != nil {
 			worker.onError(errors.Join(ErrEvaluationUnavailable, err))
 		}
 	}
@@ -203,7 +218,8 @@ func (worker *Worker) RunOnce(ctx context.Context) error {
 
 func (worker *Worker) buildMutation(task EvaluationTask, condition ConditionResult, now time.Time) (*domain.AlertMutation, error) {
 	alertID := domain.AlertID("")
-	if task.Current == nil {
+	newEpisode := task.Current == nil || task.Current.State == domain.AlertResolved
+	if newEpisode {
 		var err error
 		alertID, err = worker.identifiers.NewAlertID()
 		if err != nil {
@@ -224,13 +240,13 @@ func (worker *Worker) buildMutation(task EvaluationTask, condition ConditionResu
 		Alert: *result.Alert, DedupeKey: task.DedupeKey,
 		AcknowledgedByUserID: task.AcknowledgedByUserID,
 	}
-	if task.Current != nil {
+	if task.Current != nil && !newEpisode {
 		expectedAt := task.Current.UpdatedAt
 		expectedState := task.Current.State
 		mutation.ExpectedUpdatedAt = &expectedAt
 		mutation.ExpectedState = &expectedState
 	}
-	if task.Current == nil || result.Previous != nil && *result.Previous != result.Alert.State {
+	if newEpisode || result.Previous != nil && *result.Previous != result.Alert.State {
 		transitionID, err := worker.identifiers.NewTransitionID()
 		if err != nil {
 			return nil, err
@@ -239,6 +255,10 @@ func (worker *Worker) buildMutation(task EvaluationTask, condition ConditionResu
 			ID: transitionID, AlertID: result.Alert.ID, From: result.Previous, To: result.Alert.State,
 			OccurredAt: now, Actor: domain.AuditActor{Kind: domain.AuditActorSystem},
 			ReasonCode: transitionReason(result.Alert.State), EvidenceRange: result.Alert.EvidenceRange,
+		}
+		if newEpisode {
+			transition.From = nil
+			mutation.AcknowledgedByUserID = nil
 		}
 		mutation.Transition = &transition
 		if result.Alert.State == domain.AlertFiring || result.Alert.State == domain.AlertResolved {

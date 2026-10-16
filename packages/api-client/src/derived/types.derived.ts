@@ -436,6 +436,9 @@ export type AlertRuleInput = {
     'greater_than' | 'greater_than_or_equal' | 'less_than' | 'less_than_or_equal' | 'equal';
   threshold_value?: number;
   threshold_count?: number;
+  /**
+   * Covered window; CPU/memory and unavailable replicas use time-weighted means, restart uses observed positive increments. Missing coverage is unknown.
+   */
   window_seconds?: number;
   minimum_event_severity?: EventSeverity;
   evaluation_interval_seconds: number;
@@ -463,6 +466,9 @@ export type AlertRuleRecord = {
     'greater_than' | 'greater_than_or_equal' | 'less_than' | 'less_than_or_equal' | 'equal';
   threshold_value?: number;
   threshold_count?: number;
+  /**
+   * Covered window; CPU/memory and unavailable replicas use time-weighted means, restart uses observed positive increments. Missing coverage is unknown.
+   */
   window_seconds?: number;
   minimum_event_severity?: EventSeverity;
   evaluation_interval_seconds: number;
@@ -510,6 +516,7 @@ export type NotificationSettingsStatus =
  * Enabled generic webhook with only its safe operator reference exposed.
  */
 export type ConfiguredNotificationSettingsStatus = {
+  matrix: MatrixNotificationSettingsStatus;
   adapter: 'generic_webhook';
   enabled: true;
   destination_reference_id: string;
@@ -521,10 +528,66 @@ export type ConfiguredNotificationSettingsStatus = {
  * Disabled generic webhook with no destination material exposed.
  */
 export type DisabledNotificationSettingsStatus = {
+  matrix: MatrixNotificationSettingsStatus;
   adapter: 'generic_webhook';
   enabled: false;
   configuration_source: 'operator_environment';
   delivery_semantics: 'at_least_once';
+};
+
+/**
+ * Secret-free Matrix delivery status; origin, room, and access token stay with the operator.
+ */
+export type MatrixNotificationSettingsStatus =
+  ConfiguredMatrixNotificationSettingsStatus | DisabledMatrixNotificationSettingsStatus;
+
+/**
+ * Enabled Matrix lane and safe reference.
+ */
+export type ConfiguredMatrixNotificationSettingsStatus = {
+  adapter: 'matrix';
+  enabled: true;
+  destination_reference_id: string;
+};
+
+/**
+ * Disabled Matrix lane.
+ */
+export type DisabledMatrixNotificationSettingsStatus = {
+  adapter: 'matrix';
+  enabled: false;
+};
+
+/**
+ * Committed source-scoped change metadata; refetch authoritative paginated HTTP data.
+ */
+export type ProductAlertChange = {
+  id: string;
+  source_id: SourceId;
+  rule_id: AlertRuleId;
+  alert_id?: AlertId;
+  kind: 'alert.changed' | 'rule.created' | 'rule.changed' | 'rule.deleted';
+  occurred_at: Timestamp;
+};
+
+/**
+ * alerts.changed.v1 SSE data. Frame ID equals last committed change ID in data.
+ */
+export type ProductAlertChangesEnvelope = {
+  version: 1;
+  topic: 'alerts';
+  observed_at: Timestamp;
+  data: Array<ProductAlertChange>;
+};
+
+/**
+ * alerts.snapshot.v1 SSE data; data is a bounded first page, never a complete-list claim.
+ */
+export type ProductAlertSnapshotEnvelope = {
+  version: 1;
+  topic: 'alerts';
+  observed_at: Timestamp;
+  data: ProductAlertPage;
 };
 
 /**
@@ -1720,6 +1783,11 @@ export type Problem = {
   detail?: OptionalDisplayText;
   invalid_parameters?: Array<InvalidParameter>;
 };
+
+/**
+ * Exact operator-owned adapter lane; omission selects generic_webhook.
+ */
+export type NotificationTestAdapter = 'generic_webhook' | 'matrix';
 
 /**
  * Optional safe caller correlation identifier. Invalid values are replaced.
@@ -4002,7 +4070,12 @@ export type TestNotificationDeliveryData = {
     'X-Request-ID'?: RequestId;
   };
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * Exact operator-owned adapter lane; omission selects generic_webhook.
+     */
+    adapter?: 'generic_webhook' | 'matrix';
+  };
   url: '/settings/notifications/test';
 };
 

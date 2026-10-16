@@ -20,6 +20,7 @@ import { Button, TechnicalText } from '@stackplore/ui';
 import { Link } from '@tanstack/react-router';
 import {
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type ReactNode,
@@ -383,44 +384,64 @@ export function ProductAlertsPage() {
   const [moreFailed, setMoreFailed] = useState(false);
   const [acknowledging, setAcknowledging] = useState<string | null>(null);
   const [ackFailed, setAckFailed] = useState<string | null>(null);
+  const loadGeneration = useRef(0);
   const { snapshot } = useAuth();
   const administrator =
     snapshot.status === 'authenticated' && snapshot.user.role === 'administrator';
 
   useEffect(() => {
     const controller = new AbortController();
+    const generation = ++loadGeneration.current;
     setState({ kind: 'loading' });
+    setLoadingMore(false);
+    setMoreFailed(false);
     void api.listAlerts({ signal: controller.signal, ...sourceOptions(selectedSource) }).then(
       (page) => {
-        setState({ kind: 'ready', data: page });
+        if (!controller.signal.aborted && generation === loadGeneration.current) {
+          setState({ kind: 'ready', data: page });
+        }
       },
       (error: unknown) => {
-        if (!(error instanceof DOMException && error.name === 'AbortError'))
+        if (
+          !controller.signal.aborted &&
+          generation === loadGeneration.current &&
+          !(error instanceof DOMException && error.name === 'AbortError')
+        )
           setState({ kind: 'error' });
       },
     );
     return () => {
       controller.abort();
+      loadGeneration.current++;
     };
   }, [api, selectedSource, stream.revision]);
 
   const loadMore = async () => {
     if (state.kind !== 'ready' || !state.data.page.has_more || loadingMore) return;
+    const generation = loadGeneration.current;
+    const cursor = state.data.page.next_cursor;
     setLoadingMore(true);
     setMoreFailed(false);
     try {
       const next = await api.listAlerts({
-        cursor: state.data.page.next_cursor,
+        cursor,
         ...sourceOptions(selectedSource),
       });
-      setState({
-        kind: 'ready',
-        data: { items: [...state.data.items, ...next.items], page: next.page },
-      });
+      if (generation !== loadGeneration.current) return;
+      setState((current) =>
+        current.kind === 'ready' &&
+        current.data.page.has_more &&
+        current.data.page.next_cursor === cursor
+          ? {
+              kind: 'ready',
+              data: { items: [...current.data.items, ...next.items], page: next.page },
+            }
+          : current,
+      );
     } catch {
-      setMoreFailed(true);
+      if (generation === loadGeneration.current) setMoreFailed(true);
     } finally {
-      setLoadingMore(false);
+      if (generation === loadGeneration.current) setLoadingMore(false);
     }
   };
   const acknowledge = async (alertId: string) => {
@@ -429,13 +450,19 @@ export function ProductAlertsPage() {
     setAckFailed(null);
     try {
       const updated = await api.acknowledgeAlert(alertId);
-      setState({
-        kind: 'ready',
-        data: {
-          ...state.data,
-          items: state.data.items.map((item) => (item.id === updated.id ? updated : item)),
-        },
-      });
+      setState((current) =>
+        current.kind === 'ready'
+          ? {
+              kind: 'ready',
+              data: {
+                ...current.data,
+                items: current.data.items.map((item) =>
+                  item.id === updated.id && item.state === 'firing' ? updated : item,
+                ),
+              },
+            }
+          : current,
+      );
     } catch {
       setAckFailed(alertId);
     } finally {

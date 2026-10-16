@@ -8,8 +8,22 @@ import (
 const WebhookAdapter = "generic_webhook"
 
 type RuntimeSettings struct {
-	Enabled                bool
-	DestinationReferenceID string
+	Enabled                      bool
+	DestinationReferenceID       string
+	MatrixEnabled                bool
+	MatrixDestinationReferenceID string
+}
+
+func NewCombinedRuntimeSettings(webhookEnabled bool, webhookReference string, matrixEnabled bool, matrixReference string) (*RuntimeSettings, error) {
+	settings, err := NewRuntimeSettings(webhookEnabled, webhookReference)
+	if err != nil {
+		return nil, err
+	}
+	if matrixEnabled && !validDeliveryID(matrixReference) || !matrixEnabled && matrixReference != "" || matrixEnabled && webhookEnabled && matrixReference == webhookReference {
+		return nil, ErrDeliveryUnavailable
+	}
+	settings.MatrixEnabled, settings.MatrixDestinationReferenceID = matrixEnabled, matrixReference
+	return settings, nil
 }
 
 func NewRuntimeSettings(enabled bool, destinationReferenceID string) (*RuntimeSettings, error) {

@@ -90,6 +90,17 @@ WHERE resource_id=$7`, int64(workload.Desired), int64(workload.Ready), string(st
 			if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
 				return err
 			}
+			if _, err := transaction.transaction.Exec(ctx, `DELETE FROM workload_replica_history WHERE resource_id=$1 AND capture_generation=$2 AND reason_code='source.replicas_unavailable'`, string(workload.Resource.ID), batch.Token.Generation); err != nil {
+				return err
+			}
+			result, err = transaction.transaction.Exec(ctx, `INSERT INTO workload_replica_history(resource_id,sampled_at_us,desired_replicas,ready_replicas,availability,completeness,reason_code,capture_generation) VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+ON CONFLICT(resource_id,sampled_at_us) DO UPDATE SET resource_id=workload_replica_history.resource_id
+WHERE workload_replica_history.desired_replicas=EXCLUDED.desired_replicas AND workload_replica_history.ready_replicas=EXCLUDED.ready_replicas
+AND workload_replica_history.availability=EXCLUDED.availability AND workload_replica_history.completeness=EXCLUDED.completeness
+AND workload_replica_history.reason_code IS NOT DISTINCT FROM EXCLUDED.reason_code`, string(workload.Resource.ID), status.ObservedAt.UnixMicro(), int64(workload.Desired), int64(workload.Ready), string(status.State), string(status.Completeness), optionalString(string(status.ReasonCode)), batch.Token.Generation)
+			if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
+				return err
+			}
 		}
 		for _, relationship := range batch.Relationships {
 			if err := saveCapturedRelationship(ctx, transaction.transaction, batch.Token, relationship); err != nil {
@@ -148,6 +159,19 @@ WHERE environments.source_id=EXCLUDED.source_id AND environments.provider=EXCLUD
 func saveCapturedResource(ctx context.Context, transaction pgx.Tx, token domain.CaptureToken, snapshot domain.ResourceSnapshot) error {
 	resource, status := snapshot.Resource, snapshot.Status
 	identity := resource.Ref.Identity
+	var refresh bool
+	var hadReplicas bool
+	err := transaction.QueryRow(ctx, `SELECT resource.capture_generation<>$2,snapshot.desired_replicas IS NOT NULL FROM resources AS resource LEFT JOIN resource_snapshots AS snapshot ON snapshot.resource_id=resource.id WHERE resource.id=$1`, string(resource.Ref.ID), token.Generation).Scan(&refresh, &hadReplicas)
+	if errors.Is(err, pgx.ErrNoRows) {
+		refresh = true
+	} else if err != nil {
+		return err
+	}
+	if refresh && hadReplicas {
+		if _, err := transaction.Exec(ctx, `INSERT INTO workload_replica_history(resource_id,capture_generation,sampled_at_us,desired_replicas,ready_replicas,availability,completeness,reason_code) VALUES($1,$2,$3,0,0,'unavailable','complete','source.replicas_unavailable') ON CONFLICT(resource_id,sampled_at_us) DO NOTHING`, string(resource.Ref.ID), token.Generation, token.ObservedAt.UnixMicro()); err != nil {
+			return err
+		}
+	}
 	result, err := transaction.Exec(ctx, `INSERT INTO resources
 (id,source_id,provider,environment_id,kind,scope_kind,scope_name,native_id,synthetic,first_seen_at_us,last_seen_at_us,capture_generation)
 VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,$11)
@@ -166,6 +190,9 @@ VALUES($1,$2,$3,$4,$5,$6,$7)
 ON CONFLICT(resource_id) DO UPDATE SET display_name=EXCLUDED.display_name,resource_version=EXCLUDED.resource_version,
 availability=EXCLUDED.availability,completeness=EXCLUDED.completeness,observed_at_us=EXCLUDED.observed_at_us,
 reason_code=EXCLUDED.reason_code,row_version=resource_snapshots.row_version+1`, string(resource.Ref.ID), resource.DisplayName, resource.Version, string(status.State), string(status.Completeness), status.ObservedAt.UnixMicro(), optionalString(string(status.ReasonCode)))
+	if err == nil && refresh {
+		_, err = transaction.Exec(ctx, `UPDATE resource_snapshots SET desired_replicas=NULL,ready_replicas=NULL,replicas_availability=NULL,replicas_completeness=NULL,replicas_observed_at_us=NULL,replicas_reason_code=NULL WHERE resource_id=$1`, string(resource.Ref.ID))
+	}
 	return err
 }
 
@@ -268,6 +295,9 @@ func (store *Store) FinishCapture(ctx context.Context, completion domain.Capture
 		if !completion.Complete && status.AllowsData() && status.Completeness == domain.CompletenessComplete {
 			status.Completeness = domain.CompletenessPartial
 			status.ReasonCode = "source.collection_partial"
+		}
+		if err := saveCollectionOutcome(ctx, transaction, completion, status); err != nil {
+			return err
 		}
 		if _, err := transaction.transaction.Exec(ctx, `INSERT INTO source_status(source_id,availability,completeness,observed_at_us,reason_code)
 VALUES($1,$2,$3,$4,$5) ON CONFLICT(source_id) DO UPDATE SET availability=EXCLUDED.availability,

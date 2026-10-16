@@ -65,6 +65,11 @@ const (
 	webhookReferenceKey         = prefix + "WEBHOOK_DESTINATION_REFERENCE_ID"
 	webhookURLKey               = prefix + "WEBHOOK_URL"
 	webhookSigningKeyKey        = prefix + "WEBHOOK_SIGNING_KEY"
+	matrixEnabledKey            = prefix + "MATRIX_ENABLED"
+	matrixReferenceKey          = prefix + "MATRIX_DESTINATION_REFERENCE_ID"
+	matrixOriginKey             = prefix + "MATRIX_ORIGIN"
+	matrixRoomIDKey             = prefix + "MATRIX_ROOM_ID"
+	matrixAccessTokenKey        = prefix + "MATRIX_ACCESS_TOKEN"
 
 	// This variable belongs to the browser development process and is allowed
 	// in the shared process environment without becoming server configuration.
@@ -212,6 +217,11 @@ type Config struct {
 	WebhookDestinationReferenceID string
 	WebhookURL                    SensitiveString
 	WebhookSigningKey             Secret
+	MatrixEnabled                 bool
+	MatrixDestinationReferenceID  string
+	MatrixOrigin                  SensitiveString
+	MatrixRoomID                  SensitiveString
+	MatrixAccessToken             SensitiveString
 }
 
 // Secret keeps one fixed-size process secret out of formatted configuration.
@@ -354,6 +364,9 @@ func Load(getter Getter) (Config, error) {
 	if result.WebhookEnabled, result.WebhookDestinationReferenceID, result.WebhookURL, result.WebhookSigningKey, err = loadWebhook(getter); err != nil {
 		return Config{}, err
 	}
+	if err := loadMatrix(getter, &result); err != nil {
+		return Config{}, err
+	}
 
 	durationFields := []struct {
 		key     string
@@ -491,6 +504,9 @@ func Validate(result Config) error {
 	if err := validateWebhook(result); err != nil {
 		return err
 	}
+	if err := validateMatrix(result); err != nil {
+		return err
+	}
 
 	durations := []struct {
 		key     string
@@ -614,6 +630,7 @@ func validateEnvironmentKeys(entries []string) error {
 		mutationsEnabledKey: {}, dockerWriteEnabledKey: {}, kubernetesWriteEnabledKey: {},
 		setupBootstrapProofKey: {}, setupBootstrapExpiryKey: {}, developmentAPIOriginKey: {},
 		webhookEnabledKey: {}, webhookReferenceKey: {}, webhookURLKey: {}, webhookSigningKeyKey: {},
+		matrixEnabledKey: {}, matrixReferenceKey: {}, matrixOriginKey: {}, matrixRoomIDKey: {}, matrixAccessTokenKey: {},
 	}
 	seen := make(map[string]struct{}, len(allowed))
 	for _, entry := range entries {
@@ -810,8 +827,20 @@ func validWebhookURL(value string) bool {
 		return false
 	}
 	parsed, err := url.Parse(value)
-	return err == nil && parsed.Scheme == "https" && parsed.Hostname() != "" && parsed.User == nil &&
-		parsed.Fragment == "" && parsed.String() == value
+	if err != nil || parsed.Scheme != "https" || !validHost(parsed.Hostname()) || parsed.Opaque != "" || parsed.User != nil ||
+		strings.Contains(value, "#") || parsed.ForceQuery || parsed.String() != value {
+		return false
+	}
+	if port := parsed.Port(); port != "" {
+		if !canonicalPort(port) {
+			return false
+		}
+		number, err := strconv.ParseUint(port, 10, 16)
+		if err != nil || number == 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func validConfigToken(value string) bool {
