@@ -1,0 +1,6 @@
+{
+  "label": "Connection and application updates",
+  "offline": "Network offline. Live infrastructure data may be unavailable. Reconnect to refresh.",
+  "update": "An application update is ready. Save your changes before reloading.",
+  "reload": "Reload to update"
+}

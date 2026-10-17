@@ -70,6 +70,10 @@ func applyFixedHeaders(header http.Header, path string, status int, requestID st
 		header.Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 		if strings.HasPrefix(path, "/assets/") {
 			header.Set("Cache-Control", "public, max-age=31536000, immutable")
+		} else if path == "/offline.html" || path == "/offline.css" || path == "/offline.js" || path == "/brand/stackplore-favicon.svg" {
+			header.Set("Cache-Control", "public, max-age=0, must-revalidate")
+		} else if path == "/sw.js" || path == "/manifest.webmanifest" {
+			header.Set("Cache-Control", "no-cache")
 		}
 	}
 	header.Set("Cross-Origin-Resource-Policy", "same-origin")
@@ -90,6 +94,8 @@ func applyFixedHeaders(header http.Header, path string, status int, requestID st
 		// The embedded asset handler sets the MIME type from the trusted filename.
 	case path == "/metrics" && status >= 200 && status < 300:
 		header.Set("Content-Type", metricsContentType)
+	case path == "/api/v1/logs/download" && status >= 200 && status < 300:
+		header.Set("Content-Type", "text/plain; charset=utf-8")
 	case isStreamPath(path) && status >= 200 && status < 300:
 		header.Set("Content-Type", "text/event-stream; charset=utf-8")
 	case path == "/api/v1" || strings.HasPrefix(path, "/api/v1/"):

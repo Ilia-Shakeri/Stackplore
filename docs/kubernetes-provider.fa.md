@@ -46,6 +46,40 @@ namespace مجاز با نام خوانده می‌شود. سایر فهرست�
 هستند. شناسه namespace از UID است؛ حذف و ساخت دوباره، هویت را عوض می‌کند.
 دسترسی به API دلیل سلامت خوشه نیست؛ سلامت خوشه بدون شاهد، نامعلوم می‌ماند.
 
+## kubeconfig نصب‌شده و context
+
+برای مشاهدهٔ خوشه از بیرون، اپراتور نمایهٔ نصب‌شدهٔ فقط‌خواندنی را می‌دهد:
+
+```dotenv
+STACKPLORE_KUBERNETES_ENABLED=true
+STACKPLORE_KUBERNETES_NAMESPACES=shop,ops
+STACKPLORE_KUBERNETES_ACCESS_PROFILE=kubernetes_kubeconfig
+STACKPLORE_KUBERNETES_KUBECONFIG_FILE=/run/stackplore/kubernetes/config.yaml
+STACKPLORE_KUBERNETES_REFERENCE_ROOTS=/run/stackplore/kubernetes
+STACKPLORE_KUBERNETES_CONTEXT=observed-cluster
+```
+
+فایل با `apiVersion: v1` و `kind: Config` است. cluster یک `server` با origin
+دقیق HTTPS و ارجاع فایل `certificate-authority` دارد. user فقط `tokenFile` یا
+جفت `client-certificate` و `client-key` دارد. مسیر نسبی کنار kubeconfig حل می‌شود؛
+مسیر مطلق هم باید زیر ریشهٔ مجاز باشد. جداکنندهٔ چند ریشه در Linux `:` و در
+Windows `;` است. اگر context صریح داده نشود، `current-context` انتخاب می‌شود.
+namespace داخل context اختیاری است؛ فهرست namespace پیکربندی دامنه را تعیین می‌کند.
+
+سقف فایل و CA/گواهی/کلید هرکدام ۱ MiB و توکن ۱۶ KiB است. تمام contextها از نظر
+inline secret/CA، افزونهٔ اجرا یا auth-provider، basic، proxy، impersonation،
+تغییر نام TLS، TLS ناامن، extension، کلید ناشناخته و چند سند بررسی و رد می‌شوند.
+تمام symlinkها، فایل ویژه و ارجاع بیرون ریشه‌ها رد می‌شوند. مسیر پیش‌فرض اعتبارنامه
+یا fallback محیط اجرا نمی‌شود. TLS نام endpoint و CA انتخاب‌شده را می‌سنجد.
+مرز ثابت endpoint خواندن و namespace در transport باقی می‌ماند.
+
+پایگاه فقط شناسهٔ نمایه و digest اختیار را نگه می‌دارد؛ متن فایل، endpoint، مسیر
+یا اعتبارنامه ذخیره نمی‌شود. تغییر نمایه، context یا پیکربندی بی‌راز، cache قدیم
+را می‌بندد تا جمع‌آوری تازه منتشر شود. تغییر kubeconfig، CA یا گواهی به restart
+نیاز دارد؛ token-file با قاعدهٔ محدود قبلی نوسازی می‌شود. این نمایه
+`KUBERNETES_WRITE_ENABLED=true` را رد می‌کند. writer درون خوشه مجوز جدا می‌خواهد.
+چارت بسته‌بندی‌شده همچنان نمایهٔ درون خوشه نصب می‌کند؛ mount بیرونی با اپراتور است.
+
 ## مجوز Helm
 
 ```yaml

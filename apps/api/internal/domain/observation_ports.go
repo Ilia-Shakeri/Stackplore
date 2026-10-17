@@ -13,6 +13,7 @@ const (
 	SourceProfileDockerSocketDevelopment SourceProfileID = "docker_socket_dev"
 	SourceProfileDockerRestrictedProxy   SourceProfileID = "docker_restricted_proxy"
 	SourceProfileKubernetesInCluster     SourceProfileID = "kubernetes_incluster"
+	SourceProfileKubernetesKubeconfig    SourceProfileID = "kubernetes_kubeconfig"
 )
 
 // SourceConfiguration stores only a known operator profile and safe source metadata.
@@ -38,7 +39,7 @@ func (configuration SourceConfiguration) Validate() error {
 		ProviderDocker:     SourceProfileDockerSocketDevelopment,
 		ProviderKubernetes: SourceProfileKubernetesInCluster,
 	}
-	profileAllowed := configuration.ProfileID == expected[configuration.Source.Provider] || configuration.Source.Provider == ProviderDocker && configuration.ProfileID == SourceProfileDockerRestrictedProxy
+	profileAllowed := configuration.ProfileID == expected[configuration.Source.Provider] || configuration.Source.Provider == ProviderDocker && configuration.ProfileID == SourceProfileDockerRestrictedProxy || configuration.Source.Provider == ProviderKubernetes && configuration.ProfileID == SourceProfileKubernetesKubeconfig
 	if !profileAllowed ||
 		configuration.Source.Synthetic != (configuration.Source.Provider == ProviderDemo) {
 		return ErrRepositoryInvalidInput

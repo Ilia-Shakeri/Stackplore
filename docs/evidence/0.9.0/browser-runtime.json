@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "scope": "Working-tree 0.9.0 production bundle and Go1.26.9 Windows amd64 server on disposable PostgreSQL; not final tag or customer deployment",
+  "status": "passed",
+  "tests": 14,
+  "guest_tests": 12,
+  "authenticated_tests": 2,
+  "route_states": 64,
+  "profiles": 8,
+  "locales": [
+    "en",
+    "fa"
+  ],
+  "widths": [
+    360,
+    1280
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "browser": "Chrome 155.0.8059.41",
+  "go": "1.26.9",
+  "server_sha256": "3c5df28fa5e11976caecec80b62ee4859c49b37f81df91274c0649e32aae4d5d",
+  "checks": [
+    "Loaded inventory, graph, metric chart, logs, events, alerts, notifications and search states",
+    "Automated WCAG2.2AA rules, overflow, reduced motion and actual public screenshots",
+    "Public-only four-path offline cache and keyboard retry with no infrastructure content",
+    "Regular profile installability has zero errors",
+    "Explicit worker update acceptance and real reload",
+    "80 paced concurrent reads with all successful bounded envelopes; no production capacity claim",
+    "Real setup, recent authentication, user role boundary, audit, health history, log download and logout in both locales",
+    "After private reads, cache still contains exactly four public shell paths"
+  ],
+  "screenshots": [
+    {
+      "file": "screenshots/overview-en-1280-dark.png",
+      "sha256": "dfdfe3cfa529459d59663d237d9f3224ef5f2f0d257ab1bdb002342c4d2a24dd"
+    },
+    {
+      "file": "screenshots/overview-en-1280-light.png",
+      "sha256": "93b4920c37297e5da313cc0c6128e9ef52106a405f371a920fe130d3dca1bdc5"
+    },
+    {
+      "file": "screenshots/overview-en-360-dark.png",
+      "sha256": "191be1a1efbd69090fc3822fc1798f45772fec6c4e875543ff76bc3206f2d3c9"
+    },
+    {
+      "file": "screenshots/overview-en-360-light.png",
+      "sha256": "147102b2ae4ca4d4cd731dbadf2051d157204515e2ee6858fbc326fee831ae28"
+    },
+    {
+      "file": "screenshots/overview-fa-1280-dark.png",
+      "sha256": "55fa73c40c950dad6a9e160ded598ecb97d876aeaf3d319cb26efab41b1f5a39"
+    },
+    {
+      "file": "screenshots/overview-fa-1280-light.png",
+      "sha256": "04c8786811eb4d62af155ea3d67cc4497474728cf2d5cce5c6ae921f90d94989"
+    },
+    {
+      "file": "screenshots/overview-fa-360-dark.png",
+      "sha256": "a8b86a9ea7a3460f996450d532215d9e7f51f36cb247389bc1e27d2111ee08ae"
+    },
+    {
+      "file": "screenshots/overview-fa-360-light.png",
+      "sha256": "5b64fa5a3217abbca6d42ad2dd75ababe7b8317147748f09aefc6eb155568db7"
+    },
+    {
+      "file": "screenshots/topology-en-1280-dark.png",
+      "sha256": "58cc686d795c8a03036b5f7ecd82ca4870593dffac975a9c9aac6367b1e1f6e1"
+    },
+    {
+      "file": "screenshots/topology-en-1280-light.png",
+      "sha256": "fb28e249dba30bd5ebbf1cfb5c85dfedda6b2e2e09f9b60745f47d019727eafa"
+    },
+    {
+      "file": "screenshots/topology-en-360-dark.png",
+      "sha256": "49927406816a6d076e79bedbe2ebf11434f434f03e4bf033c9b495a048cad843"
+    },
+    {
+      "file": "screenshots/topology-en-360-light.png",
+      "sha256": "c8f298c08d4fd0277a7f87f29338f7ca82ac2d0f43d23ae26dead894e2706673"
+    },
+    {
+      "file": "screenshots/topology-fa-1280-dark.png",
+      "sha256": "844a0e170b70aab7de4d8da4e80cfce68855573b03af3d980734b29076b8f764"
+    },
+    {
+      "file": "screenshots/topology-fa-1280-light.png",
+      "sha256": "9219c16ef81135f3e0177b5a36a52ecd99318787459e26fe5c9ff67d2b383ff2"
+    },
+    {
+      "file": "screenshots/topology-fa-360-dark.png",
+      "sha256": "fe1a77abd29f4169fa5c5455fcb1032178244a919ca9057fdc6e24cd2f3e3a27"
+    },
+    {
+      "file": "screenshots/topology-fa-360-light.png",
+      "sha256": "025d45585893512e036eae4ccc0edab6c322047eec3a0391052b844b94748f62"
+    }
+  ],
+  "privacy": "No private screenshots, traces, credentials, cookies, authentication headers or database URLs retained"
+}

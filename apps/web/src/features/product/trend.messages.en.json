@@ -1,5 +1,22 @@
 {
   "trend.seriesCount": "{count} resource series",
   "trend.perResource": "Each line shows one resource at its actual observation times. The table identifies each resource; lines are not a fleet total.",
-  "trend.resource": "Resource"
+  "trend.resource": "Resource",
+  "insight.consumers": "Top loaded consumers",
+  "insight.health": "Health",
+  "insight.send": "Network sent bytes",
+  "insight.environments": "Environments",
+  "insight.healthHistory": "Retained health observations",
+  "insight.resourceHistory": "Resource metrics and health history",
+  "insight.navigation": "Explore this source",
+  "insight.restarts": "Restart count history",
+  "insight.empty": "No observations in this window.",
+  "insight.time": "Observed time",
+  "insight.bytes": "bytes",
+  "insight.loaded": "Ranked within the loaded observation set. Partial reads cannot prove a fleet-wide ranking.",
+  "insight.events": "Recent infrastructure events",
+  "insight.reason": "Reason",
+  "insight.availability": "Availability",
+  "insight.receive": "Network received bytes",
+  "insight.count": "count"
 }

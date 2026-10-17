@@ -8,6 +8,9 @@ const main = async () => {
   const manifest = JSON.parse(await read('package.json'));
   const version = manifest.version;
   if (!/^\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?$/.test(version)) throw new Error('Invalid release version');
+  const runtime = await read('apps/api/internal/config/audit_policy.go');
+  if (runtime.match(/\bApplicationVersion\s*=\s*"([^"]+)"/u)?.[1] !== version)
+    throw new Error('Runtime application version drift');
   for (const path of [
     'apps/web/package.json',
     'packages/ui/package.json',

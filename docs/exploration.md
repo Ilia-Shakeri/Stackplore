@@ -1,6 +1,6 @@
 # Exploring observations
 
-[فارسی](exploration.fa.md). This guide describes the 0.4.0 exploration checkpoint.
+[فارسی](exploration.fa.md). This guide describes the implemented 0.9.0 candidate.
 The [evidence plan](implementation-plan.md) records executed checks; this guide
 does not establish live Docker, Kubernetes, proxy, or deployment proof.
 
@@ -39,8 +39,11 @@ source alerts.
 
 Views request 100 items per page and keep at most 1,000 unique loaded items.
 Load next page preserves loaded rows and uses the server cursor. A failed next
-page keeps the current rows and offers a retry. A source, query, or live refresh
-cancels the old page request and discards late replies. Duplicate identifiers
+page keeps the current rows and offers a retry. A source or query change cancels
+the old page request and discards late replies. Inventory, resource health and
+topology consume stream invalidations through a five-second coalescing window.
+A live refresh refetches the loaded page depth, up to ten pages, instead of
+silently collapsing a multi-page view to its first page. Duplicate identifiers
 merge, repeated cursors fail safely, and partial/stale notices survive page
 merges. The 1,000-item notice also appears if a final page would cross that
 browser limit. Narrow server filters to inspect a smaller set. This is a bounded
@@ -63,6 +66,20 @@ bounds remain exact shareable snapshots. Charts retain
 accessible table alternatives and show missing or partial observation states.
 An observation clock, a collection clock, and a source-wide count do not prove
 that all resources were sampled at the same instant.
+
+Resource detail additionally reads exact-resource health history from
+`/api/v1/health/history`, with at most 200 samples per read and a maximum 30-day
+API lookback. The selected source must own the resource; denied current coverage
+does not authorize disclosure of old health facts. Each sample retains its own
+health, availability, completeness and time. Unsupported history remains
+unsupported, and incomplete/denied samples cannot establish a healthy state.
+
+Overview shows the five largest loaded CPU and memory consumers, environment
+links and recent loaded events. These are loaded-subset rankings, not whole-estate
+top consumers. Metric charts include CPU, memory, restart and receive/send byte
+counter histories where reported. Counters are displayed as observed counts;
+they do not become invented traffic rates. Every chart retains its table
+alternative and the source's partial/stale/unavailable notices.
 
 ## Logs
 
@@ -87,9 +104,19 @@ Search and severity apply to the **loaded lines**, and use URL parameters
 `log_q` and `severity`. Wrapping and timestamp visibility use `wrap` and
 `timestamps`. Select individual lines to copy their timestamp, severity, and
 already-redacted text. Copy failures have a visible fallback message. The
-download contains only the currently loaded lines that match the local filters,
-up to 1,000 lines, as a text file. It is not a full-history export and does not
-fetch hidden raw text. Redacted and shortened lines have explicit labels. Logs
+download instead reads `/api/v1/logs/download` on the server using the current
+source, exact resource, fixed UTC range, container/previous selection, search and
+severity. The range is frozen at download start. The server applies configured
+redaction and export permission to each continued page. It can include matching
+lines beyond the loaded browser page; it does not fetch hidden raw text.
+
+The text stream is limited to 10 seconds, 1 MiB including protocol markers,
+1,000 matching output lines, 10,000 scanned lines and 100 provider pages.
+A complete footer distinguishes completion from a safety-limited result. Missing
+or incomplete footers, malformed lines and oversized responses produce an error
+and no file. Policy denial remains an explicit denial. Changing selection or
+leaving the page cancels the download and suppresses late results. This is a
+bounded read, not an unlimited historical archive. Redacted and shortened lines have explicit labels. Logs
 are technical LTR text in both interface languages and are not stored as a
 general PostgreSQL archive.
 
@@ -121,7 +148,14 @@ at the browser boundary. Stored metadata has a separate 32 KiB bound.
 ## Events and alerts
 
 Events use the exact selected source, optional resource, and time window, with
-cursor pagination. A resource event link searches the server inventory for the
+cursor pagination. Text (`event_q` in the view, `q` in the API), severity and
+`environment_id` are URL-backed filters applied on the server before pagination.
+Cursor binding includes these filters; changing one starts a new result set.
+A source's timeline can combine native events with safe operation/alert facts.
+If that source's native `EventHistory` capability is denied, the complete event
+feed is denied and empty. The current contract does not expose the safe system
+subfeed separately and does not relax provider permission to show a mixed feed.
+A resource event link searches the server inventory for the
 opaque identifier, so it can find a resource beyond the first loaded page.
 
 Alerts load their durable history in cursor pages. The state filter uses
@@ -145,6 +179,11 @@ endpoint has not loaded cannot establish that the endpoint does not exist.
 The graph lazily loads, draws at most 200 matching nodes, and reports the graph
 limit. All loaded matching nodes remain available in the accessible list,
 including isolated nodes; that list paginates in groups of 50.
+
+Live inventory, health and relationship invalidations coalesce over five
+seconds. Refresh preserves bounded loaded page depth; a changed source/filter
+still cancels the old read. A connected graph stream is not independent proof
+that every node's provider observation is fresh or complete.
 
 Filter by environment, scope, kind, health, or search. Group by scope,
 environment, kind, or no grouping. Select a node for its details, or highlight

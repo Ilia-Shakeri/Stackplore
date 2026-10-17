@@ -51,6 +51,44 @@ restricted to the allowlist. Namespace resources use their UID, so deletion and
 recreation changes identity. Cluster reachability alone does not prove cluster
 health; the cluster resource has unknown health without such evidence.
 
+## Mounted kubeconfig and context
+
+Outside the cluster, the operator can select a mounted read-only kubeconfig:
+
+```dotenv
+STACKPLORE_KUBERNETES_ENABLED=true
+STACKPLORE_KUBERNETES_NAMESPACES=shop,ops
+STACKPLORE_KUBERNETES_ACCESS_PROFILE=kubernetes_kubeconfig
+STACKPLORE_KUBERNETES_KUBECONFIG_FILE=/run/stackplore/kubernetes/config.yaml
+STACKPLORE_KUBERNETES_REFERENCE_ROOTS=/run/stackplore/kubernetes
+STACKPLORE_KUBERNETES_CONTEXT=observed-cluster
+```
+
+The kubeconfig uses `apiVersion: v1` and `kind: Config`. Its cluster has one
+HTTPS `server` origin and a `certificate-authority` file reference. Its user
+has either `tokenFile` or paired `client-certificate` and `client-key` references.
+Relative references resolve beside the kubeconfig; absolute references must also
+remain under an approved root. Context selection is exact, or uses
+`current-context` when the environment key is absent. The configured namespace
+list determines observation authority; context namespace does not expand it.
+
+Every declared profile rejects inline secret/CA data, exec/auth-provider plugins,
+basic credentials, proxy, impersonation, TLS name overrides, insecure TLS,
+extensions, unknown keys and multi-document files. Files are bounded regular
+files; all symlinks and references outside the roots are refused. No default
+credential search or process environment credential fallback runs. TLS verifies
+the selected endpoint against the selected CA. SDK requests remain inside that
+origin and the fixed read endpoint and namespace allowlists.
+
+The application stores only profile metadata and an authority digest, never the
+kubeconfig, endpoint, file references or credentials. Switching the profile,
+context or non-secret configuration fences cached observations before new
+collection publishes. Restart after editing kubeconfig, CA or client certificate;
+token-file refresh follows the existing bounded rule. This profile rejects
+`KUBERNETES_WRITE_ENABLED=true`; use a separately reviewed in-cluster writer
+profile for the supported guarded operations. The packaged Helm chart currently
+installs the in-cluster profile; external mount layout is operator-managed.
+
 ## Helm permissions
 
 ```yaml

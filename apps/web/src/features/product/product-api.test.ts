@@ -9,6 +9,8 @@ const observedAt = '2026-08-16T08:00:00Z';
 const requestId = 'req_product_01';
 
 const response = (data: unknown) => ({ data, requestId, status: 200 });
+const logDownload = (footer = 'complete') =>
+  `# Stackplore bounded log download v1\n${observedAt} info ${resourceId} safe redacted text\n# stackplore-export: ${footer}\n`;
 const observation = () => ({
   availability: 'available',
   completeness: 'complete',
@@ -56,6 +58,54 @@ const alertRule = () => ({
 });
 
 describe('product API adapter', () => {
+  it('downloads a fixed filtered selection as bounded text without pagination parameters', async () => {
+    const request = vi
+      .fn<ApiClient['request']>()
+      .mockResolvedValue(response(logDownload('limited')));
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    const controller = new AbortController();
+    await expect(
+      api.downloadLogs({
+        sourceId: 'source_kube',
+        resourceId,
+        from: '2026-08-16T07:00:00Z',
+        to: observedAt,
+        container: 'api-v2',
+        previous: true,
+        search: 'worker',
+        severity: 'warning',
+        signal: controller.signal,
+      }),
+    ).resolves.toEqual({ text: logDownload('limited'), limited: true });
+    expect(request).toHaveBeenCalledWith({
+      path: '/logs/download',
+      responseType: 'text',
+      signal: controller.signal,
+      query: {
+        source_id: 'source_kube',
+        resource_id: resourceId,
+        from: '2026-08-16T07:00:00Z',
+        to: observedAt,
+        container: 'api-v2',
+        previous: true,
+        q: 'worker',
+        severity: 'warning',
+      },
+    });
+  });
+
+  it.each([
+    logDownload('incomplete'),
+    logDownload().replace('# stackplore-export: complete\n', ''),
+    logDownload().replace(`${observedAt} info`, 'forged info'),
+    `# Stackplore bounded log download v1\n${`${observedAt} info ${resourceId} safe\n`.repeat(1001)}# stackplore-export: complete\n`,
+  ])('rejects an incomplete or malformed download without a usable file', async (text) => {
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(response(text));
+    await expect(
+      createProductApi({ request: request as ApiClient['request'] }).downloadLogs(),
+    ).rejects.toThrow('Log download is incomplete or invalid.');
+  });
+
   it('rejects a response for another source or resource', async () => {
     const request = vi
       .fn<ApiClient['request']>()

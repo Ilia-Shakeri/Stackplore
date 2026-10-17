@@ -1,0 +1,14 @@
+# Historical synthetic log-redaction fixtures only. Exact commit/path/rule/line; new findings still fail.
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:18
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:19
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:20
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:21
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:22
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:26
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:27
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:28
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:29
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:42
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:81
+72f8e466cbf81d5e00c541ce09e60d5e886a9e81:apps/api/internal/provider/logsafe/message_test.go:generic-api-key:82
+b8448bf2016a466e522263ae32983e1f2c6af232:apps/api/internal/provider/kubernetes/provider_test.go:generic-api-key:454

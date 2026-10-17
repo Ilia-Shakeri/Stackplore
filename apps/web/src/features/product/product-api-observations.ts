@@ -241,13 +241,32 @@ export function createObservationApi(
   client: ApiClient,
 ): Pick<
   ProductApi,
-  'listEvents' | 'listLogs' | 'listMetricHistory' | 'listMetrics' | 'listTopology'
+  'downloadLogs' | 'listEvents' | 'listLogs' | 'listMetricHistory' | 'listMetrics' | 'listTopology'
 > {
   return {
     async listEvents(options = {}) {
+      if (options.environmentId !== undefined && !tokenPattern.test(options.environmentId))
+        throw new Error('Event environment is invalid.');
+      if (
+        options.search !== undefined &&
+        (options.search.length > 200 || (options.search !== '' && !isDisplayText(options.search)))
+      )
+        throw new Error('Event search is invalid.');
+      if (
+        options.severity !== undefined &&
+        !['debug', 'info', 'warning', 'error', 'critical'].includes(options.severity)
+      )
+        throw new Error('Event severity is invalid.');
       const response = await client.request<unknown>({
         path: '/events',
-        query: { ...pageQuery(options, 100), ...readQuery(options), ...timeQuery(options, 30) },
+        query: {
+          ...pageQuery(options, 100),
+          ...readQuery(options),
+          ...timeQuery(options, 30),
+          ...(options.environmentId === undefined ? {} : { environment_id: options.environmentId }),
+          ...(options.search === undefined || options.search === '' ? {} : { q: options.search }),
+          ...(options.severity === undefined ? {} : { severity: options.severity }),
+        },
         ...(options.signal === undefined ? {} : { signal: options.signal }),
       });
       return parseObservedPage(response.data, isEvent, 'Event response is invalid.');
@@ -264,6 +283,59 @@ export function createObservationApi(
         ...(options.signal === undefined ? {} : { signal: options.signal }),
       });
       return parseObservedPage(response.data, isLog, 'Log response is invalid.');
+    },
+    async downloadLogs(options = {}) {
+      const severities = ['trace', 'debug', 'info', 'warning', 'error', 'critical', 'unknown'];
+      if (
+        options.search !== undefined &&
+        (Array.from(options.search).length > 200 ||
+          (options.search !== '' && !isDisplayText(options.search)))
+      )
+        throw new Error('Log search is invalid.');
+      if (options.severity !== undefined && !severities.includes(options.severity))
+        throw new Error('Log severity is invalid.');
+      const response = await client.request<unknown>({
+        path: '/logs/download',
+        responseType: 'text',
+        query: {
+          ...readQuery(options),
+          ...timeQuery(options, 7),
+          ...logQuery(options),
+          ...(options.search === undefined || options.search === '' ? {} : { q: options.search }),
+          ...(options.severity === undefined ? {} : { severity: options.severity }),
+        },
+        ...(options.signal === undefined ? {} : { signal: options.signal }),
+      });
+      const text = response.data;
+      const header = '# Stackplore bounded log download v1\n';
+      const footer =
+        typeof text === 'string' ? /# stackplore-export: (complete|limited)\n$/u.exec(text) : null;
+      if (
+        typeof text !== 'string' ||
+        !text.startsWith(header) ||
+        footer === null ||
+        new TextEncoder().encode(text).byteLength > 1024 * 1024
+      )
+        throw new Error('Log download is incomplete or invalid.');
+      const body = text.slice(header.length, footer.index);
+      const lines = body === '' ? [] : body.endsWith('\n') ? body.slice(0, -1).split('\n') : null;
+      if (
+        lines === null ||
+        lines.length > 1000 ||
+        lines.some((line) => {
+          const fields = line.split(' ', 3);
+          return (
+            !isTimestamp(fields[0]) ||
+            !severities.includes(fields[1] ?? '') ||
+            !resourceIdPattern.test(fields[2] ?? '') ||
+            /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(
+              line.replaceAll('\u200c', '').replaceAll('\u200d', ''),
+            )
+          );
+        })
+      )
+        throw new Error('Log download is incomplete or invalid.');
+      return { text, limited: footer[1] === 'limited' };
     },
     async listMetricHistory(options = {}) {
       if (

@@ -116,6 +116,14 @@ func TestOperationDurableIntentAtomicGrantAndIdempotentReplay(t *testing.T) {
 	if err = f.store.pool.QueryRow(context.Background(), `SELECT count(*) FROM audit_entries WHERE action='infrastructure.operation' AND outcome IN('intent','success')`).Scan(&audits); err != nil || audits != 2 {
 		t.Fatalf("intent/result audit: %v", err)
 	}
+	var events int
+	if err = f.store.pool.QueryRow(context.Background(), `SELECT count(*) FROM infrastructure_events WHERE origin_kind='system' AND kind='system.operation' AND summary='Infrastructure action completed.' AND resource_id=$1`, string(f.request.Resource.ID)).Scan(&events); err != nil || events != 1 {
+		t.Fatalf("single safe timeline outcome after replay: %d, %v", events, err)
+	}
+	eventPage, eventErr := f.store.ListEvents(context.Background(), domain.EventQuery{Source: f.request.Source, Range: domain.TimeRange{Start: record.CreatedAt.Add(-time.Hour), End: record.UpdatedAt.Add(time.Second)}, Page: domain.PageRequest{Limit: 10}})
+	if eventErr != nil || len(eventPage.Events) != 1 || eventPage.Events[0].Kind != "system.operation" {
+		t.Fatalf("outcome not readable before next capture: %v", eventErr)
+	}
 	page, err := f.service.List(context.Background(), f.actor, "source_docker", domain.PageRequest{Limit: 1})
 	if err != nil || len(page.Executions) != 1 || page.Executions[0].ID != record.ID {
 		t.Fatal("bounded receipt list lost operation")

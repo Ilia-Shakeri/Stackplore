@@ -11,6 +11,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/realtime"
 	"github.com/go-chi/chi/v5"
 )
@@ -31,6 +32,7 @@ type productHTTP struct {
 	defaultID                  domain.SourceID
 	streams                    *realtime.Manager
 	streamGate                 *streamGate
+	downloadGate               *streamGate
 	auditReader                AuditReader
 	alertReader                AlertReader
 	notificationReader         NotificationReader
@@ -41,6 +43,7 @@ type productHTTP struct {
 	operations                 OperationManager
 	applicationSettings        ApplicationSettings
 	applicationMutationMode    ApplicationMutationMode
+	logRedactionPolicy         logsafe.Policy
 }
 
 type AlertManager interface {
@@ -70,7 +73,7 @@ func newProductHTTP(auth authHTTP, providers []ProductProvider, audit AuditReade
 	}
 	return productHTTP{
 		auth: auth, providers: byID, ordered: slices.Clone(providers), defaultID: providers[0].Source().ID,
-		streams: streams, streamGate: newStreamGate(64, 4),
+		streams: streams, streamGate: newStreamGate(64, 4), downloadGate: newStreamGate(8, 1),
 		auditReader: audit, alertReader: alerts, notificationReader: notifications,
 		notificationSettingsReader: notificationSettings, notificationTester: notificationTester,
 		alertManager: manager,

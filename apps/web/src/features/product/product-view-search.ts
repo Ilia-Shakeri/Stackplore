@@ -18,7 +18,7 @@ const enums: Readonly<Record<string, readonly string[]>> = {
   topology_group: ['none', 'environment', 'scope', 'kind', 'provider'],
   topology_neighbors: ['all', 'upstream', 'downstream', 'neighbors'],
 };
-const textKeys = new Set(['scope_name', 'log_q', 'topology_q', 'topology_scope']);
+const textKeys = new Set(['scope_name', 'log_q', 'event_q', 'topology_q', 'topology_scope']);
 const tokenKeys = new Set([
   'environment_id',
   'kind',

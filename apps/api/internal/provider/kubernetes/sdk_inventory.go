@@ -29,7 +29,11 @@ func (collector *APICollector) Snapshot(ctx context.Context) (Snapshot, error) {
 	ctx, cancel := collector.observationContext(ctx)
 	defer cancel()
 	at := collector.now().UTC().Truncate(time.Microsecond)
-	snapshot := Snapshot{ObservedAt: at, ClusterID: kubernetesAPIBase, ClusterName: "In-cluster Kubernetes", ContextName: "service-account"}
+	clusterID := collector.clusterID
+	if clusterID == "" {
+		clusterID = kubernetesAPIBase
+	}
+	snapshot := Snapshot{ObservedAt: at, ClusterID: clusterID, ClusterName: "Kubernetes", ContextName: "operator-profile"}
 	budget := collector.maximumItems
 	for _, namespace := range collector.namespaces {
 		collector.collectNamespace(ctx, namespace, &budget, &snapshot)

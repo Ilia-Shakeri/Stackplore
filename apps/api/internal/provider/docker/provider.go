@@ -534,7 +534,9 @@ func (provider *Provider) ListEvents(ctx context.Context, query domain.EventQuer
 		if scoped {
 			event.ResourceID = &resourceID
 		}
-		items = append(items, event)
+		if query.MatchesTextAndEnvironment(event) {
+			items = append(items, event)
+		}
 	}
 	sort.Slice(items, func(left, right int) bool {
 		if !items[left].OccurredAt.Equal(items[right].OccurredAt) {
@@ -623,7 +625,7 @@ func dockerEventFingerprint(query domain.EventQuery) string {
 	for index, severity := range query.Severities {
 		severities[index] = string(severity)
 	}
-	return fingerprint("events", strings.Join(resources, ","), strings.Join(severities, ","), query.Range.Start.Format(time.RFC3339Nano), query.Range.End.Format(time.RFC3339Nano))
+	return fingerprint("events", strings.Join(resources, ","), strings.Join(severities, ","), string(query.EnvironmentID), query.Search, query.Range.Start.Format(time.RFC3339Nano), query.Range.End.Format(time.RFC3339Nano))
 }
 
 func (provider *Provider) GetCurrentMetrics(ctx context.Context, query domain.CurrentMetricQuery) (domain.CurrentMetricResult, error) {

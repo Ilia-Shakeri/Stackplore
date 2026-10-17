@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. Stages 1–6 are published checkpoints through `0.6.0`. Stage 7 `0.7.0` unifies the UI and API in one same-origin Go image; local full verification and exact CI are tracked in the [evidence plan](docs/implementation-plan.md). Cluster installation, external PostgreSQL TLS, backup/restore, rollback, accessibility, performance and final release gates remain open. A development checkpoint does not complete 1.0.
+> **Status:** Stages 1–7 are published checkpoints through `0.7.0`. Exact Stage 7 CI passed actual Compose setup/restart and Helm installation against external TLS PostgreSQL. The `0.9.0` release candidate passed the complete local Go 1.26.9 gate, all 14 production-browser tests and three-executable security analysis. Exact remote artifact verification, Stage 9 and final `1.0.0` publication remain open. See the [evidence plan](docs/implementation-plan.md).
 
 ## Implemented
 
@@ -20,19 +20,23 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 - Paginated overview, resources, detail, topology, logs, events and alert journeys with URL filters, truthful partial states, keyboard alternatives and English/Persian RTL. See [exploration](docs/exploration.md).
 - Administrator source enable/disable with exact target/version, impact preview, expiring one-use confirmation, purpose-bound recent authentication and atomic audit; profiles and credentials remain operator supplied
 - Covered evidence for all eight declared alert predicates, administrator rule management, persistent synthetic demo episodes, durable alert change replay and linked in-app notifications. Opt-in guarded webhook and Matrix lanes have safe status, recent-auth test delivery, stable retry payloads, fenced leases and terminal audit. See [semantics and limits](docs/alerts-notifications.md).
-- One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and chart lint/render.
+- One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and actual TLS-backed chart installation.
+- Candidate additions: public-only PWA offline shell and explicit updates, bounded streamed redacted log downloads, URL event filters, health history, metric trends, coalesced live inventory/topology, and operator-mounted Kubernetes token-file or certificate profiles. See [exploration](docs/exploration.md) and [Kubernetes profiles](docs/kubernetes-provider.md).
 
 ## Still required for 1.0
 
-- External PostgreSQL TLS and Helm installation/restart proof from the new 0.7.0 CI gates; no production cluster is claimed
-- Safe operator profile/reference rotation; no raw credentials are stored
-- Operator receiver/production deployment proof and final browser acceptance, plus immutable audit coverage for unfinished mutation paths
-- Release and installation gates listed in the roadmap; 1.0 remains incomplete
-- Live target proof for PostgreSQL backup/restore, Compose, cluster install/upgrade/rollback, browser flows, accessibility, and performance budgets
+- Final changed-tree local/remote browser, PostgreSQL and provider gates for `0.9.0`
+- Actual release artifact builds/scans, checksums, signed provenance and SBOM verification
+- Independent final review and exact `1.0.0` tag and publication
+
+Customer production rollout is an operator deployment decision. Its credentials,
+provider permissions, receiver reachability, backup destination and capacity
+must be verified in that environment using the supplied runbooks. Disposable
+fixture evidence does not certify a customer's production installation.
 
 ## Development
 
-Use Node.js `24.18.0`, pnpm `11.17.0`, and Go `1.26.5`:
+Use Node.js `24.18.0`, pnpm `11.17.0`, and Go `1.26.9`:
 
 ```sh
 node scripts/bootstrap.mjs

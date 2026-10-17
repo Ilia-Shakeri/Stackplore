@@ -5,7 +5,7 @@ import { URL } from 'node:url';
 
 const requiredVersions = {
   corepack: '0.35.0',
-  go: '1.26.5',
+  go: '1.26.9',
   node: '24.18.0',
   pnpm: '11.17.0',
 };

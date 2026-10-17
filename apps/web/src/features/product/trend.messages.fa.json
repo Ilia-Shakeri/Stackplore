@@ -1,5 +1,22 @@
 {
   "trend.seriesCount": "داده‌های {count} منبع",
   "trend.perResource": "هر خط، یک منبع را در زمان‌های واقعی مشاهده نشان می‌دهد. شناسه هر منبع در جدول آمده؛ خط‌ها جمع کل زیرساخت نیستند.",
-  "trend.resource": "منبع"
+  "trend.resource": "منبع",
+  "insight.consumers": "پرمصرف‌های بارگذاری‌شده",
+  "insight.health": "سلامت",
+  "insight.send": "بایت ارسالی شبکه",
+  "insight.environments": "محیط‌ها",
+  "insight.healthHistory": "مشاهده‌های ذخیره‌شدهٔ سلامت",
+  "insight.resourceHistory": "تاریخچهٔ شاخص‌ها و سلامت منبع",
+  "insight.navigation": "کاوش این منبع",
+  "insight.restarts": "تاریخچهٔ شمار راه‌اندازی دوباره",
+  "insight.empty": "مشاهده‌ای در این بازه نیست.",
+  "insight.time": "زمان مشاهده",
+  "insight.bytes": "بایت",
+  "insight.loaded": "رتبه در دادهٔ بارگذاری‌شده است. خواندن ناقص، رتبهٔ کل زیرساخت را ثابت نمی‌کند.",
+  "insight.events": "رخدادهای تازهٔ زیرساخت",
+  "insight.reason": "دلیل",
+  "insight.availability": "دسترس‌پذیری",
+  "insight.receive": "بایت دریافتی شبکه",
+  "insight.count": "تعداد"
 }

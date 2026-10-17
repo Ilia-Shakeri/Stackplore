@@ -2,19 +2,20 @@
 
 Each roadmap stage has its own checked development version. Root/workspace
 package versions, OpenAPI metadata, Helm chart/app versions, default image tags
-and changelog agree; `npm.cmd run check:version` enforces this. `0.x` checkpoints
-do not claim production support or publish images merely by tagging source.
+and changelog agree; `npm.cmd run check:version` enforces this. A version number
+does not establish a passing release or customer installation.
 
-Current state: stages 1–4 are verified/tagged checkpoints, including exact remote
-results for the unchanged 0.3.0 tag pushed on 2026-10-17. The 0.4.0 exploration
-checkpoint passed its final local, PostgreSQL, native and browser gates; exact
-publication outcomes are recorded separately. Stage 5 has scoped real provider,
-PostgreSQL lifecycle and guest browser evidence; its full changed-tree gate and
-exact publication results are recorded in the active plan. The maintainer's explicit
-test/version/commit/push request on 2026-10-17 supersedes the earlier no-push
-instruction for this task. Record commit/tag identities only after they exist.
-See [exploration](exploration.md), [observations](observations.md),
-[alerts](alerts-notifications.md) and the [evidence plan](implementation-plan.md).
+Current code is the 0.9.0 candidate. Published checkpoint receipts through 0.7.0
+remain in the [evidence plan](implementation-plan.md); the candidate's final
+changed-tree, browser, native, scan and release-artifact gates are
+recorded there separately. Do not promote an older passing run to proof of the
+candidate. Record commit/tag identities only after they exist.
+
+The [artifact procedure](operations/release.md) ([فارسی](operations/release.fa.md))
+defines the implemented tag/dispatch workflow, strict scans, SBOMs, checksums,
+signed provenance and consumer identity verification. Its presence does not
+establish that a remote packaging/signing run succeeded. Registry publication is
+not implicit: the workflow packages a Linux amd64 Docker-save archive.
 
 1. Read the [roadmap](roadmap.md), [audit](codebase-audit.md) and current
    [evidence](implementation-plan.md). Preserve unrelated work.
@@ -31,12 +32,17 @@ See [exploration](exploration.md), [observations](observations.md),
 7. Inspect tag CI for that exact pushed revision.
    Report failed, pending or unobserved
    remote gates honestly. CI definitions are not CI proof.
+8. Inspect the separate release workflow and independently verify the downloaded
+   checksum manifest, artifact signatures, expected workflow/tag/source identity
+   and SBOMs. Record the run, digest and result. Publication waits for all required
+   exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
-Example for the 0.3 checkpoint only after all milestone checks and release review:
+After milestone checks, exact-commit CI and review, create the matching
+annotated tag. Never reuse an old checkpoint's tag command for a new version:
 
 ```sh
-git commit -m "feat: complete covered alert evidence and durable delivery for 0.3.0"
-git tag -a v0.3.0 -m "Stackplore 0.3.0 alert and delivery checkpoint"
+git tag -a vVERSION -m "Stackplore VERSION verified milestone"
+git push origin vVERSION
 ```
 
 Use the task's existing branch or a focused `main/` branch. Never force push,
@@ -48,7 +54,23 @@ Every specification requirement needs code, tests, current accurate documents
 and direct evidence. Include browser/a11y/RTL/theme/performance, real provider,
 Compose/Helm/cluster/TLS, backup/restore/upgrade, security/dependency/image scans,
 SBOM, signed artifact provenance, checksums, supported-version policy and final
-independent review. Screenshots must come from the running final demo. The
-current workflow validates/builds; registry publication, SBOM/signing and final
-release packaging remain stage 8 work. Do not label a 0.x development checkpoint
-as a completed 1.0 release.
+independent review. Screenshots must come from the running final demo. Workflow
+definitions and local scanner receipts do not replace exact-tag package, image
+scan, signing and consumer-verification evidence. Do not label a 0.x development
+checkpoint as a completed 1.0 release.
+
+## Platform and acceptance scope
+
+The native runtime validation targets are Windows amd64 and Linux amd64; the
+container target is Linux amd64. Require the release's matching startup,
+readiness, authentication/read and storage probes before asserting support for
+that artifact. The macOS amd64/arm64 and Linux arm64 archives are additional
+cross-compiled outputs with no native-runtime compatibility claim until tested.
+
+Project acceptance means the specified code, documents and named release gates
+have evidence. A customer's production installation is a separate operational
+task: its credential rights, ingress/TLS, receiver, backups and rollout require
+its own checks. No customer production deployment is implied by source tagging
+or project acceptance. Use [deployment](operations/deployment.md),
+[upgrade/rollback](operations/upgrade-rollback.md) and
+[incident response](operations/incident-response.md) for that operator work.

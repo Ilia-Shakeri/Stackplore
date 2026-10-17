@@ -223,7 +223,18 @@ func (s *Store) CompleteExecution(ctx context.Context, c operation.CompletionCom
 			result = data
 		}
 		record, err = scanOperation(tx.QueryRow(ctx, `UPDATE operation_executions SET state=$1,result=$2,reason_code=$3,updated_at_us=$4,result_audit_id=$5 WHERE id=$6 AND state='in_progress' RETURNING `+operationColumns, string(c.State), result, string(c.ReasonCode), c.CompletedAt.UnixMicro(), string(c.AuditResult.ID), c.ExecutionID))
-		return err
+		if err != nil {
+			return err
+		}
+		severity := domain.SeverityInfo
+		summary := "Infrastructure action completed."
+		if record.State != operation.ExecutionSucceeded {
+			severity = domain.SeverityWarning
+			summary = "Infrastructure action needs review."
+		}
+		environment := record.Request.Resource.Identity.EnvironmentID
+		resource := record.Request.Resource.ID
+		return appendSystemEvent(ctx, tx, record.ID, record.Request.Source.SourceID, &environment, &resource, "system.operation", severity, c.ReasonCode, summary, c.CompletedAt)
 	})
 	return record, operationRepositoryError(err)
 }

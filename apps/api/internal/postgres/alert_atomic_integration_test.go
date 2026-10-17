@@ -51,9 +51,16 @@ func TestAlertAcknowledgementChangeTransitionAndAuditAreAtomic(t *testing.T) {
 	if err := fixture.store.pool.QueryRow(fixture.ctx, `SELECT count(*) FROM alert_transitions WHERE id=$1`, string(command.TransitionID)).Scan(&transitions); err != nil || transitions != 0 {
 		t.Fatal("audit failure committed transition")
 	}
+	var timeline int
+	if err := fixture.store.pool.QueryRow(fixture.ctx, `SELECT count(*) FROM infrastructure_events WHERE kind='system.alert' AND reason_code='alert.acknowledged'`).Scan(&timeline); err != nil || timeline != 0 {
+		t.Fatal("failed acknowledgement leaked timeline event")
+	}
 	command.Audit.ID = "audit_alert_atomic_ack_success"
 	if _, err := fixture.store.AcknowledgeAlert(fixture.ctx, command); err != nil {
 		t.Fatalf("acknowledge after rollback: %v", err)
+	}
+	if err := fixture.store.pool.QueryRow(fixture.ctx, `SELECT count(*) FROM infrastructure_events WHERE origin_kind='system' AND kind='system.alert' AND reason_code='alert.acknowledged' AND summary='Alert state changed to acknowledged.'`).Scan(&timeline); err != nil || timeline != 1 {
+		t.Fatal("successful acknowledgement lacks one safe timeline event")
 	}
 	changes, err = fixture.store.ListAlertChanges(fixture.ctx, seed.Rule.SourceID, position, 10)
 	if err != nil || len(changes.Changes) != 1 || changes.Changes[0].Kind != domain.AlertChangeAlert || changes.Changes[0].AlertID == nil || *changes.Changes[0].AlertID != command.AlertID {

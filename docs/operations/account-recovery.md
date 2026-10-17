@@ -5,6 +5,12 @@ empty installation that is reachable beyond loopback, and recovering a local
 administrator while the service is offline. There is no default account or
 password.
 
+For a [verified native release](release.md), use `./stackplore-operator`
+(`.\stackplore-operator.exe` on Windows) in place of the
+`go -C apps/api run ./cmd/operator` prefix below. All arguments and protected
+environment inputs remain the same. The application image contains only the
+server; perform offline recovery from the operator host.
+
 ## First setup on loopback
 
 The default listener and public origin are loopback-only. Start the service,

@@ -11,7 +11,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 )
 
-func ensureObservationPolicy(ctx context.Context, repository observationDatabase, settings config.Config, source domain.InfrastructureSource) error {
+func ensureObservationPolicy(ctx context.Context, repository observationDatabase, settings config.Config, source domain.InfrastructureSource, profileDigest ...string) error {
 	if source.Provider == domain.ProviderDemo {
 		return nil
 	}
@@ -32,6 +32,13 @@ func ensureObservationPolicy(ctx context.Context, repository observationDatabase
 			fields = append(fields, "cluster-observation")
 		}
 		fields = append(fields, settings.KubernetesTokenFile, settings.KubernetesCAFile)
+		if settings.KubernetesAccessProfile == config.KubernetesProfileKubeconfig {
+			if len(profileDigest) != 1 || len(profileDigest[0]) != 64 {
+				return errObservationStart
+			}
+			fields = append(fields, settings.KubernetesAccessProfile, settings.KubernetesKubeconfigFile, settings.KubernetesContext, profileDigest[0])
+			fields = append(fields, settings.KubernetesReferenceRoots...)
+		}
 	} else {
 		fields = []string{"policy/v1", string(source.Provider), string(settings.DockerAccessProfile), settings.DockerSocketPath, settings.DockerProxyOrigin, settings.DockerProxyCAFile, settings.DockerProxyCertFile, settings.DockerProxyKeyFile}
 	}

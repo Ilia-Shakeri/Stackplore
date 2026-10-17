@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import process from 'node:process';
 
 const catalogPairs = [
+  ['pwa', 'apps/web/src/pwa/messages.en.json', 'apps/web/src/pwa/messages.fa.json'],
   [
     'settings',
     'apps/web/src/features/settings/settings.messages.en.json',

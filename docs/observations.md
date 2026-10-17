@@ -1,6 +1,6 @@
 # Durable observations and source settings
 
-This reference includes the 0.5.0 candidate provider and partition boundaries;
+This reference includes the 0.9.0 candidate provider and partition boundaries;
 the exact executed gates remain in the active plan. [فارسی](observations.fa.md),
 [architecture](architecture.md), [configuration](configuration.md) and
 [current evidence](implementation-plan.md) cover the surrounding boundaries.
@@ -67,9 +67,16 @@ collection requests all nine. The nine-resource demonstration persists 972
 fixed facts across twelve samples per name and resource. Current facts older
 than five minutes are stale against the real read clock, or the controlled Demo
 clock. Future facts beyond the source receipt or one minute of real clock skew
-cannot shadow valid current samples. Partitioned event history exposes only
-events whose resource identity retains current authority; unscoped history is
-hidden because its former namespace cannot be proven.
+cannot shadow valid current samples. Partitioned native event history exposes
+only events whose resource identity retains current authority; unscoped native
+history is hidden because its former namespace cannot be proven. Closed system operation
+and alert-transition facts are source-wide: they contain only fixed safe
+summaries and reason/state codes, and retain the source's provenance. They
+carry no actor, session, grant, audit identifier or raw provider payload.
+Event filters bind source, optional exact resource/environment, severity,
+bounded literal text, time range and cursor. An event committed after the last
+provider poll advances the event page's fact clock without changing the source's
+availability or stale state.
 
 Keyset cursors contain signed immutable sort values and IDs, bound to the query.
 Infrastructure cursors are capped at 4,096 bytes; local account cursors retain
@@ -81,6 +88,11 @@ event facts receive a different stable revision ID. Conflicting immutable
 history under the same ID is rejected.
 
 ## Exact source toggle
+
+Registering a new operator source and its protected `source.create` audit fact
+is atomic. The system actor has no invented account. Repeated startup of an
+existing source does not append another creation audit. A failed audit prevents
+the source from being registered.
 
 An administrator opens `/settings/connections`, selects a registered source and
 requests an enable/disable preview. The server checks the quoted current

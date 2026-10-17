@@ -64,36 +64,8 @@ func configuredProductProviders(settings config.Config) (providers []httpapi.Pro
 		ownedProviders = providers
 	}
 	if settings.KubernetesEnabled {
-		tokenBytes, readErr := readBoundedFile(settings.KubernetesTokenFile, 16<<10)
-		if readErr != nil {
-			return nil, errProductStart
-		}
-		token := strings.TrimSpace(string(tokenBytes))
-		clear(tokenBytes)
-		roots, readErr := providerCertPool(settings.KubernetesCAFile)
-		if readErr != nil {
-			return nil, errProductStart
-		}
-		transport := boundedProviderTransport()
-		transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots, ServerName: "kubernetes.default.svc"}
-		collector, collectorErr := kubernetes.NewAPICollector(kubernetes.APICollectorOptions{Client: &http.Client{Transport: transport, Timeout: settings.RequestTimeout}, BearerToken: token,
-			TokenReader: func(ctx context.Context) (string, error) {
-				if ctx == nil || ctx.Err() != nil {
-					return "", errProductStart
-				}
-				data, err := readBoundedFile(settings.KubernetesTokenFile, 16<<10)
-				if err != nil {
-					return "", errProductStart
-				}
-				defer clear(data)
-				if ctx.Err() != nil {
-					return "", errProductStart
-				}
-				return strings.TrimSpace(string(data)), nil
-			},
-			Namespaces: settings.KubernetesNamespaces, ClusterScoped: settings.KubernetesClusterObservation, MaximumItems: 10000, MaximumResponse: 8 << 20})
+		collector, collectorErr := configuredKubernetesCollector(settings)
 		if collectorErr != nil {
-			transport.CloseIdleConnections()
 			return nil, errProductStart
 		}
 		var provider httpapi.ProductProvider

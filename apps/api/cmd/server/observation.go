@@ -57,12 +57,15 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 		if source.Provider == domain.ProviderDocker && settings.DockerAccessProfile == config.DockerProfileRestrictedProxy {
 			profile = domain.SourceProfileDockerRestrictedProxy
 		}
+		if source.Provider == domain.ProviderKubernetes && settings.KubernetesAccessProfile == config.KubernetesProfileKubeconfig {
+			profile = domain.SourceProfileKubernetesKubeconfig
+		}
 		profiles[source.ID] = profile
 		byID[source.ID] = provider
 		defaults = append(defaults, domain.SourceConfiguration{Source: source, ProfileID: profile, Enabled: true, Version: 1, CreatedAt: at, UpdatedAt: at})
 	}
 	for _, configuration := range defaults {
-		if configuration.Source.Provider != domain.ProviderDocker {
+		if configuration.Source.Provider != domain.ProviderDocker && configuration.Source.Provider != domain.ProviderKubernetes {
 			continue
 		}
 		operator, ok := repository.(interface {
@@ -79,7 +82,11 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 		return observationRuntime{}, errObservationStart
 	}
 	for _, provider := range providers {
-		if err := ensureObservationPolicy(ctx, repository, settings, provider.Source()); err != nil {
+		digest := ""
+		if profile, ok := provider.(interface{ OperatorPolicyDigest() string }); ok {
+			digest = profile.OperatorPolicyDigest()
+		}
+		if err := ensureObservationPolicy(ctx, repository, settings, provider.Source(), digest); err != nil {
 			return observationRuntime{}, errObservationStart
 		}
 	}

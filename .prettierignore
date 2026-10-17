@@ -1,5 +1,7 @@
 .git/
 .tools/
+.tmp/
+artifacts/
 .github/
 coverage/
 dist/
@@ -11,3 +13,5 @@ test-results/
 LICENSE
 pnpm-lock.yaml
 apps/api/licenses/modules/
+apps/web/public/licenses/packages/
+apps/web/licenses/upstream/

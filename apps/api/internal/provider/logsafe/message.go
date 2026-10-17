@@ -19,6 +19,11 @@ var bearerValue = regexp.MustCompile(`(?i)\b(?:bearer|basic)\s+[^\s,;"'}\[\]]+`)
 // Message returns bounded UTF-8 text. Structured fields are masked recursively;
 // plain text supports quoted assignments, HTTP credentials, and URL parameters.
 func Message(value string, truncated bool) (string, bool, bool) {
+	return (Policy{}).Message(value, truncated)
+}
+
+// Message applies built-in and additional field masking with the same fixed bounds.
+func (policy Policy) Message(value string, truncated bool) (string, bool, bool) {
 	var cleaned strings.Builder
 	characters := 0
 	for _, character := range value {
@@ -41,15 +46,15 @@ func Message(value string, truncated bool) (string, bool, bool) {
 			truncated = true
 		}
 	}
-	message, redacted, structured := redactStructured(cleaned.String())
+	message, redacted, structured := policy.redactStructured(cleaned.String())
 	if !structured {
-		message, redacted = redactText(message)
+		message, redacted = policy.redactText(message)
 	}
 	message, bounded := bound(message)
 	return message, redacted, truncated || bounded
 }
 
-func redactStructured(value string) (string, bool, bool) {
+func (policy Policy) redactStructured(value string) (string, bool, bool) {
 	start := strings.IndexAny(value, "{[")
 	if start < 0 {
 		return value, false, false
@@ -60,20 +65,20 @@ func redactStructured(value string) (string, bool, bool) {
 	if decoder.Decode(&record) != nil {
 		if strings.Contains(value[start:], `\u`) {
 			// Escaped field names in a broken object cannot be checked safely.
-			prefix, _ := redactText(value[:start])
+			prefix, _ := policy.redactText(value[:start])
 			return prefix + mask, true, true
 		}
 		return value, false, false
 	}
-	prefix, prefixRedacted := redactText(value[:start])
-	suffix, suffixRedacted := redactText(value[start+int(decoder.InputOffset()):])
+	prefix, prefixRedacted := policy.redactText(value[:start])
+	suffix, suffixRedacted := policy.redactText(value[start+int(decoder.InputOffset()):])
 	fields := fieldAssignment.FindAllStringSubmatchIndex(value[:start], -1)
-	if len(fields) > 0 && fields[len(fields)-1][1] == start && sensitiveKey(value[fields[len(fields)-1][4]:fields[len(fields)-1][5]]) {
+	if len(fields) > 0 && fields[len(fields)-1][1] == start && policy.sensitiveKey(value[fields[len(fields)-1][4]:fields[len(fields)-1][5]]) {
 		// The whole structured value belongs to a credential assignment.
 		return prefix, true, true
 	}
 	budget := 1024
-	redacted, safe := redactObject(record, 0, &budget)
+	redacted, safe := policy.redactObject(record, 0, &budget)
 	if !safe {
 		return prefix + mask, true, true
 	}
@@ -87,7 +92,7 @@ func redactStructured(value string) (string, bool, bool) {
 	return prefix + string(encoded) + suffix, true, true
 }
 
-func redactObject(value any, depth int, budget *int) (bool, bool) {
+func (policy Policy) redactObject(value any, depth int, budget *int) (bool, bool) {
 	*budget--
 	if depth > 32 || *budget < 0 {
 		return false, false
@@ -96,17 +101,17 @@ func redactObject(value any, depth int, budget *int) (bool, bool) {
 	switch record := value.(type) {
 	case map[string]any:
 		for key, item := range record {
-			if sensitiveKey(key) {
+			if policy.sensitiveKey(key) {
 				record[key], redacted = mask, true
 				continue
 			}
 			if text, ok := item.(string); ok {
-				safeText, changed := redactText(text)
+				safeText, changed := policy.redactText(text)
 				record[key] = safeText
 				redacted = redacted || changed
 				continue
 			}
-			changed, safe := redactObject(item, depth+1, budget)
+			changed, safe := policy.redactObject(item, depth+1, budget)
 			if !safe {
 				return false, false
 			}
@@ -115,12 +120,12 @@ func redactObject(value any, depth int, budget *int) (bool, bool) {
 	case []any:
 		for index, item := range record {
 			if text, ok := item.(string); ok {
-				safeText, changed := redactText(text)
+				safeText, changed := policy.redactText(text)
 				record[index] = safeText
 				redacted = redacted || changed
 				continue
 			}
-			changed, safe := redactObject(item, depth+1, budget)
+			changed, safe := policy.redactObject(item, depth+1, budget)
 			if !safe {
 				return false, false
 			}
@@ -140,7 +145,7 @@ func sensitiveKey(value string) bool {
 		strings.HasSuffix(normalized, "token") || strings.HasSuffix(normalized, "apikey") || strings.HasSuffix(normalized, "privatekey")
 }
 
-func redactText(value string) (string, bool) {
+func (policy Policy) redactText(value string) (string, bool) {
 	redacted := false
 	if start := strings.Index(strings.ToUpper(value), "-----BEGIN "); start >= 0 && strings.Contains(strings.ToUpper(value[start:]), "PRIVATE KEY-----") {
 		value = value[:start] + mask
@@ -157,7 +162,7 @@ func redactText(value string) (string, bool) {
 		result.WriteString(remaining[:field[1]])
 		key := strings.ToLower(remaining[field[4]:field[5]])
 		remaining = remaining[field[1]:]
-		if !sensitiveKey(key) {
+		if !policy.sensitiveKey(key) {
 			continue
 		}
 		if remaining == "" {

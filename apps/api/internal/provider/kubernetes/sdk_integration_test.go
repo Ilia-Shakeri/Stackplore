@@ -162,6 +162,7 @@ func testScopedSDKOnRealKubernetes(t *testing.T, metricsPresent bool) {
 	if err != nil || credential.Status.Token == "" {
 		t.Fatal("fixture observer credential failed")
 	}
+	verifyMountedSDKOnOwnedKind(t, ctx, config.Host, config.CAData, config.CAFile, credential.Status.Token, allowed, denied)
 	// Do not reuse the administrator client certificate for observation: it would
 	// invalidate the service-account permission-denial proof.
 	observerConfig := &rest.Config{Host: config.Host, TLSClientConfig: rest.TLSClientConfig{CAData: config.CAData, CAFile: config.CAFile, ServerName: config.ServerName}, Timeout: 10 * time.Second, Proxy: func(*http.Request) (*url.URL, error) { return nil, nil }}

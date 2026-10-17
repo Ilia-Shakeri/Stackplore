@@ -12,7 +12,7 @@
   ],
   "cgo_enabled": false,
   "toolchain": {
-    "version": "1.26.5",
+    "version": "1.26.9",
     "source": "Go distribution root/LICENSE",
     "path": "apps/api/licenses/modules/go-toolchain/LICENSE",
     "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
@@ -849,8 +849,8 @@
     },
     {
       "module": "golang.org/x/crypto",
-      "version": "v0.54.0",
-      "checksum": "h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw=",
+      "version": "v0.57.0",
+      "checksum": "h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -870,8 +870,8 @@
     },
     {
       "module": "golang.org/x/net",
-      "version": "v0.57.0",
-      "checksum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=",
+      "version": "v0.60.0",
+      "checksum": "h1:79p50tfZlm0J9YfoDsSi639qSXNGVwEzOPLCxM2FsYU=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -907,8 +907,8 @@
     },
     {
       "module": "golang.org/x/sync",
-      "version": "v0.22.0",
-      "checksum": "h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=",
+      "version": "v0.23.0",
+      "checksum": "h1:KameEIfc1IkluZyXWLn39Wd4tURc6GbCiISGiZm2bQk=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -928,8 +928,8 @@
     },
     {
       "module": "golang.org/x/sys",
-      "version": "v0.47.0",
-      "checksum": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=",
+      "version": "v0.48.0",
+      "checksum": "h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -949,8 +949,8 @@
     },
     {
       "module": "golang.org/x/term",
-      "version": "v0.45.0",
-      "checksum": "h1:NwWyBmoJCbfTHpxrWoZ9C6/VxOf7ic219I8xZZFdrf0=",
+      "version": "v0.46.0",
+      "checksum": "h1:3+OXuTbaKDgwk8jTi3aSLHRlmWqHEUDUtxnbFigO4YE=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -970,8 +970,8 @@
     },
     {
       "module": "golang.org/x/text",
-      "version": "v0.40.0",
-      "checksum": "h1:Ub2Z6/xjgF1WrYQz2nuITOEegKFtiIy+rieRJ5lHZKs=",
+      "version": "v0.42.0",
+      "checksum": "h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=",
       "targets": [
         "linux/amd64",
         "windows/amd64"

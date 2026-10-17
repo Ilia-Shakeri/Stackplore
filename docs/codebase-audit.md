@@ -10,6 +10,19 @@ files were preserved and reviewed as part of the candidate baseline.
 Initial quality: 5/10. This is a review score, not measured coverage. Version 1.0
 completion is blocked by the unfinished stages in [the roadmap](roadmap.md).
 
+Current checkpoint: Stage 7 `v0.7.0` is published; its exact main run passed all
+six jobs, including actual Compose and TLS-backed Helm installation. Stage 8
+`0.9.0` is a candidate. The [requirement matrix](evidence/0.9.0/requirements.md)
+maps the 1.0 scope to implementation, tests, documents and proof boundaries.
+Historical pending statements below describe their dated checkpoints.
+
+The final candidate review found and fixed deep keyset index usage, missing
+atomic source-creation audit, source-wide event clock validation, a Persian
+severity label, incomplete legal packaging and vulnerable pinned dependencies.
+Independent architecture and implementation scores are 9/10 after those
+corrections. Release completion still depends on final changed-tree gates,
+actual artifact scans/signature verification and exact 1.0 publication.
+
 ## Verified defects at review entry
 
 | Priority | Entry reference                                                                            | Defect and consequence                                                                                                         | Delivery  |

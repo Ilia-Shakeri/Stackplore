@@ -45,11 +45,40 @@ forward upgrade on the disposable copy. Never rewrite migration digests or start
 both runtimes against one database. Old runtime rollback requires the separately
 verified pre-upgrade backup; there are no reverse migrations.
 
+## Later PostgreSQL checkpoints and the 0.9.0 candidate
+
+Earlier released migration files remain byte-identical. The later ledger adds:
+
+| Migration | Change |
+| --- | --- |
+| 11 | Current inventory partition coverage and authority fences |
+| 12 | Separate normal/guest deployment identity |
+| 13 | Durable guarded-operation preview, intent and result state |
+| 14 | Versioned application settings and protected audit policy |
+| 15 | Permits the operator-owned `kubernetes_kubeconfig` mounted profile |
+| 16 | Adds the source alert feed's matching update-time/opaque-ID keyset index |
+
+Migrations 15–16 are forward-only additions. The mounted profile stores a logical
+profile reference, never kubeconfig text, credentials or browser-selected paths.
+The index changes the query plan, not alert identity or cursor authorization.
+Measure index work and startup/lock timing on the restored representative copy.
+Use the archive's matching storage build to restore its exact ledger, then stop
+it before upgrading that copy through the reviewed forward path. A newer storage
+tool is not a generic importer for older migration histories.
+
+The single-service deployment embeds the UI in Go. An upgrade from the older
+separate web proxy must preserve PostgreSQL/runtime-key volumes and route the
+same-origin ingress to the API service. The chart's non-root initialization
+prepares a private PVC child and atomically moves a validated legacy root key
+without overwriting it. Ambiguous duplicate keys or unsafe files fail closed;
+do not delete a key to get past this check. See [deployment](deployment.md).
+
 ## Before an upgrade
 
 1. Read the exact target changelog and migration/contract changes.
-2. Verify artifact checksums and the tagged source. Production artifacts and
-   provenance are delivered by the later release-hardening stage.
+2. Verify the tagged source, signed checksum manifest, artifact identity and
+   provenance using [release verification](release.md) ([فارسی](release.fa.md)).
+   A workflow definition or an unobserved signing run is not a verified artifact.
 3. Record current release, database major version, deployment settings and
    private runtime-key custody without copying secret values into reports.
 4. Run PostgreSQL-native backup, validate its checksum, and restore to an empty
@@ -85,3 +114,7 @@ data or archives as part of the application restore command.
 Restores revoke sessions and pre-auth state; users must sign in again. The
 operator owns archive encryption/retention, secret changes and target cleanup.
 Every target upgrade/rollback rehearsal is recorded separately from local tests.
+The current candidate's final acceptance is recorded in the [active plan](../implementation-plan.md).
+Project acceptance does not authorize or prove an unrequested customer rollout.
+For recovery from a suspected compromise, preserve evidence and use
+[incident response](incident-response.md).

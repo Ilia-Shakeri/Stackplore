@@ -24,6 +24,93 @@ const jsonResponse = (
 };
 
 describe('API client', () => {
+  it('reads bounded UTF-8 text with the same protected same-origin transport', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('safe report\n', {
+        headers: { 'Content-Type': 'text/plain;charset=utf-8', 'X-Request-ID': requestId },
+      }),
+    );
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+    await expect(
+      client.request<string>({ path: '/logs/download', responseType: 'text' }),
+    ).resolves.toMatchObject({ data: 'safe report\n', status: 200, requestId });
+    const init = fetchMock.mock.calls[0]?.[1];
+    expect(init).toMatchObject({
+      cache: 'no-store',
+      credentials: 'same-origin',
+      mode: 'same-origin',
+      redirect: 'error',
+      referrerPolicy: 'no-referrer',
+    });
+    expect(new Headers(init?.headers).get('Accept')).toBe('text/plain, application/problem+json');
+  });
+
+  it('cancels a text stream exceeding one MiB even if JSON response limits are larger', async () => {
+    const cancelled = vi.fn();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(1024 * 1024 + 1));
+      },
+      cancel: cancelled,
+    });
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(body, {
+        headers: { 'Content-Type': 'text/plain', 'X-Request-ID': requestId },
+      }),
+    );
+    const client = createApiClient({
+      fetch: fetchMock,
+      requestIdFactory: () => requestId,
+      maximumResponseBytes: 2 * 1024 * 1024,
+    });
+    await expect(
+      client.request({ path: '/logs/download', responseType: 'text' }),
+    ).rejects.toMatchObject({ code: 'response_too_large', status: 200 });
+    expect(cancelled).toHaveBeenCalledOnce();
+  });
+
+  it('keeps sealed authentication problems on text requests', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: 'authentication_required',
+          request_id: requestId,
+          status: 401,
+          title: 'Authentication required',
+          type: 'urn:stackplore:problem:authentication_required',
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/problem+json', 'X-Request-ID': requestId },
+        },
+      ),
+    );
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+    await expect(
+      client.request({ path: '/logs/download', responseType: 'text' }),
+    ).rejects.toMatchObject({ problem: { status: 401, code: 'authentication_required' } });
+  });
+
+  it('rejects successful JSON when text was requested and a late response after abort', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, { requestId, status: 200 }));
+    const client = createApiClient({ fetch: fetchMock, requestIdFactory: () => requestId });
+    await expect(
+      client.request({ path: '/logs/download', responseType: 'text' }),
+    ).rejects.toMatchObject({ code: 'unexpected_response' });
+    const controller = new AbortController();
+    controller.abort();
+    fetchMock.mockResolvedValue(
+      new Response('late', {
+        headers: { 'Content-Type': 'text/plain', 'X-Request-ID': requestId },
+      }),
+    );
+    await expect(
+      client.request({ path: '/logs/download', responseType: 'text', signal: controller.signal }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
   it('creates request identifiers that always meet the public form', () => {
     expect(createRequestId()).toMatch(/^req_[A-Fa-f0-9-]{36}$/u);
   });

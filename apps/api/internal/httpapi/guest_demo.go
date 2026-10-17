@@ -44,7 +44,7 @@ func guestReadBoundary(guest *GuestDemoOptions) func(http.Handler) http.Handler 
 			path := strings.TrimPrefix(r.URL.Path, "/api/v1")
 			allowed := false
 			switch path {
-			case "/setup/status", "/sources", "/environments", "/resources", "/topology", "/logs", "/metrics/current", "/metrics/history", "/events", "/alerts", "/notifications",
+			case "/setup/status", "/sources", "/environments", "/resources", "/topology", "/logs", "/logs/download", "/metrics/current", "/metrics/history", "/health/history", "/events", "/alerts", "/notifications",
 				"/streams/health", "/streams/logs", "/streams/metrics", "/streams/events", "/streams/alerts":
 				allowed = true
 			default:

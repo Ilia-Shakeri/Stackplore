@@ -42,12 +42,12 @@ func (store *Store) ListAlerts(ctx context.Context, sourceID domain.SourceID, re
        evidence_start_at_us, evidence_end_at_us, started_at_us, updated_at_us,
        acknowledged_at_us, resolved_at_us, summary_code, synthetic
 FROM alerts`
-	statement := columns + ` WHERE source_id = $1 ORDER BY updated_at_us DESC, id ASC LIMIT $2`
+	statement := columns + ` WHERE source_id = $1 ORDER BY updated_at_us DESC, id COLLATE "C" ASC LIMIT $2`
 	arguments := []any{string(sourceID), request.Limit + 1}
 	if cursor != nil {
 		statement = columns + `
-WHERE source_id = $1 AND (updated_at_us < $2 OR (updated_at_us = $2 AND id > $3))
-ORDER BY updated_at_us DESC, id ASC LIMIT $4`
+WHERE source_id = $1 AND updated_at_us <= $2 AND (updated_at_us < $2 OR (updated_at_us = $2 AND id COLLATE "C" > $3 COLLATE "C"))
+ORDER BY updated_at_us DESC, id COLLATE "C" ASC LIMIT $4`
 		arguments = []any{string(sourceID), cursor.UpdatedAtUS, cursor.ID, request.Limit + 1}
 	}
 	rows, err := store.pool.Query(queryContext, statement, arguments...)

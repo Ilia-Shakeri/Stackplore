@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "scope": "Working-tree 0.9.0 Linux amd64 tools, CGO disabled, stripped; not exact-tag or image proof",
+  "fixed_toolchain": "1.26.9",
+  "go_release_notes": "https://go.dev/doc/devel/release#go1.26.9",
+  "tool_archive": {
+    "source": "https://github.com/actions/go-versions/releases/download/1.26.9-37875104533/go-1.26.9-win32-x64.zip",
+    "sha256": "b3f4420839183f2b6fe45e1d0d250139dd58bba83384241d0e4b2b26da2ba7d6",
+    "status": "downloaded, SHA256 verified, extracted and go version confirmed"
+  },
+  "previous": {
+    "toolchain": "1.26.5",
+    "high_critical_findings": 33,
+    "unique_ids": [
+      "CVE-2026-33818",
+      "CVE-2026-39821",
+      "CVE-2026-46600",
+      "CVE-2026-56853",
+      "CVE-2026-56858",
+      "CVE-2026-56859",
+      "CVE-2026-56860",
+      "CVE-2026-56862",
+      "CVE-2026-78667",
+      "CVE-2026-78669",
+      "CVE-2026-97031"
+    ],
+    "report_sha256": "38ee814c9753d24e3f7490f9e2289feff97fb80891d8da56a9ef2f000bc8510d"
+  },
+  "replacement": {
+    "status": "passed",
+    "tool": "Trivy 0.76.0 Linux",
+    "mode": "rootfs",
+    "high_critical_findings": 0,
+    "binary_count": 3,
+    "binaries": [
+      {
+        "name": "stackplore-operator",
+        "stdlib": [
+          "v1.26.9"
+        ],
+        "high_critical": 0
+      },
+      {
+        "name": "stackplore-server",
+        "stdlib": [
+          "v1.26.9"
+        ],
+        "high_critical": 0
+      },
+      {
+        "name": "stackplore-storage",
+        "stdlib": [
+          "v1.26.9"
+        ],
+        "high_critical": 0
+      }
+    ],
+    "spdx_packages": 97,
+    "scan_completeness_guard": "passed: every shipped executable and Go-module SPDX purls required",
+    "report_sha256": "5fae4078ad07aa234c95facb3ed63df9f976ac9a63b4faae3f7283f75eb745ff",
+    "spdx_sha256": "c81483fdc132b55b69f2289a85c9c9899d90d94cdc06e5524440c56778cb26fe",
+    "database_updated_at_utc": "2026-10-16T01:13:54.947090392Z",
+    "database_downloaded_at_utc": "2026-10-17T13:33:47.709074586Z"
+  },
+  "limits": [
+    "Zero-language filesystem scans were rejected, not counted as success",
+    "Exact tag, image, Windows archive and published signatures still require release gates"
+  ]
+}

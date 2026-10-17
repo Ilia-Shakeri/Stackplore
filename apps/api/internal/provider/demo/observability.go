@@ -206,6 +206,9 @@ func (provider *Provider) ListEvents(ctx context.Context, query domain.EventQuer
 	}
 	items := make([]domain.InfrastructureEvent, 0, len(provider.events))
 	for _, event := range provider.events {
+		if !query.MatchesTextAndEnvironment(event) {
+			continue
+		}
 		if event.OccurredAt.Before(query.Range.Start) || !event.OccurredAt.Before(query.Range.End) {
 			continue
 		}
@@ -267,6 +270,7 @@ func eventFingerprint(query domain.EventQuery) string {
 	}
 	return fingerprint(
 		"events", strings.Join(resources, ","), strings.Join(severities, ","),
+		string(query.EnvironmentID), query.Search,
 		query.Range.Start.Format(time.RFC3339Nano), query.Range.End.Format(time.RFC3339Nano),
 	)
 }

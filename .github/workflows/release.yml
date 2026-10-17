@@ -1,0 +1,188 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    services:
+      postgres:
+        image: postgres:17.6-alpine@sha256:ef257d85f76e48da1c64832459b59fcaba1a4dac97bf5d7450c77753542eee94
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      CI: 'true'
+      TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
+      TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+      - name: Set owned release output directory
+        run: echo "STACKPLORE_RELEASE_DIR=$RUNNER_TEMP/stackplore-release" >> "$GITHUB_ENV"
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 1.26.9
+          cache-dependency-path: apps/api/go.sum
+      - uses: azure/setup-helm@bf6a7d304bc2fdb57e0331155b7ebf2c504acf0a # v4
+        with:
+          version: v3.17.3
+      - name: Read the checked artifact version
+        id: version
+        run: node -e 'const v = require("./package.json").version; if (!/^\d+\.\d+\.\d+(-[a-z0-9.-]+)?$/.test(v)) throw new Error("Invalid version"); require("fs").appendFileSync(process.env.GITHUB_OUTPUT, `value=${v}\n`);'
+      - name: Verify release safety and artifact manifest behavior
+        run: node --test scripts/release.test.mjs
+      - name: Require successful verification of this exact tag
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release.mjs check-ci
+      - name: Install locked packages and verified scanner tools
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          corepack pnpm install --frozen-lockfile
+          go -C apps/api mod download
+          bash scripts/release-tools.sh
+      - name: Build native archives, container archive, chart and source
+        run: bash scripts/release-build.sh
+      - name: Execute extracted Linux amd64 archive against disposable PostgreSQL
+        env:
+          SP_RELEASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable
+          SP_RELEASE_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: node scripts/release-smoke.mjs
+      - name: Reject dependency vulnerabilities and leaked secrets
+        run: |
+          trivy fs --scanners vuln --include-dev-deps --severity HIGH,CRITICAL --exit-code 1 --skip-dirs node_modules --skip-dirs .git --format json --output "$STACKPLORE_RELEASE_DIR/dependency-scan.json" .
+          trivy fs --scanners vuln --include-dev-deps --skip-dirs node_modules --skip-dirs .git --format spdx-json --output "$STACKPLORE_RELEASE_DIR/source.spdx.json" .
+          gitleaks git --redact=100 --no-banner --log-opts='--all' --gitleaks-ignore-path scripts/release-gitleaks.ignore --report-format json --report-path "$STACKPLORE_RELEASE_DIR/secret-scan.json" .
+      - name: Create payload and scan checksums
+        run: node scripts/release.mjs checksums
+      - name: Sign provenance for payloads, checksums, SBOMs and scan reports
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/*
+          create-storage-record: false
+      - name: Sign Linux amd64 SBOM
+        id: linux-amd64
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_linux_amd64.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_linux_amd64.spdx.json
+          create-storage-record: false
+      - name: Sign Linux arm64 SBOM
+        id: linux-arm64
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_linux_arm64.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_linux_arm64.spdx.json
+          create-storage-record: false
+      - name: Sign Windows amd64 SBOM
+        id: windows-amd64
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_windows_amd64.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_windows_amd64.spdx.json
+          create-storage-record: false
+      - name: Sign macOS amd64 SBOM
+        id: darwin-amd64
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_darwin_amd64.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_darwin_amd64.spdx.json
+          create-storage-record: false
+      - name: Sign macOS arm64 SBOM
+        id: darwin-arm64
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_darwin_arm64.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_darwin_arm64.spdx.json
+          create-storage-record: false
+      - name: Sign container archive SBOM
+        id: image
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_image.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_image.spdx.json
+          create-storage-record: false
+      - name: Retain signed bundles beside payloads
+        env:
+          PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          LINUX_AMD64_BUNDLE: ${{ steps.linux-amd64.outputs.bundle-path }}
+          LINUX_ARM64_BUNDLE: ${{ steps.linux-arm64.outputs.bundle-path }}
+          WINDOWS_AMD64_BUNDLE: ${{ steps.windows-amd64.outputs.bundle-path }}
+          DARWIN_AMD64_BUNDLE: ${{ steps.darwin-amd64.outputs.bundle-path }}
+          DARWIN_ARM64_BUNDLE: ${{ steps.darwin-arm64.outputs.bundle-path }}
+          IMAGE_BUNDLE: ${{ steps.image.outputs.bundle-path }}
+        run: |
+          cp "$PROVENANCE_BUNDLE" "$STACKPLORE_RELEASE_DIR/provenance.sigstore.json"
+          cp "$LINUX_AMD64_BUNDLE" "$STACKPLORE_RELEASE_DIR/linux-amd64-sbom.sigstore.json"
+          cp "$LINUX_ARM64_BUNDLE" "$STACKPLORE_RELEASE_DIR/linux-arm64-sbom.sigstore.json"
+          cp "$WINDOWS_AMD64_BUNDLE" "$STACKPLORE_RELEASE_DIR/windows-amd64-sbom.sigstore.json"
+          cp "$DARWIN_AMD64_BUNDLE" "$STACKPLORE_RELEASE_DIR/darwin-amd64-sbom.sigstore.json"
+          cp "$DARWIN_ARM64_BUNDLE" "$STACKPLORE_RELEASE_DIR/darwin-arm64-sbom.sigstore.json"
+          cp "$IMAGE_BUNDLE" "$STACKPLORE_RELEASE_DIR/image-sbom.sigstore.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: stackplore-release-${{ github.sha }}
+          path: ${{ env.STACKPLORE_RELEASE_DIR }}/*
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+  publish:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: stackplore-release-${{ github.sha }}
+          path: ${{ runner.temp }}/stackplore-release
+      - name: Verify checksums before publication
+        working-directory: ${{ runner.temp }}/stackplore-release
+        run: sha256sum --check --strict SHA256SUMS
+      - name: Publish complete checked assets without replacing a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release.mjs publish

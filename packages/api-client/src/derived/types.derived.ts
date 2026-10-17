@@ -498,6 +498,25 @@ export type ProductMetricResult = {
   items: Array<ProductMetricSample>;
 };
 
+export type ProductHealthHistoryItem = {
+  id: string;
+  resource_id: ResourceId;
+  state: HealthState;
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  synthetic: boolean;
+};
+
+export type ProductHealthHistoryResult = {
+  availability: AvailabilityState;
+  completeness: Completeness;
+  observed_at: Timestamp;
+  reason_code?: NamespacedCode;
+  items: Array<ProductHealthHistoryItem>;
+};
+
 export type ProductMetricHistoryResult = {
   availability: AvailabilityState;
   observed_at: Timestamp;
@@ -3768,6 +3787,96 @@ export type ListProductLogsResponses = {
 
 export type ListProductLogsResponse = ListProductLogsResponses[keyof ListProductLogsResponses];
 
+export type DownloadProductLogsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Optional exact provider-neutral resource filter.
+     */
+    resource_id?: ResourceId;
+    /**
+     * Inclusive UTC start; supplied together with to, with at most six fractional second digits.
+     */
+    from?: string;
+    /**
+     * Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
+     */
+    to?: string;
+    /**
+     * Exact container name; requires resource_id.
+     */
+    container?: string;
+    /**
+     * Read the previous container instance; requires resource_id.
+     */
+    previous?: boolean;
+    /**
+     * Case-insensitive search in redacted message text; control and direction-override characters are rejected.
+     */
+    q?: string;
+    severity?: LogSeverity;
+  };
+  url: '/logs/download';
+};
+
+export type DownloadProductLogsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type DownloadProductLogsError = DownloadProductLogsErrors[keyof DownloadProductLogsErrors];
+
+export type DownloadProductLogsResponses = {
+  /**
+   * Bounded UTF-8 streamed attachment. Inspect the final marker for complete or limited delivery.
+   */
+  200: string;
+};
+
+export type DownloadProductLogsResponse =
+  DownloadProductLogsResponses[keyof DownloadProductLogsResponses];
+
 export type GetProductMetricsData = {
   body?: never;
   headers?: {
@@ -3836,6 +3945,83 @@ export type GetProductMetricsResponses = {
 
 export type GetProductMetricsResponse =
   GetProductMetricsResponses[keyof GetProductMetricsResponses];
+
+export type GetProductHealthHistoryData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    resource_id: ResourceId;
+    minutes?: number;
+    limit?: number;
+    /**
+     * Inclusive UTC start; supplied together with to, with at most six fractional second digits.
+     */
+    from?: string;
+    /**
+     * Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
+     */
+    to?: string;
+  };
+  url: '/health/history';
+};
+
+export type GetProductHealthHistoryErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetProductHealthHistoryError =
+  GetProductHealthHistoryErrors[keyof GetProductHealthHistoryErrors];
+
+export type GetProductHealthHistoryResponses = {
+  /**
+   * Bounded health history in descending timestamp and ascending ID order.
+   */
+  200: ProductHealthHistoryResult;
+};
+
+export type GetProductHealthHistoryResponse =
+  GetProductHealthHistoryResponses[keyof GetProductHealthHistoryResponses];
 
 export type GetProductMetricHistoryData = {
   body?: never;
@@ -3935,6 +4121,18 @@ export type ListProductEventsData = {
      * Optional exact provider-neutral resource filter.
      */
     resource_id?: ResourceId;
+    /**
+     * Bounded plain-text search term, never a query expression.
+     */
+    q?: OptionalDisplayText;
+    /**
+     * Exact environment within the selected source. Bound to page cursors.
+     */
+    environment_id?: EnvironmentId;
+    /**
+     * Exact severity. Bound to page cursors together with search and environment.
+     */
+    severity?: EventSeverity;
     /**
      * Requested result count, capped by the server.
      */

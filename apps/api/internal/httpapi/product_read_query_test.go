@@ -167,6 +167,22 @@ func TestProductObservationQueryForwardsExactRangeAndLogTarget(t *testing.T) {
 	}
 }
 
+func TestEventFilterTransportIsClosedAndValidated(t *testing.T) {
+	provider := &explorationQueryProvider{ProductProvider: demo.MustNew()}
+	handler := boundaryHandler(t, provider)
+	response := authenticatedProductRequest(handler, "/api/v1/events?environment_id=env_demo_shop&severity=error&q=pool")
+	if response.Code != http.StatusOK || len(provider.events) != 1 || provider.events[0].EnvironmentID != "env_demo_shop" || provider.events[0].Search != "pool" || !reflect.DeepEqual(provider.events[0].Severities, []domain.Severity{domain.SeverityError}) {
+		t.Fatal("event filters not mapped")
+	}
+	for _, invalid := range []string{"severity=unknown", "severity=error&severity=warning", "environment_id=bad/path", "q=" + strings.Repeat("x", 201), "q=bad%0Aline"} {
+		before := len(provider.events)
+		response = authenticatedProductRequest(handler, "/api/v1/events?"+invalid)
+		if response.Code != http.StatusBadRequest || len(provider.events) != before {
+			t.Fatal("invalid event filter reached provider")
+		}
+	}
+}
+
 func TestProductObservationRangeRejectsAmbiguousAndUnboundedRequests(t *testing.T) {
 	future := time.Now().UTC().Add(5 * time.Minute).Truncate(time.Microsecond)
 	invalidRanges := []string{

@@ -6,6 +6,7 @@ import { useProductApi } from './product-context';
 import { ProductState, type ProductLoadState as LoadState } from './exploration-ui';
 import { ResourceMetadataPanel } from './ResourceMetadataPanel';
 import { ResourceOperationsPanel } from './ResourceOperationsPanel';
+import { ResourceMetricsPanel } from './ResourceMetricsPanel';
 interface ProductResourceDetailPageProps {
   readonly id: string;
   readonly kind: string;
@@ -122,6 +123,7 @@ export function ProductResourceDetailPage({
         </section>
       ) : null}
       {state.kind === 'ready' ? <ResourceMetadataPanel resource={state.data.resource} /> : null}
+      {state.kind === 'ready' ? <ResourceMetricsPanel resourceId={id} sourceId={source} /> : null}
       {state.kind === 'ready' ? <ResourceOperationsPanel resource={state.data.resource} /> : null}
       {state.kind === 'ready' ? (
         <nav className="resource-detail-links" aria-label={t('explore.detail.links')}>

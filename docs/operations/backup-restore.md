@@ -4,6 +4,14 @@ Stackplore exposes no HTTP backup or restore route. The local storage command
 wraps `pg_dump` and `pg_restore`; the tools must be installed on the operator
 host and compatible with the PostgreSQL server major version.
 
+After [verifying a native release package](release.md), run its
+`./stackplore-storage` executable (`.\stackplore-storage.exe` on Windows).
+Replace the `go -C apps/api run ./cmd/storage` prefix in the examples below
+with that executable; subcommands, arguments and protected environment inputs
+are identical. The Go form is for a source checkout with the pinned toolchain.
+The application container contains only the server, so run storage maintenance
+from the operator host with compatible PostgreSQL-native tools.
+
 The database URL is read from `STACKPLORE_DATABASE_URL`. Its password is passed
 only through the child-process environment, never through command arguments or
 logs. Keep the URL and every archive secret.

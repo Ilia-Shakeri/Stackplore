@@ -243,7 +243,9 @@ func (store *observationRead) ListResources(ctx context.Context, query domain.In
 		if query.SortField != domain.ResourceSortObservedAt {
 			bound += ` COLLATE "C"`
 		}
-		statement += ` AND (` + orderColumn + comparison + bound + ` OR (` + orderColumn + `=` + bound + ` AND resource.id COLLATE "C">` + placeholder(cursor.ID) + ` COLLATE "C"))`
+		// Keep the primary range explicit so the index starts at the anchor;
+		// the disjunction retains ascending opaque-ID order for equal values.
+		statement += ` AND ` + orderColumn + comparison + `=` + bound + ` AND (` + orderColumn + comparison + bound + ` OR (` + orderColumn + `=` + bound + ` AND resource.id COLLATE "C">` + placeholder(cursor.ID) + ` COLLATE "C"))`
 	}
 	statement += ` ORDER BY ` + orderColumn + ` ` + direction + `,resource.id COLLATE "C" ASC LIMIT ` + placeholder(query.Page.Limit+1)
 	rows, err := store.queries.Query(ctx, statement, arguments...)

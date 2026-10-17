@@ -1,6 +1,18 @@
 # Stackplore delivery plan
 
-Target: **1.0.0**. Published checkpoints: **Stages 1–6, through 0.6.0**. Current gate: **Stage 7 implementation in progress; full local gate and exact Compose/image/chart CI remain open; Stages 8–9 open**.
+Target: **1.0.0**. Published checkpoints: **Stages 1–7, through 0.7.0**. Current gate: **Stage 8, 0.9.0 release candidate; local Go 1.26.9 full gate and 14-case browser gate passed; exact remote artifact trial and Stage 9 remain open**.
+
+Stage 7 is tagged at `64fd4391113cebc53e99bdd09a3d81bbff6054ce`.
+[Exact main CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39031584134)
+passed all six jobs, including actual Compose setup/restart and Helm installation
+against separate TLS PostgreSQL. [Exact tag CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39032396854)
+also passed all six jobs.
+The 0.9.0 candidate adds safe offline/update behavior, browser accessibility
+checks, measured keyset corrections, mounted Kubernetes profiles, streamed log
+downloads, health history, system events and a signed release pipeline. These
+changes remain candidates until their exact checks and publication pass.
+
+The paragraphs below retain earlier stage evidence; the status above governs.
 Stage 1 is verified and tagged. Stage 2's core changes passed the full local,
 real PostgreSQL, restart and native restore gates; tagged CI is recorded separately.
 Stage 3 adds covered windows, durable alert changes and isolated outbound lanes.
@@ -21,7 +33,7 @@ The final changed-tree gate D passed with real PostgreSQL, 36 client tests,
 published checkpoint; corrected exact-revision main CI run 39018504287 passed.
 Both exact-revision Stage 5 runs passed. Stage 6 exact main and tag CI passed,
 including disposable provider-write jobs. Stage 7 unifies built-web serving and
-deployment; its release gate remains open. Stages 8–9 remain open. No checkpoint
+deployment; its exact main installation gate passed. Stages 8–9 remain open. No checkpoint
 finishes 1.0.
 
 - [Completion roadmap](docs/roadmap.md) ([فارسی](docs/roadmap.fa.md)) gives ordered versions, scope and exit gates.

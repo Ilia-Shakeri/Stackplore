@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "scope": "Working-tree 0.9.0 dependency inputs bound by file hashes; executable proof is recorded separately in native-security.json. Exact-tag/container/published-artifact proof remains separate.",
+  "dependency_scan": {
+    "status": "passed",
+    "scanned_at_utc": "2026-10-17T13:38:20Z",
+    "tool": "Trivy 0.76.0",
+    "database_repository": "ghcr.io/aquasecurity/trivy-db:2",
+    "database_updated_at_utc": "2026-10-16T01:13:54.947090392Z",
+    "database_downloaded_at_utc": "2026-10-17T13:33:47.709074586Z",
+    "command": "trivy fs --skip-db-update --scanners vuln --include-dev-deps --severity HIGH,CRITICAL --exit-code 1 --format json --output REPORT.json EXACT_COPIED_DEPENDENCY_INPUTS",
+    "exit_code": 0,
+    "high_critical_findings": 0,
+    "targets": [
+      "apps/api/go.mod",
+      "pnpm-lock.yaml"
+    ],
+    "go_mod_sha256": "009671b75b191ef3fe3ccde326d3ddc23f3d820f36cad6610ab79db48dcf1346",
+    "pnpm_lock_sha256": "17563e4e6622992d07f2a6ca58cef9bc9e653d3063eabef88419ad27a258c111",
+    "private_report_sha256": "328f292082713411e63a5398e9f0a28e1dfcbed25660c3e5d93ac8ca8f55be41",
+    "snapshot_scope": "Exact copies of root/workspace package manifests, pnpm workspace/lock, go.mod/go.sum. Fresh official vulnerability DB; both gomod and pnpm analyzers executed. License inventory remains a separate installed-graph gate."
+  },
+  "secret_scan": {
+    "status": "passed",
+    "tool": "Gitleaks 8.30.1",
+    "command": "gitleaks git --redact=100 --no-banner --log-opts=--all --gitleaks-ignore-path scripts/release-gitleaks.ignore --report-format json --report-path REPORT.json .",
+    "head_revision": "eca64cba27a6120198b64860f62a419c17d902da",
+    "commits_scanned": 21,
+    "remaining_findings": 0,
+    "reviewed_exceptions": "14 exact historical synthetic-redaction fixture commit/path/rule/line fingerprints; no directory or rule blanket exclusions.",
+    "private_report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "legal_inventory": {
+    "status": "passed",
+    "command": "node scripts/check-web-notices.mjs",
+    "packages": 63,
+    "legal_files": 64,
+    "manifest": "apps/web/public/licenses/packages/manifest.json",
+    "reviewed_supplement": "react-remove-scroll-bar@2.3.8 only, exact package manifest and upstream LICENSE hashes bound; provenance distinction recorded."
+  },
+  "remaining_gates": [
+    "Exact changed-tree full local gate and remote verification",
+    "Release workflow native/container builds and image/native scans",
+    "Signed provenance and SBOM generation plus independent verification",
+    "Published artifact checksums and exact tag/run identities"
+  ]
+}

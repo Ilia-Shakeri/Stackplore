@@ -4,14 +4,14 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Stackplore 1.0 implementation is active. Stages 1–4
-  are verified development checkpoints through `0.4.0`; exact local and remote
-  results are recorded in the evidence plan. The locally verified `0.5.0` checkpoint implements
-  official Docker/Kubernetes adapters, restricted/scoped observation, typed safe
-  facts and the isolated guest demo. Named disposable provider, PostgreSQL and
-  browser receipts exist; its final changed-tree gate passed with scoped quality
-  9/10. Exact publication/CI remain pending. Stages 6–9, protected audit lifecycle,
-  guarded actions/settings, installation and final release requirements remain open.
+- **Implementation status:** Published development checkpoints through `0.7.0`.
+  Its exact main CI passed Compose and TLS-backed Helm installation.
+  The `0.9.0` candidate adds offline privacy, measured coverage,
+  query performance fixes, safe mounted profiles, timeline filters, health
+  history and streamed log export. The local Go 1.26.9 full gate and 14-case
+  browser gate passed. Exact remote and signed release artifacts remain gates.
+  Current exact results are recorded in the
+  [active evidence plan](docs/implementation-plan.md).
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
@@ -971,7 +971,8 @@ Stackplore 1.0 is complete only when:
 - no production TODO remains;
 - version is `1.0.0`;
 - release artifacts have checksums and a software bill of materials;
-- the user performs final tag and release publication.
+- the user authorizes final tag and release publication, and the exact tagged
+  source and published artifacts pass their release gates.
 
 ## 14. Deferred work
 

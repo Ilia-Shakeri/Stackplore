@@ -2,9 +2,12 @@ package kubernetes
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 	"sync/atomic"
 	"time"
@@ -35,38 +38,51 @@ const (
 
 // Connection settings come from the operator, never from a product request.
 type APICollectorOptions struct {
-	Client          *http.Client
-	BearerToken     string
-	TokenReader     func(context.Context) (string, error)
-	Namespaces      []string
-	ClusterScoped   bool
-	MaximumItems    int
-	MaximumResponse int64
-	Now             func() time.Time
+	Client            *http.Client
+	BaseURL           string
+	ClientCertificate bool
+	BearerToken       string
+	TokenReader       func(context.Context) (string, error)
+	Namespaces        []string
+	ClusterScoped     bool
+	MaximumItems      int
+	MaximumResponse   int64
+	Now               func() time.Time
 }
 
 type APICollector struct {
-	client          *http.Client
-	core            corev1.CoreV1Interface
-	apps            appsv1.AppsV1Interface
-	batch           batchv1.BatchV1Interface
-	networking      networkingv1.NetworkingV1Interface
-	discovery       discoveryv1.DiscoveryV1Interface
-	metrics         metricsv1beta1.MetricsV1beta1Interface
-	namespaces      []string
-	clusterScoped   bool
-	maximumItems    int
-	maximumResponse int64
-	now             func() time.Time
+	baseURL              string
+	clusterID            string
+	operatorPolicyDigest string
+	client               *http.Client
+	core                 corev1.CoreV1Interface
+	apps                 appsv1.AppsV1Interface
+	batch                batchv1.BatchV1Interface
+	networking           networkingv1.NetworkingV1Interface
+	discovery            discoveryv1.DiscoveryV1Interface
+	metrics              metricsv1beta1.MetricsV1beta1Interface
+	namespaces           []string
+	clusterScoped        bool
+	maximumItems         int
+	maximumResponse      int64
+	now                  func() time.Time
 }
 
 func NewAPICollector(options APICollectorOptions) (*APICollector, error) {
-	if options.Client == nil || !validBearerToken(options.BearerToken) ||
+	if options.Client == nil || (!options.ClientCertificate && !validBearerToken(options.BearerToken)) || options.ClientCertificate && (options.BearerToken != "" || options.TokenReader != nil) ||
 		options.MaximumItems < 1 || options.MaximumItems > maximumAPIItems ||
 		options.MaximumResponse < minimumAPIResponseBytes || options.MaximumResponse > maximumAPIResponseBytes ||
 		len(options.Namespaces) < 1 || len(options.Namespaces) > maximumNamespaces {
 		return nil, fmt.Errorf("Kubernetes API collector options are invalid")
 	}
+	baseURL := options.BaseURL
+	if baseURL == "" {
+		baseURL = kubernetesAPIBase
+	}
+	if canonicalKubernetesOrigin(baseURL) == "" {
+		return nil, ErrUnavailable
+	}
+	parsedOrigin, _ := url.Parse(baseURL)
 	namespaces := slices.Clone(options.Namespaces)
 	slices.Sort(namespaces)
 	for index, namespace := range namespaces {
@@ -95,9 +111,9 @@ func NewAPICollector(options APICollectorOptions) (*APICollector, error) {
 	if now == nil {
 		now = time.Now
 	}
-	client.Transport = &boundedTransport{base: base, tokens: &bearerSource{token: options.BearerToken, read: options.TokenReader, now: now, expiresAt: now().Add(time.Minute)}, namespaces: namespaces,
+	client.Transport = &boundedTransport{base: base, originHost: parsedOrigin.Host, certificateAuth: options.ClientCertificate, tokens: &bearerSource{token: options.BearerToken, read: options.TokenReader, now: now, expiresAt: now().Add(time.Minute)}, namespaces: namespaces,
 		clusterScoped: options.ClusterScoped, maximum: options.MaximumResponse}
-	config := &rest.Config{Host: kubernetesAPIBase, Timeout: client.Timeout,
+	config := &rest.Config{Host: baseURL, Timeout: client.Timeout,
 		ContentConfig: rest.ContentConfig{ContentType: "application/json", AcceptContentTypes: "application/json"},
 		RateLimiter:   flowcontrol.NewTokenBucketRateLimiter(20, 20), UserAgent: "stackplore-observer",
 		WarningHandlerWithContext: rest.NoWarnings{}}
@@ -125,7 +141,12 @@ func NewAPICollector(options APICollectorOptions) (*APICollector, error) {
 	if err != nil {
 		return nil, ErrUnavailable
 	}
-	return &APICollector{client: &client, core: core, apps: apps, batch: batch, networking: networking, discovery: discovery,
+	clusterID := kubernetesAPIBase
+	if baseURL != kubernetesAPIBase {
+		digest := sha256.Sum256([]byte(baseURL))
+		clusterID = "cluster_" + hex.EncodeToString(digest[:])
+	}
+	return &APICollector{baseURL: baseURL, clusterID: clusterID, client: &client, core: core, apps: apps, batch: batch, networking: networking, discovery: discovery,
 		metrics: metrics, namespaces: namespaces, clusterScoped: options.ClusterScoped,
 		maximumItems: options.MaximumItems, maximumResponse: options.MaximumResponse, now: now}, nil
 }

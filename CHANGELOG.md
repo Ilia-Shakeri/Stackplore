@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.9.0] - 2026-10-17
+
+### Added
+
+- Public offline shell and install manifest with explicit update acceptance; private API, pages and infrastructure data stay network-only.
+- Measured frontend and backend core coverage, additive log field redaction, safe kubeconfig profiles and atomic safe timeline outcomes.
+- Bounded streamed log download with an explicit completion receipt; URL-backed environment/severity/text event filters; retained resource health history, metric trends and loaded-subset overview evidence.
+- Coalesced inventory, topology and overview refresh with canceled-response fences; atomic once-only source creation audit and real PostgreSQL 14-to-16 forward-upgrade checks.
+- Pinned release build, secret/dependency/image scans, native packages, SBOMs, checksums and signed build attestations.
+
+### Fixed
+
+- Deep inventory/alert keysets now use matching bounds/indexes. Measured warm SQL fixtures are recorded with their scale and limits.
+- Initial overview source-clock/stream messages no longer duplicate full read batches and exhaust the default request budget.
+- PWA install uses raster icons, and immediate acceptance of an installed update handles the browser's waiting-worker transition safely.
+- Mounted Kubernetes profiles pass the closed source-settings startup allowlist and full server composition tests.
+- Pinned transitive dependency updates remove the verified HIGH/CRITICAL source-scan findings; exact upstream legal bytes ship in web/native/image packages.
+- Go is pinned to `1.26.9`; native scans use executable-aware rootfs analysis and reject missing binary or SBOM coverage, rather than accepting an empty successful report.
+
+### Verification
+
+- Release candidate. Local, browser, deployment, scan and exact tagged artifact results have distinct receipts in the [active evidence plan](docs/implementation-plan.md). Publishing requires complete exact-tag checks, scan completeness, checksums and signed provenance/SBOMs.
+
+
 ## [0.7.0] - 2026-10-17
 
 ### Added
@@ -11,10 +35,11 @@
 
 ### Limits
 
-- Local handler and full repository gates are required before release. Compose
-  install/restart is verified by its exact CI job; Helm is linted/rendered, not
-  installed into a cluster. Production TLS, backup/restore and rollback remain
-  separate target gates.
+- Exact main and tag CI passed all six jobs, including actual Compose
+  setup/restart and Helm installation against external TLS PostgreSQL. The
+  ingress Service route is an object check; a customer's controller, hostname,
+  certificate and real HTTPS edge require deployment-specific probes.
+  Native restore and upgrade/rollback constraints have separate receipts.
 
 ## [0.6.0] - 2026-10-17
 
@@ -31,8 +56,9 @@
 
 - Local full gate passes. Provider writes stay disabled by default; no live
   operator infrastructure or deployment is claimed.
-- Safe profile/credential-reference rotation, exact tagged provider writer
-  integration results, and installation/release gates remain open.
+- Exact tagged disposable Docker and Kubernetes writer integration jobs passed.
+  Safe mounted-profile expansion and installation/release gates follow in later
+  versions; credentials remain operator-managed references.
 
 ## [0.5.0] - 2026-10-17
 

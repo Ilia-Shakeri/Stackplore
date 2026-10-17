@@ -142,13 +142,13 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	if topic == streamLogs && handler.applicationSettings != nil {
+	if topic == streamLogs && (handler.applicationSettings != nil || handler.logRedactionPolicy.HasAdditionalFields()) {
 		reader, ok := provider.(domain.LogReadProvider)
 		if !ok {
 			writeProblem(w, r, unavailableProblem)
 			return
 		}
-		provider = configuredLogStreamProvider{ProductProvider: provider, configuredLogReader: configuredLogReader{reader: reader, settings: handler.applicationSettings}}
+		provider = configuredLogStreamProvider{ProductProvider: provider, configuredLogReader: configuredLogReader{reader: reader, settings: handler.applicationSettings, policy: handler.logRedactionPolicy}}
 	}
 	if topic == streamAlerts {
 		if changes, ok := handler.alertReader.(domain.AlertChangeReader); ok {

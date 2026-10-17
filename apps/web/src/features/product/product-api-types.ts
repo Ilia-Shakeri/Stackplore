@@ -9,6 +9,7 @@ import type {
   ProductEventPage,
   ProductLogPage,
   ProductMetricHistoryResult,
+  ProductHealthHistoryResult,
   ProductMetricResult,
   ProductNotificationPage,
   NotificationSettingsStatus,
@@ -45,9 +46,15 @@ export interface ProductApi extends SourceSettingsApi, OperationApi, Application
   listAlertRules(options?: GlobalPageOptions): Promise<AlertRulePage>;
   listAudit(options?: GlobalPageOptions): Promise<ProductAuditPage>;
   listEnvironments(options?: ProductPageOptions): Promise<ProductEnvironmentPage>;
-  listEvents(options?: ObservationReadOptions): Promise<ProductEventPage>;
+  listEvents(options?: EventReadOptions): Promise<ProductEventPage>;
   listLogs(options?: LogReadOptions): Promise<ProductLogPage>;
+  downloadLogs(
+    options?: LogDownloadOptions,
+  ): Promise<{ readonly text: string; readonly limited: boolean }>;
   listMetricHistory(options?: MetricHistoryOptions): Promise<ProductMetricHistoryResult>;
+  listHealthHistory(
+    options: MetricHistoryOptions & { readonly resourceId: string },
+  ): Promise<ProductHealthHistoryResult>;
   listMetrics(options?: ResourceSelectionOptions): Promise<ProductMetricResult>;
   listNotifications(options?: GlobalPageOptions): Promise<ProductNotificationPage>;
   listResources(options?: ResourceReadOptions): Promise<ProductResourcePage>;
@@ -110,9 +117,20 @@ export interface ObservationReadOptions extends ResourcePageReadOptions {
   readonly to?: string;
 }
 
+export interface EventReadOptions extends ObservationReadOptions {
+  readonly environmentId?: string;
+  readonly search?: string;
+  readonly severity?: 'debug' | 'info' | 'warning' | 'error' | 'critical';
+}
+
 export interface LogReadOptions extends ObservationReadOptions {
   readonly container?: string;
   readonly previous?: boolean;
+}
+
+export interface LogDownloadOptions extends Omit<LogReadOptions, 'cursor' | 'limit'> {
+  readonly search?: string;
+  readonly severity?: 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical' | 'unknown';
 }
 
 export interface MetricHistoryOptions extends ResourceSelectionOptions {

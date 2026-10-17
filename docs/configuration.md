@@ -55,6 +55,10 @@ by the operator at startup; browser requests cannot supply one.
 | `DOCKER_PROXY_KEY_FILE` | absent | Absolute private client key reference; required with the restricted proxy |
 | `KUBERNETES_NAMESPACES` | absent | Required when Kubernetes is enabled: one to 64 explicit DNS namespace labels, comma-separated without spaces |
 | `KUBERNETES_CLUSTER_OBSERVATION` | `false` | Separate opt-in global observation; namespace lists still stay inside the allowlist |
+| `KUBERNETES_ACCESS_PROFILE` | `kubernetes_incluster` | In-cluster service account or read-only `kubernetes_kubeconfig` |
+| `KUBERNETES_KUBECONFIG_FILE` | absent | Absolute mounted kubeconfig path below one approved reference root; required for kubeconfig profile |
+| `KUBERNETES_CONTEXT` | kubeconfig current context | Optional exact context name; maximum 256 bytes |
+| `KUBERNETES_REFERENCE_ROOTS` | absent | One to eight absolute mounted directories; OS path-list separator (`:` on Linux, `;` on Windows); no filesystem root |
 | `DEMO_DEPLOYMENT` | `false` | Isolated synthetic deployment; rejects real providers, provider credentials, outbound settings and infrastructure writes |
 | `GUEST_DEMO` | `false` | Public named product GET routes only; requires isolated demo deployment |
 | `DEMO_DATA_DIRECTORY` | absent | Required isolated absolute private directory, separate from `DATA_DIRECTORY`; an ordinary or unmarked nonempty directory is refused |
@@ -64,6 +68,30 @@ symlinks may resolve within their selected mount directory; escaping links,
 directories and special files are refused. TLS verifies the exact configured
 hostname and CA; proxy environment variables and redirects are disabled.
 Projected Kubernetes tokens refresh without persisting their values.
+
+The mounted kubeconfig profile rejects all symlinks, including internal links,
+and permits only file references under the explicit roots. The kubeconfig and
+CA/certificate/key files are capped at 1 MiB each; token files at 16 KiB. It accepts
+one exact HTTPS cluster origin and either a token-file or paired client
+certificate/key references. Inline credential/CA data, authentication plugins,
+basic authentication, proxy/impersonation settings, extensions and insecure TLS
+are refused, including in unused contexts. The same namespace and transport
+endpoint allowlists still apply. This observation profile cannot enable a writer;
+do not reuse its reader credential for infrastructure operations. Restart after
+changing a certificate, CA, selected context or endpoint. Selected token-file
+credentials use bounded refresh. See the [mounted-profile example](kubernetes-provider.md#mounted-kubeconfig-and-context).
+
+`STACKPLORE_LOG_REDACT_FIELDS` optionally adds up to 32 comma-separated structured
+log field names to built-in masking. Names start with an ASCII letter and contain
+at most 64 letters/digits/underscore/hyphen bytes, without spaces. Matching and
+duplicate detection ignore case, underscores and hyphens. The policy applies to
+pages, downloads and live logs; it cannot disable built-in credential masking.
+Leave the key absent for the built-in policy. These field names are configuration,
+never values to redact or credentials.
+Compose passes this optional operator environment variable through without
+inventing an empty value. The Helm equivalent is `api.logRedactFields`, an
+array of the same field names; an empty array omits the setting. Restart or
+roll out the application after changing the policy.
 
 The application has no Docker socket in the restricted profile. Its mTLS proxy
 admits only reviewed bounded observation requests. Write permission remains a

@@ -23,20 +23,22 @@ const findGoFiles = (directory) =>
     .sort();
 
 const files = findGoFiles(apiRoot);
-const args = mode === '--write' ? ['-w', ...files] : ['-l', ...files];
-const result = spawnSync('gofmt', args, { encoding: 'utf8' });
-
-if (result.error) {
-  process.stderr.write(`Could not run gofmt: ${result.error.message}\n`);
-  process.exit(1);
+const unformatted = [];
+// Keep each command below the Windows process argument limit as the tree grows.
+for (let offset = 0; offset < files.length; offset += 32) {
+  const args = [mode === '--write' ? '-w' : '-l', ...files.slice(offset, offset + 32)];
+  const result = spawnSync('gofmt', args, { encoding: 'utf8', timeout: 60_000 });
+  if (result.error) {
+    process.stderr.write(`Could not run gofmt: ${result.error.message}\n`);
+    process.exit(1);
+  }
+  if (result.status !== 0) {
+    process.stderr.write(result.stderr);
+    process.exit(result.status ?? 1);
+  }
+  if (mode === '--check' && result.stdout.trim()) unformatted.push(result.stdout.trimEnd());
 }
-
-if (result.status !== 0) {
-  process.stderr.write(result.stderr);
-  process.exit(result.status ?? 1);
-}
-
-if (mode === '--check' && result.stdout.trim()) {
-  process.stderr.write(`Go files need formatting:\n${result.stdout}`);
+if (unformatted.length) {
+  process.stderr.write(`Go files need formatting:\n${unformatted.join('\n')}\n`);
   process.exit(1);
 }

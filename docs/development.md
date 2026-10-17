@@ -4,7 +4,7 @@
 
 - Node.js `24.18.0` from `.node-version`
 - pnpm `11.17.0` through Corepack
-- Go `1.26.5` from `apps/api/go.mod`
+- Go `1.26.9` from `apps/api/go.mod`
 - PostgreSQL 17 or newer for live persistence checks
 
 Do not substitute a globally different toolchain when reviewing reproducibility. On Windows, invoke npm as `npm.cmd` when npm is needed.

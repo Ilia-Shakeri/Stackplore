@@ -1,10 +1,9 @@
 # Current user guide
 
-This describes the authenticated exploration checkpoint and the implemented
-0.5 provider/guest candidate. Current PostgreSQL, actual browser and disposable
-provider proof is recorded separately in the evidence plan; full installation
-and production acceptance remain later gates. Every 1.0 feature is not yet
-available. See [remaining work](roadmap.md) and
+This describes the implemented 0.9.0 candidate. Exact PostgreSQL, browser,
+provider, installation and release-artifact results belong in the
+[evidence plan](implementation-plan.md). Candidate code is not final 1.0
+acceptance or a customer production deployment. See [remaining gates](roadmap.md) and
 [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
@@ -19,14 +18,22 @@ available. See [remaining work](roadmap.md) and
    means configured, not a successful live connection check.
 4. Inspect `/overview`, `/resources`, and a resource's stable detail link. Health
    and capability status distinguish available, stale, unavailable, unsupported,
-   and denied data. A displayed partial page is not the whole estate.
+   and denied data. A displayed partial page is not the whole estate. Overview
+   ranks CPU/memory consumers only within loaded observations and labels that
+   scope; resource details show metric and health history with exact source and
+   resource selection. Network counters and restart counts are not invented rates.
 5. Use `/topology` for the graph and its list alternative, `/logs` for bounded
    current log reads, and `/events` for infrastructure events. Do not treat an
    inferred edge as a guaranteed dependency. Inventory, events, topology and
    alert history have bounded paging; shared filters, correlated time windows,
    and log tail/pause/wrap/copy/download controls are described in the
-   [exploration guide](exploration.md). Log downloads contain loaded redacted
-   lines, and local log/alert filters apply only to their loaded set.
+   [exploration guide](exploration.md). Log display filters apply to loaded lines;
+   a download separately streams matching redacted server pages under the current
+   source/resource/time/container/search/severity selection and export policy.
+   Event text/severity/environment filters apply on the server before paging.
+   The alert-state filter still applies only to loaded alerts.
+   When native event-history capability is denied, the entire event timeline is
+   denied/empty; safe operation/alert facts are not a separately exposed subfeed.
 6. Read `/alerts` and `/notifications`. Administrators can acknowledge a persisted firing alert, including synthetic demonstration metadata,
    manage alert rules, inspect safe notification status, and request a guarded
    test delivery when operator webhook or Matrix configuration allows it. Select
@@ -35,9 +42,12 @@ available. See [remaining work](roadmap.md) and
 7. Administrators use `/settings/users` for account management and `/audit` for
    protected history. High-risk account/test operations request the current
    password to obtain a purpose-bound one-use grant.
-8. Switch English/Persian and the theme in the header. Preferences persist
-   locally; the broader preference settings page is planned. Sign out through
-   the account menu.
+8. Switch English/Persian and the theme in the header. **Settings → Preferences**
+   stores local calendar, digits and 12/24-hour choices, with truthful save-error
+   feedback. **Settings → General** shows effective application policy; only
+   administrators may preview/confirm its changes, masked configuration export
+   or bounded eligible-history cleanup. See [settings](settings.md). Sign out
+   through the account menu.
 
 ## Administrator source changes
 
@@ -69,9 +79,20 @@ are described in the [Docker](docker-provider.md),
 [Kubernetes](kubernetes-provider.md) and [demonstration](demo.md) guides.
 
 Viewers cannot administer users/rules/global settings or mutate infrastructure.
-The current baseline exposes no live restart/scale action. The installable PWA,
-broader safe profile setup, full detail
-tabs, and complete history/export/cleanup flows remain roadmap work.
+Administrators can use only supported fixed [guarded actions](operations/guarded-actions.md)
+when deployment enablement, separate provider write authority and all preview,
+version, recent-auth, confirmation and audit gates allow them. Read-only remains
+the default. The browser cannot create a provider profile or edit raw credentials.
+
+## Offline shell and updates
+
+On HTTPS or another secure browser context, the production build can register an
+installable public offline shell. It caches only `/offline.html`, `/offline.css`,
+`/offline.js` and `/brand/stackplore-favicon.svg`. It does not cache application
+HTML, API responses, logs, account data, health probes or metrics. Offline
+navigation shows the public offline page; it does not offer old private data.
+A waiting worker shows an update action and reloads after the user chooses it.
+Without service-worker support or installation permission, online use continues.
 
 Loading, denied, unavailable and disconnected states deserve attention. Retry a
 failed read; if it persists, give the operator only the safe error code and
@@ -83,6 +104,11 @@ Restart thresholds count observed increases per configured window. Alert changes
 and resets refetch durable state, including acknowledgement after restart. Rule
 source is immutable during editing; create a new rule to move to another source.
 See [exact alert and delivery semantics](alerts-notifications.md).
-Ordinary history has fixed bounded retention; audit currently retains all rows.
-Configurable quotas, protected audit cleanup, exports and archive custody are
-later-stage work.
+Ordinary history follows the effective configured retention policy. Cleanup
+previews freeze scope/cutoffs/counts; each confirmed manual batch removes at most
+1,000 eligible rows. Protected audit policy has a 90-day minimum and a quota;
+audit expiry remains disabled without an independently verified archive cutoff.
+Audit rows linked to operations/deliveries stay protected. Archive custody and a
+customer's backup/restore verification remain operator responsibilities. See
+[settings](settings.md), [backup/restore](operations/backup-restore.md) and
+[incident response](operations/incident-response.md).

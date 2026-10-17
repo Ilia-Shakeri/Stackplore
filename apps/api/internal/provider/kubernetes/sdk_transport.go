@@ -10,12 +10,14 @@ import (
 )
 
 type boundedTransport struct {
-	base          http.RoundTripper
-	tokens        *bearerSource
-	namespaces    []string
-	clusterScoped bool
-	maximum       int64
-	writer        bool
+	base            http.RoundTripper
+	tokens          *bearerSource
+	namespaces      []string
+	clusterScoped   bool
+	maximum         int64
+	writer          bool
+	originHost      string
+	certificateAuth bool
 }
 
 func (transport *boundedTransport) CloseIdleConnections() {
@@ -25,7 +27,11 @@ func (transport *boundedTransport) CloseIdleConnections() {
 }
 
 func (transport *boundedTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	if request.URL.Scheme != "https" || request.URL.Host != "kubernetes.default.svc" ||
+	host := transport.originHost
+	if host == "" {
+		host = "kubernetes.default.svc"
+	}
+	if request.URL.Scheme != "https" || request.URL.Host != host ||
 		request.URL.User != nil || request.URL.RawPath != "" || !transport.permits(request.Method, request.URL.Path) || transport.writer && !validWriterQuery(request) {
 		return nil, ErrPermissionDenied
 	}
@@ -39,7 +45,11 @@ func (transport *boundedTransport) RoundTrip(request *http.Request) (*http.Respo
 	if err != nil {
 		return nil, err
 	}
-	copy.Header.Set("Authorization", "Bearer "+token)
+	if !transport.certificateAuth {
+		copy.Header.Set("Authorization", "Bearer "+token)
+	} else {
+		copy.Header.Del("Authorization")
+	}
 	copy.Header.Set("Accept-Encoding", "identity")
 	response, err := transport.base.RoundTrip(copy)
 	if err != nil {
@@ -48,7 +58,7 @@ func (transport *boundedTransport) RoundTrip(request *http.Request) (*http.Respo
 	if response == nil || response.Body == nil {
 		return nil, ErrUnavailable
 	}
-	if response.StatusCode == http.StatusUnauthorized {
+	if response.StatusCode == http.StatusUnauthorized && !transport.certificateAuth {
 		transport.tokens.invalidate(token)
 		if request.Method == http.MethodGet && transport.tokens.read != nil {
 			response.Body.Close()

@@ -17,3 +17,10 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 {{- end }}
+{{- define "stackplore.image" -}}
+{{- if .Values.api.image.digest -}}
+{{- printf "%s@%s" .Values.api.image.repository .Values.api.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.api.image.repository .Values.api.image.tag -}}
+{{- end -}}
+{{- end -}}

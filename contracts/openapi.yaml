@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.7.0
+  version: 0.9.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -1089,6 +1089,92 @@ paths:
           $ref: '#/components/responses/InternalProblem'
         '503':
           $ref: '#/components/responses/ServiceUnavailableProblem'
+  /logs/download:
+    get:
+      operationId: downloadProductLogs
+      summary: Stream a bounded redacted log download
+      description: >-
+        Public only in an explicitly isolated guest demonstration; normal installations require a browser session.
+        Streams fixed source/resource/container and paired UTC time-range results across provider pages.
+        Optional q and severity filters apply after the same redaction used for display.
+        No cursor, limit, filename or endpoint override is accepted.
+        The response is capped at 1048576 UTF-8 bytes including framing, 1000 matching records,
+        10000 scanned records, 100 provider pages and ten seconds. Eight downloads globally
+        and one per user or guest peer may run at once. The first line is
+        '# Stackplore bounded log download v1'. Each record is a single timestamp-prefixed line.
+        The final line is '# stackplore-export: complete', '# stackplore-export: limited',
+        or '# stackplore-export: incomplete'. A missing or incomplete marker means the download failed;
+        clients must not present it as complete. The range remains fixed through continuations.
+      security:
+        - BrowserSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - $ref: '#/components/parameters/ProductResourceFilter'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - name: container
+          in: query
+          description: Exact container name; requires resource_id.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+            pattern: ^[A-Za-z0-9][A-Za-z0-9_.-]{0,255}$
+        - name: previous
+          in: query
+          description: Read the previous container instance; requires resource_id.
+          schema:
+            type: boolean
+        - name: q
+          in: query
+          description: Case-insensitive search in redacted message text; control and direction-override characters are rejected.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/LogSeverity'
+      responses:
+        '200':
+          description: Bounded UTF-8 streamed attachment. Inspect the final marker for complete or limited delivery.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              schema:
+                type: string
+                const: no-store
+            Content-Disposition:
+              schema:
+                type: string
+                const: 'attachment; filename="stackplore-logs.txt"'
+          content:
+            text/plain:
+              schema:
+                type: string
+                maxLength: 1048576
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
   /metrics/current:
     get:
       operationId: getProductMetrics
@@ -1113,6 +1199,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductMetricResult'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /health/history:
+    get:
+      operationId: getProductHealthHistory
+      summary: Read bounded retained resource health history
+      description:
+        Public only in an explicitly isolated guest demonstration; normal installations require a browser session. >-
+        Returns the newest retained resource health samples with explicit completeness. resource_id is required. Explicit from/to must be paired UTC microsecond timestamps.
+        The maximum range is thirty days.
+        Explicit range cannot be combined with minutes.
+      security:
+        - BrowserSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/ProductSourceSelection'
+        - name: resource_id
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ResourceId'
+        - name: minutes
+          in: query
+          schema:
+            type: integer
+            minimum: 5
+            maximum: 43200
+            default: 60
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 200
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        '200':
+          description: Bounded health history in descending timestamp and ascending ID order.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductHealthHistoryResult'
         '400':
           $ref: '#/components/responses/BadRequestProblem'
         '401':
@@ -1205,6 +1355,19 @@ paths:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
         - $ref: '#/components/parameters/ProductResourceFilter'
+        - $ref: '#/components/parameters/Search'
+        - name: environment_id
+          in: query
+          required: false
+          description: Exact environment within the selected source. Bound to page cursors.
+          schema:
+            $ref: '#/components/schemas/EnvironmentId'
+        - name: severity
+          in: query
+          required: false
+          description: Exact severity. Bound to page cursors together with search and environment.
+          schema:
+            $ref: '#/components/schemas/EventSeverity'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/From'
@@ -3504,6 +3667,48 @@ components:
           maxItems: 200
           items:
             $ref: '#/components/schemas/ProductMetricSample'
+    ProductHealthHistoryItem:
+      type: object
+      additionalProperties: false
+      required: [id, resource_id, state, availability, completeness, observed_at, synthetic]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: '^[A-Za-z0-9_-]+$'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        state:
+          $ref: '#/components/schemas/HealthState'
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        synthetic:
+          type: boolean
+    ProductHealthHistoryResult:
+      type: object
+      additionalProperties: false
+      required: [availability, completeness, observed_at, items]
+      properties:
+        availability:
+          $ref: '#/components/schemas/AvailabilityState'
+        completeness:
+          $ref: '#/components/schemas/Completeness'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        reason_code:
+          $ref: '#/components/schemas/NamespacedCode'
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ProductHealthHistoryItem'
     ProductMetricHistoryResult:
       type: object
       additionalProperties: false

@@ -1,0 +1,23 @@
+.public-shell-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 42rem;
+  margin: 1rem auto;
+  padding: 1rem;
+  border: 1px solid var(--sp-border);
+  border-radius: 0.75rem;
+  background: var(--sp-surface);
+  color: var(--sp-text);
+  box-shadow: 0 4px 20px #0002;
+}
+.public-shell-status p {
+  margin: 0;
+}
+@media (max-width: 30rem) {
+  .public-shell-status {
+    align-items: start;
+    flex-direction: column;
+  }
+}

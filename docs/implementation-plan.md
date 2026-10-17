@@ -2,6 +2,92 @@
 
 ## Current release status — 2026-10-17
 
+Stage 7 replacement [CI 39031584134](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39031584134)
+passed **all six jobs** on exact commit
+`64fd4391113cebc53e99bdd09a3d81bbff6054ce`. Actual Compose setup, UI/readiness,
+restart/session preservation, actual Helm installation with separate TLS
+PostgreSQL, image/chart validation, real SQL/race and both provider jobs passed.
+Annotated `v0.7.0` was created at that unchanged commit and pushed. Exact tag
+[CI 39032396854](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39032396854)
+also passed all six jobs. The three failed attempts below remain failed receipts.
+
+Stage 8 `0.9.0` is implemented in the working tree. The final changed-tree full
+gate with Go 1.26.9 and the expanded production-browser matrix have passed.
+Exact remote verification, artifact trial, consumer signature verification and
+publication remain open.
+[Candidate receipts](evidence/0.9.0/README.md) keep SQL performance, dependency
+scans, native restore and browser proof separate. Scope includes mounted safe
+Kubernetes profiles, additive log redaction, streamed log download, system event
+facts, source-creation audit, event filters, health history, metric trends and
+coalesced live reads, public-only offline/update behavior and signed packaging.
+
+Correction loop: initial candidate 8/10; fixes addressed unindexed deep pages,
+stale source-wide event clocks, missing atomic source-creation audit, missing
+upstream legal text and vulnerable pinned transitive packages. Scoped independent
+architecture/code review returned 9/10 after corrections. Whole-candidate and
+release acceptance remain separate. A full SQL test found an old guest-reset
+assertion assuming the pre-existing audit count; corrected exact audit checks
+pass while preserving all guest authentication/outbound guarantees.
+
+Further actual browser review lowered the candidate score to 8/10: waiting only
+for a page title had hidden loading/error states, the overview started duplicate
+read batches on initial clock/stream messages and hit the default rate limit,
+and Chromium rejected the SVG install icon. The stronger loaded-data/browser
+gate is retained. Corrections coalesce overview refreshes and fence canceled
+responses, replace install icons with raster exports of the owned vectors, and
+test update delivery through a fixed local test proxy. The final Go 1.26.9 browser
+run passed all 14 tests: 64 loaded route states, four-path offline/privacy,
+regular-profile installability, explicit update acceptance/reload, 80 bounded
+reads and English/Persian account/role journeys. A browser-installed-to-waiting
+worker race was reproduced and fixed with a focused regression. Test-only
+separate clients refill the unchanged shared loopback rate bucket between cases;
+neither request limits nor assertions were weakened. The mounted profile exposed a source
+settings constructor allowlist omission; its negative-first regression, all
+five reviewed profiles and actual full-server startup against real PostgreSQL
+and a scoped HTTPS Kubernetes fixture now pass.
+
+The complete Go suite passed with the disposable SQL URL (PostgreSQL package
+276.112s), before the later mounted-startup test. A separate measured web run
+passed 449 tests in 46 files: statements 81.23%, branches 77.17%, functions
+85.05%, lines 82.76%. These are not the final changed-tree gate. Full gate B
+passed format/docs/version/notices/locales/contracts, then failed 19 strict lint
+errors in new components/tests and the coverage script; all were corrected
+without disabling rules. The Windows formatter also outgrew the
+process argument limit; it now uses bounded batches of 32 files. Failed and
+interrupted receipts are retained separately from the final replacement run.
+
+Full gate D passed on Go 1.26.5, but executable-aware rootfs scanning then found
+33 HIGH findings across 11 standard-library CVE IDs in the three native tools.
+Zero-language filesystem scans were rejected as incomplete. Release scanning
+now requires every shipped native executable, the server and OS in the image,
+and Go-module SPDX package URLs. Go was upgraded to 1.26.9, including CI,
+container digest, bootstrap, legal inventory and release metadata. Its official
+download endpoints returned 404 here; the official `actions/go-versions` mirror
+archive was downloaded and SHA256-verified instead. The local pinned tool was
+updated while preserving its predecessor. Native cache maintenance freed space;
+no user artifact or failed diagnostic receipt was removed.
+
+The **complete `npm.cmd run verify` with Go 1.26.9 passed exit 0** using the real
+disposable PostgreSQL URL, followed by current chart render/schema and document
+checks. It includes core coverage thresholds, 40 client tests, 453 web tests,
+nine release-safety tests, locale/contract drift, lint/types and both builds.
+The final browser runner also exited 0 after all 14 cases and owned database
+cleanup. Current rootfs scan analyzes all three rebuilt Linux binaries, reports
+zero HIGH/CRITICAL findings and inventories 97 SPDX packages. Fresh official-DB
+dependency analysis executed both gomod and pnpm analyzers, including development
+dependencies, with zero HIGH/CRITICAL findings. Its exact copied input hashes,
+scope and raw report hash are retained in the sanitized receipts. The slower
+interrupted Windows-mount filesystem traversal is not counted as a pass.
+
+The corrected architecture and code score **9/10**. Release/completion proof
+remains separate until exact CI, signed artifacts, consumer verification and
+the final 1.0 review/tag/publication close. See [browser](evidence/0.9.0/browser-runtime.json),
+[native security](evidence/0.9.0/native-security.json) and
+[requirements](evidence/0.9.0/requirements.md).
+
+The following Stage 7 and earlier paragraphs are chronological historical
+snapshots. The latest status above takes precedence over their pending wording.
+
 Stage 7 correction loop: candidate `1a39e780abed587104092eab33ec3da0256a02d9`
 failed [CI run 39025933317](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39025933317).
 The code, image/chart, Docker-provider and Kubernetes-provider jobs passed;

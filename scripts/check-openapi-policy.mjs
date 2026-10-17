@@ -73,6 +73,8 @@ const guestReadPaths = new Set([
   '/resources/{resource_id}/health',
   '/topology',
   '/logs',
+  '/logs/download',
+  '/health/history',
   '/metrics/current',
   '/metrics/history',
   '/events',
@@ -649,6 +651,22 @@ routePolicies.set('/operations/{operation_id}', {
     security: browserSession,
   },
 });
+routePolicies.set('/logs/download', {
+  get: {
+    operationId: 'downloadProductLogs',
+    requestBody: false,
+    responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+    security: browserSession,
+  },
+});
+routePolicies.set('/health/history', {
+  get: {
+    operationId: 'getProductHealthHistory',
+    requestBody: false,
+    responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+    security: browserSession,
+  },
+});
 const allowedPathNames = [...routePolicies.keys()];
 const allowedOperationKeys = [
   'description',
@@ -721,6 +739,8 @@ const successResponseNames = new Set([
 const allowedResponseKeys = ['content', 'description', 'headers'];
 const problemMediaType = 'application/problem+json';
 const allowedSchemaNames = [
+  'ProductHealthHistoryItem',
+  'ProductHealthHistoryResult',
   'ResourceMetadata',
   'DockerMetadataEnvelope',
   'KubernetesMetadataEnvelope',
@@ -1138,6 +1158,18 @@ const inspectPathPolicy = (paths) => {
       }
       if (!hasExactKeys(operation.responses, policy.responses)) {
         issues.push(`${path} ${method.toUpperCase()} must keep its fixed response statuses`);
+      }
+      if (path === '/logs/download') {
+        const success = operation.responses?.['200'];
+        if (
+          success?.content?.['text/plain']?.schema?.type !== 'string' ||
+          success?.content?.['text/plain']?.schema?.maxLength !== 1048576 ||
+          success?.headers?.['Cache-Control']?.schema?.const !== 'no-store' ||
+          success?.headers?.['Content-Disposition']?.schema?.const !==
+            'attachment; filename="stackplore-logs.txt"'
+        ) {
+          issues.push('log download must keep its fixed bounded private text attachment');
+        }
       }
 
       if (policy.security.length === 0) {
@@ -1742,6 +1774,18 @@ const runPolicySelfTests = () => {
               operation.requestBody = {
                 content: { 'application/json': {} },
                 required: true,
+              };
+            }
+            if (path === '/logs/download') {
+              operation.responses['200'] = {
+                description: 'Bounded text attachment.',
+                content: { 'text/plain': { schema: { type: 'string', maxLength: 1048576 } } },
+                headers: {
+                  'Cache-Control': { schema: { const: 'no-store' } },
+                  'Content-Disposition': {
+                    schema: { const: 'attachment; filename="stackplore-logs.txt"' },
+                  },
+                },
               };
             }
             return [method, operation];

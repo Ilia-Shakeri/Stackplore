@@ -92,7 +92,9 @@ receipt. See [notification semantics](../alerts-notifications.md).
 
 The Compose profile keeps both live sources off. The current direct Docker
 socket adapter is accepted only in an explicit loopback development profile;
-production startup rejects it. A restricted production proxy is roadmap work.
+production startup rejects it. Production Docker reads use an operator-managed,
+restricted mTLS proxy through the mounted Docker profile. See the
+[Docker provider guide](../docker-provider.md) for the exact allowlist and trust inputs.
 Do not mount a host socket into this wildcard-bound Compose deployment.
 
 ## Release checks
@@ -101,6 +103,6 @@ Do not mount a host socket into this wildcard-bound Compose deployment.
 - PostgreSQL integration tests with `STACKPLORE_TEST_POSTGRES_URL`
 - `docker compose --env-file deploy/compose.env.example config --quiet`
 - `helm lint deploy/helm/stackplore --strict`
-- Image build and vulnerability scan in the release registry
+- Image build and vulnerability scan before producing the Docker-save release archive
 - Backup, empty-database restore, and rollback rehearsal against the target PostgreSQL service
 - Browser smoke checks in English, Persian RTL, keyboard-only use, and narrow/mobile widths

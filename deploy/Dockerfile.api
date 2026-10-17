@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.8
-FROM node:24.18.0-alpine AS web-build
+FROM node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS web-build
 WORKDIR /src
 RUN corepack enable && corepack prepare pnpm@11.17.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
@@ -10,9 +10,10 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --froze
 COPY apps/web/ apps/web/
 COPY packages/api-client/ packages/api-client/
 COPY packages/ui/ packages/ui/
-RUN pnpm --filter @stackplore/web build
+COPY scripts/check-web-notices.mjs scripts/check-web-notices.mjs
+RUN node scripts/check-web-notices.mjs && pnpm --filter @stackplore/web build
 
-FROM golang:1.26.5-alpine AS build
+FROM golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade AS build
 WORKDIR /src
 COPY apps/api/go.mod apps/api/go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
@@ -22,12 +23,14 @@ COPY --from=web-build /src/apps/web/dist/ /src/internal/webui/static/
 RUN --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/stackplore-server ./cmd/server
 
-FROM alpine:3.23
+FROM alpine:3.23@sha256:85fe1e81d6758c208f3e1eed4338a1997e19d4be002d4dd32d3100c9a8c010a0
 RUN apk add --no-cache ca-certificates tzdata && \
     addgroup -S -g 10001 stackplore && \
     adduser -S -D -H -u 10001 -G stackplore stackplore && \
     install -d -o stackplore -g stackplore -m 0700 /var/lib/stackplore
 COPY --from=build --chown=10001:10001 /out/stackplore-server /usr/local/bin/stackplore-server
+COPY apps/api/licenses/ /usr/share/licenses/stackplore/go/
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/licenses/stackplore/
 USER 10001:10001
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/stackplore-server"]

@@ -2,9 +2,16 @@
 
 Use the pinned tools in [development](development.md). `npm.cmd run verify`
 checks format, documentation links/inventory, release metadata, locale parity,
-OpenAPI policy/derived types, lint, TypeScript, all local tests, and builds.
+OpenAPI policy/derived types, lint, TypeScript, local tests with their measured
+coverage gates, legal-copy checks and builds. Browser, provider, installation and
+release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
+
+Current code is the 0.9.0 candidate. Final local/remote results, tags and artifact
+verification count only when recorded in the [active plan](implementation-plan.md).
+Historical receipts below describe their own revisions. Project acceptance and
+a customer's production deployment are separate; these tests do not deploy it.
 
 | Boundary                                   | Required check                                              | Proof limitation                                                                        |
 | ------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -32,7 +39,7 @@ $env:STACKPLORE_TEST_POSTGRES_URL = 'postgresql://test-role@127.0.0.1:5432/stack
 npm.cmd run test:api
 ```
 
-## Stage 6 guarded operations and settings
+## Historical Stage 6 guarded operations and settings
 
 The full Windows gate passed on the changed tree with pinned Node 24.18.0, Go,
 and a disposable PostgreSQL 17 cluster. It includes real migration, repository,
@@ -90,17 +97,17 @@ checks, and Helm lint/render passed. Exact commands and outcomes are in the acti
 evidence plan. Later exploration and provider receipts are recorded below;
 complete Matrix homeserver and target installation proof remain separate. Under renewed authorization on
 2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
-jobs. Older tagged results do not certify the 0.5.0 candidate; current results
+jobs. Older tagged results do not certify the 0.9.0 candidate; current results
 are recorded in the evidence plan.
 
-## Provider and isolated-demo candidate
+## Historical provider and isolated-demo checkpoint
 
-The `0.5.0` candidate has scoped Docker/Kubernetes, PostgreSQL and guest-browser
+The `0.5.0` checkpoint has scoped Docker/Kubernetes, PostgreSQL and guest-browser
 receipts. Final complete changed-tree gate D passed with real PostgreSQL,
-36 client tests, 350 web tests and both builds. Exact publication/CI remain
-pending; do not report the early failed full gates as successful. The active
+36 client tests, 350 web tests and both builds. Exact publication/CI identities
+are retained in the active plan; do not report early failed full gates as successful. The active
 plan records the 8.5/10 findings, fixes and final independent scoped 9/10 review.
-Stages 6–9 remain open.
+Those counts are historical and are not current candidate acceptance.
 
 With a disposable real PostgreSQL URL, reproduce the narrow authority and clock
 checks after preparing the pinned tools:
@@ -165,11 +172,64 @@ component/DOM checks, actual browser journeys and broader release acceptance. Do
 missing browser or deployment result with the presence of a test definition.
 
 The specification requires measured meaningful coverage; do not estimate it from
-test counts. Collect Go coverage and frontend feature coverage with the owning
-release-hardening work. Race tests need a supported Go race toolchain. SQL hot
+test counts. `test:api` measures statement coverage of `internal/domain` and
+`internal/alerting` and requires at least 80% in each. `test:web` collects feature
+coverage and requires at least 70% statements, branches, functions and lines.
+These are defined gates; record actual changed-tree measurements before calling
+them passed. Race tests need a supported Go race toolchain. SQL hot
 paths require representative data and `EXPLAIN (ANALYZE, BUFFERS)` before a
 performance claim. Browser measurements require actual rendering and large
 fixtures; bundle byte counts alone are insufficient.
+
+## Current candidate regressions and runtime gates
+
+Focused cases cover exact-resource health history (200 samples, 30-day lookback,
+current source authority), server event filters before pagination and cursor
+binding, atomic once-only source creation audit under capacity failure, mounted
+kubeconfig profile migration/fencing, and representative keyset plans at 1,000
+and 20,000 rows. With the disposable real PostgreSQL URL, run:
+
+```powershell
+go -C apps/api test ./internal/postgres -run 'TestHealthHistoryReadsRetainedExactResourceAndClosesRevokedAuthority|TestEventFiltersApplyBeforePaginationAndBindCursor|TestOperatorSourceCreationIsAuditedOnceAndAtomically|TestMountedKubernetesProfileMigrationAndFencePreserveAdministratorChoice|TestReleaseRepresentativeKeysetPlansOnRealPostgreSQL' -count=1 -v
+npm.cmd run test:release
+npm.cmd run check:go-notices
+npm.cmd run check:web-notices
+```
+
+Read saved `EXPLAIN (ANALYZE, BUFFERS)` work, index names, row counts and timing
+conditions before making a performance claim. Warm fixture latency does not
+certify hardware-independent throughput. Migration 15 adds the mounted profile;
+migration 16 adds the source alert feed's matching keyset index. Tests must prove
+their forward path without changing any earlier migration bytes.
+
+Log download tests cover fixed filters across pages, additive redaction/export
+policy, 10-second/1-MiB/1,000-output/10,000-scan/100-page limits, malformed or
+incomplete streams, 401/403 handling, cancellation and late-response suppression.
+PWA tests assert the four-public-file allowlist, no API/auth caching, public-only
+offline fallback and explicit update activation. Live-view tests check five-second
+coalescing and preservation of loaded page depth. Local DOM checks supplement
+real browser journeys; they do not replace them.
+
+Mixed event timeline checks retain the permission boundary: denied native
+`EventHistory` means a denied empty feed even when safe operation/alert facts
+exist. A separate system subfeed is not part of the current HTTP contract.
+
+Build the embedded production UI, then run `npm.cmd run test:browser` with
+`SP_BROWSER_ADMIN_URL` loaded privately for a disposable loopback PostgreSQL
+administrator. The harness creates/removes only its own databases and starts
+isolated guest, normal English and normal Persian application processes. It
+needs `psql` and pinned browser tooling; `SP_BROWSER_EXECUTABLE` may select a
+trusted installed browser. Never use a customer's database or publish that URL.
+Record actual screenshots, RTL/LTR, themes, widths, keyboard, accessibility and
+network/offline measurements. Do not label unexecuted scenarios passed.
+
+The native validation matrix targets Windows amd64 and Linux amd64 and the image
+matrix Linux amd64. Each artifact requires its own startup/readiness/auth/read
+and storage probes. macOS/arm64 cross-build success is extra packaging evidence,
+not native compatibility proof. Compose fresh/restart and Helm TLS installation
+are separate CI lanes. Packaging, strict dependency/native/image/secret scans,
+SPDX, checksums, signatures and independent consumer verification follow
+[release operations](operations/release.md) ([فارسی](operations/release.fa.md)).
 
 ## Safety and review
 

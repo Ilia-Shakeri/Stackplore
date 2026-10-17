@@ -1,8 +1,9 @@
 # Security Model
 
-Status: published checkpoints through 0.6.0. Exact local/CI proof for those
-checkpoints and open target-specific security gates are separated in the active
-plan. Stage 7 unifies static assets and API on the same server boundary.
+Status: implemented 0.9.0 candidate; published checkpoint receipts through
+0.7.0 and the current candidate's open gates are separated in the
+[active plan](implementation-plan.md). The Go service serves embedded UI and API
+on one origin. A mechanism described here is not an unobserved runtime result.
 
 ## Assets
 
@@ -64,7 +65,11 @@ Provider credentials must remain server-side. Adapters must use least-privilege 
 
 Every capability is explicit. Unsupported, denied, unavailable, stale, and partial results stay different through provider, domain, API, and UI layers. Synthetic results carry a marker. The product must not fill missing real data with demo data.
 
-Docker socket access is effectively host-root access. A production Docker adapter should prefer a narrowly scoped proxy or remote read-only API and must document remaining authority. Kubernetes credentials should use a dedicated ServiceAccount and the smallest resource/verb/namespace set needed for enabled capabilities. Secret read permission is not needed for the planned default feature set.
+Docker socket access is effectively host-root access. The production Docker
+profile uses the narrowly scoped restricted proxy and documents its remaining
+daemon authority. Kubernetes credentials use a dedicated identity and the
+smallest resource/verb/namespace set needed for enabled capabilities. Secret
+value read permission is not needed for the default observation profiles.
 
 Docker and Kubernetes adapters remain behind operator flags. The Docker
 production profile requires a fixed HTTPS origin, server verification and a
@@ -72,7 +77,11 @@ client certificate. The private proxy and adapter both enforce a bounded GET
 allowlist; the application has no daemon socket. The proxy still has root-level
 daemon authority and is part of the trusted operator boundary. Kubernetes uses
 explicit namespaces; cluster reads are opt-in and never include Secret or
-ConfigMap values. Projected token refresh remains in memory. Safe reference files
+ConfigMap values. Kubernetes profiles can use a restricted in-cluster identity or
+an explicitly enabled, server-mounted kubeconfig profile. The latter accepts only
+the selected bounded regular file, verified HTTPS CA/server identity and
+supported static credentials; exec/auth plugins and browser-supplied paths are
+rejected. Projected token refresh remains in memory. Safe reference files
 must be regular bounded files; projected links cannot escape the selected mount
 directory. PostgreSQL stores profile references and enablement, never credential
 values. Browser APIs cannot create profiles or supply endpoints, paths or
@@ -149,23 +158,59 @@ Backup files contain sensitive application state. Encrypt them at rest, restrict
 
 The single API image serves embedded UI files and runs as non-root with Linux capabilities dropped. Its container uses a read-only root filesystem and bounded temporary storage. Compose binds the application only to host loopback and preserves PostgreSQL and runtime-key named volumes.
 
-The cluster chart uses restricted pod security contexts, read-only roots, probes, resource bounds, an external PostgreSQL Secret, TLS ingress support, and one API replica with persistent runtime-key storage. Use registry-enforced immutable tags in current chart values. Digest fields and release artifact verification remain stage8 work; the current chart appends a tag.
+The cluster chart uses restricted pod security contexts, read-only roots, probes,
+resource bounds, an external PostgreSQL Secret, TLS ingress support and one API
+replica with persistent runtime-key storage. Set `api.image.digest` to a reviewed
+`sha256:` digest to render `repository@digest`; otherwise the chart uses its tag.
+Use [artifact verification](operations/release.md) before loading/deploying an image.
+The non-root init container prepares a private PVC child, preserves a validated
+legacy key by no-overwrite rename, and restores directory/key modes `0700/0600`.
+It does not weaken runtime-file validation or gain root authority.
 
 Proxy CIDRs must name only the actual edge network. Broad defaults in example values must be narrowed for the target. An ingress or service mesh must preserve the exact scheme and host used by `STACKPLORE_PUBLIC_ORIGIN`.
 
-Local Helm lint and default/setup/cluster-observation/ingress/annotation renders have direct proof. Local real PostgreSQL integration and native empty-target restore have direct proof. Image/Compose runs, cluster installation/policy, browser and target TLS/database proof remain separate gates.
+Local/render and historical native PostgreSQL receipts remain separate from
+current exact-tree Compose/cluster install, TLS, browser, release signing and
+target checks. The active plan records each observed result independently.
+An operator's customer deployment requires its own ingress, credentials,
+database, backup and provider probes; project acceptance does not deploy it.
+
+The production service worker caches exactly four public offline-shell files:
+`/offline.html`, `/offline.css`, `/offline.js` and
+`/brand/stackplore-favicon.svg`. It never caches app HTML, API/authentication,
+provider/log data, health probes or metrics. Offline navigation uses the public
+offline page. A waiting update activates/reloads only after the user's action.
 
 ## Logs, metrics, and retained data
 
 Logs are potentially sensitive even after provider fields are filtered. Bound line bytes, page bytes, time windows, stream buffers, and retention. Treat log search as exact user input, not an expression language. Escape display output and isolate technical text in RTL.
 
+The log download is a read-only server stream bound to its original source,
+resource, UTC window, container/previous, search and severity. Capture/export
+policy and redaction apply on each continuation. Limits are 10 seconds, 1 MiB
+including markers, 1,000 matching lines, 10,000 scanned lines and 100 pages;
+global/per-user admission is bounded. A midstream failure or absent completion
+marker cannot become a successful browser download. The browser bounds UTF-8
+reads, validates markers and cancels stale selections. Raw log bodies are not
+added to PostgreSQL history by this feature.
+
 Metric values must be finite, non-negative, correctly unit-tagged, and bounded to safe integers where required. Events and topology evidence need stable IDs, source ownership, normalized reason codes, safe text, deterministic order, and explicit provenance.
 
-A scheduled retention worker uses fixed ages, one aggregate deadline and bounded
+A mixed event timeline follows the source's native `EventHistory` capability.
+Denial closes the entire feed and returns no items, including safe operation/
+alert facts. The current contract has no separately exposed system subfeed;
+those facts cannot be used to bypass the native event permission boundary.
+
+A scheduled retention worker uses effective configured ages, one aggregate deadline and bounded
 transactions with fair quotas across eligible metrics, health, events and
 terminal ordinary deliveries. Synthetic facts, current state, newest current
 metric samples, pending/audit-linked deliveries and audit rows are excluded. Audit policy enforces a 90-day minimum and bounded quota. Scheduled expiry is capped at an operator-verified archive cutoff, preserves operation/delivery-linked facts, writes a policy/cleanup audit record, and prunes at most 1,000 rows per transaction. Without archive proof no audit row expires. Monitor growth; bounded cleanup is not a production capacity guarantee. Exact limits are in
 [observations](observations.md).
+
+Source registration inserts each new `source.create` audit fact in the same
+transaction as its source row. Audit-capacity or insertion failure rolls both
+back; restart of an already registered source does not manufacture another
+creation event. Source profile updates retain their separate protected audit.
 
 ## Guarded operations
 
@@ -184,16 +229,31 @@ No generic shell, arbitrary manifest apply, SQL console, or free-form provider r
 
 ## Supply chain
 
-Tool and package versions are locked. CI uses a frozen pnpm lock, the Go checksum file, contract drift checks, tests, builds, PostgreSQL integration, image builds, Compose validation, and chart lint. Release work should also pin action revisions and image digests, generate an SBOM, scan dependencies and images, sign artifacts, and verify provenance before promotion.
+Tool/package versions, action revisions and container base digests are pinned.
+CI uses frozen pnpm/Go dependencies, contract drift checks, tests, measured
+coverage, builds, real PostgreSQL and separate install/provider lanes. The
+implemented release workflow builds native/container/source/chart archives,
+scans source dependencies including build/dev packages, native binaries and
+images, scans Git secrets, and creates SPDX SBOMs, checksums and signed
+provenance/SBOM bundles. Its exact-tag verification and consumer identity checks
+are described in [release operations](operations/release.md). A failed scan or
+signature has no unsigned passing fallback. Runtime legal inventories copy
+reviewed exact material and distinguish the one pinned supplemental notice.
 
 CI configuration is not evidence until a trusted run passes. A clean source scan does not prove secret rotation or incident closure.
 
-## Known gaps
+## Acceptance and residual boundaries
 
-- Production restricted Docker access and namespace-scoped Kubernetes/partial-permission fidelity
-- browser-managed profile creation and credential editing remain unsupported; operator reference rotation uses deployment-owned files and stores no raw values
-- exact Stage 6 CI passed guarded Docker and Kubernetes writes against owned disposable targets; production operator actions remain disabled by default and require separate target evidence
-- live operator receiver, reverse-proxy/browser and provider-fidelity proof for the implemented alert windows and durable replay
-- target production PostgreSQL/restore/TLS, Compose, cluster, browser, accessibility and performance proof
+The current candidate still needs its exact full gate, remote release artifacts,
+image/native scan, signature and independent verification results recorded
+before final release acceptance. Older checkpoints, a local dependency scan or
+a workflow definition cannot establish those results.
 
-These gaps block a 1.0 production-ready claim.
+Browser-managed profiles/credentials are deliberately unsupported. Provider
+reference rotation uses deployment-owned files; real mutations remain disabled
+by default and require every guarded-action gate. A live operator receiver,
+customer network/CA, credential rights and production restore/rollout need that
+installation's separate proof. Cross-compiled macOS/arm64 packages have no native
+support claim without native probes. See [testing](testing.md),
+[incident response](operations/incident-response.md), [backup/restore](operations/backup-restore.md)
+and [the security policy](../SECURITY.md).

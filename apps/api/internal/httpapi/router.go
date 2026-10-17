@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/webui"
 	"github.com/go-chi/chi/v5"
 )
@@ -49,6 +50,7 @@ type Options struct {
 	Operations              OperationManager
 	ApplicationSettings     ApplicationSettings
 	ApplicationMutationMode ApplicationMutationMode
+	LogRedactionFields      []string
 	WebAssets               fs.FS
 	GuestDemo               *GuestDemoOptions
 
@@ -80,6 +82,10 @@ func NewHandler(options Options) (http.Handler, error) {
 		return nil, errInvalidOptions
 	}
 	metrics := NewMetrics(options.Readiness)
+	logPolicy, err := logsafe.NewPolicy(options.LogRedactionFields)
+	if err != nil {
+		return nil, errInvalidOptions
+	}
 
 	root := chi.NewRouter()
 	root.Get("/healthz", health)
@@ -102,6 +108,7 @@ func NewHandler(options Options) (http.Handler, error) {
 		options.Operations,
 		options.ApplicationSettings,
 		options.ApplicationMutationMode,
+		logPolicy,
 		options.GuestDemo,
 	))
 	if options.WebAssets == nil {
@@ -152,6 +159,9 @@ func validateOptions(options Options) error {
 	if !validGuestDemo(options.GuestDemo, options.ProductProviders) {
 		return errInvalidOptions
 	}
+	if _, err := logsafe.NewPolicy(options.LogRedactionFields); err != nil {
+		return errInvalidOptions
+	}
 	return nil
 }
 
@@ -172,7 +182,7 @@ func validPrefixes(prefixes []netip.Prefix) bool {
 	return true
 }
 
-func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings, operations OperationManager, applicationSettings ApplicationSettings, applicationMode ApplicationMutationMode, guest ...*GuestDemoOptions) http.Handler {
+func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings, operations OperationManager, applicationSettings ApplicationSettings, applicationMode ApplicationMutationMode, logPolicy logsafe.Policy, guest ...*GuestDemoOptions) http.Handler {
 	authRoutes := newAuthHTTP(authentication, proxy.origin, readiness, now, maximumBody)
 	if len(guest) == 1 {
 		authRoutes.guestDemo = guest[0]
@@ -185,6 +195,7 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	productRoutes.operations = operations
 	productRoutes.applicationSettings = applicationSettings
 	productRoutes.applicationMutationMode = applicationMode
+	productRoutes.logRedactionPolicy = logPolicy
 	router := chi.NewRouter()
 	router.Use(proxy.requirePublicOrigin)
 	router.Use(limitRequestBody(maximumBody))
@@ -213,8 +224,10 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	router.Get("/resources/{resource_id}/health", productRoutes.health)
 	router.Get("/topology", productRoutes.topology)
 	router.Get("/logs", productRoutes.logs)
+	router.Get("/logs/download", productRoutes.downloadLogs)
 	router.Get("/metrics/current", productRoutes.metrics)
 	router.Get("/metrics/history", productRoutes.metricHistory)
+	router.Get("/health/history", productRoutes.healthHistory)
 	router.Get("/events", productRoutes.events)
 	router.Get("/alerts", productRoutes.alerts)
 	router.Post("/alerts/{alert_id}/acknowledge", productRoutes.acknowledgeAlert)
@@ -285,7 +298,7 @@ func allowedAPIMethods(path string) string {
 	path = strings.TrimPrefix(path, "/api/v1")
 	switch path {
 	case "/setup/status", "/auth/session", "/system/readiness", "/sources", "/environments", "/resources",
-		"/topology", "/logs", "/metrics/current", "/metrics/history", "/events", "/streams/health", "/streams/metrics",
+		"/topology", "/logs", "/metrics/current", "/metrics/history", "/health/history", "/events", "/streams/health", "/streams/metrics",
 		"/streams/events", "/streams/logs", "/streams/alerts", "/audit", "/notifications", "/settings/notifications":
 		return http.MethodGet
 	case "/alerts":

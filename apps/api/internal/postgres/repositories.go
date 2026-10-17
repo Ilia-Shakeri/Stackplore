@@ -213,6 +213,9 @@ func (repositories *transactionRepositories) SaveAlertMutation(ctx context.Conte
 		if err := exactInsertResult(ctx, result.RowsAffected(), err); err != nil {
 			return repositories.latchFailure(err)
 		}
+		if err := appendSystemEvent(ctx, repositories.transaction.transaction, string(transition.ID), alert.SourceID, alert.EnvironmentID, alert.ResourceID, "system.alert", alert.Severity, transition.ReasonCode, "Alert state changed to "+string(transition.To)+".", transition.OccurredAt); err != nil {
+			return repositories.latchFailure(err)
+		}
 	}
 	if mutation.Notification != nil {
 		if _, err := repositories.transaction.transaction.Exec(ctx, `SELECT pg_advisory_xact_lock($1)`, notificationOutboxLockKey); err != nil {

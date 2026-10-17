@@ -7,16 +7,16 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-17): stages 1–6 are published development checkpoints
-through `0.6.0`. Exact local and remote outcomes are separate in the evidence
+Current status (2026-10-17): stages 1–7 are published development checkpoints
+through `0.7.0`. Exact local and remote outcomes are separate in the evidence
 plan. Stage 4 passed its local, PostgreSQL, native and actual browser gates;
 [retained browser evidence](evidence/0.4.0/README.md) states the scope. Stage 5
 tag `v0.5.0` is at `c2f4c6a6de72f4574f56d57248f8aa3170d7b01f`; the corrected
 main runs `39018504287` and `39018996970` both passed on the exact tag commit.
 Stage 6 `0.6.0` exact main/tag CI passed, including the disposable Engine and
-Kubernetes writer jobs. Stage 7 `0.7.0` is in progress; the Go image now embeds
-the UI, Compose CI checks fresh startup and restart, and Helm points ingress to
-the app Service. Its local and exact CI evidence remains open. Stages 8–9 remain
+Kubernetes writer jobs. Stage 7 `0.7.0` exact main CI passed all six jobs, including
+fresh Compose setup/restart and actual Helm installation with external TLS
+PostgreSQL. Stage 8 `0.9.0` is a candidate under final verification; Stage 9 remains
 open. [Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
@@ -172,11 +172,13 @@ denial, and opt-in disposable action proof. Writes remain disabled by default.
 
 ## Stage 7 — Verified installation and operator support — 0.7.0
 
-Status: implementation in progress. The local application embeds the built UI;
+Status: published at `64fd4391113cebc53e99bdd09a3d81bbff6054ce`; exact main
+[CI 39031584134](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39031584134)
+passed all six jobs. The local application embeds the built UI;
 Compose now has a fresh-install, setup, readiness, asset, and restart/session
 gate; Helm accepts an operator CA Secret for PostgreSQL `verify-full`. CI now
 includes chart install in an owned kind cluster against a separate TLS
-PostgreSQL service. Exact changed-tree and release CI remain open.
+PostgreSQL service. Tag checks and later release scans are recorded separately.
 
 Verify built-web serving against ADR-0001. Run non-root image builds, Compose fresh install and persistence, safe
 bootstrap, readiness failure/recovery, native backup/empty-target restore and
@@ -186,11 +188,19 @@ troubleshooting, monitoring, least-privilege provider profiles, upgrade,
 rollback and incident response runbooks in both documentation languages.
 
 Exit: saved sanitized evidence for images/scans, Compose restart and recovery,
-cluster ingress/probes/security/RBAC, upgrade and rollback constraints, database
+cluster ingress route objects/probes/security/RBAC, upgrade and rollback constraints, database
 restore with revoked sessions and representative reads. A render is not an
 install; a local database is not a target-production drill.
+The owned cluster validates the ingress hostname and Service route object;
+requests use a local Service port-forward. A customer's chosen ingress controller,
+certificate and real HTTPS edge need their own deployment acceptance probes.
 
 ## Stage 8 — Accessibility, performance and release candidate — 0.9.0
+
+Status: implemented candidate; Go 1.26.9 full local gate and 14-case production
+browser gate passed. Exact remote and signed artifact gates remain open.
+The correction loop and sanitized browser, performance, native restore and
+security receipts are in [0.9.0 evidence](evidence/0.9.0/README.md).
 
 Complete safe PWA shell/offline/update behavior without private API caching.
 Measure SQL/API concurrency, inventory, graph, charts, logs and bundles; bound
@@ -205,6 +215,8 @@ deployment gates; reviewed release artifacts; no unresolved severe defects or
 unimplemented 1.0 requirement hidden behind a completion claim.
 
 ## Stage 9 — Final independent review and 1.0.0
+
+Status: open until exact final verification and signed publication pass.
 
 Repeat the whole-repository architecture/security/correctness/operations review.
 Score architecture and implementation separately from product completion and

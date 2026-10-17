@@ -39,7 +39,7 @@ spec:
       {{- end }}
       initContainers:
         - name: prepare-private-runtime
-          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          image: {{ include "stackplore.image" . | quote }}
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
@@ -92,7 +92,7 @@ spec:
               mountPath: /runtime-volume
       containers:
         - name: api
-          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          image: {{ include "stackplore.image" . | quote }}
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
@@ -119,6 +119,10 @@ spec:
                   key: {{ .Values.api.databaseURLKey }}
             - name: STACKPLORE_LOG_FORMAT
               value: json
+            {{- if .Values.api.logRedactFields }}
+            - name: STACKPLORE_LOG_REDACT_FIELDS
+              value: {{ join "," .Values.api.logRedactFields | quote }}
+            {{- end }}
             {{- if .Values.api.setup.enabled }}
             - name: STACKPLORE_SETUP_BOOTSTRAP_PROOF
               valueFrom:

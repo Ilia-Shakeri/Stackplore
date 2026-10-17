@@ -477,6 +477,7 @@ func newHTTPServerWithServices(
 		Operations:              operations,
 		ApplicationSettings:     applicationSettings,
 		ApplicationMutationMode: applicationMode,
+		LogRedactionFields:      settings.LogRedactionFields,
 		WebAssets:               webui.Assets(),
 		GuestDemo:               guestHTTPOptions(settings),
 		RateLimit: httpapi.RateLimitConfig{

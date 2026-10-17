@@ -16,7 +16,7 @@ concurrency:
 jobs:
   code:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     services:
       postgres:
         image: postgres:17.6-alpine
@@ -41,7 +41,7 @@ jobs:
           node-version: 24.18.0
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: 1.26.5
+          go-version: 1.26.9
           cache-dependency-path: apps/api/go.sum
       - name: Enable package manager
         run: |
@@ -55,6 +55,27 @@ jobs:
         run: corepack pnpm verify
       - name: Run Go concurrency gate
         run: go -C apps/api test -race ./...
+      - name: Run release tooling checks
+        run: node --test scripts/release.test.mjs
+      - name: Install pinned browser runtime
+        run: corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
+      - name: Verify production browser and offline shell in disposable PostgreSQL
+        env:
+          SP_BROWSER_ADMIN_URL: ${{ env.STACKPLORE_TEST_POSTGRES_URL }}
+        run: node scripts/browser-gate.mjs
+      - name: Retain sanitized browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-evidence
+          path: |
+            .tmp/browser-results.json
+            .tmp/browser-results-*.json
+            .tmp/browser-measurements-*.json
+            docs/evidence/*/browser-measurements.json
+            docs/evidence/*/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
 
   deploy:
     runs-on: ubuntu-24.04
@@ -79,6 +100,8 @@ jobs:
           helm template verify deploy/helm/stackplore --set api.webhook.enabled=true --set api.matrix.enabled=true >/dev/null
           helm template verify deploy/helm/stackplore --set api.databaseTLS.enabled=true --set api.databaseTLS.caSecretName=verify-database-ca >/dev/null
           helm template verify deploy/helm/stackplore --set podAnnotations.test=verify >/dev/null
+          helm template verify deploy/helm/stackplore --set 'api.logRedactFields[0]=customer_id' --set 'api.logRedactFields[1]=payment_ref' >/dev/null
+          if helm template invalid-policy deploy/helm/stackplore --set 'api.logRedactFields[0]=not valid' >/dev/null 2>&1; then exit 1; fi
       - name: Verify long release names keep separate observation roles
         run: |
           reader_a="$(helm template stackplore-proof-with-a-long-name-shared-prefix-alpha deploy/helm/stackplore --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --show-only templates/cluster-reader.yaml | awk '/^  name:/{print $2; exit}')"
@@ -267,6 +290,10 @@ jobs:
           kubectl -n stackplore rollout status deployment/postgres --timeout=180s
       - name: Install Helm chart against external TLS database
         run: |
+          test_dir="$RUNNER_TEMP/stackplore-helm-edge"
+          mkdir -m 700 "$test_dir"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=stackplore.test' -addext 'subjectAltName=DNS:stackplore.test' -keyout "$test_dir/tls.key" -out "$test_dir/tls.crt" >/dev/null 2>&1
+          kubectl -n stackplore create secret tls stackplore-tls --cert="$test_dir/tls.crt" --key="$test_dir/tls.key"
           helm upgrade --install verify deploy/helm/stackplore \
             --namespace stackplore \
             --set api.image.repository=stackplore-api \
@@ -278,9 +305,10 @@ jobs:
             --set api.setup.enabled=true \
             --set api.publicOrigin=https://stackplore.test \
             --set ingress.enabled=true \
+            --set ingress.host=stackplore.test \
             --wait --timeout 8m
           kubectl -n stackplore rollout status deployment/verify-stackplore-api --timeout=180s
-          kubectl -n stackplore get ingress verify-stackplore -o json | jq -e '.spec.rules[0].http.paths[0].backend.service.name == "verify-stackplore-api" and .spec.rules[0].http.paths[0].backend.service.port.name == "http"' >/dev/null
+          kubectl -n stackplore get ingress verify-stackplore -o json | jq -e '.spec.rules[0].host == "stackplore.test" and .spec.tls[0].hosts[0] == "stackplore.test" and .spec.tls[0].secretName == "stackplore-tls" and .spec.rules[0].http.paths[0].backend.service.name == "verify-stackplore-api" and .spec.rules[0].http.paths[0].backend.service.port.name == "http"' >/dev/null
           kubectl -n stackplore port-forward service/verify-stackplore-api 18081:80 > "$RUNNER_TEMP/stackplore-port-forward.log" 2>&1 &
           echo "$!" > "$RUNNER_TEMP/stackplore-port-forward.pid"
           for attempt in $(seq 1 60); do
@@ -313,7 +341,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: 1.26.5
+          go-version: 1.26.9
           cache-dependency-path: apps/api/go.sum
       - name: Verify restricted observation on disposable Engine
         run: go -C apps/api test ./internal/provider/docker -run TestRestrictedProxyOnRealDockerEngine -count=1 -timeout=9m -v
@@ -330,7 +358,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: 1.26.5
+          go-version: 1.26.9
           cache-dependency-path: apps/api/go.sum
       - name: Install verified kind binary
         run: |

@@ -1,8 +1,8 @@
 # Architecture
 
-Status: active 1.0 implementation. Stages 1–6 are published checkpoints through
-0.6.0. Stage 7 aligns deployment with the accepted same-origin decision; exact
-local and remote proof is recorded in the active evidence plan.
+Status: active 1.0 implementation. Published checkpoints run through 0.7.0;
+the current code is the 0.9.0 candidate. Exact local, remote, browser and
+release-artifact proof is recorded in the [active evidence plan](implementation-plan.md).
 
 ## System shape
 
@@ -83,7 +83,9 @@ wires authentication, cached product reads, collection and retention workers,
 source settings, alert evaluation/management, in-app notification reads and the
 opt-in PostgreSQL-leased webhook and Matrix workers. Raw collection outcomes,
 covered metric/replica windows, fenced evaluation claims and committed alert
-change metadata have explicit domain ports. Broader product settings remain work.
+change metadata have explicit domain ports. Versioned application settings,
+masked export, confirmed history cleanup and protected audit lifecycle have
+separate service and repository boundaries.
 The versioned demo seed uses the evaluator/lifecycle and durable fixture marker.
 See [alert and delivery boundaries](alerts-notifications.md) and
 [ADR-0012](adr/0012-durable-alert-change-replay.md).
@@ -104,7 +106,7 @@ disabled, interrupted and synthetic behavior.
 Retention runs bounded transactions with fair quotas across eligible metrics,
 health, events and terminal ordinary deliveries. It preserves the newest metric
 per resource/name, synthetic facts, current state, pending/audit-linked deliveries
-and audit history. Stage 6 adds protected audit quota and minimum-retention
+and audit history. Protected audit quota and minimum-retention
 policy, verified-archive cutoff, and separately authenticated settings export
 and ordinary-history cleanup. Audit rows remain outside ordinary cleanup.
 
@@ -117,10 +119,10 @@ Every provider reports all known capabilities as `available`, `stale`, `unavaila
 Core read ports are:
 
 - environments, resource inventory, and resource detail;
-- health evidence;
+- health evidence and bounded retained health history;
 - topology relationships with provenance and confidence;
 - bounded historical logs and cancelable tails;
-- current normalized metrics;
+- current normalized metrics and bounded metric history;
 - event history and cancelable watches;
 - capability discovery.
 
@@ -142,9 +144,12 @@ current provider availability; samples keep their own observation timestamps.
 The source-wide conservative status remains explicit; it is not a persisted
 per-name resource status. Current samples older than five minutes are stale,
 using the controlled clock for Demo. Future samples cannot shadow valid current
-facts. History retains each actual timestamp. Partitioned event history requires
-a resource identity with current authority; unscoped events are hidden because
-their former namespace cannot be proven.
+facts. History retains each actual timestamp. Partitioned native event history
+requires a resource identity with current authority; unscoped native events are
+hidden because their former namespace cannot be proven. Fixed safe operation
+and alert-transition events can remain source-wide and carry no account or
+audit identifiers. Denied native event-history capability closes the combined
+feed; the contract exposes no separate system subfeed.
 
 An explicit isolated demonstration binds a separate empty PostgreSQL database
 and private data directory to a persisted deployment mode. Restart resets only
@@ -183,15 +188,21 @@ events, alerts, audit, search, notification center, source settings and
 alert/notification settings. Source settings support an administrator-only exact
 enable/disable preview and confirmation; unknown operator profiles cannot be
 enabled. Paginated exploration has URL filters, bounded log target/range/tail,
-copy and loaded-line export, evidence-based topology with accessible lists, and
-independent timestamp-based metric series. Product pages and transport guards
+copy and streamed matching-log export, evidence-based topology with accessible
+lists, and independent timestamp-based metric and health histories. Product pages and transport guards
 are feature-owned modules. Lists cap at 1,000 loaded items; graph rendering caps
 at 200 nodes with 50-node/50-edge list pages. Activity checks use actual server
-session deadlines and bounded, single-flight renewal. See [exploration](exploration.md).
-Preferences, full detail tabs, broader profile setup and guarded infrastructure
-actions remain planned. Requests carry explicit
+session deadlines and bounded, single-flight renewal. Local format preferences,
+reviewed detail metadata, guarded restart/scale and mounted Kubernetes profiles
+are implemented; browser-created provider profiles remain unsupported.
+See [exploration](exploration.md). Requests carry explicit
 source identity; direct resource links use their route source. Missing metric
 samples are not summed into fake zero totals.
+
+The production service worker caches only the four public offline assets.
+Application HTML, API responses, account data, logs, streams and metrics stay
+network-only. Offline navigation shows a public unavailable page, and a waiting
+worker requires the user's update action before activation and reload.
 
 ## Deployment
 
@@ -213,8 +224,9 @@ The verified unchanged 0.3.0 tag was pushed under renewed authorization on
 them and distinguishes these builds from target startup.
 The 0.4.0 exploration checkpoint also passed its exact remote jobs. Stage 5 has
 separate real disposable Engine and Kubernetes observation receipts; these do
-not prove a full application installation. Compose startup, chart installation
-of the application and production acceptance remain open for their later stages.
+not prove a full application installation. At that checkpoint, Compose startup,
+chart installation and final acceptance remained later-stage gates. Their
+replacement results and current open gates are in the active evidence plan.
 
 ## Security and reliability rules
 
@@ -229,14 +241,14 @@ of the application and production acceptance remain open for their later stages.
 
 ## Current limits
 
-- Fixed operator profiles, persisted enabled state, collection/retry scheduling and cached observation reads are implemented in the tagged 0.2 checkpoint. Local/PostgreSQL/native and exact tagged CI results are recorded separately; target proof remains open.
+- Fixed operator profiles, persisted enabled state, collection/retry scheduling and cached observation reads are implemented. Local/PostgreSQL/native and exact tagged CI results are recorded separately in the active evidence plan.
 - Browser source creation and endpoint/path/credential editing remain unsupported. Operator credential references are deployment-owned and rotated through the protected restart procedure in [guarded actions](operations/guarded-actions.md).
-- Stage 6 adds fixed guarded restart/scale operations and application settings. Deployment and provider write permissions remain false by default; live target operation is not inferred from source tests.
+- Fixed guarded restart/scale operations and application settings are implemented. Deployment and provider write permissions remain false by default; live target operation is not inferred from source tests.
 - Restricted Docker and namespace-scoped Kubernetes use official clients and bounded partition authority; the active plan records their separate live proof.
 - Covered alert evidence and durable replay are implemented in the locally verified 0.3 checkpoint; unsupported or incomplete windows stay unknown. Full local and separately named disposable/Helm proof passed; exact outcomes live in the evidence plan.
 - Webhook and Matrix are opt-in. Disposable local HTTPS proof and live operator receiver proof are separate; no live production receiver claim follows from unit or SQL tests.
 - Guarded operations have unit and PostgreSQL coverage plus opt-in disposable Engine/kind jobs; their exact remote execution is recorded in the active plan.
-- Real PostgreSQL, native backup/restore, browser geometry and Helm render checks have named receipts. Compose application startup, chart installation and target production acceptance remain stage 7 gates; a provider fixture does not prove those deployments.
+- Real PostgreSQL, native backup/restore, browser geometry, Compose startup and chart installation have separately named gates and receipts. A provider fixture does not prove an application deployment; a checked release does not prove a customer's production installation.
 - Stage 7 embeds built assets in the single Go application, following ADR-0001. CI Compose startup is still distinct from cluster installation and target acceptance. Provider clients follow ADR-0002.
 
 See [ADR-0011](adr/0011-postgresql-primary-persistence.md), [observations](observations.md), [security](security.md), [deployment](operations/deployment.md), and [backup/restore](operations/backup-restore.md).

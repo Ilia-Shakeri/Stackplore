@@ -26,10 +26,10 @@ in the service binary. Font notices remain below.
 | `github.com/jackc/pgpassfile` | `1.0.0` | MIT | [License](apps/api/licenses/pgpassfile-LICENSE.txt) |
 | `github.com/jackc/pgservicefile` | `5a60cdf6a761` | MIT | [License](apps/api/licenses/pgservicefile-LICENSE.txt) |
 | `github.com/jackc/puddle/v2` | `2.2.2` | MIT | [License](apps/api/licenses/puddle-LICENSE.txt) |
-| `golang.org/x/crypto` | `0.54.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt) |
-| `golang.org/x/sys` | `0.47.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt) |
-| `golang.org/x/sync` | `0.22.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sync-LICENSE.txt) |
-| `golang.org/x/text` | `0.40.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-text-LICENSE.txt) |
+| `golang.org/x/crypto` | `0.57.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt) |
+| `golang.org/x/sys` | `0.48.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt) |
+| `golang.org/x/sync` | `0.23.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sync-LICENSE.txt) |
+| `golang.org/x/text` | `0.42.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-text-LICENSE.txt) |
 
 ## Complete linked Go module inventory
 
@@ -42,7 +42,7 @@ byte-for-byte copies of the pinned upstream module's LICENSE, NOTICE, COPYING,
 COPYRIGHT and PATENTS materials, including nested materials and LICENSES
 directories. Existing direct-dependency copies above remain available.
 
-The manifest also records the exact root LICENSE from the pinned Go `1.26.5`
+The manifest also records the exact root LICENSE from the pinned Go `1.26.9`
 distribution for the linked standard library, copied as
 [Go distribution license](apps/api/licenses/modules/go-toolchain/LICENSE).
 This inventory covers external Go modules for those command builds and that
@@ -59,6 +59,34 @@ Git also preserves these copied legal files without line-ending conversion or
 whitespace cleanup. Upstream trailing spaces and blank lines are intentional
 copies. The generated manifest keeps the repository's normal text checks;
 its SHA-256 entries identify the exact legal file bytes.
+
+## Frontend production package inventory
+
+The [frontend manifest](apps/web/public/licenses/packages/manifest.json) records
+the installed external package graph reachable from production dependencies,
+installed optional dependencies and installed peers of `apps/web`, `packages/ui`
+and `packages/api-client`. It records exact package versions, declared license
+metadata, installed `package.json` hashes, the lockfile hash, legal-file paths
+and SHA-256 hashes. The production web build includes these legal copies under
+`/licenses/packages/`; native archives preserve the repository-relative paths.
+
+`node scripts/check-web-notices.mjs` verifies that graph and the exact installed
+upstream legal material without network access. `--write` regenerates the
+manifest and copies after a reviewed locked install. Missing full legal text
+fails and requires explicit review. This graph can include installed peers whose
+code is removed by bundling; it is not a claim that every inventoried package
+contributes code to every shipped chunk. Build-only roots, Go modules and
+container system packages have separate scopes.
+
+One explicit supplement is distinguished in the manifest. The published
+`react-remove-scroll-bar@2.3.8` package and README declare MIT and identify Anton
+Korzunov, but contain no full license text. The matching upstream author's
+[LICENSE at commit 7301c160](https://github.com/theKashey/react-remove-scroll-bar/blob/7301c160fda44cb8cf2b9fdfde61efad35736196/LICENSE)
+was added on 2025-05-21, after that package's 2024-12-15 publication. Its exact
+bytes are supplied as reviewed additional attribution and recorded with their
+source commit and hash; they are not represented as a file shipped in the 2024
+package. The supplement is bound to that exact package version and installed
+manifest hash. It does not permit a fallback for other missing license files.
 
 ## Inter
 

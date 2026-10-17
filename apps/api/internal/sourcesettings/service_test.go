@@ -87,3 +87,42 @@ func TestRestrictedDockerProfileCanBeEnabled(t *testing.T) {
 		t.Fatal("unknown operator profile accepted")
 	}
 }
+
+func TestMountedKubernetesProfileCanBeEnabledWithoutAcceptingOtherProfiles(t *testing.T) {
+	at := time.Date(2026, 10, 17, 1, 0, 0, 0, time.UTC)
+	repository := &fakeRepository{configuration: domain.SourceConfiguration{
+		Source:    domain.InfrastructureSource{ID: "source_kubernetes", Provider: domain.ProviderKubernetes, Name: "Kubernetes"},
+		ProfileID: domain.SourceProfileKubernetesKubeconfig, Version: 1, CreatedAt: at, UpdatedAt: at,
+	}}
+	service, err := New(repository, map[domain.SourceID]domain.SourceProfileID{"source_kubernetes": domain.SourceProfileKubernetesKubeconfig}, func() time.Time { return at })
+	if err != nil {
+		t.Fatal("mounted Kubernetes profile prevented source settings startup")
+	}
+	actor := auth.Principal{UserID: "usr_admin", SessionID: "sess_admin", Role: auth.RoleAdministrator, AuthRevision: 1}
+	preview, err := service.Preview(context.Background(), actor, "source_kubernetes", 1, true)
+	if err != nil || !preview.RequestedEnabled || repository.previewCalls != 1 || !repository.command.ProfileAvailable {
+		t.Fatal("mounted Kubernetes profile could not preview collection enablement")
+	}
+	repository.configuration.ProfileID = domain.SourceProfileKubernetesInCluster
+	if service.ProfileAvailable(repository.configuration) {
+		t.Fatal("mounted Kubernetes profile advertised in-cluster credentials")
+	}
+	if _, err := New(repository, map[domain.SourceID]domain.SourceProfileID{"source_kubernetes": "kubernetes_unknown"}, func() time.Time { return at }); !errors.Is(err, ErrInvalid) {
+		t.Fatal("unreviewed Kubernetes operator profile accepted")
+	}
+}
+
+func TestSourceSettingsAcceptsOnlyReviewedOperatorProfiles(t *testing.T) {
+	for _, profile := range []domain.SourceProfileID{domain.SourceProfileDemoFixture, domain.SourceProfileDockerSocketDevelopment, domain.SourceProfileDockerRestrictedProxy, domain.SourceProfileKubernetesInCluster, domain.SourceProfileKubernetesKubeconfig} {
+		t.Run(string(profile), func(t *testing.T) {
+			if _, err := New(&fakeRepository{}, map[domain.SourceID]domain.SourceProfileID{"source_reviewed": profile}, time.Now); err != nil {
+				t.Fatal("reviewed operator profile prevented settings startup")
+			}
+		})
+	}
+	for _, profile := range []domain.SourceProfileID{"", "kubernetes_unknown", "docker_arbitrary_proxy", "browser_endpoint"} {
+		if _, err := New(&fakeRepository{}, map[domain.SourceID]domain.SourceProfileID{"source_reviewed": profile}, time.Now); !errors.Is(err, ErrInvalid) {
+			t.Fatal("unreviewed operator profile accepted")
+		}
+	}
+}

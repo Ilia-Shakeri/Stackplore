@@ -64,6 +64,12 @@ Ingress به Service همان برنامه وصل است؛ وب جداگانه �
 خواندن مقدار Secret یا ConfigMap داده نمی‌شود. از `cluster-admin` استفاده نکن.
 حدود کامل در [راهنمای فراهم‌کننده](../kubernetes-provider.md) است.
 
+Compose هر دو منبع زنده را خاموش نگه می‌دارد. اتصال مستقیم Docker socket فقط
+در پروفایل صریح توسعه با درگاه loopback پذیرفته می‌شود؛ شروع production آن را
+رد می‌کند. خواندن Docker در production از پروکسی محدود mTLS و پروفایل mountشدهٔ
+تحت مدیریت اپراتور می‌گذرد. ورودی اعتماد و مسیرهای مجاز در
+[راهنمای Docker](../docker-provider.md) است. socket میزبان را به نصب عمومی mount نکن.
+
 ## مدرک و بررسی
 
 تست handler مسیر فایل و SPA را می‌سنجد، نه image یا نصب را. CI سرویس Compose را
@@ -75,6 +81,9 @@ Ingress به Service همان برنامه وصل است؛ وب جداگانه �
 docker compose --env-file deploy/compose.env.example config --quiet
 helm lint deploy/helm/stackplore --strict
 ```
+
+ساخت تصویر و scan آسیب‌پذیری پیش از تولید آرشیو Docker-save انتشار لازم است؛
+این گردش‌کار registry منتشر نمی‌کند.
 
 بازیابی backup، upgrade و rollback روی پایگاه هدف باید جداگانه تمرین و ثبت شوند.
 جزئیات [backup و restore](backup-restore.md) و

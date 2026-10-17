@@ -10,6 +10,7 @@ import {
   ProductState,
 } from './exploration-ui';
 import { useCursorPage } from './use-cursor-page';
+import { useLiveObservation } from './use-live-observation';
 const TopologyGraph = lazy(() =>
   import('./TopologyGraph').then((module) => ({ default: module.TopologyGraph })),
 );
@@ -18,6 +19,7 @@ export function ProductTopologyPage() {
   const api = useProductApi();
   const { selectedSource } = useProductSource();
   const { t } = useLocale();
+  const live = useLiveObservation(selectedSource);
   const loadResources = useCallback(
     (signal: AbortSignal, cursor?: string): Promise<ProductResourcePage> =>
       api.listResources({
@@ -38,12 +40,13 @@ export function ProductTopologyPage() {
       }),
     [api, selectedSource],
   );
-  const resources = useCursorPage(loadResources);
-  const edges = useCursorPage(loadEdges);
+  const resources = useCursorPage(loadResources, live.revision);
+  const edges = useCursorPage(loadEdges, live.revision);
   return (
     <ObservedPageHeader
       title={t('route.topology.title')}
       description={t('route.topology.description')}
+      streamStatus={live.status}
     >
       {resources.state.kind === 'loading' || edges.state.kind === 'loading' ? (
         <ProductState text={t('product.loading')} />

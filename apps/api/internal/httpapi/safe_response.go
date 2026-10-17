@@ -99,7 +99,7 @@ func safeExecutionMiddleware(
 	slots := make(chan struct{}, maximumInFlight)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if isStreamPath(r.URL.Path) {
+			if isStreamPath(r.URL.Path) || r.URL.Path == "/api/v1/logs/download" {
 				defer func() {
 					if recover() != nil {
 						metrics.recordPanic()

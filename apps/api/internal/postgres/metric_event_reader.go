@@ -227,11 +227,14 @@ func (store *observationRead) ListEvents(ctx context.Context, query domain.Event
 FROM infrastructure_events WHERE source_id=$1 AND provider=$2 AND occurred_at_us>=$3 AND occurred_at_us<$4
 AND EXISTS(SELECT 1 FROM infrastructure_sources AS source WHERE source.id=infrastructure_events.source_id
 AND (source.partition_generation=0
+OR (infrastructure_events.origin_kind='system' AND infrastructure_events.resource_id IS NULL)
 OR (infrastructure_events.resource_id IS NOT NULL AND EXISTS(SELECT 1 FROM resources AS resource WHERE resource.id=infrastructure_events.resource_id AND `+authorizedResourcePredicate+`))))
 AND (cardinality($5::text[])=0 OR resource_id=ANY($5::text[]))
 AND (cardinality($6::text[])=0 OR severity=ANY($6::text[]))
 AND occurred_at_us<=$7 AND (occurred_at_us<$7 OR (occurred_at_us=$7 AND id COLLATE "C">$8 COLLATE "C"))
-ORDER BY occurred_at_us DESC,id COLLATE "C" LIMIT $9`, string(query.Source.SourceID), string(query.Source.Provider), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), resourceIDs(query.Resources), severities, afterTime, afterID, query.Page.Limit+1)
+AND ($10::text='' OR environment_id=$10)
+AND ($11::text='' OR POSITION(lower($11) IN lower(summary || ' ' || reason_code || ' ' || kind || ' ' || id))>0)
+ORDER BY occurred_at_us DESC,id COLLATE "C" LIMIT $9`, string(query.Source.SourceID), string(query.Source.Provider), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), resourceIDs(query.Resources), severities, afterTime, afterID, query.Page.Limit+1, string(query.EnvironmentID), query.Search)
 	if err != nil {
 		return domain.EventPage{}, mapRepositoryReadError(ctx, err)
 	}
@@ -277,6 +280,13 @@ ORDER BY occurred_at_us DESC,id COLLATE "C" LIMIT $9`, string(query.Source.Sourc
 		result.Page.NextCursor, err = store.encodeObservationCursor("events", queryHash, strconv.FormatInt(last.OccurredAt.UnixMicro(), 10), string(last.ID))
 		if err != nil {
 			return domain.EventPage{}, err
+		}
+	}
+	// System outcomes can commit after the latest provider collection. The page
+	// describes the newest included fact while retaining the source availability.
+	for _, event := range result.Events {
+		if event.ObservedAt.After(result.Status.ObservedAt) {
+			result.Status.ObservedAt = event.ObservedAt
 		}
 	}
 	if result.ValidateFor(query) != nil {

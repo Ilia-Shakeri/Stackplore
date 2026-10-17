@@ -50,6 +50,25 @@ mount نکن. نمایهٔ restricted از پراکسی mTLS محدود استف
 ۱ تا ۶۴ namespace مشخص نیاز دارد؛ ClusterRole جداگانه و اختیاری است. Secret value
 و ConfigMap value خوانده نمی‌شوند.
 
+`STACKPLORE_KUBERNETES_ACCESS_PROFILE` پیش‌فرض `kubernetes_incluster` است.
+برای kubeconfig فقط‌خواندنی، مقدار `kubernetes_kubeconfig` را بده. مسیر مطلق فایل
+در `STACKPLORE_KUBERNETES_KUBECONFIG_FILE` و ۱ تا ۸ پوشهٔ mount مجاز در
+`STACKPLORE_KUBERNETES_REFERENCE_ROOTS` لازم است؛ جداکننده در Linux `:` و در
+Windows `;` است. ریشهٔ کل فایل‌سیستم مجاز نیست. نام دقیق context را با
+`STACKPLORE_KUBERNETES_CONTEXT` بده؛ نبودنش از current-context فایل می‌خواند.
+نام حداکثر ۲۵۶ بایت است. فایل، CA، گواهی و کلید هرکدام سقف ۱ MiB و توکن سقف
+۱۶ KiB دارند. تمام symlinkها و ارجاع بیرون پوشه‌ها رد می‌شوند. فایل فقط ارجاع
+CA و token-file یا جفت گواهی/کلید دارد؛ دادهٔ inline، افزونه، proxy، impersonation،
+احراز هویت basic، extension و TLS ناامن در هر context رد می‌شود. writer با این
+نمایه فعال نمی‌شود. پس از تغییر CA، گواهی، endpoint یا context سرویس را restart
+کن. [نمونهٔ نمایه](kubernetes-provider.fa.md) مرز را شرح می‌دهد.
+
+`STACKPLORE_LOG_REDACT_FIELDS` اختیاری، حداکثر ۳۲ نام فیلد اضافه برای پوشاندن
+دادهٔ لاگ دارد؛ با ویرگول، بدون فاصله. هر نام ۱ تا ۶۴ بایت، با حرف لاتین آغاز
+و فقط از حرف، رقم، `_` و `-` ساخته می‌شود. تطبیق و تشخیص تکرار، بزرگی حرف و
+`_` و `-` را نادیده می‌گیرد. این قانون برای صفحه، دانلود و جریان زنده است؛
+پوشاندن رازهای داخلی خاموش نمی‌شود. مقدار راز را اینجا نگذار؛ فقط نام فیلد است.
+
 وب‌هوک و Matrix پیش‌فرض خاموش‌اند. مقصد باید HTTPS عمومی و دقیق باشد؛ هر تلاش،
 DNS، IP، redirect، timeout و اندازهٔ پاسخ را بررسی می‌کند. راز مقصد و توکن را
 در secret store نگه دار. شناسهٔ مقصد راز نیست و برای پایداری تحویل باید ثابت بماند.
@@ -73,5 +92,10 @@ Helm از Secret موجود برای `database-url` و secretهای اختیار
 - [ارتقا و برگشت](operations/upgrade-rollback.fa.md)
 - [پایش و واکنش رخداد](operations/monitoring.fa.md)
 - [عیب‌یابی](operations/troubleshooting.fa.md)
+
+Compose متغیر اختیاری اپراتور `STACKPLORE_LOG_REDACT_FIELDS` را بدون ساخت مقدار
+خالی عبور می‌دهد. در Helm، آرایهٔ `api.logRedactFields` همان نام فیلدها را دارد؛
+آرایهٔ خالی تنظیم را حذف می‌کند. پس از تغییر سیاست، برنامه را دوباره اجرا یا
+rollout کنید. نام‌ها مقدار راز نیستند؛ حذف پوشش پیش‌فرض هم مجاز نیست.
 
 </div>

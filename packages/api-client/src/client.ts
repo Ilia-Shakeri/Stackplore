@@ -84,6 +84,7 @@ export interface ApiRequest<TBody = never> {
   readonly path: `/${string}`;
   readonly protection?: ApiRequestProtection;
   readonly query?: ApiQuery;
+  readonly responseType?: 'json' | 'text';
   readonly signal?: AbortSignal;
 }
 
@@ -528,6 +529,7 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
       let requestPath: `/${string}`;
       let requestProtection: ApiRequestProtection | undefined;
       let requestQuery: ApiQuery | undefined;
+      let requestResponseType: unknown;
       let requestSignal: AbortSignal | undefined;
       try {
         requestBody = request.body;
@@ -536,8 +538,16 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
         requestPath = request.path;
         requestProtection = request.protection;
         requestQuery = request.query;
+        requestResponseType = request.responseType;
         requestSignal = request.signal;
       } catch {
+        throw new ApiTransportError('invalid_request');
+      }
+      if (
+        requestResponseType !== undefined &&
+        requestResponseType !== 'json' &&
+        requestResponseType !== 'text'
+      ) {
         throw new ApiTransportError('invalid_request');
       }
 
@@ -563,6 +573,8 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
 
       const url = buildPath(requestPath, requestQuery);
       const headers = buildHeaders(requestHeaders, requestProtection, requestId, hasBody, method);
+      if (requestResponseType === 'text')
+        headers.set('Accept', 'text/plain, application/problem+json');
       let body: string | undefined;
       if (hasBody) {
         let serializedBody: unknown;
@@ -625,6 +637,22 @@ export const createApiClient = (options: ApiClientOptions = {}): ApiClient => {
       }
 
       if (response.ok) {
+        if (requestResponseType === 'text') {
+          if (mediaType !== 'text/plain') {
+            await cancelResponseBody(response, requestSignal);
+            throw new ApiTransportError('unexpected_response', {
+              requestId: responseRequestId,
+              status: response.status,
+            });
+          }
+          const text = await readBoundedBody(
+            response,
+            Math.min(maximumResponseBytes, defaultMaximumResponseBytes),
+            requestSignal,
+          );
+          if (requestSignal?.aborted === true) throwSafeAbort();
+          return { data: text as TData, requestId: responseRequestId, status: response.status };
+        }
         if (!isJsonMediaType(mediaType) || mediaType === 'application/problem+json') {
           await cancelResponseBody(response, requestSignal);
           throw new ApiTransportError('unexpected_response', {

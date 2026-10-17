@@ -15,6 +15,8 @@ import {
   useExplorationView,
 } from './exploration-ui';
 import { useCursorPage } from './use-cursor-page';
+import { useLiveObservation } from './use-live-observation';
+import { ProductStreamBadge } from './exploration-ui';
 import './exploration.css';
 
 type Filters = Pick<
@@ -81,6 +83,7 @@ export function ProductResourcesPage({
   const api = useProductApi();
   const { selectedSource, selectSource, query, selectQuery } = useProductSource();
   const { t, formatNumber } = useLocale();
+  const live = useLiveObservation(selectedSource);
   const view = useExplorationView();
   const initialSearch = initialQuery ?? query;
   const [search, setSearch] = useState(initialSearch);
@@ -127,7 +130,7 @@ export function ProductResourcesPage({
       }),
     [api, appliedSearch, filters, selectedSource],
   );
-  const page = useCursorPage(load);
+  const page = useCursorPage(load, live.revision);
   const change = <Key extends keyof Filters>(key: Key, parameter: string, value: Filters[Key]) => {
     setFilters((current) => ({ ...current, [key]: value }));
     view.write(parameter, value ?? '');
@@ -143,6 +146,7 @@ export function ProductResourcesPage({
       <header className="route-page__header">
         <h1>{t(searchMode ? 'route.search.title' : 'route.resources.title')}</h1>
         <p>{t(searchMode ? 'route.search.description' : 'route.resources.description')}</p>
+        <ProductStreamBadge status={live.status} />
       </header>
       <form className="resource-search" onSubmit={submit} role="search">
         <label htmlFor="resource-source">{t('product.source.label')}</label>

@@ -186,8 +186,8 @@ func (handler productHTTP) logs(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
-	if handler.applicationSettings != nil {
-		logProvider = configuredLogReader{reader: logProvider, settings: handler.applicationSettings}
+	if handler.applicationSettings != nil || handler.logRedactionPolicy.HasAdditionalFields() {
+		logProvider = configuredLogReader{reader: logProvider, settings: handler.applicationSettings, policy: handler.logRedactionPolicy}
 	}
 	refs, selectionStatus, err := handler.resourceSelection(r, provider, resourceID, domain.MaxLogTargets)
 	if err != nil {
@@ -437,10 +437,19 @@ func (handler productHTTP) events(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	result, err := eventProvider.ListEvents(r.Context(), domain.EventQuery{
+	query := domain.EventQuery{
 		Source: providerRef(provider), Resources: refs,
 		Range: rangeValue, Page: page,
-	})
+		EnvironmentID: domain.EnvironmentID(r.URL.Query().Get("environment_id")), Search: r.URL.Query().Get("q"),
+	}
+	if value := r.URL.Query().Get("severity"); value != "" {
+		query.Severities = []domain.Severity{domain.Severity(value)}
+	}
+	if query.Validate() != nil {
+		writeProblem(w, r, invalidRequestProblem)
+		return
+	}
+	result, err := eventProvider.ListEvents(r.Context(), query)
 	if err != nil {
 		writeProviderProblem(w, r, err)
 		return
@@ -583,6 +592,10 @@ func parseReadQuery(r *http.Request, defaultLimit int, metrics bool) (domain.Pag
 		}
 		switch key {
 		case "resource_id", "source_id":
+		case "environment_id", "q", "severity":
+			if r.URL.Path != "/api/v1/events" {
+				return domain.PageRequest{}, "", errors.New("event filter unsupported")
+			}
 		case "from", "to":
 			if r.URL.Path != "/api/v1/logs" && r.URL.Path != "/api/v1/events" {
 				return domain.PageRequest{}, "", errors.New("time filter unsupported")

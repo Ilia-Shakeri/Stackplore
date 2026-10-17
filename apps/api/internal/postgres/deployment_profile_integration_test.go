@@ -91,10 +91,38 @@ func TestGuestDemoResetKeepsProtectedAuditAndUsesNoInventedAccount(t *testing.T)
 	if err != nil || !rule.SystemOwned || rule.CreatedByUserID != "" || rule.UpdatedByUserID != "" {
 		t.Fatal("guest seed invented account ownership")
 	}
-	var users, sessions, grants, deliveries, audit int
-	if err := store.pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM users),(SELECT count(*) FROM sessions),(SELECT count(*) FROM recent_auth_grants),(SELECT count(*) FROM notification_deliveries),(SELECT count(*) FROM audit_entries)`).Scan(&users, &sessions, &grants, &deliveries, &audit); err != nil || users+sessions+grants+deliveries != 0 || audit != 1 {
-		t.Fatal("guest created authentication/outbound work or lost protected evidence")
+	readProtectedEvidence := func(wantSeeds int) map[domain.AuditEntryID]domain.AuditEntry {
+		t.Helper()
+		var users, sessions, grants, deliveries int
+		if err := store.pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM users),(SELECT count(*) FROM sessions),(SELECT count(*) FROM recent_auth_grants),(SELECT count(*) FROM notification_deliveries)`).Scan(&users, &sessions, &grants, &deliveries); err != nil || users+sessions+grants+deliveries != 0 {
+			t.Fatal("guest created authentication or outbound work")
+		}
+		page, err := store.ListAuditEntries(ctx, domain.PageRequest{Limit: 10})
+		if err != nil || page.Page.HasMore || len(page.Entries) != wantSeeds+1 {
+			t.Fatal("guest lost or invented protected evidence")
+		}
+		entries := make(map[domain.AuditEntryID]domain.AuditEntry, len(page.Entries))
+		var creations, seeds int
+		for _, entry := range page.Entries {
+			if entry.Actor != (domain.AuditActor{Kind: domain.AuditActorSystem}) || entry.Target != (domain.AuditTarget{Kind: "source.configuration", ID: string(seed.Rule.SourceID)}) || entry.Outcome != domain.AuditSuccess {
+				t.Fatal("guest evidence has invented ownership, target or outcome")
+			}
+			switch {
+			case entry.Action == "source.create" && entry.ReasonCode == "source.created":
+				creations++
+			case entry.Action == "alert.demo_seed" && entry.ReasonCode == "alert.demo_seeded":
+				seeds++
+			default:
+				t.Fatal("guest evidence has unexpected action or reason")
+			}
+			entries[entry.ID] = entry
+		}
+		if creations != 1 || seeds != wantSeeds || len(entries) != len(page.Entries) {
+			t.Fatal("guest source audit duplicated or seed evidence lost")
+		}
+		return entries
 	}
+	protected := readProtectedEvidence(1)
 	if err := store.ConfigureDeployment(ctx, profile); err != nil {
 		t.Fatalf("repeat process reset: %v", err)
 	}
@@ -102,12 +130,20 @@ func TestGuestDemoResetKeepsProtectedAuditAndUsesNoInventedAccount(t *testing.T)
 	if err != nil || len(page.Alerts) != 0 {
 		t.Fatal("guest reset kept old derived alert state")
 	}
+	for id, entry := range readProtectedEvidence(1) {
+		if original, exists := protected[id]; !exists || original != entry {
+			t.Fatal("guest reset changed protected audit evidence")
+		}
+	}
 	seed = savePackagedDemo(t, store)
 	if err := store.EnsureDemoAlerts(ctx, seed); err != nil {
 		t.Fatalf("reseed after reset: %v", err)
 	}
-	if err := store.pool.QueryRow(ctx, `SELECT count(*) FROM audit_entries`).Scan(&audit); err != nil || audit != 2 {
-		t.Fatal("guest reset replaced protected audit history")
+	reseeded := readProtectedEvidence(2)
+	for id, entry := range protected {
+		if retained, exists := reseeded[id]; !exists || retained != entry {
+			t.Fatal("guest reseed replaced protected audit history")
+		}
 	}
 	profile.DataRoot = "/fixture/other-demo"
 	if err := store.ConfigureDeployment(ctx, profile); !errors.Is(err, domain.ErrRepositoryConflict) {

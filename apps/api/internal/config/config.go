@@ -169,6 +169,7 @@ type Config struct {
 	ProviderProfiles
 	DockerOperationProfile
 	KubernetesOperationProfile
+	KubeconfigProfile
 	AuditPolicyConfig
 	Environment Environment
 
@@ -177,8 +178,9 @@ type Config struct {
 	TrustedProxyPrefixes   []netip.Prefix
 	MetricsAllowedPrefixes []netip.Prefix
 
-	LogLevel  slog.Level
-	LogFormat LogFormat
+	LogLevel           slog.Level
+	LogFormat          LogFormat
+	LogRedactionFields []string
 
 	ReadHeaderTimeout    time.Duration
 	ReadTimeout          time.Duration
@@ -374,6 +376,12 @@ func Load(getter Getter) (Config, error) {
 	if err := loadProviderProfiles(getter, &result); err != nil {
 		return Config{}, err
 	}
+	if err := loadKubeconfig(getter, &result); err != nil {
+		return Config{}, err
+	}
+	if err := loadLogRedaction(getter, &result); err != nil {
+		return Config{}, err
+	}
 	if err := loadDockerOperations(getter, &result); err != nil {
 		return Config{}, err
 	}
@@ -505,6 +513,12 @@ func Validate(result Config) error {
 	if err := validateProviderProfiles(result); err != nil {
 		return err
 	}
+	if err := validateKubeconfig(result); err != nil {
+		return err
+	}
+	if err := validateLogRedaction(result.LogRedactionFields); err != nil {
+		return err
+	}
 	if err := validateDockerOperations(result); err != nil {
 		return err
 	}
@@ -514,7 +528,7 @@ func Validate(result Config) error {
 	if err := validateAuditPolicy(result); err != nil {
 		return err
 	}
-	if result.KubernetesEnabled && (!validAbsolutePath(result.KubernetesTokenFile) || !validAbsolutePath(result.KubernetesCAFile)) {
+	if result.KubernetesEnabled && result.KubernetesAccessProfile != KubernetesProfileKubeconfig && (!validAbsolutePath(result.KubernetesTokenFile) || !validAbsolutePath(result.KubernetesCAFile)) {
 		return invalid(kubernetesTokenFileKey, "is invalid")
 	}
 	if result.DockerWriteEnabled && (!result.MutationsEnabled || !result.DockerEnabled) {
@@ -658,7 +672,7 @@ func validateEnvironmentKeys(entries []string) error {
 	for _, key := range providerProfileKeys {
 		allowed[key] = struct{}{}
 	}
-	for _, keys := range [][]string{dockerOperationKeys, kubernetesOperationKeys, auditPolicyKeys} {
+	for _, keys := range [][]string{dockerOperationKeys, kubernetesOperationKeys, auditPolicyKeys, kubeconfigKeys, {logRedactionFieldsKey}} {
 		for _, key := range keys {
 			allowed[key] = struct{}{}
 		}

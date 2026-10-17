@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "completed_at_utc": "2026-10-17T12:17:41Z",
+  "scope": "Working-tree 0.9.0 Windows amd64 candidate on a disposable local PostgreSQL 17.11 instance; before the final source-creation audit correction. Not a published archive or customer production deployment.",
+  "marker": "STAGE9A_SEED_ACK_SSE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS",
+  "exit_code": 0,
+  "runtime": { "go": "1.26.5", "postgresql": "17.11", "schema_migrations": 16 },
+  "checks": [
+    "Fresh administrator setup and nine-resource demonstration with 972 metric facts",
+    "Persistent alert acknowledgement and durable stream replay after restart",
+    "Disabled source version 2 preserved",
+    "PostgreSQL-native backup and restore into an empty owned target",
+    "User, alert, source settings, protected audit and representative reads preserved",
+    "Sessions and preauthentication rows revoked; old session rejected and fresh login accepted",
+    "Ownership connection loss stopped the owned runtime with a failure exit"
+  ],
+  "sha256": {
+    "server_executable": "3303e72149c15a0ce454880ffcf0ada8f9a50e23eef8a8f19625be3fa1c6802e",
+    "storage_executable": "cea8a6ac94015f85368b5fb54df52a976c2b1c59402b749776d0598f19f8a66d",
+    "private_backup": "a1c4fa1d60dd4792d99b74113978c35f3607e482b5a0e3b4fb2f295958504888"
+  },
+  "privacy": "Only hashes and fixed success facts are retained. Private helper, credentials, cookies, logs, runtime keys and backup remain outside version control."
+}

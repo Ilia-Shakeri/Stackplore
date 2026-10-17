@@ -1,0 +1,418 @@
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+import { chromium, expect, test, type Page } from '@playwright/test';
+import axe from 'axe-core';
+
+declare global {
+  interface Window {
+    axe: typeof axe;
+  }
+}
+
+const version = process.env.SP_BROWSER_VERSION ?? '0.9.0';
+const evidence = resolve('../../docs/evidence', version);
+const responseFailures = new WeakMap<Page, { component: string; status: number }[]>();
+function observeResponses(page: Page) {
+  const failures: { component: string; status: number }[] = [];
+  responseFailures.set(page, failures);
+  page.on('response', (response) => {
+    const path = new URL(response.url()).pathname;
+    if (path.startsWith('/assets/') && response.status() >= 400)
+      failures.push({ component: 'public-assets', status: response.status() });
+    if (path.startsWith('/api/v1/') && response.status() >= 400) {
+      const component = path.split('/')[3] ?? 'unknown';
+      if (/^[a-z-]+$/u.test(component)) failures.push({ component, status: response.status() });
+    }
+  });
+}
+test.beforeEach(async ({ page }) => {
+  observeResponses(page);
+  // Separate logical clients share one loopback peer and its default rate bucket.
+  await new Promise((done) => setTimeout(done, 2500));
+});
+test.afterEach(async ({ page }, info) => {
+  if (info.status !== 'passed')
+    await info.attach('public-http-statuses', {
+      body: JSON.stringify(responseFailures.get(page) ?? []),
+      contentType: 'application/json',
+    });
+});
+async function receipt(key: string, value: unknown) {
+  await mkdir(evidence, { recursive: true });
+  const path = resolve(evidence, 'browser-measurements.json');
+  let current: Record<string, unknown> = {};
+  try {
+    current = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
+  } catch {
+    /* The first public fixture starts the sanitized receipt. */
+  }
+  current[key] = value;
+  await writeFile(path, `${JSON.stringify(current, null, 2)}\n`);
+}
+
+for (const locale of ['en', 'fa']) {
+  for (const width of [360, 1280]) {
+    for (const theme of ['light', 'dark']) {
+      test(`${locale} ${String(width)}px ${theme}: real guest journeys, accessibility and layout`, async ({
+        page,
+        browser,
+      }) => {
+        const measurements: unknown[] = [];
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({
+          reducedMotion: 'reduce',
+          colorScheme: theme === 'dark' ? 'dark' : 'light',
+        });
+        await page.addInitScript(
+          ({ locale, theme }) => {
+            localStorage.setItem('stackplore.locale', locale);
+            localStorage.setItem('stackplore.theme', theme);
+          },
+          { locale, theme },
+        );
+        const errors: string[] = [];
+        page.on('pageerror', (error) => errors.push(error.message));
+        for (const route of [
+          '/overview',
+          '/resources',
+          '/topology',
+          '/logs',
+          '/events',
+          '/alerts',
+          '/notifications',
+          '/search',
+        ]) {
+          const started = Date.now();
+          await page.goto(route);
+          await expect(page.locator('main h1')).toBeVisible();
+          if (route === '/resources' || route === '/search')
+            await expect(page.locator('.resource-list .resource-row')).toHaveCount(9);
+          if (route === '/logs')
+            await expect(page.locator('.log-list article').first()).toBeVisible();
+          if (route === '/topology')
+            await expect(page.locator('.topology-canvas .topology-node')).toHaveCount(9);
+          if (route === '/overview') {
+            await expect(page.locator('.source-card').first()).toBeVisible();
+            await expect(page.locator('.trend-card').first()).toBeVisible();
+            await expect(page.locator('.trend-card svg polyline').first()).toBeVisible();
+          }
+          if (route === '/events')
+            await expect(page.locator('.event-list article').first()).toBeVisible();
+          if (route === '/alerts')
+            await expect(page.locator('.alert-list article').first()).toBeVisible();
+          if (route === '/notifications')
+            await expect(page.locator('.notification-list article').first()).toBeVisible();
+          const routeReadyMs = Date.now() - started;
+          await expect(page.locator('html')).toHaveAttribute('lang', locale);
+          await expect(page.locator('html')).toHaveAttribute(
+            'dir',
+            locale === 'fa' ? 'rtl' : 'ltr',
+          );
+          const timing = await page.evaluate(() => {
+            const navigation = performance.getEntriesByType('navigation')[0] as
+              PerformanceNavigationTiming | undefined;
+            const resources = performance
+              .getEntriesByType('resource')
+              .filter((entry) =>
+                new URL(entry.name).pathname.startsWith('/assets/'),
+              ) as PerformanceResourceTiming[];
+            return {
+              domContentLoadedMs: Math.round(navigation?.domContentLoadedEventEnd ?? 0),
+              loadMs: Math.round(navigation?.loadEventEnd ?? 0),
+              assetCount: resources.length,
+              assetTransferBytes: resources.reduce((sum, entry) => sum + entry.transferSize, 0),
+              assetEncodedBytes: resources.reduce((sum, entry) => sum + entry.encodedBodySize, 0),
+              reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+              normalMotionDuration: getComputedStyle(document.documentElement)
+                .getPropertyValue('--sp-duration-normal')
+                .trim(),
+            };
+          });
+          expect(timing.reducedMotion).toBe(true);
+          expect(timing.normalMotionDuration).toBe('1ms');
+          measurements.push({ route, routeReadyMs, ...timing });
+          await page.evaluate(axe.source);
+          const findings = await page.evaluate(async () => {
+            const result = await window.axe.run(document, {
+              runOnly: {
+                type: 'tag',
+                values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+              },
+            });
+            return result.violations.map(({ id, nodes }) => ({
+              id,
+              targets: nodes.map(({ target }) => target),
+            }));
+          });
+          expect(findings, `${route} accessibility`).toEqual([]);
+          expect(
+            await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+            `${route} overflow`,
+          ).toBe(true);
+          expect(Date.now() - started, `${route} readiness budget`).toBeLessThan(30_000);
+          if (route === '/topology' || route === '/overview') {
+            if (route === '/overview') {
+              await expect(page.locator('.source-card').first()).toBeVisible();
+              await expect(page.locator('.trend-card svg polyline').first()).toBeVisible();
+            } else {
+              await expect(page.locator('.topology-canvas .topology-node')).toHaveCount(9);
+            }
+            await page.screenshot({
+              path: `${evidence}/screenshots/${route.slice(1)}-${locale}-${String(width)}-${theme}.png`,
+              fullPage: true,
+            });
+          }
+        }
+        expect(errors).toEqual([]);
+        await receipt(`${locale}-${String(width)}-${theme}`, {
+          scope: 'Loopback disposable synthetic guest fixture; local observations only.',
+          version,
+          chromium: browser.version(),
+          measurements,
+          httpFailures: responseFailures.get(page) ?? [],
+        });
+      });
+    }
+  }
+}
+
+test('worker caches only public shell and offline navigation reveals no infrastructure', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/overview');
+  await expect(page.locator('main h1')).toBeVisible();
+  expect((await page.request.get('/sw.js')).status()).toBe(200);
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.state),
+      { timeout: 15_000 },
+    )
+    .toBe('activated');
+  await page.reload();
+  await expect
+    .poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
+    .toBe(true);
+  const paths = await page.evaluate(async () => {
+    const paths: string[] = [];
+    for (const name of await caches.keys()) {
+      for (const request of await (await caches.open(name)).keys())
+        paths.push(new URL(request.url).pathname);
+    }
+    return paths.sort();
+  });
+  expect(paths).toEqual([
+    '/brand/stackplore-favicon.svg',
+    '/offline.css',
+    '/offline.html',
+    '/offline.js',
+  ]);
+  await context.setOffline(true);
+  await page.goto('/resources');
+  await expect(page.getByRole('heading', { name: 'You are offline' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'اتصال شبکه قطع است' })).toBeVisible();
+  expect(await page.locator('body').innerText()).not.toContain('Checkout');
+  await page.getByRole('button').focus();
+  await expect(page.getByRole('button')).toBeFocused();
+  await context.setOffline(false);
+  await receipt('offline', { publicPaths: paths, keyboardRetry: true, privateContentAbsent: true });
+});
+
+test('regular browser profile reports no installability errors', async ({ browserName }, info) => {
+  expect(browserName).toBe('chromium');
+  const context = await chromium.launchPersistentContext(
+    info.outputPath('public-install-profile'),
+    {
+      headless: true,
+      baseURL: process.env.SP_BROWSER_ORIGIN ?? 'http://127.0.0.1:58097',
+      ...(process.env.SP_BROWSER_EXECUTABLE === undefined
+        ? {}
+        : { executablePath: process.env.SP_BROWSER_EXECUTABLE }),
+    },
+  );
+  const page = context.pages()[0] ?? (await context.newPage());
+  observeResponses(page);
+  try {
+    await page.goto('/overview');
+    await expect(page.locator('main h1')).toBeVisible();
+    const protocol = await context.newCDPSession(page);
+    await protocol.send('Page.enable');
+    await expect
+      .poll(
+        async () => (await protocol.send('Page.getInstallabilityErrors')).installabilityErrors,
+        {
+          timeout: 15_000,
+        },
+      )
+      .toEqual([]);
+    await protocol.detach();
+    await receipt('installability', {
+      errors: [],
+      chromiumProtocolChecked: true,
+      regularProfile: true,
+      httpFailures: responseFailures.get(page) ?? [],
+    });
+  } catch (error) {
+    await info.attach('public-install-http-statuses', {
+      body: JSON.stringify(responseFailures.get(page) ?? []),
+      contentType: 'application/json',
+    });
+    throw error;
+  } finally {
+    await context.close();
+  }
+});
+
+test('bounded concurrent guest reads preserve valid page envelopes', async ({ page }) => {
+  const queries = new Map<string, string>();
+  const paths = [
+    '/api/v1/resources',
+    '/api/v1/topology',
+    '/api/v1/metrics/current',
+    '/api/v1/events',
+  ];
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (paths.includes(url.pathname)) queries.set(url.pathname, `${url.pathname}${url.search}`);
+  });
+  for (const route of ['/overview', '/resources', '/topology', '/events']) {
+    await page.goto(route);
+    await expect(page.locator('main h1'), `${route} setup route`).toBeVisible();
+    if (route === '/overview') await expect(page.locator('.source-card').first()).toBeVisible();
+    if (route === '/resources')
+      await expect(page.locator('.resource-list .resource-row')).toHaveCount(9);
+    if (route === '/topology')
+      await expect(page.locator('.topology-canvas .topology-node')).toHaveCount(9);
+    if (route === '/events')
+      await expect(page.locator('.event-list article').first()).toBeVisible();
+    const path = route === '/overview' ? '/api/v1/metrics/current' : `/api/v1${route}`;
+    await expect
+      .poll(() => queries.has(path), { message: `${route} public read query` })
+      .toBe(true);
+  }
+  await page.goto('/search');
+  await expect(page.locator('.resource-list .resource-row')).toHaveCount(9);
+  await page.goto('about:blank');
+  await new Promise((done) => setTimeout(done, 2500));
+  const durations: number[] = [];
+  const started = Date.now();
+  for (let round = 0; round < 10; round++) {
+    const roundStart = Date.now();
+    await Promise.all(
+      Array.from({ length: 8 }, async (_, index) => {
+        const path = paths[index % paths.length];
+        const query = path === undefined ? undefined : queries.get(path);
+        if (query === undefined) throw new Error('Public read fixture query is unavailable.');
+        const readStarted = Date.now();
+        const response = await page.request.get(query, { timeout: 10_000 });
+        expect(response.status()).toBe(200);
+        const body = (await response.json()) as {
+          availability?: unknown;
+          completeness?: unknown;
+          items?: unknown;
+          page?: { has_more?: unknown };
+        };
+        expect(['available', 'stale'].includes(String(body.availability))).toBe(true);
+        expect(['complete', 'partial'].includes(String(body.completeness))).toBe(true);
+        expect(Array.isArray(body.items) && body.items.length <= 200).toBe(true);
+        if (path !== '/api/v1/metrics/current')
+          expect(typeof body.page?.has_more === 'boolean').toBe(true);
+        durations.push(Date.now() - readStarted);
+      }),
+    );
+    const delay = Math.max(0, 600 - (Date.now() - roundStart));
+    await new Promise((done) => setTimeout(done, delay));
+  }
+  const sorted = [...durations].sort((left, right) => left - right);
+  await receipt('concurrentReads', {
+    scope: 'Disposable synthetic guest fixture; default read rate; local observations only.',
+    requests: durations.length,
+    parallel: 8,
+    rounds: 10,
+    minimumRoundSpacingMs: 600,
+    setupRateBucketRefillMs: 2500,
+    initialRateBucketRefillMs: 2500,
+    maximumOfferedReadsPerSecond: 13.34,
+    elapsedMs: Date.now() - started,
+    medianMs: sorted[Math.floor(sorted.length / 2)],
+    p95Ms: sorted[Math.ceil(sorted.length * 0.95) - 1],
+    successfulResponses: 80,
+    envelopesValidated: true,
+  });
+});
+
+test('public worker update waits for acceptance and preserves private cache exclusion', async ({
+  page,
+}, info) => {
+  await page.goto('/overview');
+  await expect(page.locator('main h1')).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.state),
+    )
+    .toBe('activated');
+  await page.reload();
+  await expect
+    .poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
+    .toBe(true);
+  const original = await (await page.request.get('/sw.js')).text();
+  const revised = original.replace(
+    /(const shellCache = 'stackplore-public-shell-)[^']+(';)/u,
+    '$1browser-update-fixture$2',
+  );
+  expect(revised !== original).toBe(true);
+  const override = process.env.SP_BROWSER_WORKER_OVERRIDE;
+  if (override === undefined) throw new Error('Owned public worker fixture is unavailable.');
+  await writeFile(override, revised, { mode: 0o600 });
+  let navigations = 0;
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) navigations++;
+  });
+  await page.evaluate(async () => {
+    await (await navigator.serviceWorker.getRegistration())?.update();
+  });
+  const accept = page.getByRole('button', { name: 'Reload to update', exact: true });
+  await expect(accept).toBeVisible({ timeout: 15_000 });
+  expect(navigations).toBe(0);
+  await accept.click();
+  try {
+    await expect.poll(() => navigations).toBeGreaterThan(0);
+  } catch (error) {
+    await info.attach('public-worker-state', {
+      body: JSON.stringify(
+        await page.evaluate(async () => {
+          const registration = await navigator.serviceWorker.getRegistration();
+          return {
+            active: registration?.active?.state ?? null,
+            waiting: registration?.waiting?.state ?? null,
+            installing: registration?.installing?.state ?? null,
+            controller: navigator.serviceWorker.controller?.state ?? null,
+            publicCaches: await caches.keys(),
+          };
+        }),
+      ),
+      contentType: 'application/json',
+    });
+    throw error;
+  }
+  await expect(page.locator('main h1')).toBeVisible();
+  const cacheNames = await page.evaluate(async () => caches.keys());
+  expect(cacheNames).toEqual(['stackplore-public-shell-browser-update-fixture']);
+  const paths = await page.evaluate(async () => {
+    const paths: string[] = [];
+    for (const name of await caches.keys())
+      for (const request of await (await caches.open(name)).keys())
+        paths.push(new URL(request.url).pathname);
+    return paths.sort();
+  });
+  expect(paths).toEqual([
+    '/brand/stackplore-favicon.svg',
+    '/offline.css',
+    '/offline.html',
+    '/offline.js',
+  ]);
+  await receipt('update', { explicitAcceptance: true, publicPaths: paths });
+  await unlink(override);
+});

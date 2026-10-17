@@ -32,4 +32,13 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
+  {
+    files: ['apps/web/tests/browser/**/*.ts', 'apps/web/playwright.config.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: './apps/web/tsconfig.browser.json',
+      },
+    },
+  },
 );

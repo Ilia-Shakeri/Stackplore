@@ -29,11 +29,17 @@ func (store *Store) EnsureSourceConfigurations(ctx context.Context, configuratio
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
 		for _, configuration := range configurations {
 			source := configuration.Source
-			if _, err := transaction.transaction.Exec(ctx, `INSERT INTO infrastructure_sources
+			inserted, err := transaction.transaction.Exec(ctx, `INSERT INTO infrastructure_sources
 (id,provider,display_name,synthetic,enabled,connection_kind,operator_profile_id,config_revision,created_at_us,updated_at_us,row_version)
 VALUES($1,$2,$3,$4,$5,'operator_profile',$6,1,$7,$8,1)
-ON CONFLICT(id) DO NOTHING`, string(source.ID), string(source.Provider), source.Name, boolInteger(source.Synthetic), boolInteger(configuration.Enabled), string(configuration.ProfileID), configuration.CreatedAt.UnixMicro(), configuration.UpdatedAt.UnixMicro()); err != nil {
+ON CONFLICT(id) DO NOTHING`, string(source.ID), string(source.Provider), source.Name, boolInteger(source.Synthetic), boolInteger(configuration.Enabled), string(configuration.ProfileID), configuration.CreatedAt.UnixMicro(), configuration.UpdatedAt.UnixMicro())
+			if err != nil {
 				return err
+			}
+			if inserted.RowsAffected() == 1 {
+				if err := appendSourceConfigurationAudit(ctx, transaction, source.ID, "source.create", "source.created"); err != nil {
+					return err
+				}
 			}
 			stored, err := scanSourceConfiguration(transaction.transaction.QueryRow(ctx, `SELECT `+sourceConfigurationColumns+` FROM infrastructure_sources WHERE id=$1 AND deleted_at_us IS NULL`, string(source.ID)))
 			if err != nil {

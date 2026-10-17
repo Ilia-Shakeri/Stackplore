@@ -88,6 +88,8 @@ export type {
   ProductLogRecord,
   ProductMetricResult,
   ProductMetricHistoryResult,
+  ProductHealthHistoryResult,
+  ProductHealthHistoryItem,
   ProductMetricSample,
   ProductNotification,
   ProductNotificationPage,

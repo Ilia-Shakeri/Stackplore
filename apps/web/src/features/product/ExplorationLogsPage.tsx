@@ -1,4 +1,5 @@
 import type { ProductLogPage, ProductLogRecord } from '@stackplore/api-client';
+import { ApiProblemError } from '@stackplore/api-client';
 import { Button, TechnicalText } from '@stackplore/ui';
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { useLocale } from '../../i18n';
@@ -17,7 +18,7 @@ import { useCursorPage } from './use-cursor-page';
 import './exploration.css';
 
 const resourcePattern = /^r1_[A-Za-z0-9_-]{43}$/u;
-const severities = ['debug', 'info', 'warning', 'error', 'critical'] as const;
+const severities = ['trace', 'debug', 'info', 'warning', 'error', 'critical', 'unknown'] as const;
 const lineText = (line: ProductLogRecord) => `${line.timestamp} ${line.severity} ${line.message}`;
 
 export function ProductLogsPage() {
@@ -46,6 +47,23 @@ export function ProductLogsPage() {
   const [timestamps, setTimestamps] = useState(() => readViewParameter('timestamps') !== 'false');
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [copyStatus, setCopyStatus] = useState<'copied' | 'error' | null>(null);
+  const [downloadStatus, setDownloadStatus] = useState<
+    'idle' | 'loading' | 'complete' | 'limited' | 'denied' | 'error'
+  >('idle');
+  const downloadRequest = useRef<AbortController | null>(null);
+  const downloadUrl = useRef<string | null>(null);
+  const downloadCleanup = useRef<number | null>(null);
+  useEffect(() => {
+    setDownloadStatus('idle');
+    return () => {
+      downloadRequest.current?.abort();
+      downloadRequest.current = null;
+      if (downloadCleanup.current !== null) window.clearTimeout(downloadCleanup.current);
+      if (downloadUrl.current !== null) URL.revokeObjectURL(downloadUrl.current);
+      downloadCleanup.current = null;
+      downloadUrl.current = null;
+    };
+  }, [api, selectedSource, target, view.search]);
   useEffect(() => {
     const params = new URLSearchParams(view.search);
     const next = {
@@ -146,14 +164,47 @@ export function ProductLogsPage() {
       setCopyStatus('error');
     }
   };
-  const download = () => {
-    const blob = new Blob([visible.map(lineText).join('\n')], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'stackplore-loaded-logs.txt';
-    link.click();
-    URL.revokeObjectURL(url);
+  const download = async () => {
+    downloadRequest.current?.abort();
+    const controller = new AbortController();
+    downloadRequest.current = controller;
+    setDownloadStatus('loading');
+    try {
+      const downloadSeverity = severities.find((value) => value === severity);
+      if (severity !== '' && downloadSeverity === undefined)
+        throw new Error('Log severity is invalid.');
+      const result = await api.downloadLogs({
+        ...time.range,
+        ...(selectedSource === undefined ? {} : { sourceId: selectedSource }),
+        ...(target.resource === '' ? {} : { resourceId: target.resource }),
+        ...(target.container === '' ? {} : { container: target.container }),
+        ...(target.previous ? { previous: true } : {}),
+        ...(query === '' ? {} : { search: query }),
+        ...(downloadSeverity === undefined ? {} : { severity: downloadSeverity }),
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted || downloadRequest.current !== controller) return;
+      const blob = new Blob([result.text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      downloadUrl.current = url;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'stackplore-logs.txt';
+      link.click();
+      downloadCleanup.current = window.setTimeout(() => {
+        URL.revokeObjectURL(url);
+        if (downloadUrl.current === url) downloadUrl.current = null;
+        downloadCleanup.current = null;
+      }, 0);
+      setDownloadStatus(result.limited ? 'limited' : 'complete');
+    } catch (error) {
+      if (controller.signal.aborted || downloadRequest.current !== controller) return;
+      setDownloadStatus(
+        error instanceof ApiProblemError && error.problem.status === 403 ? 'denied' : 'error',
+      );
+    } finally {
+      if (downloadRequest.current === controller) downloadRequest.current = null;
+    }
   };
   return (
     <ObservedPageHeader
@@ -287,11 +338,28 @@ export function ProductLogsPage() {
                 >
                   {t('explore.logs.copy')}
                 </Button>
-                <Button disabled={visible.length === 0} onClick={download}>
-                  {t('explore.logs.download')}
+                <Button
+                  disabled={downloadStatus === 'loading'}
+                  aria-busy={downloadStatus === 'loading'}
+                  onClick={() => {
+                    void download();
+                  }}
+                >
+                  {t(
+                    downloadStatus === 'loading'
+                      ? 'explore.logs.downloading'
+                      : 'explore.logs.download',
+                  )}
                 </Button>
               </div>
               <p>{t('explore.logs.downloadHint')}</p>
+              {downloadStatus === 'idle' ? null : (
+                <p role="status">
+                  {downloadStatus === 'loading'
+                    ? t('explore.logs.downloading')
+                    : t(`explore.logs.download.${downloadStatus}`)}
+                </p>
+              )}
               {copyStatus === null ? null : (
                 <p role="status">
                   {t(copyStatus === 'copied' ? 'explore.logs.copied' : 'explore.logs.copyError')}

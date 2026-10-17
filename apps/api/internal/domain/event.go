@@ -140,14 +140,30 @@ func (event InfrastructureEvent) ValidateForWatch(query EventWatchQuery) error {
 }
 
 type EventQuery struct {
-	Source     ProviderRef
-	Resources  []ResourceRef
-	Range      TimeRange
-	Severities []Severity
-	Page       PageRequest
+	Source        ProviderRef
+	Resources     []ResourceRef
+	Range         TimeRange
+	Severities    []Severity
+	EnvironmentID EnvironmentID
+	Search        string
+	Page          PageRequest
+}
+
+// MatchesTextAndEnvironment is shared by normalized providers and page validation.
+func (query EventQuery) MatchesTextAndEnvironment(event InfrastructureEvent) bool {
+	if query.EnvironmentID != "" && (event.EnvironmentID == nil || *event.EnvironmentID != query.EnvironmentID) {
+		return false
+	}
+	return query.Search == "" || strings.Contains(strings.ToLower(event.Summary+" "+string(event.ReasonCode)+" "+string(event.Kind)+" "+string(event.ID)), strings.ToLower(query.Search))
 }
 
 func (query EventQuery) Validate() error {
+	if query.EnvironmentID != "" && query.EnvironmentID.Validate() != nil {
+		return fmt.Errorf("invalid event environment filter")
+	}
+	if validateDisplayText("event search", query.Search, MaxSearchLength, true) != nil {
+		return fmt.Errorf("invalid event search")
+	}
 	if err := query.Source.Validate(); err != nil {
 		return err
 	}
@@ -195,6 +211,9 @@ func (page EventPage) ValidateFor(query EventQuery) error {
 		severities[severity] = struct{}{}
 	}
 	for index, event := range page.Events {
+		if !query.MatchesTextAndEnvironment(event) {
+			return fmt.Errorf("event page contains an unrequested environment or search")
+		}
 		if err := event.Validate(); err != nil {
 			return err
 		}

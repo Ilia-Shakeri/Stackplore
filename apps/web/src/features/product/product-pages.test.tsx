@@ -284,6 +284,9 @@ describe('product observation state', () => {
         from: '2026-10-17T02:00:00.000Z',
         to: '2026-10-17T08:00:00.000Z',
       });
+      await waitFor(() => {
+        expect(poll).toBeTypeOf('function');
+      });
       clock.mockReturnValue(Date.parse('2026-10-17T08:00:05Z'));
       act(() => {
         poll?.();
@@ -374,7 +377,7 @@ describe('product observation state', () => {
     });
     expect(screen.getByText('fixture clock line')).not.toBeNull();
   });
-  it('pauses live tail, copies selected redacted lines, and downloads only loaded lines', async () => {
+  it('pauses live tail, copies selected redacted lines, and downloads filtered server logs', async () => {
     const streams: { readonly close: ReturnType<typeof vi.fn> }[] = [];
     class Stream extends EventTarget {
       readonly close = vi.fn();
@@ -399,6 +402,9 @@ describe('product observation state', () => {
       const copied = vi.spyOn(navigator.clipboard, 'writeText');
       const api: ProductApi = {
         ...productApi,
+        downloadLogs: vi
+          .fn()
+          .mockResolvedValue({ text: 'safe filtered log download', limited: false }),
         listLogs: vi.fn().mockResolvedValue({
           availability: 'stale',
           completeness: 'partial',
@@ -434,9 +440,11 @@ describe('product observation state', () => {
       await user.click(screen.getByRole('checkbox', { name: 'Select log line 1' }));
       await user.click(screen.getByRole('button', { name: 'Copy selected lines' }));
       expect(copied).toHaveBeenCalledWith(`${observedAt} warning safe [redacted] output`);
-      await user.click(screen.getByRole('button', { name: 'Download loaded lines' }));
+      await user.click(screen.getByRole('button', { name: 'Download filtered logs' }));
       expect(createUrl).toHaveBeenCalledOnce();
-      expect(revokeUrl).toHaveBeenCalledWith('blob:loaded-log-lines');
+      await waitFor(() => {
+        expect(revokeUrl).toHaveBeenCalledWith('blob:loaded-log-lines');
+      });
       expect(click).toHaveBeenCalledOnce();
       await user.click(screen.getByRole('button', { name: 'Pause live tail' }));
       expect(streams[0]?.close).toHaveBeenCalledOnce();

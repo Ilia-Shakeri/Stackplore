@@ -62,7 +62,7 @@ describe('application settings and destructive reviews', () => {
     renderSettings('viewer');
     expect(await screen.findByRole('heading', { name: 'Application policy' })).not.toBeNull();
     expect(screen.getByText('You can inspect these settings.', { exact: false })).not.toBeNull();
-    expect(screen.getByText('0.7.0').getAttribute('dir')).toBe('ltr');
+    expect(screen.getByText('0.9.0').getAttribute('dir')).toBe('ltr');
     expect(screen.queryByRole('button', { name: 'Review changes' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Generate configuration export' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Review cleanup' })).toBeNull();
@@ -200,7 +200,7 @@ describe('application settings and destructive reviews', () => {
     renderSettings('viewer', {}, 'fa');
     expect(await screen.findByRole('heading', { name: 'سیاست برنامه' })).not.toBeNull();
     expect(document.documentElement.dir).toBe('rtl');
-    expect(screen.getByText('0.7.0').getAttribute('dir')).toBe('ltr');
+    expect(screen.getByText('0.9.0').getAttribute('dir')).toBe('ltr');
     expect(screen.getByText('روزهای نگهداری')).not.toBeNull();
   });
 });
