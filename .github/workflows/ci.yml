@@ -145,6 +145,12 @@ jobs:
           test "$migration_count" = "$migration_count_after"
           curl --fail --silent --show-error -b "$cookie_jar" http://localhost:18080/api/v1/auth/session >/dev/null
           test -n "$(curl --fail --silent --show-error -H 'Accept: text/html' http://127.0.0.1:18080/settings/application)"
+      - name: Show bounded service diagnostics on failure
+        if: failure()
+        run: |
+          docker compose ps --all
+          docker compose logs --no-color --tail 40 api
+          docker compose logs --no-color --tail 20 postgres
       - name: Stop disposable Compose stack and remove its volumes
         if: always()
         run: docker compose down --volumes --remove-orphans
@@ -205,7 +211,7 @@ jobs:
                   app: postgres
               spec:
                 securityContext:
-                  fsGroup: 999
+                  fsGroup: 70
                 containers:
                   - name: postgres
                     image: postgres:17.6-alpine
@@ -280,6 +286,13 @@ jobs:
           page="$(curl --fail --silent --show-error -H 'Accept: text/html' http://127.0.0.1:18081/settings/application)"
           printf '%s' "$page" | grep -q 'Stackplore'
           kubectl -n stackplore get pods -o json | jq -e '[.items[] | select(.metadata.labels["app.kubernetes.io/component"] == "api") | .spec.containers[0].volumeMounts[] | select(.mountPath == "/var/run/stackplore/database-ca" and .readOnly == true)] | length == 1' >/dev/null
+      - name: Show bounded cluster diagnostics on failure
+        if: failure() && env.STACKPLORE_INSTALL_KIND_NAME != ''
+        run: |
+          kubectl -n stackplore get pods
+          kubectl -n stackplore get events --field-selector type=Warning
+          kubectl -n stackplore logs deployment/postgres --tail=30 || true
+          kubectl -n stackplore logs deployment/verify-stackplore-api --tail=30 || true
       - name: Delete only the owned disposable cluster
         if: always() && env.STACKPLORE_INSTALL_KIND_NAME != ''
         run: |

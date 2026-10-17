@@ -2,6 +2,19 @@
 
 ## Current release status — 2026-10-17
 
+Stage 7 correction loop: candidate `1a39e780abed587104092eab33ec3da0256a02d9`
+failed [CI run 39025933317](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39025933317).
+The code, image/chart, Docker-provider and Kubernetes-provider jobs passed;
+Compose could not reach readiness and the TLS PostgreSQL rollout timed out.
+Do not count this run as install evidence. The TLS fixture now uses Alpine's
+PostgreSQL group 70; bounded service diagnostics are retained on future failure.
+An independent review also found the complete HTTP boundary overwrote embedded
+HTML/JavaScript MIME and CSP. The boundary now consumes an internal asset marker,
+keeps the trusted asset MIME, allows same-origin shell resources, and preserves
+immutable caching only for hashed assets. A complete-router regression test
+checks HTML, SPA, JavaScript, private API isolation and marker removal. Scoped
+HTTP and web asset tests pass. The release gate remains open.
+
 Published through Stage 6: `v0.6.0` is at commit
 `365dc214161bf74e0f77aaedc9d32529c1ec1cf2`. [Main CI run
 39022543132](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39022543132)

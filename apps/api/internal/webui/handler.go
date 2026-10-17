@@ -41,6 +41,8 @@ func Handler(assets fs.FS) http.HandlerFunc {
 }
 
 func serveAsset(writer http.ResponseWriter, request *http.Request, assets fs.FS, name string) {
+	// The outer boundary consumes this marker before sending response headers.
+	writer.Header().Set("X-Stackplore-Web-Asset", "1")
 	if name == "index.html" {
 		writer.Header().Set("Cache-Control", "no-store")
 	} else if strings.HasPrefix(name, "assets/") {

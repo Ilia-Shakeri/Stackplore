@@ -503,3 +503,32 @@ func TestAPILargeBodyIsRejectedBeforeHandler(t *testing.T) {
 		t.Errorf("problem = %#v", got)
 	}
 }
+
+func TestEmbeddedWebHeadersSurviveCompleteBoundary(t *testing.T) {
+	t.Parallel()
+	handler, _, _ := makeHandler(t, func(options *Options) {
+		options.WebAssets = fstest.MapFS{
+			"index.html":         {Data: []byte("<!doctype html><main>Stackplore</main>")},
+			"assets/app-abcd.js": {Data: []byte("export const ready = true;")},
+		}
+	})
+	for _, test := range []struct{ path, mime, cache string }{
+		{"/", "text/html", "no-store"},
+		{"/settings/application", "text/html", "no-store"},
+		{"/assets/app-abcd.js", "javascript", "public, max-age=31536000, immutable"},
+	} {
+		request := makeRequest(http.MethodGet, test.path, "198.51.100.10:4000")
+		request.Header.Set("Accept", "text/html")
+		response := serve(handler, request)
+		if response.Code != http.StatusOK || !strings.Contains(response.Header().Get("Content-Type"), test.mime) || response.Header().Get("Cache-Control") != test.cache {
+			t.Errorf("%s: status %d, type %q, cache %q", test.path, response.Code, response.Header().Get("Content-Type"), response.Header().Get("Cache-Control"))
+		}
+		if !strings.Contains(response.Header().Get("Content-Security-Policy"), "script-src 'self'") || response.Header().Get("X-Stackplore-Web-Asset") != "" {
+			t.Errorf("%s: invalid shell security headers", test.path)
+		}
+	}
+	response := serve(handler, makeRequest(http.MethodGet, "/api/v1/setup/status", "198.51.100.10:4000"))
+	if response.Header().Get("Cache-Control") != "no-store" || strings.Contains(response.Header().Get("Content-Security-Policy"), "script-src") {
+		t.Fatal("web policy affected private API response")
+	}
+}
