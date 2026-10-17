@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { lstat, mkdir, readFile, readdir, realpath, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { isLegalMaterialName } from './legal-file-name.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const inventory = 'apps/web/public/licenses/packages';
@@ -26,9 +27,6 @@ const withinRoot = (directory) => {
 };
 const idFor = (name, version) =>
   `${name.replace(/[^a-z0-9._-]/gu, '_').slice(0, 48)}-${sha256(`${name}@${version}`).slice(0, 12)}`;
-const licenseName = (name) =>
-  /^(?:licen[sc]e|copying|notice|copyright|patents|ofl)(?:[._-].*)?$/iu.test(name) &&
-  !/\.(?:js|ts|json|map|css|go|wasm)$/iu.test(name);
 // Explicitly reviewed additive notice for a package that publishes no full license.
 // No other package/version or installed manifest can use this supplement.
 const supplements = {
@@ -98,7 +96,7 @@ const sourceMaterials = async (directory) => {
       if (entry.isSymbolicLink()) throw new Error('Package legal tree contains a symbolic link.');
       if (entry.isDirectory()) {
         await walk(filename, depth + 1, legalDirectory || /^licen[sc]es$/iu.test(entry.name));
-      } else if (entry.isFile() && (legalDirectory || licenseName(entry.name))) {
+      } else if (entry.isFile() && (legalDirectory || isLegalMaterialName(entry.name))) {
         const source = path.relative(directory, filename).split(path.sep).join('/');
         const info = await lstat(filename);
         if (!safeRelative(source) || files.length >= 128 || info.size < 1 || info.size > 2 << 20)

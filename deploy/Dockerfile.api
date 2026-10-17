@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --froze
 COPY apps/web/ apps/web/
 COPY packages/api-client/ packages/api-client/
 COPY packages/ui/ packages/ui/
-COPY scripts/check-web-notices.mjs scripts/check-web-notices.mjs
+COPY scripts/check-web-notices.mjs scripts/legal-file-name.mjs scripts/
 RUN node scripts/check-web-notices.mjs && pnpm --filter @stackplore/web build
 
 FROM golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade AS build

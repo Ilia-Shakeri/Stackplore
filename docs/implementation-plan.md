@@ -85,6 +85,17 @@ the final 1.0 review/tag/publication close. See [browser](evidence/0.9.0/browser
 [native security](evidence/0.9.0/native-security.json) and
 [requirements](evidence/0.9.0/requirements.md).
 
+The first exact 0.9.0 candidate `f36e405288a1fbcc0576365520240db265779856`
+failed [verification 39037869138](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39037869138)
+and [artifact trial 39037871184](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39037871184).
+The legal scanner had classified a Lucide icon source file named `copyright.mjs`
+as a notice. Its generated `dist` copy was ignored by Git, so the Linux checkout
+correctly rejected the incomplete manifest. The scanner now distinguishes source
+extensions from legal material, with a regression for both classes; the container
+copies the shared classifier. The regenerated inventory preserves all 63 actual
+notices for 63 packages. The failed runs remain failed; replacement verification
+and artifact trial must pass before tagging.
+
 The following Stage 7 and earlier paragraphs are chronological historical
 snapshots. The latest status above takes precedence over their pending wording.
 

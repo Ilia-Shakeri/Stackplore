@@ -7,9 +7,32 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
+import { isLegalMaterialName } from './legal-file-name.mjs';
 import { checkReleaseScan } from './release-scan.mjs';
 
 const script = path.join(import.meta.dirname, 'release.mjs');
+
+test('legal inventory retains notices and excludes similarly named source files', () => {
+  for (const name of ['LICENSE', 'LICENCE', 'COPYING', 'NOTICE.txt', 'OFL.txt', 'LICENSE-MIT']) {
+    assert.equal(isLegalMaterialName(name), true, name);
+  }
+  for (const name of [
+    'copyright.mjs',
+    'copyright.cjs',
+    'copyright.jsx',
+    'copyright.mts',
+    'copyright.cts',
+    'copyright.tsx',
+    'license.json',
+    'notice.css',
+    'patents.go',
+    'ofl.wasm',
+    'index.js',
+  ]) {
+    assert.equal(isLegalMaterialName(name), false, name);
+  }
+});
+
 const fixture = async (context) => {
   const root = await mkdtemp(path.join(tmpdir(), 'stackplore-release-test-'));
   context.after(() => rm(root, { recursive: true, force: true }));

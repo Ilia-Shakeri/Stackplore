@@ -34,7 +34,7 @@
     "status": "passed",
     "command": "node scripts/check-web-notices.mjs",
     "packages": 63,
-    "legal_files": 64,
+    "legal_files": 63,
     "manifest": "apps/web/public/licenses/packages/manifest.json",
     "reviewed_supplement": "react-remove-scroll-bar@2.3.8 only, exact package manifest and upstream LICENSE hashes bound; provenance distinction recorded."
   },

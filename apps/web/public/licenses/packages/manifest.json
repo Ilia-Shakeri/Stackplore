@@ -821,11 +821,6 @@
           "source": "LICENSE",
           "path": "apps/web/public/licenses/packages/lucide-react-832eda0a3310/LICENSE",
           "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
-        },
-        {
-          "source": "dist/esm/icons/copyright.mjs",
-          "path": "apps/web/public/licenses/packages/lucide-react-832eda0a3310/dist/esm/icons/copyright.mjs",
-          "sha256": "ea65c89475c7e9608e958becd6e6171c5b33da911a155a7caaf8b412b6f412a9"
         }
       ]
     },
