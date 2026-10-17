@@ -359,7 +359,7 @@ target evidence remain separate; stages 5–9 retain their exit requirements.
 | Browser | Actual disposable PostgreSQL/API/Vite: 120 data-loaded product states, 40 authentication form states and 20 final topology rechecks passed, with real login/logout, inventory filter/reload/detail/log links, redacted log download, events, grouping/evidence/keyboard and persisted alert acknowledgement. [Retained receipts](evidence/0.4.0/README.md) state semantic accessibility and clipboard limits. |
 | Documents/version | Final document inventory/links, formatting, version and diff checks passed after the evidence update; all metadata matches 0.4.0. |
 | Full `npm.cmd run verify` | Passed exit 0 on the frozen runtime: all Go packages with the real disposable PostgreSQL URL (cached after the uncached 74.422s package proof), 36 client tests, 284 web tests in 26 files, 509 locale messages, 192 bounded schemas, format/lint/types and both builds (web 10.64s). Log `.tmp/stage4-final-verify.log`. |
-| Exact 0.4.0 commit/tag/push/CI | Not created yet; only record after final named gates pass. |
+| Exact 0.4.0 commit/tag/push/CI | Implementation `4d63cb3b8e8ce853985d1d3e983ea3f77b94a9ef`, annotated `v0.4.0`, main and tag pushed without rewriting history. Both exact CI runs passed: [39011892562](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39011892562), [39011892582](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39011892582). Code/full real PostgreSQL/race and image-build/chart jobs passed; these runs do not start Compose or install a cluster. |
 
 An initial full web test run reported 267 passing and one cold lazy-route timing
 failure; the route regression was corrected without weakening assertions.

@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. Stages 1–4 are verified development checkpoints through `0.4.0`, with exact local, PostgreSQL, disposable native/receiver, browser and remote CI outcomes recorded separately in the plan. Stage 4 has passed its final local and browser gates; its exact remote outcome is recorded after publication. Stages 5–9 retain provider fidelity, guarded actions/settings, installation, performance and final release gates. A development checkpoint does not complete 1.0.
+> **Status:** 1.0 work is active. Stages 1–4 are verified development checkpoints through `0.4.0`, with exact local, PostgreSQL, disposable native/receiver, browser and remote CI outcomes recorded separately in the plan. Stage 4 passed its final local/browser gates and both exact main/tag CI runs. Stages 5–9 retain provider fidelity, guarded actions/settings, installation, performance and final release gates. A development checkpoint does not complete 1.0.
 
 ## Implemented
 
