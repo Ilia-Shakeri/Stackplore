@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.0] - 2026-10-17
+
+### Added
+
+- Purpose-bound recent authentication and durable, idempotent previews and
+  execution records for narrowly scoped Docker and Kubernetes operations.
+- Administrator settings for bounded audit retention, history cleanup and safe
+  configuration export, plus personal locale and number/date preferences.
+- PostgreSQL-backed operation and settings records, forward-only migrations,
+  guarded provider writers, and matching English/Persian UI and API contracts.
+
+### Limits
+
+- Local full gate passes. Provider writes stay disabled by default; no live
+  operator infrastructure or deployment is claimed.
+- Safe profile/credential-reference rotation, exact tagged provider writer
+  integration results, and installation/release gates remain open.
+
 ## [0.5.0] - 2026-10-17
 
 ### Added

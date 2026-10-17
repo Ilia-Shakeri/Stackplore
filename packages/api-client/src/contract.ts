@@ -1,5 +1,20 @@
 import type * as Derived from './derived/types.derived';
 
+export type ApplicationSettingsResponse = Derived.ApplicationSettingsResponse;
+export type ApplicationSettingsValues = Derived.ApplicationValues;
+export type ApplicationSettingsPreview = Derived.ApplicationPreviewResponse;
+export type ConfigurationExport = Derived.ConfigurationExport;
+export type CleanupPreview = Derived.CleanupPreviewResponse;
+export type CleanupResult = Derived.CleanupResponse;
+export type HistoryCleanupClass = Derived.HistoryClass;
+export type HistoryCleanupImpact = Derived.HistoryImpact;
+export type OperationPreview = Derived.OperationPreviewResponse;
+export type OperationReceipt = Derived.OperationReceipt;
+export type OperationResponse = Derived.OperationResponse;
+export type OperationPage = Derived.OperationPage;
+export type OperationAction = Derived.OperationAction;
+export type OperationParameters = Derived.OperationParameters;
+
 export type {
   Alert,
   AlertId,

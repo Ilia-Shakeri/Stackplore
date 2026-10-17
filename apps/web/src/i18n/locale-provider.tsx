@@ -11,6 +11,14 @@ import {
 
 import type { PluralMessageKey, TextMessageKey } from './catalog';
 import {
+  FORMAT_PREFERENCES_STORAGE_KEY,
+  defaultFormatPreferences,
+  isFormatPreferences,
+  parseFormatPreferences,
+  readFormatPreferences,
+  type FormatPreferences,
+} from './format-preferences';
+import {
   formatLocaleDate,
   formatLocaleNumber,
   translatePlural,
@@ -30,6 +38,8 @@ interface LocaleContextValue {
   formatDate: (value: Date | number, options?: Intl.DateTimeFormatOptions) => string;
   formatNumber: (value: number | bigint, options?: Intl.NumberFormatOptions) => string;
   locale: Locale;
+  formatPreferences: FormatPreferences;
+  setFormatPreferences: (preferences: FormatPreferences) => boolean;
   setLocale: (locale: Locale) => void;
   t: (key: TextMessageKey, values?: MessageValues) => string;
   tPlural: (key: PluralMessageKey, count: number, values?: MessageValues) => string;
@@ -39,6 +49,7 @@ export interface LocaleProviderProps {
   children: ReactNode;
   defaultLocale?: Locale;
   storageKey?: string;
+  formatStorageKey?: string;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -72,11 +83,43 @@ export function LocaleProvider({
   children,
   defaultLocale = 'en',
   storageKey = DEFAULT_LOCALE_STORAGE_KEY,
+  formatStorageKey = FORMAT_PREFERENCES_STORAGE_KEY,
 }: LocaleProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(() =>
     readStoredLocale(storageKey, defaultLocale),
   );
   const direction = localeDefinitions[locale].direction;
+  const [formatPreferences, setFormatPreferencesState] = useState(() =>
+    readFormatPreferences(formatStorageKey),
+  );
+
+  useLayoutEffect(() => {
+    const synchronize = (event: StorageEvent) => {
+      if (event.key === formatStorageKey || event.key === null) {
+        setFormatPreferencesState(
+          event.key === null ? defaultFormatPreferences : parseFormatPreferences(event.newValue),
+        );
+      }
+    };
+    window.addEventListener('storage', synchronize);
+    return () => {
+      window.removeEventListener('storage', synchronize);
+    };
+  }, [formatStorageKey]);
+
+  const setFormatPreferences = useCallback(
+    (preferences: FormatPreferences) => {
+      if (!isFormatPreferences(preferences)) return false;
+      setFormatPreferencesState(preferences);
+      try {
+        window.localStorage.setItem(formatStorageKey, JSON.stringify(preferences));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [formatStorageKey],
+  );
 
   useLayoutEffect(() => {
     applyDocumentLocale(locale);
@@ -118,23 +161,24 @@ export function LocaleProvider({
   );
 
   const t = useCallback(
-    (key: TextMessageKey, values?: MessageValues) => translateText(locale, key, values),
-    [locale],
+    (key: TextMessageKey, values?: MessageValues) =>
+      translateText(locale, key, values, formatPreferences),
+    [formatPreferences, locale],
   );
   const tPlural = useCallback(
     (key: PluralMessageKey, count: number, values?: MessageValues) =>
-      translatePlural(locale, key, count, values),
-    [locale],
+      translatePlural(locale, key, count, values, formatPreferences),
+    [formatPreferences, locale],
   );
   const formatNumber = useCallback(
     (value: number | bigint, options?: Intl.NumberFormatOptions) =>
-      formatLocaleNumber(locale, value, options),
-    [locale],
+      formatLocaleNumber(locale, value, options, formatPreferences),
+    [formatPreferences, locale],
   );
   const formatDate = useCallback(
     (value: Date | number, options?: Intl.DateTimeFormatOptions) =>
-      formatLocaleDate(locale, value, options),
-    [locale],
+      formatLocaleDate(locale, value, options, formatPreferences),
+    [formatPreferences, locale],
   );
 
   const value = useMemo(
@@ -143,11 +187,23 @@ export function LocaleProvider({
       formatDate,
       formatNumber,
       locale,
+      formatPreferences,
+      setFormatPreferences,
       setLocale,
       t,
       tPlural,
     }),
-    [direction, formatDate, formatNumber, locale, setLocale, t, tPlural],
+    [
+      direction,
+      formatDate,
+      formatNumber,
+      formatPreferences,
+      locale,
+      setFormatPreferences,
+      setLocale,
+      t,
+      tPlural,
+    ],
   );
 
   return (

@@ -25,26 +25,29 @@ var errInvalidOptions = errors.New("invalid HTTP service options")
 
 // Options contains validated dependencies and limits for the HTTP service.
 type Options struct {
-	Logger                 *slog.Logger
-	Readiness              *Readiness
-	Authentication         authenticationBoundary
-	PublicOrigin           Origin
-	TrustedProxyPrefixes   []netip.Prefix
-	MetricsAllowedPrefixes []netip.Prefix
-	RequestTimeout         time.Duration
-	MaximumRequestBody     int64
-	MaximumResponseBody    int64
-	MaximumInFlight        int
-	RateLimit              RateLimitConfig
-	ProductProviders       []ProductProvider
-	AuditReader            AuditReader
-	AlertReader            AlertReader
-	NotificationReader     NotificationReader
-	NotificationSettings   NotificationSettingsReader
-	NotificationTester     NotificationTester
-	AlertManager           AlertManager
-	SourceSettings         SourceSettings
-	GuestDemo              *GuestDemoOptions
+	Logger                  *slog.Logger
+	Readiness               *Readiness
+	Authentication          authenticationBoundary
+	PublicOrigin            Origin
+	TrustedProxyPrefixes    []netip.Prefix
+	MetricsAllowedPrefixes  []netip.Prefix
+	RequestTimeout          time.Duration
+	MaximumRequestBody      int64
+	MaximumResponseBody     int64
+	MaximumInFlight         int
+	RateLimit               RateLimitConfig
+	ProductProviders        []ProductProvider
+	AuditReader             AuditReader
+	AlertReader             AlertReader
+	NotificationReader      NotificationReader
+	NotificationSettings    NotificationSettingsReader
+	NotificationTester      NotificationTester
+	AlertManager            AlertManager
+	SourceSettings          SourceSettings
+	Operations              OperationManager
+	ApplicationSettings     ApplicationSettings
+	ApplicationMutationMode ApplicationMutationMode
+	GuestDemo               *GuestDemoOptions
 
 	requestIDs requestIDSource
 	now        func() time.Time
@@ -93,6 +96,9 @@ func NewHandler(options Options) (http.Handler, error) {
 		options.NotificationTester,
 		options.AlertManager,
 		options.SourceSettings,
+		options.Operations,
+		options.ApplicationSettings,
+		options.ApplicationMutationMode,
 		options.GuestDemo,
 	))
 	root.NotFound(plainNotFound)
@@ -159,7 +165,7 @@ func validPrefixes(prefixes []netip.Prefix) bool {
 	return true
 }
 
-func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings, guest ...*GuestDemoOptions) http.Handler {
+func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings, operations OperationManager, applicationSettings ApplicationSettings, applicationMode ApplicationMutationMode, guest ...*GuestDemoOptions) http.Handler {
 	authRoutes := newAuthHTTP(authentication, proxy.origin, readiness, now, maximumBody)
 	if len(guest) == 1 {
 		authRoutes.guestDemo = guest[0]
@@ -169,6 +175,9 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	}
 	productRoutes := newProductHTTP(authRoutes, providers, auditReader, alertReader, notificationReader, notificationSettings, notificationTester, alertManager)
 	productRoutes.sourceSettings = sourceSettings
+	productRoutes.operations = operations
+	productRoutes.applicationSettings = applicationSettings
+	productRoutes.applicationMutationMode = applicationMode
 	router := chi.NewRouter()
 	router.Use(proxy.requirePublicOrigin)
 	router.Use(limitRequestBody(maximumBody))
@@ -209,10 +218,20 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	router.Get("/notifications", productRoutes.notifications)
 	router.Get("/settings/notifications", productRoutes.notificationSettings)
 	router.Get("/settings/sources", productRoutes.listSourceSettings)
+	router.Get("/settings/application", productRoutes.getApplicationSettings)
+	router.Post("/settings/application/previews", productRoutes.previewApplicationSettings)
+	router.Put("/settings/application", productRoutes.updateApplicationSettings)
+	router.Post("/settings/cleanup/previews", productRoutes.previewHistoryCleanup)
+	router.Post("/settings/cleanup", productRoutes.cleanupHistory)
+	router.Post("/settings/export", productRoutes.exportConfiguration)
 	router.Post("/settings/sources/{source_id}/preview", productRoutes.previewSourceUpdate)
 	router.Patch("/settings/sources/{source_id}", productRoutes.updateSourceSettings)
 	router.Post("/settings/notifications/test", productRoutes.testNotification)
 	router.Get("/audit", productRoutes.audit)
+	router.Post("/operations/previews", productRoutes.previewOperation)
+	router.Post("/operations", productRoutes.executeOperation)
+	router.Get("/operations", productRoutes.listOperations)
+	router.Get("/operations/{operation_id}", productRoutes.getOperation)
 	router.Get("/streams/health", productRoutes.streamHealth)
 	router.Get("/streams/metrics", productRoutes.streamMetrics)
 	router.Get("/streams/events", productRoutes.streamEvents)
@@ -266,6 +285,14 @@ func allowedAPIMethods(path string) string {
 		return http.MethodGet
 	case "/alert-rules":
 		return http.MethodGet + ", " + http.MethodPost
+	case "/operations":
+		return http.MethodGet + ", " + http.MethodPost
+	case "/operations/previews":
+		return http.MethodPost
+	case "/settings/application":
+		return http.MethodGet + ", " + http.MethodPut
+	case "/settings/application/previews", "/settings/cleanup/previews", "/settings/cleanup", "/settings/export":
+		return http.MethodPost
 	case "/setup", "/auth/preflight", "/auth/login", "/auth/logout", "/auth/recent-grants":
 		return http.MethodPost
 	case "/settings/notifications/test":
@@ -276,6 +303,9 @@ func allowedAPIMethods(path string) string {
 		return http.MethodGet + ", " + http.MethodPost
 	}
 	alertParts := strings.Split(strings.TrimPrefix(path, "/alerts/"), "/")
+	if strings.HasPrefix(path, "/operations/") && len(strings.Split(strings.TrimPrefix(path, "/operations/"), "/")) == 1 {
+		return http.MethodGet
+	}
 	if len(alertParts) == 2 && alertParts[0] != "" && alertParts[1] == "acknowledge" {
 		return http.MethodPost
 	}

@@ -38,7 +38,24 @@ func configuredProductProviders(settings config.Config) (providers []httpapi.Pro
 			transport.CloseIdleConnections()
 			return nil, errProductStart
 		}
-		provider, providerErr := docker.New("source_docker", "Docker Engine", collector)
+		var provider httpapi.ProductProvider
+		var providerErr error
+		if settings.DockerWriteEnabled {
+			writerTransport, writerOrigin, writerErr := dockerWriterTransport(settings)
+			if writerErr != nil {
+				_ = collector.Close()
+				return nil, errProductStart
+			}
+			writer, writerErr := docker.NewSDKWriter(docker.WriterOptions{Client: &http.Client{Transport: writerTransport, Timeout: settings.RequestTimeout}, BaseURL: writerOrigin, MaximumResponse: 8 << 20})
+			if writerErr != nil {
+				writerTransport.CloseIdleConnections()
+				_ = collector.Close()
+				return nil, errProductStart
+			}
+			provider, providerErr = docker.NewWithOperations("source_docker", "Docker Engine", collector, writer)
+		} else {
+			provider, providerErr = docker.New("source_docker", "Docker Engine", collector)
+		}
 		if providerErr != nil {
 			_ = collector.Close()
 			return nil, errProductStart
@@ -79,8 +96,49 @@ func configuredProductProviders(settings config.Config) (providers []httpapi.Pro
 			transport.CloseIdleConnections()
 			return nil, errProductStart
 		}
-		provider, providerErr := kubernetes.New("source_kubernetes", "Kubernetes", collector)
+		var provider httpapi.ProductProvider
+		var providerErr error
+		if settings.KubernetesWriteEnabled {
+			writerTokenBytes, tokenErr := readBoundedFile(settings.KubernetesWriterTokenFile, 16<<10)
+			if tokenErr != nil {
+				_ = collector.Close()
+				return nil, errProductStart
+			}
+			writerToken := strings.TrimSpace(string(writerTokenBytes))
+			clear(writerTokenBytes)
+			writerRoots, certErr := providerCertPool(settings.KubernetesWriterCAFile)
+			if certErr != nil {
+				_ = collector.Close()
+				return nil, errProductStart
+			}
+			writerTransport := boundedProviderTransport()
+			writerTransport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: writerRoots, ServerName: "kubernetes.default.svc"}
+			writer, writerErr := kubernetes.NewSDKWriter(kubernetes.WriterOptions{Client: &http.Client{Transport: writerTransport, Timeout: settings.RequestTimeout}, BearerToken: writerToken,
+				TokenReader: func(ctx context.Context) (string, error) {
+					if ctx == nil || ctx.Err() != nil {
+						return "", errProductStart
+					}
+					data, readErr := readBoundedFile(settings.KubernetesWriterTokenFile, 16<<10)
+					if readErr != nil {
+						return "", errProductStart
+					}
+					defer clear(data)
+					if ctx.Err() != nil {
+						return "", errProductStart
+					}
+					return strings.TrimSpace(string(data)), nil
+				}, Namespaces: settings.KubernetesWriterNamespaces, MaximumResponse: 256 << 10})
+			if writerErr != nil {
+				writerTransport.CloseIdleConnections()
+				_ = collector.Close()
+				return nil, errProductStart
+			}
+			provider, providerErr = kubernetes.NewWithOperations("source_kubernetes", "Kubernetes", collector, writer)
+		} else {
+			provider, providerErr = kubernetes.New("source_kubernetes", "Kubernetes", collector)
+		}
 		if providerErr != nil {
+			_ = collector.Close()
 			return nil, errProductStart
 		}
 		providers = append(providers, provider)
@@ -132,6 +190,34 @@ func dockerProviderTransport(settings config.Config) (*http.Transport, string, e
 	if err != nil {
 		return nil, "", errProductStart
 	}
+	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots, Certificates: []tls.Certificate{identity}, ServerName: origin.Hostname()}
+	return transport, origin.String(), nil
+}
+
+func dockerWriterTransport(settings config.Config) (*http.Transport, string, error) {
+	origin, err := url.Parse(settings.DockerWriterOrigin)
+	if err != nil || origin.Scheme != "https" || origin.Hostname() == "" {
+		return nil, "", errProductStart
+	}
+	roots, err := providerCertPool(settings.DockerWriterCAFile)
+	if err != nil {
+		return nil, "", errProductStart
+	}
+	certificateBytes, err := readBoundedFile(settings.DockerWriterCertFile, 1<<20)
+	if err != nil {
+		return nil, "", errProductStart
+	}
+	defer clear(certificateBytes)
+	keyBytes, err := readBoundedFile(settings.DockerWriterKeyFile, 1<<20)
+	if err != nil {
+		return nil, "", errProductStart
+	}
+	defer clear(keyBytes)
+	identity, err := tls.X509KeyPair(certificateBytes, keyBytes)
+	if err != nil {
+		return nil, "", errProductStart
+	}
+	transport := boundedProviderTransport()
 	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots, Certificates: []tls.Certificate{identity}, ServerName: origin.Hostname()}
 	return transport, origin.String(), nil
 }

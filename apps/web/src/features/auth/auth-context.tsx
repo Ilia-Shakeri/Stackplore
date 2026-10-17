@@ -11,6 +11,18 @@ import type { AuthStore } from './auth-store';
 
 const AuthContext = createContext<AuthStore | null>(null);
 
+const subscribeAbsent = () => () => {};
+const snapshotAbsent = () => null;
+
+export function useOptionalAuthSnapshot() {
+  const store = useContext(AuthContext);
+  return useSyncExternalStore(
+    store?.subscribe ?? subscribeAbsent,
+    store?.getSnapshot ?? snapshotAbsent,
+    store?.getSnapshot ?? snapshotAbsent,
+  );
+}
+
 export interface AuthProviderProps {
   readonly children: ReactNode;
   readonly store: AuthStore;

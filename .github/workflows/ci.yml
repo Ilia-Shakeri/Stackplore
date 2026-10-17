@@ -120,6 +120,7 @@ jobs:
     env:
       KUBERNETES_REQUIRED: '1'
       STACKPLORE_TEST_KUBE_DISPOSABLE: '1'
+      STACKPLORE_TEST_KUBE_WRITES: '1'
       KIND_EXPERIMENTAL_PROVIDER: docker
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -155,6 +156,8 @@ jobs:
         env:
           STACKPLORE_TEST_KUBE_METRICS_PRESENT: '1'
         run: go -C apps/api test ./internal/provider/kubernetes -run '^TestScopedSDKWithMetricsOnRealKubernetes$' -count=1 -timeout=8m -v
+      - name: Verify guarded writes on the owned disposable namespace
+        run: go -C apps/api test ./internal/provider/kubernetes -run '^TestGuardedSDKWriterOnRealKubernetes$' -count=1 -timeout=8m -v
       - name: Delete only the owned disposable cluster
         if: always() && env.STACKPLORE_TEST_KIND_NAME != ''
         run: kind delete cluster --name "$STACKPLORE_TEST_KIND_NAME"

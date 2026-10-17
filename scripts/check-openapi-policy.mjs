@@ -573,6 +573,82 @@ const routePolicies = new Map([
     },
   ],
 ]);
+routePolicies.set('/settings/application', {
+  get: {
+    operationId: 'getApplicationSettings',
+    requestBody: false,
+    responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+    security: browserSession,
+  },
+  put: {
+    operationId: 'updateApplicationSettings',
+    requestBody: true,
+    responses: ['200', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+    security: highRiskMutation,
+  },
+});
+routePolicies.set('/settings/application/previews', {
+  post: {
+    operationId: 'previewApplicationSettings',
+    requestBody: true,
+    responses: ['200', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+    security: sessionMutation,
+  },
+});
+routePolicies.set('/settings/cleanup/previews', {
+  post: {
+    operationId: 'previewHistoryCleanup',
+    requestBody: true,
+    responses: ['200', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+    security: sessionMutation,
+  },
+});
+routePolicies.set('/settings/cleanup', {
+  post: {
+    operationId: 'cleanupHistory',
+    requestBody: true,
+    responses: ['200', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+    security: highRiskMutation,
+  },
+});
+routePolicies.set('/settings/export', {
+  post: {
+    operationId: 'exportConfiguration',
+    requestBody: true,
+    responses: ['200', '400', '401', '403', '409', '413', '415', '429', '500', '503'],
+    security: highRiskMutation,
+  },
+});
+routePolicies.set('/operations/previews', {
+  post: {
+    operationId: 'previewOperation',
+    requestBody: true,
+    responses: ['200', '400', '401', '403', '404', '409', '413', '415', '429', '500', '503'],
+    security: sessionMutation,
+  },
+});
+routePolicies.set('/operations', {
+  post: {
+    operationId: 'executeOperation',
+    requestBody: true,
+    responses: ['200', '202', '400', '401', '403', '404', '409', '413', '415', '429', '500', '503'],
+    security: highRiskMutation,
+  },
+  get: {
+    operationId: 'listOperations',
+    requestBody: false,
+    responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
+    security: browserSession,
+  },
+});
+routePolicies.set('/operations/{operation_id}', {
+  get: {
+    operationId: 'getOperation',
+    requestBody: false,
+    responses: ['200', '400', '401', '403', '404', '413', '429', '500', '503'],
+    security: browserSession,
+  },
+});
 const allowedPathNames = [...routePolicies.keys()];
 const allowedOperationKeys = [
   'description',
@@ -857,6 +933,40 @@ const allowedSecuritySchemeNames = [
   'PreauthRequestProof',
   'RecentAuthProof',
 ];
+allowedSchemaNames.push(
+  ...[
+    'ApplicationValues',
+    'ApplicationMutationMode',
+    'ApplicationAuditPolicy',
+    'ApplicationSettingsResponse',
+    'HistoryClass',
+    'HistoryImpactClass',
+    'HistoryImpact',
+    'ApplicationPreviewRequest',
+    'ApplicationPreviewResponse',
+    'ApplicationUpdateRequest',
+    'CleanupPreviewRequest',
+    'CleanupPreviewResponse',
+    'CleanupRequest',
+    'HistoryCutoff',
+    'CleanupResponse',
+    'ConfigurationExportRequest',
+    'ConfigurationExportSource',
+    'ConfigurationExportIntegration',
+    'ConfigurationExport',
+    'OperationAction',
+    'OperationParameters',
+    'OperationPreviewRequest',
+    'OperationExecuteRequest',
+    'OperationPreviewData',
+    'OperationPreviewResponse',
+    'OperationResult',
+    'OperationReceipt',
+    'OperationResponse',
+    'OperationPage',
+  ],
+);
+allowedParameterNames.push('OperationId', 'OperationIdempotencyKey');
 const forbiddenPropertyFragments = [
   'accesskey',
   'apikey',
@@ -884,6 +994,14 @@ const sensitiveInputFieldAllowlist = new Set([
   'SetupRequest:password',
   'SourceUpdateRequest:confirmation_token',
   'SourceUpdatePreview:confirmation_token',
+  'ApplicationPreviewResponse:confirmation_token',
+  'ApplicationUpdateRequest:confirmation_token',
+  'CleanupPreviewResponse:confirmation_token',
+  'CleanupRequest:confirmation_token',
+  'OperationPreviewData:confirmation_token',
+  'OperationExecuteRequest:confirmation_token',
+  'ConfigurationExportSource:credential_reference',
+  'ConfigurationExportIntegration:credential_reference',
 ]);
 const reviewedMetadataSchemaNames = new Set([
   'ResourceMetadata',
@@ -1941,6 +2059,10 @@ const main = async () => {
           'user.sessions_revoke',
           'notification.test',
           'source.update',
+          'operation.execute',
+          'settings.update',
+          'configuration.export',
+          'data.cleanup',
         ],
       ],
       ['RelationshipDirection', ['source_to_target', 'bidirectional', 'undirected']],

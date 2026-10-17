@@ -7,13 +7,12 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-17): stages 1–5 are locally verified development checkpoints
+Current status (2026-10-17): stages 1–5 are published development checkpoints
 through `0.5.0`. Exact local and remote outcomes are separate in the evidence
 plan. Stage 4 passed its local, PostgreSQL, native and actual browser gates;
 [retained browser evidence](evidence/0.4.0/README.md) states the scope. Stage 5
-is locally verified at `0.5.0` with named disposable Engine/kind,
-PostgreSQL and guest-browser receipts and a passing final changed-tree gate.
-Exact commit/tag/CI are pending. Stages 6–9 remain open. [Exploration](exploration.md)
+tag `v0.5.0` is at `c2f4c6a6de72f4574f56d57248f8aa3170d7b01f`; the corrected
+main runs `39018504287` and `39018996970` both passed on the exact tag commit. Stage 6 `0.6.0` source is implemented and the local full gate passes; exact commit/tag CI and opt-in disposable provider-write jobs remain open. Stages 7–9 remain open. [Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
 
@@ -155,18 +154,12 @@ Stage 6–9 work is not complete.
 
 ## Stage 6 — Narrow guarded actions and settings — 0.6.0
 
-Complete the operation repository, confirmation and idempotency records,
-purpose-bound one-use reauthentication, durable intent before provider calls,
-and separate result audit. Add only the accepted container restart, workload
-rollout restart, and supported replica scaling. All deployment permission,
-administrator, CSRF, target/version, preview, expiry, replay, timeout and
-synthetic-source gates are mandatory. Finish non-secret settings/export/cleanup
-previews and personal preferences with bounded audited lifecycle.
+Status: local implementation and full gate pass. The stage remains open until exact tagged CI and provider action jobs pass.
 
-Replace audit retain-all with an explicitly reviewed operator quota/minimum
-retention/archive policy and guarded cleanup that preserves protected history.
-Complete safe operator-owned profile/credential-reference rotation without
-storing raw provider credential values.
+Implemented: fixed allow/deny matrix with Docker restart, Kubernetes rollout restart and replica scaling; PostgreSQL intent/result audit, one-use confirmations, recent-auth gates and bounded recovery; settings/export/cleanup and bilingual personal preferences. Local concurrency, replay, synthetic source and real SQL tests pass.
+
+Operator quota, 90-day minimum, independently verified archive cutoff, immutable policy audit and bounded linked-row-safe expiry are implemented.
+Safe credential/reference rotation by the operator remains a documented deployment procedure; the application stores no raw writer credential.
 
 Exit: complete allow/deny matrix, concurrent/replayed operation tests, real
 PostgreSQL transaction tests, uncertain timeout reconciliation, viewer/guest

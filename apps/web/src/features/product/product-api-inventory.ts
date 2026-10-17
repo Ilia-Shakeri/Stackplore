@@ -45,7 +45,7 @@ const isResource = (value: unknown): value is ProductResource =>
       'synthetic',
       'observed_at',
     ],
-    ['scope_name', 'health', 'metadata'],
+    ['scope_name', 'health', 'metadata', 'operation_version'],
   ) &&
   typeof value.id === 'string' &&
   resourceIdPattern.test(value.id) &&
@@ -65,7 +65,17 @@ const isResource = (value: unknown): value is ProductResource =>
   typeof value.synthetic === 'boolean' &&
   isTimestamp(value.observed_at) &&
   (value.health === undefined || isOneOf(value.health, healthStates)) &&
-  (value.metadata === undefined || isResourceMetadata(value.metadata, value.provider));
+  (value.metadata === undefined || isResourceMetadata(value.metadata, value.provider)) &&
+  (value.operation_version === undefined ||
+    (typeof value.operation_version === 'string' &&
+      tokenPattern.test(value.operation_version) &&
+      !value.synthetic &&
+      [
+        'docker.container',
+        'kubernetes.deployment',
+        'kubernetes.statefulset',
+        'kubernetes.daemonset',
+      ].includes(value.kind)));
 
 const parseResourcePage = (value: unknown): ProductResourcePage => {
   if (

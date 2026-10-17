@@ -23,8 +23,17 @@ import demoEn from '../features/demo/demo.messages.en.json';
 import demoFa from '../features/demo/demo.messages.fa.json';
 import metadataEn from '../features/product/metadata.messages.en.json';
 import metadataFa from '../features/product/metadata.messages.fa.json';
+import preferencesEn from '../features/settings/preferences.messages.en.json';
+import preferencesFa from '../features/settings/preferences.messages.fa.json';
+import settingsEn from '../features/settings/settings.messages.en.json';
+import settingsFa from '../features/settings/settings.messages.fa.json';
+import operationEn from '../features/product/operation.messages.en.json';
+import operationFa from '../features/product/operation.messages.fa.json';
 
 const enCatalog = {
+  ...settingsEn,
+  ...operationEn,
+  ...preferencesEn,
   ...demoEn,
   ...metadataEn,
   ...appEn,
@@ -51,6 +60,9 @@ export type TextMessageKey = {
 export type PluralMessageKey = Exclude<MessageKey, TextMessageKey>;
 
 const faCatalog = {
+  ...settingsFa,
+  ...operationFa,
+  ...preferencesFa,
   ...demoFa,
   ...metadataFa,
   ...appFa,

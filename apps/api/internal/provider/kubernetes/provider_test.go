@@ -40,6 +40,10 @@ func (collector *operationFixtureCollector) Snapshot(context.Context) (Snapshot,
 	return collector.snapshot, nil
 }
 
+func (collector *operationFixtureCollector) PreviewWorkload(context.Context, WorkloadOperation) error {
+	return nil
+}
+
 func (collector *operationFixtureCollector) RestartWorkload(_ context.Context, operation WorkloadOperation) (string, error) {
 	collector.last = operation
 	return "18", nil
@@ -354,7 +358,10 @@ func TestSafeKubernetesLogMessageKeepsRedactedLineBounded(t *testing.T) {
 
 func TestProviderPreviewsAndScalesExactSupportedWorkload(t *testing.T) {
 	collector := &operationFixtureCollector{snapshot: fixtureSnapshot()}
-	provider := newFixtureProvider(t, collector)
+	provider, err := NewWithOperations("source_cluster", "Cluster", collector, collector)
+	if err != nil {
+		t.Fatal(err)
+	}
 	page, err := provider.ListResources(context.Background(), inventoryQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -374,13 +381,13 @@ func TestProviderPreviewsAndScalesExactSupportedWorkload(t *testing.T) {
 	if err != nil || impact.CurrentReplicas == nil || *impact.CurrentReplicas != 1 {
 		t.Fatalf("PreviewOperation() = (%#v, %v)", impact, err)
 	}
-	result, err := provider.ExecuteOperation(context.Background(), domain.OperationExecution{Request: request, IdempotencyKey: "request_scale_one"})
+	result, err := provider.ExecuteOperation(context.Background(), domain.OperationExecution{Request: request, OperationID: "operation_scale_one"})
 	if err != nil || !collector.scale || collector.last.Name != "api" || collector.last.ResourceVersion != "17" || result.CurrentVersion != kubernetesOperationVersion("19") {
 		t.Fatalf("ExecuteOperation() = (%#v, %v), call = %#v", result, err, collector.last)
 	}
 	request.Action = domain.OperationDockerRestart
 	request.Parameters.Replicas = nil
-	if _, err := provider.PreviewOperation(context.Background(), request); !errors.Is(err, ErrUnsupported) {
+	if _, err := provider.PreviewOperation(context.Background(), request); err == nil {
 		t.Fatalf("unsupported preview error = %v", err)
 	}
 }

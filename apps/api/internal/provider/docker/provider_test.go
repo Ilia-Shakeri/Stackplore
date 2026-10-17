@@ -320,7 +320,7 @@ func TestDockerEventIdentityBindsSourceAndNormalizedResourceFacts(t *testing.T) 
 
 func TestProviderPreviewsAndRestartsOnlyExactContainerVersion(t *testing.T) {
 	collector := &operationFixtureCollector{snapshot: fixtureSnapshotForOperation()}
-	provider, err := New("source_docker", "Local Docker", collector)
+	provider, err := NewWithOperations("source_docker", "Local Docker", collector, collector)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -344,7 +344,7 @@ func TestProviderPreviewsAndRestartsOnlyExactContainerVersion(t *testing.T) {
 	if impact, err := provider.PreviewOperation(context.Background(), request); err != nil || impact.DisplayName != "shop-api-1" {
 		t.Fatalf("PreviewOperation() = (%#v, %v)", impact, err)
 	}
-	result, err := provider.ExecuteOperation(context.Background(), domain.OperationExecution{Request: request, IdempotencyKey: "request_one"})
+	result, err := provider.ExecuteOperation(context.Background(), domain.OperationExecution{Request: request, OperationID: "operation_one"})
 	if err != nil || result.CurrentVersion != "dv_after" || len(collector.restart) != 3 || collector.restart[0] != "container-one" {
 		t.Fatalf("ExecuteOperation() = (%#v, %v), call = %#v", result, err, collector.restart)
 	}

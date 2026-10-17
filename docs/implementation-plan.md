@@ -1,5 +1,13 @@
 # Stackplore active implementation evidence
 
+## Current release status — 2026-10-17
+
+The earlier Stage 5 pending statements below are historical and superseded:
+`v0.5.0` is tagged at `c2f4c6a6de72f4574f56d57248f8aa3170d7b01f`.
+[Corrected main CI run 39018504287](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39018504287) and [run 39018996970](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39018996970) both passed on the exact tag commit. Stage 6 `0.6.0` full local gate passed after the audit lifecycle worker, real PostgreSQL pruning test, and web fixture fixes. The commit, exact tagged CI, and actual provider write jobs remain open.
+
+Stage 6 local full gate: `npm.cmd run verify` passed with Node 24.18.0, Go 1.26.5, CI mode, and disposable PostgreSQL 17 at localhost port 55473. It includes real migration and repository tests, audit lifecycle verified-cutoff/bounded-delete proof, 36 API-client tests, 402 web tests, type checks and both production builds. `git diff --check` passed. Local Windows cannot provide actual Docker Engine or Kubernetes kind write proof; those separate opt-in CI jobs remain required.
+
 Stage 5 publication follow-up: candidate `e04bc622ddb22e08a9c493000edd4c18cc0dc717`
 was committed and pushed on 2026-10-17. The first
 [remote run 39018000098](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39018000098)
@@ -149,8 +157,7 @@ behavior documents for bounds and supported workflows.
 The review covers every new backend/domain/SQL/job/transport/source UI module
 and affected contracts, manifests, tests and documentation. Retention preserves
 the current metric per resource/name, synthetic fixture history, pending and
-audit-linked delivery rows and all audit records. Audit retain-all protection is
-implemented; operator audit quotas and reviewed expiry remain stage 6. Namespace
+audit-linked delivery rows. Audit policy has a 90-day minimum, bounded quota, operator-verified archive cutoff, immutable policy-change audit and bounded scheduled expiry that refuses to run without archive proof. Namespace
 profiles and restricted production Docker remain stage 5, with their live proof
 separate. The static demo alarm is preserved through a narrowly validated
 compatibility wrapper until the durable alert stage.

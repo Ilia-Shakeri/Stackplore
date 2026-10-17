@@ -166,7 +166,11 @@ export type RecentAuthPurpose =
   | 'user.password_reset'
   | 'user.sessions_revoke'
   | 'notification.test'
-  | 'source.update';
+  | 'source.update'
+  | 'operation.execute'
+  | 'settings.update'
+  | 'configuration.export'
+  | 'data.cleanup';
 
 /**
  * Current-password proof request for one exact high-risk purpose.
@@ -302,6 +306,10 @@ export type ProductResource = {
   observed_at: string;
   health?: HealthState;
   metadata?: ResourceMetadata;
+  /**
+   * Exact opaque version for supported guarded actions; omitted when unsupported.
+   */
+  operation_version?: string;
 };
 
 export type ProductResourcePage = {
@@ -1909,6 +1917,286 @@ export type Problem = {
 };
 
 /**
+ * Persisted bounded policy. Alert defaults apply to newly created rules.
+ */
+export type ApplicationValues = {
+  metric_retention_hours: number;
+  health_retention_hours: number;
+  event_retention_hours: number;
+  delivery_retention_hours: number;
+  log_line_limit: number;
+  default_alert_window_seconds: number;
+  default_alert_pending_seconds: number;
+};
+
+/**
+ * Effective deployment permissions; settings do not enable provider writes.
+ */
+export type ApplicationMutationMode = {
+  enabled: boolean;
+  docker_write_enabled: boolean;
+  kubernetes_write_enabled: boolean;
+};
+
+/**
+ * Operator-owned protected retention and global row quota; young and referenced facts cannot expire.
+ */
+export type ApplicationAuditPolicy = {
+  retention_days: number;
+  minimum_retention_days: 90;
+  quota_rows: number;
+  stored_rows: number;
+  quota_exceeded: boolean;
+  archive_verified_through: string | null;
+};
+
+/**
+ * Current non-secret settings. Authenticated viewers can read; guests cannot.
+ */
+export type ApplicationSettingsResponse = {
+  version: number;
+  updated_at: Timestamp;
+  values: ApplicationValues;
+  mutation_mode: ApplicationMutationMode;
+  audit_policy: ApplicationAuditPolicy;
+  application_version: string;
+};
+
+export type HistoryClass =
+  | 'metric_samples'
+  | 'health_history'
+  | 'infrastructure_events'
+  | 'terminal_notification_deliveries';
+
+/**
+ * Frozen cutoff and bounded count; capped means at least the returned count.
+ */
+export type HistoryImpactClass = {
+  name: HistoryClass;
+  cutoff: Timestamp;
+  eligible_rows: number;
+  eligible_rows_capped: boolean;
+};
+
+/**
+ * Explicit cleanup removes at most one batch. An approved shorter retention policy applies continuously in bounded batches.
+ */
+export type HistoryImpact = {
+  classes: Array<HistoryImpactClass>;
+  maximum_rows: 1000;
+  backup_required: boolean;
+  expiry_policy_changed: boolean;
+};
+
+/**
+ * Exact proposed values; the current version is required in If-Match.
+ */
+export type ApplicationPreviewRequest = {
+  values: ApplicationValues;
+};
+
+/**
+ * Two-minute actor/session/version/material-bound one-use confirmation.
+ */
+export type ApplicationPreviewResponse = {
+  settings: ApplicationSettingsResponse;
+  requested: ApplicationValues;
+  impact: HistoryImpact;
+  confirmation_token: Proof;
+  expires_at: Timestamp;
+};
+
+/**
+ * Commit the exact preview. A shorter retention policy requires explicit backup acknowledgement.
+ */
+export type ApplicationUpdateRequest = {
+  values: ApplicationValues;
+  confirmation_token: Proof;
+  backup_acknowledged: boolean;
+};
+
+/**
+ * Only the named retention-eligible history classes can be selected.
+ */
+export type CleanupPreviewRequest = {
+  classes: Array<HistoryClass>;
+};
+
+/**
+ * Frozen retention cutoffs and current policy version; no deletion occurs during preview.
+ */
+export type CleanupPreviewResponse = {
+  policy_version: number;
+  impact: HistoryImpact;
+  confirmation_token: Proof;
+  expires_at: Timestamp;
+};
+
+/**
+ * Consume one exact preview and data.cleanup grant, with explicit backup acknowledgement.
+ */
+export type CleanupRequest = {
+  confirmation_token: Proof;
+  backup_acknowledged: true;
+};
+
+/**
+ * One approved fixed history cutoff.
+ */
+export type HistoryCutoff = {
+  name: HistoryClass;
+  cutoff: Timestamp;
+};
+
+/**
+ * Committed bounded deletion with a truthful remaining-work flag.
+ */
+export type CleanupResponse = {
+  removed_rows: number;
+  remaining_rows: boolean;
+  scope: Array<HistoryClass>;
+  cutoffs: Array<HistoryCutoff>;
+  policy_version: number;
+};
+
+/**
+ * No caller-supplied fields or destinations are accepted.
+ */
+export type ConfigurationExportRequest = {
+  [key: string]: never;
+};
+
+/**
+ * Safe source summary; every logical credential reference and host is masked.
+ */
+export type ConfigurationExportSource = {
+  provider: ProviderKind;
+  name: DisplayText;
+  enabled: boolean;
+  profile: string;
+  credential_reference: '[masked]';
+  host: '[masked]';
+};
+
+/**
+ * No target, credential or reference value is exported.
+ */
+export type ConfigurationExportIntegration = {
+  kind: 'webhook' | 'matrix';
+  enabled: boolean;
+  target: '[masked]';
+  credential_reference: '[masked]';
+};
+
+/**
+ * Allowlisted non-secret artifact, at most 65536 encoded bytes. Audit records generation, not delivery to disk.
+ */
+export type ConfigurationExport = {
+  application_version: string;
+  settings: ApplicationValues;
+  sources: Array<ConfigurationExportSource>;
+  notification_integrations: Array<ConfigurationExportIntegration>;
+};
+
+export type OperationAction =
+  'docker.container_restart' | 'kubernetes.workload_restart' | 'kubernetes.workload_scale';
+
+/**
+ * Scaling requires replicas; restart rejects it. No other material parameters exist.
+ */
+export type OperationParameters = {
+  replicas?: number;
+};
+
+/**
+ * Only stable stored identities and the exact observed version; no endpoint, namespace, host path or command input.
+ */
+export type OperationPreviewRequest = {
+  source_id: SourceId;
+  resource_id: ResourceId;
+  action: OperationAction;
+  expected_version: string;
+  parameters: OperationParameters;
+};
+
+/**
+ * Exact preview material and one-use confirmation; idempotency is carried only in its header.
+ */
+export type OperationExecuteRequest = {
+  source_id: SourceId;
+  resource_id: ResourceId;
+  action: OperationAction;
+  expected_version: string;
+  parameters: OperationParameters;
+  confirmation_token: Proof;
+};
+
+/**
+ * Exact target/effect preview with short-lived single-use proof.
+ */
+export type OperationPreviewData = {
+  source_id: SourceId;
+  resource_id: ResourceId;
+  action: OperationAction;
+  expected_version: string;
+  parameters: OperationParameters;
+  target_name: DisplayText;
+  effect_code: NamespacedCode;
+  risk_code: NamespacedCode;
+  current_replicas?: number;
+  confirmation_token: Proof;
+  expires_at: Timestamp;
+};
+
+/**
+ * Guarded infrastructure operation preview.
+ */
+export type OperationPreviewResponse = {
+  data: OperationPreviewData;
+};
+
+/**
+ * Provider acceptance evidence. Acceptance does not establish a healthy rollout.
+ */
+export type OperationResult = {
+  previous_version: string;
+  current_version: string;
+  effect_code: NamespacedCode;
+};
+
+/**
+ * Durable safe outcome. A missing acknowledgement is uncertain and never triggers automatic provider retry.
+ */
+export type OperationReceipt = {
+  id: string;
+  source_id: SourceId;
+  resource_id: ResourceId;
+  action: OperationAction;
+  expected_version: string;
+  parameters: OperationParameters;
+  state: 'in_progress' | 'succeeded' | 'failed' | 'uncertain';
+  reason_code?: NamespacedCode;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  result?: OperationResult;
+};
+
+/**
+ * Persisted operation state; never includes a user session, raw key or confirmation.
+ */
+export type OperationResponse = {
+  data: OperationReceipt;
+};
+
+/**
+ * Administrator-only bounded recovery listing; proofs are never URL parameters.
+ */
+export type OperationPage = {
+  data: Array<OperationReceipt>;
+  page: PageInfo;
+};
+
+/**
  * Exact operator-owned adapter lane; omission selects generic_webhook.
  */
 export type NotificationTestAdapter = 'generic_webhook' | 'matrix';
@@ -2024,6 +2312,16 @@ export type To = string;
  * Direction for the operation-owned sort field.
  */
 export type SortDirection2 = SortDirection;
+
+/**
+ * One durable opaque operation identity.
+ */
+export type OperationId = string;
+
+/**
+ * Opaque per-action key, bound by a keyed digest. Never place it in a URL or browser persistence.
+ */
+export type OperationIdempotencyKey = string;
 
 export type GetSetupStatusData = {
   body?: never;
@@ -4929,3 +5227,672 @@ export type GetSystemReadinessResponses = {
 
 export type GetSystemReadinessResponse =
   GetSystemReadinessResponses[keyof GetSystemReadinessResponses];
+
+export type GetApplicationSettingsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/application';
+};
+
+export type GetApplicationSettingsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetApplicationSettingsError =
+  GetApplicationSettingsErrors[keyof GetApplicationSettingsErrors];
+
+export type GetApplicationSettingsResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: ApplicationSettingsResponse;
+};
+
+export type GetApplicationSettingsResponse =
+  GetApplicationSettingsResponses[keyof GetApplicationSettingsResponses];
+
+export type UpdateApplicationSettingsData = {
+  body: ApplicationUpdateRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed entity version.
+     */
+    'If-Match': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/application';
+};
+
+export type UpdateApplicationSettingsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type UpdateApplicationSettingsError =
+  UpdateApplicationSettingsErrors[keyof UpdateApplicationSettingsErrors];
+
+export type UpdateApplicationSettingsResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: ApplicationSettingsResponse;
+};
+
+export type UpdateApplicationSettingsResponse =
+  UpdateApplicationSettingsResponses[keyof UpdateApplicationSettingsResponses];
+
+export type PreviewApplicationSettingsData = {
+  body: ApplicationPreviewRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed entity version.
+     */
+    'If-Match': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/application/previews';
+};
+
+export type PreviewApplicationSettingsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type PreviewApplicationSettingsError =
+  PreviewApplicationSettingsErrors[keyof PreviewApplicationSettingsErrors];
+
+export type PreviewApplicationSettingsResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: ApplicationPreviewResponse;
+};
+
+export type PreviewApplicationSettingsResponse =
+  PreviewApplicationSettingsResponses[keyof PreviewApplicationSettingsResponses];
+
+export type PreviewHistoryCleanupData = {
+  body: CleanupPreviewRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed entity version.
+     */
+    'If-Match': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/cleanup/previews';
+};
+
+export type PreviewHistoryCleanupErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type PreviewHistoryCleanupError =
+  PreviewHistoryCleanupErrors[keyof PreviewHistoryCleanupErrors];
+
+export type PreviewHistoryCleanupResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: CleanupPreviewResponse;
+};
+
+export type PreviewHistoryCleanupResponse =
+  PreviewHistoryCleanupResponses[keyof PreviewHistoryCleanupResponses];
+
+export type CleanupHistoryData = {
+  body: CleanupRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Strong quoted decimal form of the last observed entity version.
+     */
+    'If-Match': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/cleanup';
+};
+
+export type CleanupHistoryErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CleanupHistoryError = CleanupHistoryErrors[keyof CleanupHistoryErrors];
+
+export type CleanupHistoryResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: CleanupResponse;
+};
+
+export type CleanupHistoryResponse = CleanupHistoryResponses[keyof CleanupHistoryResponses];
+
+export type ExportConfigurationData = {
+  body: ConfigurationExportRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/settings/export';
+};
+
+export type ExportConfigurationErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ExportConfigurationError = ExportConfigurationErrors[keyof ExportConfigurationErrors];
+
+export type ExportConfigurationResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: ConfigurationExport;
+};
+
+export type ExportConfigurationResponse =
+  ExportConfigurationResponses[keyof ExportConfigurationResponses];
+
+export type PreviewOperationData = {
+  body: OperationPreviewRequest;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/operations/previews';
+};
+
+export type PreviewOperationErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type PreviewOperationError = PreviewOperationErrors[keyof PreviewOperationErrors];
+
+export type PreviewOperationResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: OperationPreviewResponse;
+};
+
+export type PreviewOperationResponse = PreviewOperationResponses[keyof PreviewOperationResponses];
+
+export type ListOperationsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Selects one configured source. Omission selects the built-in demo source.
+     */
+    source_id?: SourceId;
+    /**
+     * Requested result count, capped by the server.
+     */
+    limit?: number;
+    /**
+     * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
+     */
+    cursor?: Cursor;
+  };
+  url: '/operations';
+};
+
+export type ListOperationsErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListOperationsError = ListOperationsErrors[keyof ListOperationsErrors];
+
+export type ListOperationsResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: OperationPage;
+};
+
+export type ListOperationsResponse = ListOperationsResponses[keyof ListOperationsResponses];
+
+export type ExecuteOperationData = {
+  body: OperationExecuteRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Opaque per-action key, bound by a keyed digest. Never place it in a URL or browser persistence.
+     */
+    'Idempotency-Key': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/operations';
+};
+
+export type ExecuteOperationErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ExecuteOperationError = ExecuteOperationErrors[keyof ExecuteOperationErrors];
+
+export type ExecuteOperationResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: OperationResponse;
+  /**
+   * Committed bounded response.
+   */
+  202: OperationResponse;
+};
+
+export type ExecuteOperationResponse = ExecuteOperationResponses[keyof ExecuteOperationResponses];
+
+export type GetOperationData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * One durable opaque operation identity.
+     */
+    operation_id: string;
+  };
+  query?: never;
+  url: '/operations/{operation_id}';
+};
+
+export type GetOperationErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetOperationError = GetOperationErrors[keyof GetOperationErrors];
+
+export type GetOperationResponses = {
+  /**
+   * Committed bounded response.
+   */
+  200: OperationResponse;
+};
+
+export type GetOperationResponse = GetOperationResponses[keyof GetOperationResponses];

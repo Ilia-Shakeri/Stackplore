@@ -180,6 +180,8 @@ func TestMutationPermissionsRequireGlobalAndExactProviderEnablement(t *testing.T
 	got, err := Load(getter(map[string]string{
 		dockerEnabledKey: "true", dockerSocketPathKey: dockerPath,
 		mutationsEnabledKey: "true", dockerWriteEnabledKey: "true",
+		dockerWriterOriginKey: "https://docker-writer.example:8443", dockerWriterCAFileKey: sourceAbsolutePath("writer-ca.pem"),
+		dockerWriterCertFileKey: sourceAbsolutePath("writer.pem"), dockerWriterKeyFileKey: sourceAbsolutePath("writer-key.pem"),
 	}))
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)

@@ -32,6 +32,17 @@ $env:STACKPLORE_TEST_POSTGRES_URL = 'postgresql://test-role@127.0.0.1:5432/stack
 npm.cmd run test:api
 ```
 
+## Stage 6 guarded operations and settings
+
+The full Windows gate passed on the changed tree with pinned Node 24.18.0, Go,
+and a disposable PostgreSQL 17 cluster. It includes real migration, repository,
+and audit-lifecycle transaction tests, API/web type checks, 36 API-client tests,
+402 web tests, and production builds. The audit-specific test proves expiry is
+disabled without an archive cutoff, then removes one eligible old row under a
+one-row batch and confirms the stored cutoff. This local gate does not prove
+real Docker or Kubernetes writes; CI has separate opt-in disposable Engine and
+kind jobs for those effects.
+
 Without the URL, environment-gated SQL and HTTP integration tests skip. Report
 that skip. The [evidence plan](implementation-plan.md) records exact versions,
 commands, failures, fixes and proof levels for each delivered version.

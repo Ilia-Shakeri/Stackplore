@@ -4,6 +4,16 @@ import process from 'node:process';
 
 const catalogPairs = [
   [
+    'settings',
+    'apps/web/src/features/settings/settings.messages.en.json',
+    'apps/web/src/features/settings/settings.messages.fa.json',
+  ],
+  [
+    'preferences',
+    'apps/web/src/features/settings/preferences.messages.en.json',
+    'apps/web/src/features/settings/preferences.messages.fa.json',
+  ],
+  [
     'metadata',
     'apps/web/src/features/product/metadata.messages.en.json',
     'apps/web/src/features/product/metadata.messages.fa.json',

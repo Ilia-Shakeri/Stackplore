@@ -1,0 +1,85 @@
+.resource-operations {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  min-inline-size: 0;
+}
+.resource-operations h2,
+.resource-operations h3,
+.resource-operations p {
+  margin: 0;
+}
+.resource-operations form {
+  display: grid;
+  gap: 1rem;
+  max-inline-size: 42rem;
+}
+.resource-operations label {
+  display: grid;
+  gap: 0.4rem;
+}
+.resource-operations input,
+.resource-operations select {
+  min-block-size: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  color: inherit;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: 0.4rem;
+}
+.resource-operations button {
+  min-block-size: 2.75rem;
+  padding: 0.55rem 0.9rem;
+  margin-inline-end: 0.6rem;
+  color: inherit;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.resource-operations button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.resource-operations :focus-visible {
+  outline: 2px solid var(--sp-focus);
+  outline-offset: 3px;
+}
+.resource-operations .resource-operations__ack {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.resource-operations__ack input {
+  min-inline-size: 1.25rem;
+}
+.resource-operations__preview {
+  border-inline-start: 3px solid var(--sp-border);
+  padding-inline-start: 1rem;
+}
+.resource-operations dl {
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.resource-operations dd {
+  margin: 0 0 0.6rem;
+  overflow-wrap: anywhere;
+}
+.resource-operations__table {
+  overflow-x: auto;
+  max-inline-size: 100%;
+}
+.resource-operations table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+.resource-operations th,
+.resource-operations td {
+  padding: 0.65rem;
+  border-block-end: 1px solid var(--sp-border);
+  text-align: start;
+  vertical-align: top;
+}

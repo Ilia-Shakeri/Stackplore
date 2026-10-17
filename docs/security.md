@@ -76,7 +76,9 @@ ConfigMap values. Projected token refresh remains in memory. Safe reference file
 must be regular bounded files; projected links cannot escape the selected mount
 directory. PostgreSQL stores profile references and enablement, never credential
 values. Browser APIs cannot create profiles or supply endpoints, paths or
-credentials. Broader operator-reference rotation remains stage 6 work.
+credentials. Stage 6 uses separate operator-owned writer references; rotate them
+through the protected deployment channel described in
+[guarded actions](operations/guarded-actions.md). The browser cannot change them.
 
 Changing configured scope/profile raises a durable authority fence and source
 version before serving cache. Failed collection cannot clear it. Fresh partition
@@ -162,15 +164,13 @@ Metric values must be finite, non-negative, correctly unit-tagged, and bounded t
 A scheduled retention worker uses fixed ages, one aggregate deadline and bounded
 transactions with fair quotas across eligible metrics, health, events and
 terminal ordinary deliveries. Synthetic facts, current state, newest current
-metric samples, pending/audit-linked deliveries and audit rows are excluded.
-Audit has a protected retain-all lifecycle; operator quotas, minimum retention,
-reviewed cleanup and archive/export custody remain stage 6 work. Monitor growth;
-bounded cleanup is not a production capacity guarantee. Exact limits are in
+metric samples, pending/audit-linked deliveries and audit rows are excluded. Audit policy enforces a 90-day minimum and bounded quota. Scheduled expiry is capped at an operator-verified archive cutoff, preserves operation/delivery-linked facts, writes a policy/cleanup audit record, and prunes at most 1,000 rows per transaction. Without archive proof no audit row expires. Monitor growth; bounded cleanup is not a production capacity guarantee. Exact limits are in
 [observations](observations.md).
 
 ## Guarded operations
 
-Read-only behavior is the current product default. A future infrastructure mutation may ship only when all are true:
+Read-only behavior remains the product default. Stage 6 implements only the
+fixed operations and gates in [guarded actions](operations/guarded-actions.md):
 
 - the provider reports the exact operation as supported;
 - the current user is an administrator;
@@ -191,10 +191,9 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 ## Known gaps
 
 - Production restricted Docker access and namespace-scoped Kubernetes/partial-permission fidelity
-- broader safe operator-owned profile/credential-reference setup and rotation; raw credential values must not be persisted
-- configurable retention quotas and protected audit cleanup/archive lifecycle
+- browser-managed profile creation and credential editing remain unsupported; operator reference rotation uses deployment-owned files and stores no raw values
+- provider action integration proof and exact Stage 6 CI remain pending until the active plan records them
 - live operator receiver, reverse-proxy/browser and provider-fidelity proof for the implemented alert windows and durable replay
-- guarded infrastructure operations
 - target production PostgreSQL/restore/TLS, Compose, cluster, browser, accessibility and performance proof
 
 These gaps block a 1.0 production-ready claim.

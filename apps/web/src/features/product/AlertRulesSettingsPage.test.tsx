@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductAlertRulesSettingsPage } from './AlertRulesSettingsPage';
-import type { ProductApi } from './product-api';
+import { createProductApi, type ProductApi } from './product-api';
 import { ProductProvider } from './product-context';
 import { LocaleProvider } from '../../i18n';
 import { App } from '../../app/App';
@@ -30,6 +30,9 @@ const rule: AlertRuleRecord = {
 
 function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
   return {
+    ...createProductApi({
+      request: () => Promise.reject(new Error('Unexpected rule test request.')),
+    }),
     listSourceSettings: vi.fn(),
     previewSourceUpdate: vi.fn(),
     updateSource: vi.fn(),

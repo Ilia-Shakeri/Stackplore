@@ -107,8 +107,9 @@ disabled, interrupted and synthetic behavior.
 Retention runs bounded transactions with fair quotas across eligible metrics,
 health, events and terminal ordinary deliveries. It preserves the newest metric
 per resource/name, synthetic facts, current state, pending/audit-linked deliveries
-and audit history. Audit currently retains all rows; operator audit quotas and
-reviewed cleanup/export remain stage 6 work.
+and audit history. Stage 6 adds protected audit quota and minimum-retention
+policy, verified-archive cutoff, and separately authenticated settings export
+and ordinary-history cleanup. Audit rows remain outside ordinary cleanup.
 
 PostgreSQL backup uses custom-format `pg_dump`, validates the artifact with `pg_restore --list`, and publishes it through an atomic no-overwrite hard link. Restore accepts an empty target only, runs in one transaction, verifies the exact migration ledger, advances the restore generation, and invalidates sessions and pre-auth state.
 
@@ -233,12 +234,12 @@ of the application and production acceptance remain open for their later stages.
 ## Current limits
 
 - Fixed operator profiles, persisted enabled state, collection/retry scheduling and cached observation reads are implemented in the tagged 0.2 checkpoint. Local/PostgreSQL/native and exact tagged CI results are recorded separately; target proof remains open.
-- Browser source creation, endpoint/path/credential editing, operator-reference rotation and configurable retention are not implemented.
-- Audit retains all rows. Quotas, protected cleanup and archive/export policy remain stage 6 work.
+- Browser source creation and endpoint/path/credential editing remain unsupported. Operator credential references are deployment-owned and rotated through the protected restart procedure in [guarded actions](operations/guarded-actions.md).
+- Stage 6 adds fixed guarded restart/scale operations and application settings. Deployment and provider write permissions remain false by default; live target operation is not inferred from source tests.
 - Restricted Docker and namespace-scoped Kubernetes use official clients and bounded partition authority; the active plan records their separate live proof.
 - Covered alert evidence and durable replay are implemented in the locally verified 0.3 checkpoint; unsupported or incomplete windows stay unknown. Full local and separately named disposable/Helm proof passed; exact outcomes live in the evidence plan.
 - Webhook and Matrix are opt-in. Disposable local HTTPS proof and live operator receiver proof are separate; no live production receiver claim follows from unit or SQL tests.
-- Guarded operations are not live.
+- Guarded operations have unit and PostgreSQL coverage plus opt-in disposable Engine/kind jobs; their exact remote execution is recorded in the active plan.
 - Real PostgreSQL, native backup/restore, browser geometry and Helm render checks have named receipts. Compose application startup, chart installation and target production acceptance remain stage 7 gates; a provider fixture does not prove those deployments.
 - The current separate static web edge differs from ADR-0001 built-web serving. Stage 7 must align the production build with that decision before 1.0. Provider clients now follow ADR-0002.
 

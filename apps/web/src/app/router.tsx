@@ -370,10 +370,7 @@ const settingsRoute = createRoute({
 
 function SettingsEntryRoute() {
   const { snapshot } = useAuth();
-  if (
-    snapshot.status === 'guest_demo' ||
-    (snapshot.status === 'authenticated' && snapshot.user.role === 'viewer')
-  ) {
+  if (snapshot.status === 'guest_demo') {
     return <Navigate to="/settings/preferences" replace />;
   }
   return <SettingsPage />;

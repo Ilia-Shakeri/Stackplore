@@ -20,10 +20,12 @@ import type {
   SourceSummary,
   SystemReadiness,
 } from '@stackplore/api-client';
-import type { SessionProtection } from '../auth/auth-api';
+import type { RecentAuthPurpose, SessionProtection } from '../auth/auth-api';
 import type { SourceSettingsApi } from './source-settings-api';
+import type { OperationApi } from './operation-api';
+import type { ApplicationSettingsApi } from '../settings/settings-types';
 
-export interface ProductApi extends SourceSettingsApi {
+export interface ProductApi extends SourceSettingsApi, OperationApi, ApplicationSettingsApi {
   acknowledgeAlert(alertId: string): Promise<ProductAlert>;
   createAlertRule(input: AlertRuleInput): Promise<AlertRuleRecord>;
   deleteAlertRule(ruleId: string, version: number): Promise<void>;
@@ -64,7 +66,7 @@ export interface ProductApi extends SourceSettingsApi {
 
 export interface SessionActionRunner {
   runRecentAction?<Result>(
-    purpose: 'notification.test' | 'source.update',
+    purpose: RecentAuthPurpose,
     currentPassword: string,
     action: (protection: SessionProtection) => Promise<Result>,
   ): Promise<Result>;

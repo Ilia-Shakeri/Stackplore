@@ -45,11 +45,13 @@ type WorkloadOperation struct {
 	Namespace         string
 	Name              string
 	ResourceVersion   string
-	IdempotencyKey    string
+	ExpectedUID       string
+	OperationID       string
 	RequestedReplicas *int
 }
 
 type OperationCollector interface {
+	PreviewWorkload(context.Context, WorkloadOperation) error
 	RestartWorkload(context.Context, WorkloadOperation) (string, error)
 	ScaleWorkload(context.Context, WorkloadOperation) (string, error)
 }
@@ -447,11 +449,10 @@ func (provider *Provider) GetCapabilities(ctx context.Context, source domain.Pro
 	_, eventsAvailable := provider.collector.(EventCollector)
 	_, metricsAvailable := provider.collector.(MetricCollector)
 	_, logsAvailable := provider.collector.(LogCollector)
-	_, operationsAvailable := provider.collector.(OperationCollector)
+
 	for index, name := range names {
 		status := unsupported
-		if index < 4 || name == domain.CapabilityEventHistory && eventsAvailable || name == domain.CapabilityMetricCurrent && metricsAvailable || name == domain.CapabilityLogRead && logsAvailable ||
-			(name == domain.CapabilityWorkloadRestart || name == domain.CapabilityWorkloadScale) && operationsAvailable {
+		if index < 4 || name == domain.CapabilityEventHistory && eventsAvailable || name == domain.CapabilityMetricCurrent && metricsAvailable || name == domain.CapabilityLogRead && logsAvailable {
 			status = available
 		}
 		items[index] = domain.CapabilityStatus{Name: name, Status: status}

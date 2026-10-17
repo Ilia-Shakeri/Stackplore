@@ -841,9 +841,7 @@ purpose-bound recent authentication and atomic audit. The `0.5.0` candidate adds
 restricted mTLS Docker observation, explicit Kubernetes namespaces, independently
 published kind/scope authority, typed safe metadata, Pod UID/lifetime checks and
 guest isolation. Provider target receipts have named version bounds; the final
-local gate passed; exact publication/CI remain pending. Browser profile creation, endpoint/path/credential
-editing, guarded operations and audit quota/cleanup policy remain unfinished.
-Audit currently retains all rows. See [current observation
+local gate passed; exact publication/CI remain pending. At the 0.6.0 checkpoint, guarded actions and audit quota/cleanup policy have local implementation and test coverage. Exact tagged CI, disposable provider-write proof, profile/reference rotation and 1.0 deployment gates remain. Audit expiry requires the independently verified archive cutoff described in the current settings guide. See [current observation
 boundaries](docs/observations.md) and the roadmap for remaining work; these status
 notes do not reduce the required 1.0 behavior above.
 The locally verified 0.3.0 development checkpoint adds current-configuration raw collection evidence,

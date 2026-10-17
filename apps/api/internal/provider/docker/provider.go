@@ -322,67 +322,15 @@ func (provider *Provider) GetCapabilities(ctx context.Context, source domain.Pro
 	_, metricsAvailable := provider.collector.(MetricCollector)
 	_, logsAvailable := provider.collector.(LogCollector)
 	_, eventsAvailable := provider.collector.(EventCollector)
-	_, operationsAvailable := provider.collector.(OperationCollector)
 	for index, name := range names {
 		status := unsupported
-		if index < 4 || name == domain.CapabilityMetricCurrent && metricsAvailable || name == domain.CapabilityLogRead && logsAvailable || name == domain.CapabilityEventHistory && eventsAvailable || name == domain.CapabilityDockerRestart && operationsAvailable {
+		if index < 4 || name == domain.CapabilityMetricCurrent && metricsAvailable || name == domain.CapabilityLogRead && logsAvailable || name == domain.CapabilityEventHistory && eventsAvailable {
 			status = available
 		}
 		items[index] = domain.CapabilityStatus{Name: name, Status: status}
 	}
 	result := domain.CapabilitySet{Source: source, Capabilities: items}
 	return result, result.ValidateFor(source)
-}
-
-func (provider *Provider) PreviewOperation(ctx context.Context, request domain.OperationRequest) (domain.OperationImpact, error) {
-	if err := provider.validate(ctx, request.Source); err != nil || request.Validate() != nil ||
-		request.Action != domain.OperationDockerRestart || request.Resource.Identity.Kind != "docker.container" {
-		return domain.OperationImpact{}, providerError("docker.operation.preview", firstError(err, request.Validate()))
-	}
-	if _, ok := provider.collector.(OperationCollector); !ok {
-		return domain.OperationImpact{}, providerError("docker.operation.preview", ErrUnsupported)
-	}
-	state, err := provider.observe(ctx)
-	if err != nil {
-		return domain.OperationImpact{}, err
-	}
-	for _, item := range state.resources {
-		if item.Resource.Ref.ID != request.Resource.ID {
-			continue
-		}
-		if item.Resource.Version == "" || item.Resource.Version != request.ExpectedVersion {
-			return domain.OperationImpact{}, providerError("docker.operation.preview", ErrVersionConflict)
-		}
-		impact := domain.OperationImpact{
-			Request: request, DisplayName: item.Resource.DisplayName,
-			EffectCode: "operation.docker_restart", RiskCode: "operation.brief_interruption",
-		}
-		return impact, impact.Validate()
-	}
-	return domain.OperationImpact{}, providerError("docker.operation.preview", errors.New("resource not found"))
-}
-
-func (provider *Provider) ExecuteOperation(ctx context.Context, execution domain.OperationExecution) (domain.OperationProviderResult, error) {
-	request := execution.Request
-	if err := provider.validate(ctx, request.Source); err != nil || execution.Validate() != nil ||
-		request.Action != domain.OperationDockerRestart || request.Resource.Identity.Kind != "docker.container" {
-		return domain.OperationProviderResult{}, providerError("docker.operation.execute", firstError(err, execution.Validate()))
-	}
-	collector, ok := provider.collector.(OperationCollector)
-	if !ok {
-		return domain.OperationProviderResult{}, providerError("docker.operation.execute", ErrUnsupported)
-	}
-	version, err := collector.RestartContainer(
-		ctx, string(request.Resource.Identity.NativeID()), request.ExpectedVersion, execution.IdempotencyKey,
-	)
-	if err != nil {
-		return domain.OperationProviderResult{}, providerError("docker.operation.execute", err)
-	}
-	result := domain.OperationProviderResult{
-		Action: request.Action, ResourceID: request.Resource.ID, PreviousVersion: request.ExpectedVersion,
-		CurrentVersion: version, EffectCode: "operation.docker_restart_started",
-	}
-	return result, result.ValidateFor(execution)
 }
 
 func (provider *Provider) ReadLogs(ctx context.Context, query domain.LogReadQuery) (domain.LogPage, error) {

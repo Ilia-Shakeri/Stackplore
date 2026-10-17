@@ -13,6 +13,7 @@ export {
   type MessageValues,
 } from './formatters';
 export { LocaleProvider, useLocale } from './locale-provider';
+export { defaultFormatPreferences, type FormatPreferences } from './format-preferences';
 export {
   DEFAULT_LOCALE_STORAGE_KEY,
   isLocale,

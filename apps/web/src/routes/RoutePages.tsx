@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { lazy, Suspense, type ReactNode } from 'react';
 
-import { PlannedPage } from './PlannedPage';
 import type * as ProductPageExports from '../features/product/ProductPages';
 import { useAuth } from '../features/auth/auth-context';
 import { useLocale, type TextMessageKey } from '../i18n';
@@ -58,8 +57,8 @@ const ProductAuditPage = lazy(() =>
   })),
 );
 const ProductSystemSettingsPage = lazy(() =>
-  import('../features/product/ProductHistoryPages').then((module) => ({
-    default: module.ProductSystemSettingsPage,
+  import('../features/settings/ApplicationSettingsPage').then((module) => ({
+    default: module.ApplicationSettingsPage,
   })),
 );
 const SourceSettingsPage = lazy(() =>
@@ -78,9 +77,14 @@ const UserAdminPage = lazy(() =>
     default: module.UserAdminPage,
   })),
 );
+const LocalPreferencesPage = lazy(() =>
+  import('../features/settings/PreferencesPage').then((module) => ({
+    default: module.PreferencesPage,
+  })),
+);
 
 const settingsLinks = [
-  { administratorOnly: true, labelKey: 'route.settings.general', to: '/settings' },
+  { authenticatedOnly: true, labelKey: 'route.settings.general', to: '/settings' },
   { administratorOnly: true, labelKey: 'route.connections.title', to: '/settings/connections' },
   { administratorOnly: true, labelKey: 'route.users.title', to: '/settings/users' },
   {
@@ -91,6 +95,7 @@ const settingsLinks = [
   { labelKey: 'route.preferences.title', to: '/settings/preferences' },
 ] as const satisfies readonly {
   administratorOnly?: boolean;
+  authenticatedOnly?: boolean;
   labelKey: TextMessageKey;
   to: string;
 }[];
@@ -104,7 +109,11 @@ function SettingsNavigation() {
   return (
     <nav className="settings-nav" aria-label={t('route.settings.sectionsLabel')}>
       {settingsLinks
-        .filter((item) => !('administratorOnly' in item) || administrator)
+        .filter(
+          (item) =>
+            (!('administratorOnly' in item) || administrator) &&
+            (!('authenticatedOnly' in item) || snapshot.status === 'authenticated'),
+        )
         .map((item) => (
           <Link
             key={item.to}
@@ -270,13 +279,10 @@ export function NotificationsSettingsPage() {
 }
 
 export function PreferencesSettingsPage() {
-  const { t } = useLocale();
   return (
-    <PlannedPage
-      title={t('route.preferences.title')}
-      description={t('route.preferences.description')}
-      toolbar={<SettingsNavigation />}
-    />
+    <ProductBoundary>
+      <LocalPreferencesPage toolbar={<SettingsNavigation />} />
+    </ProductBoundary>
   );
 }
 

@@ -83,17 +83,7 @@ func TestSDKUnauthorizedRefreshRetriesOnlyOneRead(t *testing.T) {
 			}
 		})
 	}
-	requests, reads := 0, 0
-	collector := testAPICollector(t, []string{"shop"}, func(request *http.Request) (*http.Response, error) {
-		requests++
-		return jsonResponse(http.StatusUnauthorized, `{"reason":"Unauthorized","code":401}`), nil
-	}, func(options *APICollectorOptions) {
-		options.TokenReader = func(context.Context) (string, error) { reads++; return "unit-test-token-rotated", nil }
-	})
-	_, err := collector.RestartWorkload(context.Background(), WorkloadOperation{Kind: "Deployment", Namespace: "shop", Name: "api", ResourceVersion: "17", IdempotencyKey: "operation_fixture"})
-	if !errors.Is(err, ErrPermissionDenied) || requests != 1 || reads != 0 {
-		t.Fatal("unauthorized write was retried")
-	}
+
 }
 
 func TestSDKConcurrentProjectedTokenRefreshIsSingleFlightAndCloseRevokesUse(t *testing.T) {

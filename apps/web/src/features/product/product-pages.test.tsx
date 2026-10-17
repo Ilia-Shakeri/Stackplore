@@ -15,7 +15,7 @@ import {
   ProductResourceDetailPage,
   ProductSystemSettingsPage,
 } from './ProductPages';
-import type { ProductApi } from './product-api';
+import { createProductApi, type ProductApi } from './product-api';
 import { ProductProvider } from './product-context';
 import { AuthProvider } from '../auth/auth-context';
 import { LocaleProvider } from '../../i18n';
@@ -25,6 +25,9 @@ const resourceId = `r1_${'A'.repeat(43)}`;
 const observedAt = '2026-08-16T08:00:00Z';
 
 const productApi: ProductApi = {
+  ...createProductApi({
+    request: () => Promise.reject(new Error('Unexpected product test request.')),
+  }),
   listSourceSettings: vi.fn(),
   previewSourceUpdate: vi.fn(),
   updateSource: vi.fn(),

@@ -1,18 +1,35 @@
 import { findMessage, type PluralMessageKey, type TextMessageKey } from './catalog';
 import { localeDefinitions, type Locale } from './locale';
+import {
+  datePreferenceOptions,
+  defaultFormatPreferences,
+  numberPreferenceOptions,
+  type FormatPreferences,
+} from './format-preferences';
 
 export type MessageValues = Readonly<Record<string, number | string>>;
 
 const placeholderPattern = /\{([A-Za-z][A-Za-z0-9_]*)\}/g;
 
-function formatValue(locale: Locale, value: number | string): string {
-  return typeof value === 'number' ? formatLocaleNumber(locale, value) : value;
+function formatValue(
+  locale: Locale,
+  value: number | string,
+  preferences: FormatPreferences,
+): string {
+  return typeof value === 'number'
+    ? formatLocaleNumber(locale, value, undefined, preferences)
+    : value;
 }
 
-function interpolate(locale: Locale, template: string, values: MessageValues): string {
+function interpolate(
+  locale: Locale,
+  template: string,
+  values: MessageValues,
+  preferences: FormatPreferences,
+): string {
   return template.replace(placeholderPattern, (placeholder, name: string) => {
     const value = values[name];
-    return value === undefined ? placeholder : formatValue(locale, value);
+    return value === undefined ? placeholder : formatValue(locale, value, preferences);
   });
 }
 
@@ -20,25 +37,36 @@ export function formatLocaleNumber(
   locale: Locale,
   value: number | bigint,
   options?: Intl.NumberFormatOptions,
+  preferences: FormatPreferences = defaultFormatPreferences,
 ): string {
-  return new Intl.NumberFormat(localeDefinitions[locale].intlLocale, options).format(value);
+  return new Intl.NumberFormat(localeDefinitions[locale].intlLocale, {
+    ...numberPreferenceOptions(preferences),
+    ...options,
+  }).format(value);
 }
 
 export function formatLocaleDate(
   locale: Locale,
   value: Date | number,
   options?: Intl.DateTimeFormatOptions,
+  preferences: FormatPreferences = defaultFormatPreferences,
 ): string {
-  return new Intl.DateTimeFormat(localeDefinitions[locale].intlLocale, options).format(value);
+  return new Intl.DateTimeFormat(localeDefinitions[locale].intlLocale, {
+    ...datePreferenceOptions(preferences),
+    ...options,
+  }).format(value);
 }
 
 export function translateText(
   locale: Locale,
   key: TextMessageKey,
   values: MessageValues = {},
+  preferences: FormatPreferences = defaultFormatPreferences,
 ): string {
   const message = findMessage(locale, key);
-  return typeof message === 'string' ? interpolate(locale, message, values) : `[${key}]`;
+  return typeof message === 'string'
+    ? interpolate(locale, message, values, preferences)
+    : `[${key}]`;
 }
 
 export function translatePlural(
@@ -46,6 +74,7 @@ export function translatePlural(
   key: PluralMessageKey,
   count: number,
   values: MessageValues = {},
+  preferences: FormatPreferences = defaultFormatPreferences,
 ): string {
   const message = findMessage(locale, key);
   if (message === undefined || typeof message === 'string') {
@@ -54,5 +83,5 @@ export function translatePlural(
 
   const category = new Intl.PluralRules(localeDefinitions[locale].intlLocale).select(count);
   const template = message[category] ?? message.other;
-  return interpolate(locale, template, { ...values, count });
+  return interpolate(locale, template, { ...values, count }, preferences);
 }

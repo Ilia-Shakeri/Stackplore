@@ -115,11 +115,13 @@ newest metric for each resource/name is kept for current reads. Unchanged health
 refreshes update current state without writing another history fact.
 
 Deterministic synthetic observations, current identities/settings, pending
-deliveries, audit-linked deliveries and audit rows are excluded. Audit has a
-protected retain-all lifecycle at this checkpoint. Operator audit quotas,
-minimum retention, reviewed cleanup and exported/archive custody remain stage 6
-work; there is no automatic audit expiry or browser retention override. Monitor
-database growth and preserve PostgreSQL-native verified backups. A backlog can
+deliveries and audit-linked deliveries are excluded. Audit rows use a separate
+90-day-minimum policy and operator-verified archive cutoff. The daily bounded
+audit worker prunes only rows older than both limits and never expires linked
+operation or notification facts; without an archive cutoff it does no pruning.
+The cutoff is monotonic: startup rejects removing or rolling back a previously
+stored cutoff. There is no browser retention override. Monitor database growth
+and preserve PostgreSQL-native verified backups. A backlog can
 outgrow the bounded cleanup rate and needs operator attention; these caps are
 not a production capacity claim.
 

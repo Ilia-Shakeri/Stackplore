@@ -142,6 +142,14 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
+	if topic == streamLogs && handler.applicationSettings != nil {
+		reader, ok := provider.(domain.LogReadProvider)
+		if !ok {
+			writeProblem(w, r, unavailableProblem)
+			return
+		}
+		provider = configuredLogStreamProvider{ProductProvider: provider, configuredLogReader: configuredLogReader{reader: reader, settings: handler.applicationSettings}}
+	}
 	if topic == streamAlerts {
 		if changes, ok := handler.alertReader.(domain.AlertChangeReader); ok {
 			if lastID > math.MaxInt64 {

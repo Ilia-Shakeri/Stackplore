@@ -38,6 +38,9 @@ type productHTTP struct {
 	notificationTester         NotificationTester
 	alertManager               AlertManager
 	sourceSettings             SourceSettings
+	operations                 OperationManager
+	applicationSettings        ApplicationSettings
+	applicationMutationMode    ApplicationMutationMode
 }
 
 type AlertManager interface {
@@ -126,18 +129,19 @@ type environmentPageResponse struct {
 }
 
 type resourceResponse struct {
-	Metadata      *domain.ResourceMetadata `json:"metadata,omitempty"`
-	ID            domain.ResourceID        `json:"id"`
-	Provider      string                   `json:"provider"`
-	SourceID      domain.SourceID          `json:"source_id"`
-	EnvironmentID string                   `json:"environment_id"`
-	Kind          string                   `json:"kind"`
-	ScopeKind     string                   `json:"scope_kind"`
-	ScopeName     string                   `json:"scope_name,omitempty"`
-	Name          string                   `json:"name"`
-	Synthetic     bool                     `json:"synthetic"`
-	ObservedAt    string                   `json:"observed_at"`
-	Health        string                   `json:"health,omitempty"`
+	OperationVersion string                   `json:"operation_version,omitempty"`
+	Metadata         *domain.ResourceMetadata `json:"metadata,omitempty"`
+	ID               domain.ResourceID        `json:"id"`
+	Provider         string                   `json:"provider"`
+	SourceID         domain.SourceID          `json:"source_id"`
+	EnvironmentID    string                   `json:"environment_id"`
+	Kind             string                   `json:"kind"`
+	ScopeKind        string                   `json:"scope_kind"`
+	ScopeName        string                   `json:"scope_name,omitempty"`
+	Name             string                   `json:"name"`
+	Synthetic        bool                     `json:"synthetic"`
+	ObservedAt       string                   `json:"observed_at"`
+	Health           string                   `json:"health,omitempty"`
 }
 
 type resourcePageResponse struct {
@@ -524,9 +528,17 @@ func resourceJSON(snapshot domain.ResourceSnapshot, health string) resourceRespo
 		health = string(snapshot.Health)
 	}
 	identity := snapshot.Resource.Ref.Identity
+	version := ""
+	switch identity.Kind {
+	case "docker.container", "kubernetes.deployment", "kubernetes.statefulset", "kubernetes.daemonset":
+		if !snapshot.Resource.Synthetic && domain.ValidateOperationVersion(snapshot.Resource.Version) == nil {
+			version = snapshot.Resource.Version
+		}
+	}
 	return resourceResponse{
-		Metadata: snapshot.Metadata,
-		ID:       snapshot.Resource.Ref.ID, Provider: string(identity.Provider), SourceID: identity.SourceID,
+		OperationVersion: version,
+		Metadata:         snapshot.Metadata,
+		ID:               snapshot.Resource.Ref.ID, Provider: string(identity.Provider), SourceID: identity.SourceID,
 		EnvironmentID: string(identity.EnvironmentID), Kind: string(identity.Kind), ScopeKind: string(identity.Scope.Kind),
 		ScopeName: identity.Scope.Name, Name: snapshot.Resource.DisplayName, Synthetic: snapshot.Resource.Synthetic,
 		ObservedAt: authTimestamp(snapshot.Status.ObservedAt), Health: health,

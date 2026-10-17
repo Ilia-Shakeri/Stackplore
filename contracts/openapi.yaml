@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.5.0
+  version: 0.6.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -1996,6 +1996,451 @@ paths:
           $ref: '#/components/responses/InternalProblem'
         '503':
           $ref: '#/components/responses/ServiceUnavailableProblem'
+  /settings/application:
+    {
+      'get':
+        {
+          'operationId': 'getApplicationSettings',
+          'summary': 'Read effective application settings',
+          'description': 'Read-only authenticated policy and effective write gates. Guests are denied.',
+          'security': [{ 'BrowserSession': [] }],
+          'parameters': [{ '$ref': '#/components/parameters/RequestId' }],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        {
+                          'schema': { '$ref': '#/components/schemas/ApplicationSettingsResponse' },
+                        },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+        },
+      'put':
+        {
+          'operationId': 'updateApplicationSettings',
+          'summary': 'Commit reviewed application policy',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. Consume settings.update grant and exact one-use actor/session/version/material confirmation atomically with the CAS update and audit. Lower retention requires backup acknowledgement.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [], 'RecentAuthProof': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/IfMatch' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        {
+                          'schema': { '$ref': '#/components/schemas/ApplicationSettingsResponse' },
+                        },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/ApplicationUpdateRequest' } },
+                },
+            },
+        },
+    }
+  /settings/application/previews:
+    {
+      'post':
+        {
+          'operationId': 'previewApplicationSettings',
+          'summary': 'Review exact application policy changes',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. Lower retention shows newly eligible counts and ongoing bounded expiry. No settings or history change during preview.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/IfMatch' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/ApplicationPreviewResponse' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/ApplicationPreviewRequest' } },
+                },
+            },
+        },
+    }
+  /settings/cleanup/previews:
+    {
+      'post':
+        {
+          'operationId': 'previewHistoryCleanup',
+          'summary': 'Review bounded eligible history cleanup',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. Freeze policy version, fixed class allowlist, cutoffs and at-most-one-batch scope. Protected/current/synthetic data and audit are excluded.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/IfMatch' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/CleanupPreviewResponse' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/CleanupPreviewRequest' } },
+                },
+            },
+        },
+    }
+  /settings/cleanup:
+    {
+      'post':
+        {
+          'operationId': 'cleanupHistory',
+          'summary': 'Commit one reviewed history cleanup batch',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. Consume data.cleanup grant and exact one-use preview in the same transaction as at most 1000 deletions and audit. Never removes audit or current records.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [], 'RecentAuthProof': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/IfMatch' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/CleanupResponse' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/CleanupRequest' } },
+                },
+            },
+        },
+    }
+  /settings/export:
+    {
+      'post':
+        {
+          'operationId': 'exportConfiguration',
+          'summary': 'Generate masked configuration export',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. Consume configuration.export recent grant and audit generation before response bytes. Fixed field allowlist, 65536-byte cap, no destinations or paths. This is no backup.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [], 'RecentAuthProof': [] }],
+          'parameters': [{ '$ref': '#/components/parameters/RequestId' }],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers':
+                    {
+                      'X-Request-ID': { '$ref': '#/components/headers/RequestId' },
+                      'Cache-Control':
+                        {
+                          'description': 'Never cache exported configuration.',
+                          'schema': { 'type': 'string', 'const': 'no-store' },
+                        },
+                      'Content-Disposition':
+                        {
+                          'description': 'Fixed safe download filename.',
+                          'schema':
+                            {
+                              'type': 'string',
+                              'const': 'attachment; filename="stackplore-configuration.json"',
+                            },
+                        },
+                    },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/ConfigurationExport' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/ConfigurationExportRequest' } },
+                },
+            },
+        },
+    }
+  /operations/previews:
+    {
+      'post':
+        {
+          'operationId': 'previewOperation',
+          'summary': 'Preview one guarded infrastructure action',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. All deployment/provider capability gates and exact stored target/version must pass before a bounded read-only impact preview.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [] }],
+          'parameters': [{ '$ref': '#/components/parameters/RequestId' }],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/OperationPreviewResponse' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '404': { '$ref': '#/components/responses/NotFoundProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/OperationPreviewRequest' } },
+                },
+            },
+        },
+    }
+  /operations:
+    {
+      'post':
+        {
+          'operationId': 'executeOperation',
+          'summary': 'Execute one confirmed infrastructure action',
+          'description': 'Administrator, same-origin and CSRF checks are mandatory. Explicitly isolated guest deployments reject this route. Consume operation.execute grant, exact confirmation and keyed idempotency record atomically with durable audit intent before the bounded provider write. Never retry an uncertain effect.',
+          'security': [{ 'BrowserSession': [], 'CSRFRequestProof': [], 'RecentAuthProof': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/OperationIdempotencyKey' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/OperationResponse' } },
+                    },
+                },
+              '202':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/OperationResponse' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '404': { '$ref': '#/components/responses/NotFoundProblem' },
+              '409': { '$ref': '#/components/responses/ConflictProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '415': { '$ref': '#/components/responses/UnsupportedMediaTypeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+          'requestBody':
+            {
+              'required': true,
+              'content':
+                {
+                  'application/json':
+                    { 'schema': { '$ref': '#/components/schemas/OperationExecuteRequest' } },
+                },
+            },
+        },
+      'get':
+        {
+          'operationId': 'listOperations',
+          'summary': 'List durable infrastructure actions',
+          'description': 'Administrator-only bounded source/actor recovery listing with keyset pagination. Raw proofs and keys never occur in URLs.',
+          'security': [{ 'BrowserSession': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/ProductSourceSelection' },
+              { '$ref': '#/components/parameters/Limit' },
+              { '$ref': '#/components/parameters/Cursor' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/OperationPage' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+        },
+    }
+  /operations/{operation_id}:
+    {
+      'get':
+        {
+          'operationId': 'getOperation',
+          'summary': 'Read one durable infrastructure action',
+          'description': 'Administrator-only polling after response loss; a persisted receipt never grants permission to dispatch another action.',
+          'security': [{ 'BrowserSession': [] }],
+          'parameters':
+            [
+              { '$ref': '#/components/parameters/RequestId' },
+              { '$ref': '#/components/parameters/OperationId' },
+            ],
+          'responses':
+            {
+              '200':
+                {
+                  'description': 'Committed bounded response.',
+                  'headers': { 'X-Request-ID': { '$ref': '#/components/headers/RequestId' } },
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/OperationResponse' } },
+                    },
+                },
+              '400': { '$ref': '#/components/responses/BadRequestProblem' },
+              '401': { '$ref': '#/components/responses/UnauthorizedProblem' },
+              '403': { '$ref': '#/components/responses/ForbiddenProblem' },
+              '404': { '$ref': '#/components/responses/NotFoundProblem' },
+              '413': { '$ref': '#/components/responses/PayloadTooLargeProblem' },
+              '429': { '$ref': '#/components/responses/TooManyRequestsProblem' },
+              '500': { '$ref': '#/components/responses/InternalProblem' },
+              '503': { '$ref': '#/components/responses/ServiceUnavailableProblem' },
+            },
+        },
+    }
 components:
   securitySchemes:
     BrowserSession:
@@ -2303,6 +2748,10 @@ components:
         - user.sessions_revoke
         - notification.test
         - source.update
+        - operation.execute
+        - settings.update
+        - configuration.export
+        - data.cleanup
     RecentAuthRequest:
       type: object
       description: Current-password proof request for one exact high-risk purpose.
@@ -2606,6 +3055,12 @@ components:
           $ref: '#/components/schemas/HealthState'
         metadata:
           $ref: '#/components/schemas/ResourceMetadata'
+        operation_version:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,127}$
+          description: Exact opaque version for supported guarded actions; omitted when unsupported.
     ProductResourcePage:
       type: object
       additionalProperties: false
@@ -5535,6 +5990,544 @@ components:
           maxItems: 32
           items:
             $ref: '#/components/schemas/InvalidParameter'
+    ApplicationValues:
+      {
+        'type': 'object',
+        'description': 'Persisted bounded policy. Alert defaults apply to newly created rules.',
+        'additionalProperties': false,
+        'required':
+          [
+            'metric_retention_hours',
+            'health_retention_hours',
+            'event_retention_hours',
+            'delivery_retention_hours',
+            'log_line_limit',
+            'default_alert_window_seconds',
+            'default_alert_pending_seconds',
+          ],
+        'properties':
+          {
+            'metric_retention_hours': { 'type': 'integer', 'minimum': 1, 'maximum': 8760 },
+            'health_retention_hours': { 'type': 'integer', 'minimum': 1, 'maximum': 8760 },
+            'event_retention_hours': { 'type': 'integer', 'minimum': 1, 'maximum': 8760 },
+            'delivery_retention_hours': { 'type': 'integer', 'minimum': 1, 'maximum': 8760 },
+            'log_line_limit': { 'type': 'integer', 'minimum': 10, 'maximum': 200 },
+            'default_alert_window_seconds': { 'type': 'integer', 'minimum': 60, 'maximum': 86400 },
+            'default_alert_pending_seconds': { 'type': 'integer', 'minimum': 0, 'maximum': 3600 },
+          },
+      }
+    ApplicationMutationMode:
+      {
+        'type': 'object',
+        'description': 'Effective deployment permissions; settings do not enable provider writes.',
+        'additionalProperties': false,
+        'required': ['enabled', 'docker_write_enabled', 'kubernetes_write_enabled'],
+        'properties':
+          {
+            'enabled': { 'type': 'boolean' },
+            'docker_write_enabled': { 'type': 'boolean' },
+            'kubernetes_write_enabled': { 'type': 'boolean' },
+          },
+      }
+    ApplicationAuditPolicy:
+      {
+        'type': 'object',
+        'description': 'Operator-owned protected retention and global row quota; young and referenced facts cannot expire.',
+        'additionalProperties': false,
+        'required':
+          [
+            'retention_days',
+            'minimum_retention_days',
+            'quota_rows',
+            'stored_rows',
+            'quota_exceeded',
+            'archive_verified_through',
+          ],
+        'properties':
+          {
+            'retention_days': { 'type': 'integer', 'minimum': 90, 'maximum': 3650 },
+            'minimum_retention_days':
+              { 'type': 'integer', 'const': 90, 'minimum': 90, 'maximum': 90 },
+            'quota_rows': { 'type': 'integer', 'minimum': 1000, 'maximum': 10000000 },
+            'stored_rows': { 'type': 'integer', 'minimum': 0, 'maximum': 9007199254740991 },
+            'quota_exceeded': { 'type': 'boolean' },
+            'archive_verified_through':
+              {
+                'oneOf':
+                  [
+                    { 'type': 'string', 'format': 'date-time', 'maxLength': 35 },
+                    { 'type': 'null' },
+                  ],
+              },
+          },
+      }
+    ApplicationSettingsResponse:
+      {
+        'type': 'object',
+        'description': 'Current non-secret settings. Authenticated viewers can read; guests cannot.',
+        'additionalProperties': false,
+        'required':
+          [
+            'version',
+            'updated_at',
+            'values',
+            'mutation_mode',
+            'audit_policy',
+            'application_version',
+          ],
+        'properties':
+          {
+            'version': { 'type': 'integer', 'minimum': 1, 'maximum': 9007199254740991 },
+            'updated_at': { '$ref': '#/components/schemas/Timestamp' },
+            'values': { '$ref': '#/components/schemas/ApplicationValues' },
+            'mutation_mode': { '$ref': '#/components/schemas/ApplicationMutationMode' },
+            'audit_policy': { '$ref': '#/components/schemas/ApplicationAuditPolicy' },
+            'application_version': { 'type': 'string', 'minLength': 1, 'maxLength': 64 },
+          },
+      }
+    HistoryClass:
+      {
+        'type': 'string',
+        'enum':
+          [
+            'metric_samples',
+            'health_history',
+            'infrastructure_events',
+            'terminal_notification_deliveries',
+          ],
+      }
+    HistoryImpactClass:
+      {
+        'type': 'object',
+        'description': 'Frozen cutoff and bounded count; capped means at least the returned count.',
+        'additionalProperties': false,
+        'required': ['name', 'cutoff', 'eligible_rows', 'eligible_rows_capped'],
+        'properties':
+          {
+            'name': { '$ref': '#/components/schemas/HistoryClass' },
+            'cutoff': { '$ref': '#/components/schemas/Timestamp' },
+            'eligible_rows': { 'type': 'integer', 'minimum': 0, 'maximum': 10001 },
+            'eligible_rows_capped': { 'type': 'boolean' },
+          },
+      }
+    HistoryImpact:
+      {
+        'type': 'object',
+        'description': 'Explicit cleanup removes at most one batch. An approved shorter retention policy applies continuously in bounded batches.',
+        'additionalProperties': false,
+        'required': ['classes', 'maximum_rows', 'backup_required', 'expiry_policy_changed'],
+        'properties':
+          {
+            'classes':
+              {
+                'type': 'array',
+                'maxItems': 4,
+                'minItems': 0,
+                'items': { '$ref': '#/components/schemas/HistoryImpactClass' },
+              },
+            'maximum_rows': { 'type': 'integer', 'const': 1000, 'minimum': 1000, 'maximum': 1000 },
+            'backup_required': { 'type': 'boolean' },
+            'expiry_policy_changed': { 'type': 'boolean' },
+          },
+      }
+    ApplicationPreviewRequest:
+      {
+        'type': 'object',
+        'description': 'Exact proposed values; the current version is required in If-Match.',
+        'additionalProperties': false,
+        'required': ['values'],
+        'properties': { 'values': { '$ref': '#/components/schemas/ApplicationValues' } },
+      }
+    ApplicationPreviewResponse:
+      {
+        'type': 'object',
+        'description': 'Two-minute actor/session/version/material-bound one-use confirmation.',
+        'additionalProperties': false,
+        'required': ['settings', 'requested', 'impact', 'confirmation_token', 'expires_at'],
+        'properties':
+          {
+            'settings': { '$ref': '#/components/schemas/ApplicationSettingsResponse' },
+            'requested': { '$ref': '#/components/schemas/ApplicationValues' },
+            'impact': { '$ref': '#/components/schemas/HistoryImpact' },
+            'confirmation_token': { '$ref': '#/components/schemas/Proof' },
+            'expires_at': { '$ref': '#/components/schemas/Timestamp' },
+          },
+      }
+    ApplicationUpdateRequest:
+      {
+        'type': 'object',
+        'description': 'Commit the exact preview. A shorter retention policy requires explicit backup acknowledgement.',
+        'additionalProperties': false,
+        'required': ['values', 'confirmation_token', 'backup_acknowledged'],
+        'properties':
+          {
+            'values': { '$ref': '#/components/schemas/ApplicationValues' },
+            'confirmation_token': { '$ref': '#/components/schemas/Proof' },
+            'backup_acknowledged': { 'type': 'boolean' },
+          },
+      }
+    CleanupPreviewRequest:
+      {
+        'type': 'object',
+        'description': 'Only the named retention-eligible history classes can be selected.',
+        'additionalProperties': false,
+        'required': ['classes'],
+        'properties':
+          {
+            'classes':
+              {
+                'type': 'array',
+                'maxItems': 4,
+                'minItems': 1,
+                'items': { '$ref': '#/components/schemas/HistoryClass' },
+                'uniqueItems': true,
+              },
+          },
+      }
+    CleanupPreviewResponse:
+      {
+        'type': 'object',
+        'description': 'Frozen retention cutoffs and current policy version; no deletion occurs during preview.',
+        'additionalProperties': false,
+        'required': ['policy_version', 'impact', 'confirmation_token', 'expires_at'],
+        'properties':
+          {
+            'policy_version': { 'type': 'integer', 'minimum': 1, 'maximum': 9007199254740991 },
+            'impact': { '$ref': '#/components/schemas/HistoryImpact' },
+            'confirmation_token': { '$ref': '#/components/schemas/Proof' },
+            'expires_at': { '$ref': '#/components/schemas/Timestamp' },
+          },
+      }
+    CleanupRequest:
+      {
+        'type': 'object',
+        'description': 'Consume one exact preview and data.cleanup grant, with explicit backup acknowledgement.',
+        'additionalProperties': false,
+        'required': ['confirmation_token', 'backup_acknowledged'],
+        'properties':
+          {
+            'confirmation_token': { '$ref': '#/components/schemas/Proof' },
+            'backup_acknowledged': { 'type': 'boolean', 'const': true },
+          },
+      }
+    HistoryCutoff:
+      {
+        'type': 'object',
+        'description': 'One approved fixed history cutoff.',
+        'additionalProperties': false,
+        'required': ['name', 'cutoff'],
+        'properties':
+          {
+            'name': { '$ref': '#/components/schemas/HistoryClass' },
+            'cutoff': { '$ref': '#/components/schemas/Timestamp' },
+          },
+      }
+    CleanupResponse:
+      {
+        'type': 'object',
+        'description': 'Committed bounded deletion with a truthful remaining-work flag.',
+        'additionalProperties': false,
+        'required': ['removed_rows', 'remaining_rows', 'scope', 'cutoffs', 'policy_version'],
+        'properties':
+          {
+            'removed_rows': { 'type': 'integer', 'minimum': 0, 'maximum': 1000 },
+            'remaining_rows': { 'type': 'boolean' },
+            'scope':
+              {
+                'type': 'array',
+                'maxItems': 4,
+                'minItems': 1,
+                'items': { '$ref': '#/components/schemas/HistoryClass' },
+                'uniqueItems': true,
+              },
+            'cutoffs':
+              {
+                'type': 'array',
+                'maxItems': 4,
+                'minItems': 1,
+                'items': { '$ref': '#/components/schemas/HistoryCutoff' },
+              },
+            'policy_version': { 'type': 'integer', 'minimum': 1, 'maximum': 9007199254740991 },
+          },
+      }
+    ConfigurationExportRequest:
+      {
+        'type': 'object',
+        'description': 'No caller-supplied fields or destinations are accepted.',
+        'additionalProperties': false,
+        'required': [],
+        'properties': {},
+      }
+    ConfigurationExportSource:
+      {
+        'type': 'object',
+        'description': 'Safe source summary; every logical credential reference and host is masked.',
+        'additionalProperties': false,
+        'required': ['provider', 'name', 'enabled', 'profile', 'credential_reference', 'host'],
+        'properties':
+          {
+            'provider': { '$ref': '#/components/schemas/ProviderKind' },
+            'name': { '$ref': '#/components/schemas/DisplayText' },
+            'enabled': { 'type': 'boolean' },
+            'profile':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'credential_reference': { 'type': 'string', 'const': '[masked]' },
+            'host': { 'type': 'string', 'const': '[masked]' },
+          },
+      }
+    ConfigurationExportIntegration:
+      {
+        'type': 'object',
+        'description': 'No target, credential or reference value is exported.',
+        'additionalProperties': false,
+        'required': ['kind', 'enabled', 'target', 'credential_reference'],
+        'properties':
+          {
+            'kind': { 'type': 'string', 'enum': ['webhook', 'matrix'] },
+            'enabled': { 'type': 'boolean' },
+            'target': { 'type': 'string', 'const': '[masked]' },
+            'credential_reference': { 'type': 'string', 'const': '[masked]' },
+          },
+      }
+    ConfigurationExport:
+      {
+        'type': 'object',
+        'description': 'Allowlisted non-secret artifact, at most 65536 encoded bytes. Audit records generation, not delivery to disk.',
+        'additionalProperties': false,
+        'required': ['application_version', 'settings', 'sources', 'notification_integrations'],
+        'properties':
+          {
+            'application_version': { 'type': 'string', 'minLength': 1, 'maxLength': 64 },
+            'settings': { '$ref': '#/components/schemas/ApplicationValues' },
+            'sources':
+              {
+                'type': 'array',
+                'maxItems': 100,
+                'minItems': 0,
+                'items': { '$ref': '#/components/schemas/ConfigurationExportSource' },
+              },
+            'notification_integrations':
+              {
+                'type': 'array',
+                'maxItems': 2,
+                'minItems': 0,
+                'items': { '$ref': '#/components/schemas/ConfigurationExportIntegration' },
+              },
+          },
+      }
+    OperationAction:
+      {
+        'type': 'string',
+        'enum':
+          ['docker.container_restart', 'kubernetes.workload_restart', 'kubernetes.workload_scale'],
+      }
+    OperationParameters:
+      {
+        'type': 'object',
+        'description': 'Scaling requires replicas; restart rejects it. No other material parameters exist.',
+        'additionalProperties': false,
+        'required': [],
+        'properties': { 'replicas': { 'type': 'integer', 'minimum': 0, 'maximum': 10000 } },
+      }
+    OperationPreviewRequest:
+      {
+        'type': 'object',
+        'description': 'Only stable stored identities and the exact observed version; no endpoint, namespace, host path or command input.',
+        'additionalProperties': false,
+        'required': ['source_id', 'resource_id', 'action', 'expected_version', 'parameters'],
+        'properties':
+          {
+            'source_id': { '$ref': '#/components/schemas/SourceId' },
+            'resource_id': { '$ref': '#/components/schemas/ResourceId' },
+            'action': { '$ref': '#/components/schemas/OperationAction' },
+            'expected_version':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'parameters': { '$ref': '#/components/schemas/OperationParameters' },
+          },
+      }
+    OperationExecuteRequest:
+      {
+        'type': 'object',
+        'description': 'Exact preview material and one-use confirmation; idempotency is carried only in its header.',
+        'additionalProperties': false,
+        'required':
+          [
+            'source_id',
+            'resource_id',
+            'action',
+            'expected_version',
+            'parameters',
+            'confirmation_token',
+          ],
+        'properties':
+          {
+            'source_id': { '$ref': '#/components/schemas/SourceId' },
+            'resource_id': { '$ref': '#/components/schemas/ResourceId' },
+            'action': { '$ref': '#/components/schemas/OperationAction' },
+            'expected_version':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'parameters': { '$ref': '#/components/schemas/OperationParameters' },
+            'confirmation_token': { '$ref': '#/components/schemas/Proof' },
+          },
+      }
+    OperationPreviewData:
+      {
+        'type': 'object',
+        'description': 'Exact target/effect preview with short-lived single-use proof.',
+        'additionalProperties': false,
+        'required':
+          [
+            'source_id',
+            'resource_id',
+            'action',
+            'expected_version',
+            'parameters',
+            'target_name',
+            'effect_code',
+            'risk_code',
+            'confirmation_token',
+            'expires_at',
+          ],
+        'properties':
+          {
+            'source_id': { '$ref': '#/components/schemas/SourceId' },
+            'resource_id': { '$ref': '#/components/schemas/ResourceId' },
+            'action': { '$ref': '#/components/schemas/OperationAction' },
+            'expected_version':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'parameters': { '$ref': '#/components/schemas/OperationParameters' },
+            'target_name': { '$ref': '#/components/schemas/DisplayText' },
+            'effect_code': { '$ref': '#/components/schemas/NamespacedCode' },
+            'risk_code': { '$ref': '#/components/schemas/NamespacedCode' },
+            'current_replicas': { 'type': 'integer', 'minimum': 0, 'maximum': 10000 },
+            'confirmation_token': { '$ref': '#/components/schemas/Proof' },
+            'expires_at': { '$ref': '#/components/schemas/Timestamp' },
+          },
+      }
+    OperationPreviewResponse:
+      {
+        'type': 'object',
+        'description': 'Guarded infrastructure operation preview.',
+        'additionalProperties': false,
+        'required': ['data'],
+        'properties': { 'data': { '$ref': '#/components/schemas/OperationPreviewData' } },
+      }
+    OperationResult:
+      {
+        'type': 'object',
+        'description': 'Provider acceptance evidence. Acceptance does not establish a healthy rollout.',
+        'additionalProperties': false,
+        'required': ['previous_version', 'current_version', 'effect_code'],
+        'properties':
+          {
+            'previous_version':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'current_version':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'effect_code': { '$ref': '#/components/schemas/NamespacedCode' },
+          },
+      }
+    OperationReceipt:
+      {
+        'type': 'object',
+        'description': 'Durable safe outcome. A missing acknowledgement is uncertain and never triggers automatic provider retry.',
+        'additionalProperties': false,
+        'required':
+          [
+            'id',
+            'source_id',
+            'resource_id',
+            'action',
+            'expected_version',
+            'parameters',
+            'state',
+            'created_at',
+            'updated_at',
+          ],
+        'properties':
+          {
+            'id':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'source_id': { '$ref': '#/components/schemas/SourceId' },
+            'resource_id': { '$ref': '#/components/schemas/ResourceId' },
+            'action': { '$ref': '#/components/schemas/OperationAction' },
+            'expected_version':
+              {
+                'type': 'string',
+                'minLength': 1,
+                'maxLength': 128,
+                'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+              },
+            'parameters': { '$ref': '#/components/schemas/OperationParameters' },
+            'state':
+              { 'type': 'string', 'enum': ['in_progress', 'succeeded', 'failed', 'uncertain'] },
+            'reason_code': { '$ref': '#/components/schemas/NamespacedCode' },
+            'created_at': { '$ref': '#/components/schemas/Timestamp' },
+            'updated_at': { '$ref': '#/components/schemas/Timestamp' },
+            'result': { '$ref': '#/components/schemas/OperationResult' },
+          },
+      }
+    OperationResponse:
+      {
+        'type': 'object',
+        'description': 'Persisted operation state; never includes a user session, raw key or confirmation.',
+        'additionalProperties': false,
+        'required': ['data'],
+        'properties': { 'data': { '$ref': '#/components/schemas/OperationReceipt' } },
+      }
+    OperationPage:
+      {
+        'type': 'object',
+        'description': 'Administrator-only bounded recovery listing; proofs are never URL parameters.',
+        'additionalProperties': false,
+        'required': ['data', 'page'],
+        'properties':
+          {
+            'data':
+              {
+                'type': 'array',
+                'maxItems': 100,
+                'minItems': 0,
+                'items': { '$ref': '#/components/schemas/OperationReceipt' },
+              },
+            'page': { '$ref': '#/components/schemas/PageInfo' },
+          },
+      }
   parameters:
     NotificationTestAdapter:
       name: adapter
@@ -5759,6 +6752,34 @@ components:
       description: Direction for the operation-owned sort field.
       schema:
         $ref: '#/components/schemas/SortDirection'
+    OperationId:
+      {
+        'name': 'operation_id',
+        'in': 'path',
+        'required': true,
+        'description': 'One durable opaque operation identity.',
+        'schema':
+          {
+            'type': 'string',
+            'minLength': 1,
+            'maxLength': 128,
+            'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+          },
+      }
+    OperationIdempotencyKey:
+      {
+        'name': 'Idempotency-Key',
+        'in': 'header',
+        'required': true,
+        'description': 'Opaque per-action key, bound by a keyed digest. Never place it in a URL or browser persistence.',
+        'schema':
+          {
+            'type': 'string',
+            'minLength': 1,
+            'maxLength': 128,
+            'pattern': '^[A-Za-z][A-Za-z0-9_-]{0,127}$',
+          },
+      }
   headers:
     BrowserStateUpdate:
       description: >-

@@ -1,0 +1,115 @@
+.settings-page {
+  min-inline-size: 0;
+}
+.settings-panel {
+  display: grid;
+  gap: var(--sp-space-4);
+  min-inline-size: 0;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-xl);
+  background: var(--sp-surface);
+}
+.settings-panel h2 {
+  margin: 0;
+  font-size: var(--sp-font-size-lg);
+}
+.settings-panel p {
+  margin: 0;
+  max-inline-size: 75ch;
+  overflow-wrap: anywhere;
+}
+.settings-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--sp-space-4);
+}
+.settings-field {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-space-2);
+  min-inline-size: 0;
+}
+.settings-field > span:first-child {
+  font-weight: 600;
+}
+.settings-field input,
+.settings-field select {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+.settings-facts {
+  display: grid;
+  gap: var(--sp-space-3);
+  margin: 0;
+}
+.settings-facts > div {
+  display: grid;
+  gap: var(--sp-space-1);
+}
+.settings-facts dt,
+.settings-note {
+  color: var(--sp-text-muted);
+}
+.settings-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-3);
+  align-items: center;
+}
+.settings-page form,
+.settings-review,
+.settings-impact {
+  display: grid;
+  gap: var(--sp-space-4);
+}
+.settings-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-space-2);
+  overflow-wrap: anywhere;
+}
+.settings-check input {
+  margin-block-start: 0.25rem;
+  flex: 0 0 auto;
+}
+.settings-cleanup-scope {
+  display: grid;
+  gap: var(--sp-space-3);
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.settings-cleanup-scope legend {
+  margin-block-end: var(--sp-space-3);
+  font-weight: 600;
+}
+.settings-table-scroll {
+  overflow-x: auto;
+  min-inline-size: 0;
+}
+.settings-table-scroll table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--sp-font-size-sm);
+}
+.settings-table-scroll th,
+.settings-table-scroll td {
+  text-align: start;
+  padding: var(--sp-space-3);
+  border-block-end: 1px solid var(--sp-border);
+  vertical-align: top;
+}
+.settings-table-scroll caption {
+  text-align: start;
+  font-weight: 600;
+  padding-block-end: var(--sp-space-2);
+}
+.settings-impact__warning {
+  padding-inline-start: var(--sp-space-3);
+  border-inline-start: 3px solid var(--sp-border-strong);
+}

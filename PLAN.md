@@ -1,6 +1,6 @@
 # Stackplore delivery plan
 
-Target: **1.0.0**. Locally verified checkpoints: **Stages 1–5, through 0.5.0**. Current gate: **Stage 5 publication and exact CI pending; Stages 6–9 open**.
+Target: **1.0.0**. Published checkpoints: **Stages 1–5, through 0.5.0**. Current gate: **Stage 6 local full gate passes; exact tagged CI and disposable provider writes open; Stages 7–9 open**.
 Stage 1 is verified and tagged. Stage 2's core changes passed the full local,
 real PostgreSQL, restart and native restore gates; tagged CI is recorded separately.
 Stage 3 adds covered windows, durable alert changes and isolated outbound lanes.
@@ -18,8 +18,9 @@ environment and clock fixes passed real SQL tests. A final restricted-profile
 startup allowlist omission was reproduced and corrected with scoped tests.
 The final changed-tree gate D passed with real PostgreSQL, 36 client tests,
 350 web tests and both builds. Independent scoped review is 9/10. Stage 5 is a
-locally verified checkpoint; its tag, push and remote CI are not yet claimed.
-Stages 6–9 remain open. This checkpoint does not finish 1.0.
+published checkpoint; corrected exact-revision main CI run 39018504287 passed.
+Both exact-revision Stage 5 runs passed. Stage 6 local full verification passes; exact 0.6.0 tag CI and disposable provider-write jobs remain. Stages
+7–9 remain open. This checkpoint does not finish 1.0.
 
 - [Completion roadmap](docs/roadmap.md) ([فارسی](docs/roadmap.fa.md)) gives ordered versions, scope and exit gates.
 - [Active evidence plan](docs/implementation-plan.md) records current commands, outcomes and correction loops.

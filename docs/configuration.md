@@ -130,9 +130,19 @@ metrics requests have their documented operational rate-limit exemption.
 | `KUBERNETES_ENABLED`         | `false`                             | Opt-in mounted service-account collector with explicit namespaces; cluster reads are separate opt-in |
 | `KUBERNETES_TOKEN_FILE`      | Standard service-account token path | Operator-owned absolute local mount                                                                 |
 | `KUBERNETES_CA_FILE`         | Standard service-account CA path    | Operator-owned absolute local mount                                                                 |
-| `MUTATIONS_ENABLED`          | `false`                             | Policy flag only; no current live operation route                                                   |
+| `MUTATIONS_ENABLED`          | `false`                             | Enables only the fixed guarded operation set; all other gates still apply                          |
 | `DOCKER_WRITE_ENABLED`       | `false`                             | Requires Docker observation and global mutation flag                                                |
 | `KUBERNETES_WRITE_ENABLED`   | `false`                             | Requires Kubernetes observation and global mutation flag                                            |
+| `DOCKER_WRITER_ORIGIN`       | absent                              | Separate HTTPS origin for the narrowly guarded Docker writer                                        |
+| `DOCKER_WRITER_CA_FILE`      | absent                              | Operator-owned CA file reference for that writer                                                    |
+| `DOCKER_WRITER_CERT_FILE`    | absent                              | Separate writer mTLS certificate file reference                                                     |
+| `DOCKER_WRITER_KEY_FILE`     | absent                              | Separate writer private-key file reference                                                          |
+| `KUBERNETES_WRITER_TOKEN_FILE` | absent                            | Separate writer token file, distinct from the observer identity                                     |
+| `KUBERNETES_WRITER_CA_FILE`  | absent                              | Operator-owned writer trust file reference                                                          |
+| `KUBERNETES_WRITER_NAMESPACES` | absent                            | One to 64 unique explicit namespaces, all already enabled for observation                           |
+| `AUDIT_RETENTION_DAYS`       | `365`                               | Minimum 90 days; accepted range 90–3650                                                              |
+| `AUDIT_QUOTA_ROWS`           | `1000000`                           | Protected capacity range 1,000–10,000,000; reserve permits bounded completion audits                |
+| `AUDIT_ARCHIVE_VERIFIED_THROUGH` | absent                          | UTC cutoff only after an operator independently verifies a protected archive                        |
 
 Generate setup material using [account recovery/setup](operations/account-recovery.md).
 Do not store it in tracked files, command arguments or logs. Mounted provider
@@ -153,12 +163,16 @@ provide endpoints/paths or edit credentials. An absent operator profile can be
 disabled, but cannot be enabled.
 
 Collection and ordinary history retention use fixed runtime policy rather than
-new environment settings: bounded polling/backoff, 64 sources, four concurrent
+environment settings: bounded polling/backoff, 64 sources, four concurrent
 collections and fair deadline-bound retention. Metrics older than seven days
 and eligible health/events/terminal deliveries older than 30 days can be pruned;
 the newest metric per resource/name and protected records are retained. Audit
-currently retains all rows. Operator quotas and guarded cleanup remain stage 6
-work. See [observations](observations.md) for exact limits and exclusions.
+uses a protected operator policy with at least 90 days, a bounded quota and a
+separate verified-archive cutoff. Browser cleanup never touches audit records.
+Operator credential references remain deployment-owned and are rotated through
+the [guarded action runbook](operations/guarded-actions.md); the browser never
+accepts paths or credential values. See [observations](observations.md) for
+ordinary-history limits and exclusions.
 
 ## Generic webhook
 

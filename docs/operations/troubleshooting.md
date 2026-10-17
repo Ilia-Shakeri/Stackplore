@@ -30,7 +30,7 @@ to support channels.
 | Source cache stale after disable or outage           | `source.disabled`, collection attempt and optional-port state                                | History remains; live logs stop on disable. Review the [collection policy](../observations.md).                                                             |
 | Source preview fails                                 | Exact current version, operator profile, two-minute expiry and current role                  | Reload state and review again. Missing profiles cannot enable; never automatically replay an uncertain write.                                               |
 | Source registry exceeds runtime bound                | At most 64 registered profiles and startup's safe reason                                     | Review operator-owned registry offline. Do not silently skip sources or delete their history.                                                               |
-| History grows despite cleanup                        | Fixed fair batch quotas, newest/synthetic/protected exclusions                               | Monitor capacity and verified native backups. Audit retain-all is protected; audit quotas are still planned.                                                |
+| History grows despite cleanup                        | Fixed fair batch quotas, newest/synthetic/protected exclusions                               | Monitor capacity and verified native backups. Audit expiry needs a monotonic operator-verified archive cutoff; it will not prune without one.                  |
 
 Before asking for help, record the release/commit, deployment kind, time in UTC,
 safe error code, request ID, and a minimal invented reproduction. Private

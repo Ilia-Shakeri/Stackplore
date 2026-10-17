@@ -133,9 +133,6 @@ func validateProviderProfiles(result Config) error {
 				return invalid(field.key, "must be an absolute operator file reference")
 			}
 		}
-		if result.DockerWriteEnabled {
-			return invalid(dockerWriteEnabledKey, "is forbidden on the observation proxy")
-		}
 	} else if proxyConfigured {
 		return invalid(dockerAccessProfileKey, "must select the restricted proxy for proxy references")
 	}

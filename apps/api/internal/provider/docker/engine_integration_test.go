@@ -104,6 +104,44 @@ ENTRYPOINT ["/fixture"]
 		ownedContainers = append(ownedContainers, identifier)
 	}
 	apiID, ttyID := ownedContainers[0], ownedContainers[1]
+	// The Engine job is a disposable hosted runner. Exercise the guarded writer
+	// against this exact label-owned container; cleanup above removes only IDs
+	// returned by this fixture's docker run calls.
+	socketHTTP := &http.Transport{DialContext: func(dialContext context.Context, _, _ string) (net.Conn, error) {
+		return (&net.Dialer{}).DialContext(dialContext, "unix", "/var/run/docker.sock")
+	}}
+	socketClient := &http.Client{Transport: socketHTTP, Timeout: 20 * time.Second}
+	t.Cleanup(socketHTTP.CloseIdleConnections)
+	engine, err := NewEngineCollector(EngineCollectorOptions{Client: socketClient, BaseURL: "http://docker", MaximumItems: 100, MaximumResponse: 8 << 20, InspectConcurrency: 2})
+	if err != nil {
+		t.Fatal("disposable writer observation setup failed")
+	}
+	before, err := engine.Snapshot(ctx)
+	if err != nil {
+		t.Fatal("owned writer target read failed")
+	}
+	var writerTarget *Container
+	for index := range before.Containers {
+		if before.Containers[index].ID == apiID {
+			writerTarget = &before.Containers[index]
+			break
+		}
+	}
+	if writerTarget == nil || writerTarget.Version == "" {
+		t.Fatal("owned writer target version unavailable")
+	}
+	writer, err := NewSDKWriter(WriterOptions{Client: socketClient, BaseURL: "http://docker", MaximumResponse: 8 << 20})
+	if err != nil {
+		t.Fatal("disposable writer setup failed")
+	}
+	t.Cleanup(func() { _ = writer.Close() })
+	if name, err := writer.PreviewContainer(ctx, apiID, writerTarget.Version); err != nil || name != proofName+"-api" {
+		t.Fatal("owned writer preview failed")
+	}
+	rotatedVersion, err := writer.RestartContainer(ctx, apiID, writerTarget.Version, "operation_"+strings.ReplaceAll(proofName, "-", "_"))
+	if err != nil || rotatedVersion == "" || rotatedVersion == writerTarget.Version {
+		t.Fatal("owned disposable container restart was not verified")
+	}
 	certificateDirectory, tlsConfig := proofCertificates(t)
 	proxyConfig, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", "deploy", "docker-proxy", "haproxy.cfg"))
 	if err != nil {

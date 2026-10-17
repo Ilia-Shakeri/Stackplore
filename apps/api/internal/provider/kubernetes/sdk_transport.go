@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"sync/atomic"
+	"time"
 )
 
 type boundedTransport struct {
@@ -14,6 +15,7 @@ type boundedTransport struct {
 	namespaces    []string
 	clusterScoped bool
 	maximum       int64
+	writer        bool
 }
 
 func (transport *boundedTransport) CloseIdleConnections() {
@@ -24,7 +26,7 @@ func (transport *boundedTransport) CloseIdleConnections() {
 
 func (transport *boundedTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	if request.URL.Scheme != "https" || request.URL.Host != "kubernetes.default.svc" ||
-		request.URL.User != nil || !transport.permits(request.Method, request.URL.Path) {
+		request.URL.User != nil || request.URL.RawPath != "" || !transport.permits(request.Method, request.URL.Path) || transport.writer && !validWriterQuery(request) {
 		return nil, ErrPermissionDenied
 	}
 	budget, _ := request.Context().Value(observationBudgetKey{}).(*atomic.Int64)
@@ -77,11 +79,29 @@ func (transport *boundedTransport) RoundTrip(request *http.Request) (*http.Respo
 	return response, nil
 }
 
+func validWriterQuery(request *http.Request) bool {
+	if request.URL.RawQuery == "" {
+		return true
+	}
+	query := request.URL.Query()
+	values := query["timeout"]
+	if len(query) != 1 || len(values) != 1 {
+		return false
+	}
+	duration, err := time.ParseDuration(values[0])
+	return err == nil && duration > 0 && duration <= 15*time.Second
+}
+
 // Proxy, exec, Secret and ConfigMap object endpoints never pass this guard.
 func (transport *boundedTransport) permits(method, path string) bool {
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 	if strings.Contains(path, "//") || strings.Contains(path, "%") {
 		return false
+	}
+	if transport.writer {
+		return (method == http.MethodGet || method == http.MethodPatch) && len(parts) == 7 &&
+			parts[0] == "apis" && parts[1] == "apps" && parts[2] == "v1" && parts[3] == "namespaces" &&
+			slices.Contains(transport.namespaces, parts[4]) && slices.Contains([]string{"deployments", "statefulsets", "daemonsets"}, parts[5]) && safeKubernetesPathSegment(parts[6])
 	}
 	if method == http.MethodGet && transport.clusterScoped && len(parts) == 3 && path == "/api/v1/nodes" {
 		return true
@@ -134,7 +154,7 @@ func (transport *boundedTransport) permits(method, path string) bool {
 	if method == http.MethodGet {
 		return len(rest) == 0
 	}
-	return method == http.MethodPatch && parts[1] == "apps" && safeOperationPath(resource, rest)
+	return false
 }
 
 func safeOperationPath(resource string, rest []string) bool {

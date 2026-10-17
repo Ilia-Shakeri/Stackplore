@@ -186,6 +186,9 @@ func (handler productHTTP) logs(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
+	if handler.applicationSettings != nil {
+		logProvider = configuredLogReader{reader: logProvider, settings: handler.applicationSettings}
+	}
 	refs, selectionStatus, err := handler.resourceSelection(r, provider, resourceID, domain.MaxLogTargets)
 	if err != nil {
 		writeResourceProblem(w, r, err)

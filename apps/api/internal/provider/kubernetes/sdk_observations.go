@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/json"
+
 	"io"
 	"strings"
 	"time"
@@ -10,7 +10,6 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type EventObservation struct {
@@ -190,68 +189,6 @@ func parsePodLogLines(targetKey string, data []byte) []PodLogLine {
 	return result
 }
 
-// These existing guarded operations use the official request machinery. Their
-// deployment, recent-auth and one-use confirmation gates remain above the adapter.
-func (collector *APICollector) RestartWorkload(ctx context.Context, operation WorkloadOperation) (string, error) {
-	if operation.RequestedReplicas != nil {
-		return "", ErrUnavailable
-	}
-	body := map[string]any{"metadata": map[string]any{"resourceVersion": operation.ResourceVersion}, "spec": map[string]any{"template": map[string]any{"metadata": map[string]any{"annotations": map[string]string{"stackplore.io/restart-request": operation.IdempotencyKey}}}}}
-	return collector.patchWorkload(ctx, operation, false, body)
-}
-
-func (collector *APICollector) ScaleWorkload(ctx context.Context, operation WorkloadOperation) (string, error) {
-	if operation.RequestedReplicas == nil || *operation.RequestedReplicas < 0 || *operation.RequestedReplicas > domain.MaxOperationReplicas {
-		return "", ErrUnavailable
-	}
-	body := map[string]any{"apiVersion": "autoscaling/v1", "kind": "Scale", "metadata": map[string]any{"name": operation.Name, "namespace": operation.Namespace, "resourceVersion": operation.ResourceVersion}, "spec": map[string]any{"replicas": *operation.RequestedReplicas}}
-	return collector.patchWorkload(ctx, operation, true, body)
-}
-
-func (collector *APICollector) patchWorkload(ctx context.Context, operation WorkloadOperation, scale bool, body any) (string, error) {
-	if err := collector.valid(ctx); err != nil {
-		return "", err
-	}
-	if !collector.permits(operation.Namespace) || !safeKubernetesPathSegment(operation.Name) || operation.ResourceVersion == "" || len(operation.ResourceVersion) > 512 || operation.IdempotencyKey == "" || len(operation.IdempotencyKey) > 256 {
-		return "", ErrUnavailable
-	}
-	resource := ""
-	switch operation.Kind {
-	case "Deployment":
-		resource = "deployments"
-	case "StatefulSet":
-		resource = "statefulsets"
-	case "DaemonSet":
-		if !scale {
-			resource = "daemonsets"
-		}
-	}
-	if resource == "" {
-		return "", ErrUnsupported
-	}
-	payload, err := json.Marshal(body)
-	if err != nil || len(payload) > 16*1024 {
-		return "", ErrUnavailable
-	}
-	request := collector.apps.RESTClient().Patch(types.MergePatchType).Namespace(operation.Namespace).Resource(resource).Name(operation.Name).Body(payload).MaxRetries(0)
-	if scale {
-		request = request.SubResource("scale")
-	}
-	data, err := request.Do(ctx).Raw()
-	if err != nil {
-		return "", mapAPIError(err)
-	}
-	var result struct {
-		Metadata struct {
-			ResourceVersion string `json:"resourceVersion"`
-		} `json:"metadata"`
-	}
-	if json.Unmarshal(data, &result) != nil || result.Metadata.ResourceVersion == "" || len(result.Metadata.ResourceVersion) > 512 {
-		return "", ErrUnavailable
-	}
-	return result.Metadata.ResourceVersion, nil
-}
-
 func contextCause(ctx context.Context) error {
 	if ctx == nil {
 		return nil
@@ -262,4 +199,3 @@ func contextCause(ctx context.Context) error {
 var _ EventCollector = (*APICollector)(nil)
 var _ MetricCollector = (*APICollector)(nil)
 var _ LogCollector = (*APICollector)(nil)
-var _ OperationCollector = (*APICollector)(nil)

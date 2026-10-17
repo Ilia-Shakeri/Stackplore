@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. Stages 1–5 are locally verified development checkpoints through `0.5.0`. Stage 5 passed its final changed-tree gate with real PostgreSQL, separate disposable Engine/cluster and guest-browser receipts, and scoped quality review of 9/10. Its commit/tag publication and remote CI are still pending in the [evidence plan](docs/implementation-plan.md). Stages 6–9 remain open. A development checkpoint does not complete 1.0.
+> **Status:** 1.0 work is active. Stages 1–5 are published development checkpoints through `0.5.0`; corrected main CI run 39018504287 passed for the exact `v0.5.0` revision. Stage 6 `0.6.0` local full gate passes; exact tagged CI and disposable action jobs remain open. Stages 7–9 remain open. A development checkpoint does not complete 1.0.
 
 ## Implemented
 
@@ -24,10 +24,10 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 
 ## Still required for 1.0
 
-- Exact `0.5.0` publication/CI; current provider proof covers named disposable Engine and kind versions, not every operator environment
-- Broader safe profile setup and operator-owned credential-reference rotation; configurable quotas, protected audit cleanup, export and preferences
+- Exact tagged Stage 6 CI and opt-in disposable Docker Engine and Kubernetes kind write evidence
+- Safe operator profile/reference rotation; no raw credentials are stored
 - Operator receiver/production deployment proof and final browser acceptance, plus immutable audit coverage for unfinished mutation paths
-- Explicitly guarded supported operations with authorization, confirmation, idempotency, timeouts, and audit records
+- Release and installation gates listed in the roadmap; 1.0 remains incomplete
 - Live target proof for PostgreSQL backup/restore, Compose, cluster install/upgrade/rollback, browser flows, accessibility, and performance budgets
 
 ## Development

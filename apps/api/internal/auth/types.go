@@ -200,6 +200,9 @@ const (
 	RecentAuthPurposeNotificationTest      RecentAuthPurpose = "notification.test"
 	RecentAuthPurposeSourceUpdate          RecentAuthPurpose = "source.update"
 	RecentAuthPurposeOperationExecute      RecentAuthPurpose = "operation.execute"
+	RecentAuthPurposeSettingsUpdate        RecentAuthPurpose = "settings.update"
+	RecentAuthPurposeConfigurationExport   RecentAuthPurpose = "configuration.export"
+	RecentAuthPurposeDataCleanup           RecentAuthPurpose = "data.cleanup"
 )
 
 func (purpose RecentAuthPurpose) Validate() error {
@@ -212,7 +215,10 @@ func (purpose RecentAuthPurpose) Validate() error {
 		RecentAuthPurposeUserSessionsRevoke,
 		RecentAuthPurposeNotificationTest,
 		RecentAuthPurposeSourceUpdate,
-		RecentAuthPurposeOperationExecute:
+		RecentAuthPurposeOperationExecute,
+		RecentAuthPurposeSettingsUpdate,
+		RecentAuthPurposeConfigurationExport,
+		RecentAuthPurposeDataCleanup:
 		return nil
 	default:
 		return ErrInvalidAuthState

@@ -167,6 +167,9 @@ const (
 // Config is the fully validated server configuration.
 type Config struct {
 	ProviderProfiles
+	DockerOperationProfile
+	KubernetesOperationProfile
+	AuditPolicyConfig
 	Environment Environment
 
 	HTTPAddress            string
@@ -371,6 +374,15 @@ func Load(getter Getter) (Config, error) {
 	if err := loadProviderProfiles(getter, &result); err != nil {
 		return Config{}, err
 	}
+	if err := loadDockerOperations(getter, &result); err != nil {
+		return Config{}, err
+	}
+	if err := loadKubernetesOperations(getter, &result); err != nil {
+		return Config{}, err
+	}
+	if err := loadAuditPolicy(getter, &result); err != nil {
+		return Config{}, err
+	}
 
 	durationFields := []struct {
 		key     string
@@ -491,6 +503,15 @@ func Validate(result Config) error {
 		return invalid(dockerSocketPathKey, "is invalid")
 	}
 	if err := validateProviderProfiles(result); err != nil {
+		return err
+	}
+	if err := validateDockerOperations(result); err != nil {
+		return err
+	}
+	if err := validateKubernetesOperations(result); err != nil {
+		return err
+	}
+	if err := validateAuditPolicy(result); err != nil {
 		return err
 	}
 	if result.KubernetesEnabled && (!validAbsolutePath(result.KubernetesTokenFile) || !validAbsolutePath(result.KubernetesCAFile)) {
@@ -636,6 +657,11 @@ func validateEnvironmentKeys(entries []string) error {
 	seen := make(map[string]struct{}, len(allowed))
 	for _, key := range providerProfileKeys {
 		allowed[key] = struct{}{}
+	}
+	for _, keys := range [][]string{dockerOperationKeys, kubernetesOperationKeys, auditPolicyKeys} {
+		for _, key := range keys {
+			allowed[key] = struct{}{}
+		}
 	}
 	for _, entry := range entries {
 		name, _, found := strings.Cut(entry, "=")

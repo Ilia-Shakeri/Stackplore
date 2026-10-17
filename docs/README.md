@@ -18,6 +18,8 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | Collection, source toggles and retention | [Observations](observations.md), [مشاهده‌ها](observations.fa.md) |
 | Restricted Docker access and runtime facts | [Docker provider](docker-provider.md), [فراهم‌کنندهٔ Docker](docker-provider.fa.md) |
 | Namespace authority and Kubernetes runtime facts | [Kubernetes provider](kubernetes-provider.md), [فراهم‌کنندهٔ Kubernetes](kubernetes-provider.fa.md) |
+| Guarded operations and credential-reference rotation | [Guarded actions](operations/guarded-actions.md), [عملیات زیرگیت](operations/guarded-actions.fa.md) |
+| Application settings, data cleanup and browser preferences | [Settings](settings.md), [تنظیمات](settings.fa.md) |
 | Alert evidence, durable streams and outbound delivery | [Alerts and notifications](alerts-notifications.md), [هشدار و اعلان](alerts-notifications.fa.md) |
 | Proof levels and test gates | [Testing](testing.md) |
 | Provider and guest checkpoint receipts | [0.5 evidence](evidence/0.5.0/README.md) |

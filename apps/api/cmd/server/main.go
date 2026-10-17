@@ -158,19 +158,30 @@ func runWithStorage(
 		return closeDatabase(errors.Join(errHTTPBoundary, errProductStart))
 	}
 	defer closeProductProviders(providers)
+	operations, err := buildOperationRuntime(serviceContext, settings, database, providers)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errHTTPBoundary)
+	}
 	observations, err := buildObservationRuntime(serviceContext, settings, database, providers, logger)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errObservationStart)
 	}
 	providers = observations.providers
+	applicationSettings, err := buildApplicationSettingsRuntime(settings, database)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errHTTPBoundary)
+	}
 	alertManager, err := alerting.NewManagementService(database, alerting.SecureIdentifierFactory{}, time.Now)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errAlertStart)
 	}
 	historyReader, _ := database.(productHistoryReader)
-	server, err := newHTTPServerWithProviders(settings, logger, readiness, authentication, providers, alertManager, observations.settings, historyReader)
+	server, err := newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, observations.settings, operations, applicationSettings,
+		httpapi.ApplicationMutationMode{Enabled: settings.MutationsEnabled && !settings.DemoDeployment, DockerWriteEnabled: settings.DockerWriteEnabled, KubernetesWriteEnabled: settings.KubernetesWriteEnabled}, historyReader)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(err)
@@ -217,6 +228,8 @@ func runWithStorage(
 	matrixDone := make(chan struct{})
 	observationDone := make(chan struct{})
 	retentionDone := make(chan struct{})
+	operationDone := make(chan struct{})
+	auditRetentionDone := make(chan struct{})
 	go func() {
 		defer close(monitorDone)
 		monitorDatabase(monitorContext, database, readiness, databaseHealthInterval, settings.DatabaseHealthTimeout)
@@ -233,6 +246,18 @@ func runWithStorage(
 		defer close(retentionDone)
 		observations.runRetention(monitorContext, logger)
 	}()
+	go func() {
+		defer close(auditRetentionDone)
+		runAuditRetention(monitorContext, settings, applicationSettings, logger)
+	}()
+	if operations == nil {
+		close(operationDone)
+	} else {
+		go func() {
+			defer close(operationDone)
+			operations.RunRecovery(monitorContext)
+		}()
+	}
 	if deliveryWorker == nil {
 		close(deliveryDone)
 	} else {
@@ -256,6 +281,8 @@ func runWithStorage(
 	<-matrixDone
 	<-observationDone
 	<-retentionDone
+	<-operationDone
+	<-auditRetentionDone
 	readiness.SetDatabaseReady(false)
 	if ownership, ok := database.(interface{ OwnershipLost() <-chan struct{} }); ok {
 		select {
@@ -393,6 +420,22 @@ func newHTTPServerWithProviders(
 	sourceSettings httpapi.SourceSettings,
 	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
+	return newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, sourceSettings, nil, nil, httpapi.ApplicationMutationMode{}, historyReaders...)
+}
+
+func newHTTPServerWithServices(
+	settings config.Config,
+	logger *slog.Logger,
+	readiness *httpapi.Readiness,
+	authentication *auth.Service,
+	providers []httpapi.ProductProvider,
+	alertManager httpapi.AlertManager,
+	sourceSettings httpapi.SourceSettings,
+	operations httpapi.OperationManager,
+	applicationSettings httpapi.ApplicationSettings,
+	applicationMode httpapi.ApplicationMutationMode,
+	historyReaders ...productHistoryReader,
+) (*http.Server, error) {
 	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil ||
 		len(providers) == 0 || len(historyReaders) > 1 {
 		return nil, errHTTPBoundary
@@ -412,25 +455,28 @@ func newHTTPServerWithProviders(
 		return nil, errHTTPBoundary
 	}
 	handler, err := httpapi.NewHandler(httpapi.Options{
-		Logger:                 logger,
-		Readiness:              readiness,
-		Authentication:         authentication,
-		PublicOrigin:           httpapi.Origin{Scheme: settings.PublicOrigin.Scheme, Authority: settings.PublicOrigin.Host},
-		TrustedProxyPrefixes:   settings.TrustedProxyPrefixes,
-		MetricsAllowedPrefixes: settings.MetricsAllowedPrefixes,
-		RequestTimeout:         settings.RequestTimeout,
-		MaximumRequestBody:     settings.MaxRequestBodyBytes,
-		MaximumResponseBody:    settings.MaximumResponseBytes,
-		MaximumInFlight:        settings.MaxInFlight,
-		ProductProviders:       providers,
-		AuditReader:            historyReader,
-		AlertReader:            historyReader,
-		NotificationReader:     historyReader,
-		NotificationSettings:   notificationSettings,
-		NotificationTester:     notificationTester,
-		AlertManager:           alertManager,
-		SourceSettings:         sourceSettings,
-		GuestDemo:              guestHTTPOptions(settings),
+		Logger:                  logger,
+		Readiness:               readiness,
+		Authentication:          authentication,
+		PublicOrigin:            httpapi.Origin{Scheme: settings.PublicOrigin.Scheme, Authority: settings.PublicOrigin.Host},
+		TrustedProxyPrefixes:    settings.TrustedProxyPrefixes,
+		MetricsAllowedPrefixes:  settings.MetricsAllowedPrefixes,
+		RequestTimeout:          settings.RequestTimeout,
+		MaximumRequestBody:      settings.MaxRequestBodyBytes,
+		MaximumResponseBody:     settings.MaximumResponseBytes,
+		MaximumInFlight:         settings.MaxInFlight,
+		ProductProviders:        providers,
+		AuditReader:             historyReader,
+		AlertReader:             historyReader,
+		NotificationReader:      historyReader,
+		NotificationSettings:    notificationSettings,
+		NotificationTester:      notificationTester,
+		AlertManager:            alertManager,
+		SourceSettings:          sourceSettings,
+		Operations:              operations,
+		ApplicationSettings:     applicationSettings,
+		ApplicationMutationMode: applicationMode,
+		GuestDemo:               guestHTTPOptions(settings),
 		RateLimit: httpapi.RateLimitConfig{
 			RequestsPerSecond: settings.RatePerSecond,
 			Burst:             settings.RateBurst,

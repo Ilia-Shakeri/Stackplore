@@ -49,7 +49,7 @@ type EngineCollector struct {
 	now                func() time.Time
 }
 
-func NewEngineCollector(options EngineCollectorOptions) (*EngineCollector, error) {
+func engineClientBoundary(options EngineCollectorOptions) (*http.Client, *url.URL, error) {
 	parsed, err := url.Parse(options.BaseURL)
 	if err != nil || options.Client == nil || options.Client.Transport == nil ||
 		!(parsed.Scheme == "http" && parsed.Host == "docker" || parsed.Scheme == "https" && parsed.Hostname() != "") ||
@@ -57,7 +57,7 @@ func NewEngineCollector(options EngineCollectorOptions) (*EngineCollector, error
 		options.MaximumItems < 1 || options.MaximumItems > maximumEngineItems ||
 		options.MaximumResponse < minimumEngineResponseBytes || options.MaximumResponse > maximumEngineResponseBytes ||
 		options.InspectConcurrency < 1 || options.InspectConcurrency > 32 {
-		return nil, errors.New("Docker Engine collector options are invalid")
+		return nil, nil, errors.New("Docker Engine collector options are invalid")
 	}
 	next := options.Client.Transport
 	if supplied, ok := next.(*http.Transport); ok {
@@ -76,7 +76,7 @@ func NewEngineCollector(options EngineCollectorOptions) (*EngineCollector, error
 		}
 		if parsed.Scheme == "https" && bounded.TLSClientConfig != nil {
 			if bounded.TLSClientConfig.InsecureSkipVerify || bounded.TLSClientConfig.ServerName != "" && bounded.TLSClientConfig.ServerName != parsed.Hostname() {
-				return nil, ErrUnavailable
+				return nil, nil, ErrUnavailable
 			}
 			bounded.TLSClientConfig = bounded.TLSClientConfig.Clone()
 			bounded.TLSClientConfig.ServerName = parsed.Hostname()
@@ -86,17 +86,26 @@ func NewEngineCollector(options EngineCollectorOptions) (*EngineCollector, error
 		}
 		next = bounded
 	}
-	transport := &engineReadTransport{base: parsed, next: next, maximum: options.MaximumResponse}
 	httpClient := *options.Client
-	httpClient.Transport = transport
+	httpClient.Transport = next
 	httpClient.Jar = nil
 	httpClient.CheckRedirect = func(*http.Request, []*http.Request) error { return ErrUnavailable }
 	if httpClient.Timeout <= 0 || httpClient.Timeout > time.Minute {
 		httpClient.Timeout = 20 * time.Second
 	}
+	return &httpClient, parsed, nil
+}
+
+func NewEngineCollector(options EngineCollectorOptions) (*EngineCollector, error) {
+	httpClient, parsed, err := engineClientBoundary(options)
+	if err != nil {
+		return nil, err
+	}
+	transport := &engineReadTransport{base: parsed, next: httpClient.Transport, maximum: options.MaximumResponse}
+	httpClient.Transport = transport
 	// Never use ambient Docker environment variables. Host configuration must
 	// precede the supplied transport, because WithHost configures its own dialer.
-	sdk, err := client.New(client.WithHost(options.BaseURL), client.WithScheme(parsed.Scheme), client.WithHTTPClient(&httpClient))
+	sdk, err := client.New(client.WithHost(options.BaseURL), client.WithScheme(parsed.Scheme), client.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, ErrUnavailable
 	}

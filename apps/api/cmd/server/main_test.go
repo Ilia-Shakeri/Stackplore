@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/appsettings"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -566,6 +567,7 @@ func (address testAddress) String() string  { return string(address) }
 
 type fakeDatabase struct {
 	auth.Repository
+	fakeApplicationSettingsRepository
 	observationDatabase
 	available     atomic.Bool
 	closed        atomic.Bool
@@ -574,6 +576,10 @@ type fakeDatabase struct {
 	authKey       []byte
 	authKeyErr    error
 }
+
+func (*fakeDatabase) isFakeDatabase() {}
+
+type fakeApplicationSettingsRepository struct{ appsettings.Repository }
 
 type fakeDeliveryDatabase struct{ *fakeDatabase }
 
