@@ -195,7 +195,9 @@ jobs:
           kubectl -n stackplore create secret generic postgres-ca --from-file=ca.crt="$test_dir/ca.crt"
           db_password="$(openssl rand -hex 24)"
           db_url="postgresql://stackplore:${db_password}@postgres.stackplore.svc.cluster.local:5432/stackplore?sslmode=verify-full&sslrootcert=/var/run/stackplore/database-ca/ca.crt"
-          kubectl -n stackplore create secret generic stackplore-runtime --from-literal="database-url=$db_url"
+          proof="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')"
+          expires="$(date -u -d '+60 minutes' '+%Y-%m-%dT%H:%M:%SZ')"
+          kubectl -n stackplore create secret generic stackplore-runtime --from-literal="database-url=$db_url" --from-literal="setup-bootstrap-proof=$proof" --from-literal="setup-bootstrap-expires-at=$expires"
           cat > "$test_dir/postgres.yaml" <<'YAML'
           apiVersion: apps/v1
           kind: Deployment
@@ -273,6 +275,7 @@ jobs:
             --set api.databaseTLS.enabled=true \
             --set api.databaseTLS.caSecretName=postgres-ca \
             --set api.databaseTLS.caCertificateKey=ca.crt \
+            --set api.setup.enabled=true \
             --set api.publicOrigin=https://stackplore.test \
             --set ingress.enabled=true \
             --wait --timeout 8m

@@ -27,6 +27,13 @@ No runtime permission validation was relaxed. The rendered init passed a real
 Linux fixture: fresh/restart modes, stable legacy key, duplicate/no-overwrite,
 symlink, hardlink and malformed-key rejection. Exact replacement CI is pending.
 
+Run [39030871663](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39030871663)
+passed code, Compose installation/restart, image/chart and both provider jobs.
+Helm progressed past storage and correctly refused remote first-run auth with
+no operator proof (`authentication_start`). The disposable install fixture now
+provides a randomly generated expiring bootstrap proof through its runtime
+Secret and enables the chart's setup profile. No auth guard was weakened.
+
 Published through Stage 6: `v0.6.0` is at commit
 `365dc214161bf74e0f77aaedc9d32529c1ec1cf2`. [Main CI run
 39022543132](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39022543132)
