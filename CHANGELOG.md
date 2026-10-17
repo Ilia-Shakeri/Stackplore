@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.7.0] - 2026-10-17
+
+### Added
+
+- One same-origin Go application image serves the UI, API, health, readiness and
+  metrics endpoints; browser routes use a bounded static-asset fallback.
+- Compose first-run/restart smoke gate and Helm routing to the unified app
+  Service, with bilingual install guidance.
+
+### Limits
+
+- Local handler and full repository gates are required before release. Compose
+  install/restart is verified by its exact CI job; Helm is linted/rendered, not
+  installed into a cluster. Production TLS, backup/restore and rollback remain
+  separate target gates.
+
 ## [0.6.0] - 2026-10-17
 
 ### Added

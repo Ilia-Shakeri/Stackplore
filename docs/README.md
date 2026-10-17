@@ -14,7 +14,7 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | System boundaries | [Architecture](architecture.md), [decisions](adr/README.md) |
 | Threat model and private reporting | [Security model](security.md), [policy](../SECURITY.md) |
 | Local tools and commands | [Development](development.md) |
-| Runtime names, defaults and bounds | [Configuration](configuration.md) |
+| Runtime names, defaults and bounds | [Configuration](configuration.md), [پیکربندی](configuration.fa.md) |
 | Collection, source toggles and retention | [Observations](observations.md), [مشاهده‌ها](observations.fa.md) |
 | Restricted Docker access and runtime facts | [Docker provider](docker-provider.md), [فراهم‌کنندهٔ Docker](docker-provider.fa.md) |
 | Namespace authority and Kubernetes runtime facts | [Kubernetes provider](kubernetes-provider.md), [فراهم‌کنندهٔ Kubernetes](kubernetes-provider.fa.md) |
@@ -23,9 +23,9 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | Alert evidence, durable streams and outbound delivery | [Alerts and notifications](alerts-notifications.md), [هشدار و اعلان](alerts-notifications.fa.md) |
 | Proof levels and test gates | [Testing](testing.md) |
 | Provider and guest checkpoint receipts | [0.5 evidence](evidence/0.5.0/README.md) |
-| Install and first administrator | [Deployment](operations/deployment.md), [setup/recovery](operations/account-recovery.md) |
-| Protect and recover data | [Backup/restore](operations/backup-restore.md), [upgrade/rollback](operations/upgrade-rollback.md) |
-| Diagnose failures | [Troubleshooting](operations/troubleshooting.md) |
+| Install and first administrator | [Deployment](operations/deployment.md), [نصب](operations/deployment.fa.md), [Setup/recovery](operations/account-recovery.md), [راه‌اندازی/بازیابی](operations/account-recovery.fa.md) |
+| Protect and recover data | [Backup/restore](operations/backup-restore.md), [پشتیبان/بازیابی](operations/backup-restore.fa.md), [upgrade/rollback](operations/upgrade-rollback.md), [ارتقا/برگشت](operations/upgrade-rollback.fa.md) |
+| Diagnose and monitor | [Troubleshooting](operations/troubleshooting.md), [عیب‌یابی](operations/troubleshooting.fa.md), [Monitoring](operations/monitoring.md), [پایش](operations/monitoring.fa.md) |
 | Tag and publish a checked version | [Release procedure](releasing.md), [changelog](../CHANGELOG.md) |
 | HTTP models, routes and limits | [Canonical OpenAPI](../contracts/openapi.yaml) |
 | Contribute and review changes | [Contribution](../CONTRIBUTING.md), [project guide](../PROJECT_GUIDE.md), [conventions](conventions.md) |

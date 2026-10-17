@@ -1,23 +1,20 @@
 # Architecture
 
-Status: active 1.0 implementation. Stages 1–3 are verified tagged checkpoints
-through 0.3.0. The 0.4.0 exploration checkpoint passed its local and actual browser gates;
-exact current proof is in the active evidence plan.
+Status: active 1.0 implementation. Stages 1–6 are published checkpoints through
+0.6.0. Stage 7 aligns deployment with the accepted same-origin decision; exact
+local and remote proof is recorded in the active evidence plan.
 
 ## System shape
 
-Stackplore uses a same-origin web edge, one Go API process, PostgreSQL, and provider adapters. The browser never receives provider credentials and never calls infrastructure endpoints directly.
+Stackplore uses one Go application serving the embedded same-origin web bundle and API, PostgreSQL, and provider adapters. An optional ingress may provide public TLS. The browser never receives provider credentials and never calls infrastructure endpoints directly.
 
 ```text
 Browser
   |
   | HTTPS, / and /api/v1
   v
-Web edge (static React files + reverse proxy)
+Go application (embedded React assets + API + health/readiness/metrics)
   |
-  | trusted private HTTP hop
-  v
-Go API
   |-- local auth and policy
   |-- product services
   |-- provider registry
@@ -49,7 +46,7 @@ packages/api-client/          OpenAPI-derived types and same-origin client
 packages/ui/                  shared accessible interface components
 contracts/openapi.yaml        version 1 HTTP authority
 apps/api/postgresmigrations/  embedded forward-only PostgreSQL migrations
-deploy/                       container, Compose, edge, and cluster assets
+deploy/                       application image, Compose, and cluster assets
 docs/                         decisions, security, development, operations
 ```
 
@@ -198,17 +195,16 @@ samples are not summed into fake zero totals.
 
 ## Deployment
 
-The local Compose profile has three services:
+The local Compose profile has two services:
 
 - PostgreSQL with a named data volume and health check;
-- a non-root API with a named runtime-key volume and readiness gate;
-- a read-only non-root Nginx edge serving the web app and proxying same-origin API traffic.
+- one non-root Go application serving embedded assets and same-origin API routes, with a named runtime-key volume and readiness gate.
 
-Only the edge binds to host loopback. The private bridge uses an explicit subnet so proxy trust is narrow and reviewable. `docker compose down` preserves both named volumes.
+The application binds to host loopback. The private bridge uses an explicit subnet for metrics access. `docker compose down` preserves both named volumes.
 
-The cluster chart uses an external PostgreSQL Secret, one API replica with a ReadWriteOnce runtime-key claim and `Recreate` strategy, multiple stateless web replicas, probes, resource bounds, restricted security contexts, optional TLS ingress, and a web disruption budget. The API remains single-replica until digest-key distribution and multi-process ownership are redesigned.
+The cluster chart uses an external PostgreSQL Secret, one Go application replica with a ReadWriteOnce runtime-key claim and `Recreate` strategy, probes, resource bounds, restricted security contexts, and optional TLS ingress. The application remains single-replica until digest-key distribution and multi-process ownership are redesigned.
 
-CI defines locked package installation, full code verification, a real PostgreSQL integration service, Compose model validation, chart lint, and both image builds. These definitions are not target-environment proof until they run successfully in the release system.
+CI defines locked package installation, full code verification, a real PostgreSQL integration service, API image build, fresh Compose startup/UI/restart proof, and chart lint/render. These definitions are not target-environment proof until they run successfully in the release system.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
 Linux race tests and image builds; see [exact run evidence](implementation-plan.md).
@@ -241,6 +237,6 @@ of the application and production acceptance remain open for their later stages.
 - Webhook and Matrix are opt-in. Disposable local HTTPS proof and live operator receiver proof are separate; no live production receiver claim follows from unit or SQL tests.
 - Guarded operations have unit and PostgreSQL coverage plus opt-in disposable Engine/kind jobs; their exact remote execution is recorded in the active plan.
 - Real PostgreSQL, native backup/restore, browser geometry and Helm render checks have named receipts. Compose application startup, chart installation and target production acceptance remain stage 7 gates; a provider fixture does not prove those deployments.
-- The current separate static web edge differs from ADR-0001 built-web serving. Stage 7 must align the production build with that decision before 1.0. Provider clients now follow ADR-0002.
+- Stage 7 embeds built assets in the single Go application, following ADR-0001. CI Compose startup is still distinct from cluster installation and target acceptance. Provider clients follow ADR-0002.
 
 See [ADR-0011](adr/0011-postgresql-primary-persistence.md), [observations](observations.md), [security](security.md), [deployment](operations/deployment.md), and [backup/restore](operations/backup-restore.md).

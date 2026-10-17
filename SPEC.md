@@ -828,11 +828,13 @@ The current runtime uses PostgreSQL for the API, account recovery and native
 backup/restore. It checks process ownership before immutable migrations and
 uses bounded pools, queries and transactions. Local real PostgreSQL tests and
 a disposable native restore drill provide current baseline evidence; target
-production drills remain separate. Non-root API/web images and Compose/Helm
-definitions exist; local chart lint/render ran, while Stackplore Compose and
-chart installation remain unproved. Disposable provider fixtures have their
-separate named runtime receipts. The current static web edge differs from the
-accepted Go-built-web serving target in ADR-0001 and must be aligned before 1.0.
+production drills remain separate. A non-root Go application image embeds the
+web bundle and serves it with the API from one same-origin service. Compose CI
+builds and starts a fresh stack, checks assets/readiness and API restart
+persistence. Helm routes ingress to the same application Service and receives
+lint/render checks; cluster installation, external PostgreSQL TLS, backup/restore,
+rollback and production acceptance remain separate gates. Disposable provider
+fixtures have their own named receipts.
 The 0.2 checkpoint stores safe operator profile references and normalized
 observations, runs bounded collection/backoff and fair ordinary-history
 retention, and serves cached product reads; logs remain bounded live reads.
@@ -841,7 +843,12 @@ purpose-bound recent authentication and atomic audit. The `0.5.0` candidate adds
 restricted mTLS Docker observation, explicit Kubernetes namespaces, independently
 published kind/scope authority, typed safe metadata, Pod UID/lifetime checks and
 guest isolation. Provider target receipts have named version bounds; the final
-local gate passed; exact publication/CI remain pending. At the 0.6.0 checkpoint, guarded actions and audit quota/cleanup policy have local implementation and test coverage. Exact tagged CI, disposable provider-write proof, profile/reference rotation and 1.0 deployment gates remain. Audit expiry requires the independently verified archive cutoff described in the current settings guide. See [current observation
+local gate passed and exact publication CI passed, including disposable Engine
+and Kubernetes guarded-writer jobs. Profile/reference rotation and 1.0 deployment
+gates remain. Audit expiry requires the independently verified archive cutoff
+described in the current settings guide. Stage 7 aligns production packaging
+with ADR-0001 and adds Compose installation/restart proof; the exact 0.7.0 gates
+remain open until its changed tree is verified. See [current observation
 boundaries](docs/observations.md) and the roadmap for remaining work; these status
 notes do not reduce the required 1.0 behavior above.
 The locally verified 0.3.0 development checkpoint adds current-configuration raw collection evidence,

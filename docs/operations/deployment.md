@@ -2,7 +2,7 @@
 
 ## Local Compose
 
-The Compose profile binds the edge only to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes, and waits for database and API readiness before starting the web edge.
+Compose builds one non-root Go service with the production web bundle embedded. It binds to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes, and reports ready only after the API and database are ready.
 
 1. Copy `deploy/compose.env.example` to `.env`.
 2. Replace both password placeholders. URL-encode the password inside `STACKPLORE_COMPOSE_DATABASE_URL`.
@@ -14,13 +14,13 @@ The Compose profile binds the edge only to `127.0.0.1`, keeps PostgreSQL and the
    `http://localhost:8080/setup` and complete first administrator setup.
    Remove both setup values from the shell and recreate only the API with
    `docker compose up -d --force-recreate api` after setup closes.
-5. Stop without data loss using `docker compose down`. Do not add `--volumes` unless permanent data removal is intended.
+5. Stop without data loss using `docker compose down`. Do not add `--volumes` unless permanent data removal is intended. Repeat `docker compose up -d` to start again; the named volumes preserve database and runtime-key state.
 
-This profile uses PostgreSQL without transport TLS only on its private local bridge. It is not proof of a production database or edge.
+The API serves the UI and API on the same origin. Browser routes fall back to the embedded `index.html`; missing files with an extension, API routes, and health routes remain 404/health responses. The Compose database has no transport TLS only because it stays on the private local bridge. This profile is not proof of a production database or public ingress.
 
 ## Cluster chart
 
-The chart does not install a database. Supply an external PostgreSQL URL using `sslmode=verify-full` in an existing Secret:
+The chart does not install a database. Supply an external PostgreSQL URL using `sslmode=verify-full` in an existing Secret. For a private CA, enable `api.databaseTLS` and create its separate CA Secret. The chart mounts only the public CA certificate at `/var/run/stackplore/database-ca/ca.crt`; include that exact `sslrootcert` path in the database URL. Never mount the database's private TLS key into the application.
 
 ```yaml
 apiVersion: v1
@@ -49,7 +49,7 @@ helm upgrade --install stackplore deploy/helm/stackplore \
   --atomic --wait
 ```
 
-The API stays at one replica because its digest key uses a ReadWriteOnce persistent volume and the current process enforces single-writer ownership. The web edge defaults to two replicas and has a disruption budget.
+The chart installs one Go application deployment and routes the ingress to its Service. The API stays at one replica because its digest key uses a ReadWriteOnce persistent volume and the current process enforces single-writer ownership. The UI assets ship in the same API image; there is no separate web deployment.
 
 The Kubernetes source defaults off. Enabling `api.kubernetes.enabled` requires
 one to 64 explicit entries in `api.kubernetes.namespaces`. Each namespace gets

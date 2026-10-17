@@ -151,14 +151,14 @@ The policy accepts only reviewed routes, methods, response codes, security requi
 
 ## Deployment checks
 
-Static assets can be parsed locally without container tools, but real deployment evidence requires the named tool:
+Local handler tests verify embedded asset routing; they do not prove an image or installation. The CI Compose job builds and starts the exact image, checks fresh PostgreSQL readiness, UI assets and SPA routes, then restarts the API and verifies the migration ledger and readiness persist. The chart CI still lints and renders; it does not install a cluster. Real target proof requires the named tool:
 
 ```sh
 docker compose --env-file deploy/compose.env.example config --quiet
 helm lint deploy/helm/stackplore --strict
 ```
 
-The CI workflow also builds both images and runs the PostgreSQL integration suite. A workflow file is not proof until a run passes. See [deployment](operations/deployment.md).
+The CI workflow builds the application image, starts a fresh Compose stack and verifies UI/readiness/restart, and runs the PostgreSQL integration suite. Chart lint/render is not a cluster install. A workflow file is not proof until its exact run passes. See [deployment](operations/deployment.md).
 
 ## Operator commands
 

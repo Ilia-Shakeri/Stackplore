@@ -11,6 +11,7 @@ import (
 	"net/netip"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"time"
 )
 
@@ -154,6 +155,22 @@ func TestClosedReadinessRoute(t *testing.T) {
 	}
 	if response.Header().Get(requestIDHeader) != "req_test" {
 		t.Errorf("response request ID = %q", response.Header().Get(requestIDHeader))
+	}
+}
+
+func TestEmbeddedWebFallbackIsSameOriginAndNeverCapturesAPI404(t *testing.T) {
+	handler, _, _ := makeHandler(t, func(options *Options) {
+		options.WebAssets = fstest.MapFS{"index.html": {Data: []byte("<main>web shell</main>")}}
+	})
+	request := makeRequest(http.MethodGet, "/settings/application", "198.51.100.10:4000")
+	request.Header.Set("Accept", "text/html")
+	if response := serve(handler, request); response.Code != http.StatusOK || !strings.Contains(response.Body.String(), "web shell") {
+		t.Fatalf("SPA response = %d %q", response.Code, response.Body.String())
+	}
+	request = makeRequest(http.MethodGet, "/api/v1/unknown", "198.51.100.10:4000")
+	request.Header.Set("Accept", "text/html")
+	if response := serve(handler, request); response.Code != http.StatusNotFound || strings.Contains(response.Body.String(), "web shell") {
+		t.Fatalf("API 404 was captured by SPA: %d %q", response.Code, response.Body.String())
 	}
 }
 

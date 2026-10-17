@@ -125,6 +125,7 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+              protocol: TCP
           readinessProbe:
             httpGet:
               path: /readyz
@@ -152,6 +153,11 @@ spec:
               mountPath: /var/lib/stackplore
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.api.databaseTLS.enabled }}
+            - name: database-ca
+              mountPath: /var/run/stackplore/database-ca
+              readOnly: true
+            {{- end }}
       volumes:
         - name: runtime
           persistentVolumeClaim:
@@ -159,6 +165,15 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 32Mi
+        {{- if .Values.api.databaseTLS.enabled }}
+        - name: database-ca
+          secret:
+            secretName: {{ .Values.api.databaseTLS.caSecretName | quote }}
+            defaultMode: 0444
+            items:
+              - key: {{ .Values.api.databaseTLS.caCertificateKey | quote }}
+                path: ca.crt
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

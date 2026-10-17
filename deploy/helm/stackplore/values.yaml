@@ -7,13 +7,17 @@ api:
   replicaCount: 1
   image:
     repository: ghcr.io/example/stackplore-api
-    tag: '0.6.0'
+    tag: '0.7.0'
     pullPolicy: IfNotPresent
   publicOrigin: https://stackplore.example.com
   trustedProxyPrefixes: 10.0.0.0/8
   metricsAllowedPrefixes: 10.0.0.0/8
   existingSecret: stackplore-runtime
   databaseURLKey: database-url
+  databaseTLS:
+    enabled: false
+    caSecretName: stackplore-postgres-ca
+    caCertificateKey: ca.crt
   setup:
     enabled: false
     proofSecretKey: setup-bootstrap-proof
@@ -43,20 +47,6 @@ api:
   persistence:
     storageClass: ''
     size: 1Gi
-
-web:
-  replicaCount: 2
-  image:
-    repository: ghcr.io/example/stackplore-web
-    tag: '0.6.0'
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 500m
-      memory: 256Mi
 
 service:
   type: ClusterIP

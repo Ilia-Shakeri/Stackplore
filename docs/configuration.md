@@ -224,4 +224,7 @@ Helm reads [values/schema](../deploy/helm/stackplore/values.schema.json).
 `api.setup.enabled=true` reads proof and expiry keys from `api.existingSecret`
 for a fresh installation. Disable it after setup. The chart defaults real
 Kubernetes reads off; enabling them requests the current cluster reader role.
-The external database URL needs verified TLS. API replicas stay exactly one.
+The external database URL needs verified TLS. For a private database CA, set
+`api.databaseTLS.enabled=true`, create the named CA Secret with the configured
+certificate key, and add `sslrootcert=/var/run/stackplore/database-ca/ca.crt` to
+the URL. Only the CA certificate is mounted. API replicas stay exactly one.

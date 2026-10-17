@@ -1,5 +1,7 @@
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+
+configure({ asyncUtilTimeout: 3000 });
 
 const createMediaQueryList = (query: string): MediaQueryList => ({
   matches: false,

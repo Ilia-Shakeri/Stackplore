@@ -27,7 +27,7 @@ const main = async () => {
   }
   const values = await read('deploy/helm/stackplore/values.yaml');
   const tags = [...values.matchAll(/^ {4}tag: '(.+)'$/gm)].map((match) => match[1]);
-  if (tags.length !== 2 || tags.some((tag) => tag !== version))
+  if (tags.length !== 1 || tags.some((tag) => tag !== version))
     throw new Error('Default image version drift');
   if (!(await read('CHANGELOG.md')).includes(`## [${version}]`))
     throw new Error('Release changelog missing');

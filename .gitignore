@@ -15,6 +15,8 @@ dist/
 dev-dist/
 .vite/
 *.tsbuildinfo
+apps/api/internal/webui/static/*
+!apps/api/internal/webui/static/embed.marker
 
 # Go output and tooling
 bin/

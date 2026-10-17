@@ -1,7 +1,8 @@
 # Security Model
 
-Status: verified checkpoints through 0.4.0 and the 0.5.0 candidate boundaries;
-exact local, remote and target evidence remain in the active plan.
+Status: published checkpoints through 0.6.0. Exact local/CI proof for those
+checkpoints and open target-specific security gates are separated in the active
+plan. Stage 7 unifies static assets and API on the same server boundary.
 
 ## Assets
 
@@ -18,8 +19,7 @@ Stackplore protects:
 
 ```text
 Untrusted browser/input
-  -> public web edge
-  -> same-origin Go API
+  -> same-origin Go application (embedded web and API)
   -> local policy and provider adapters
   -> PostgreSQL / external infrastructure APIs
 
@@ -147,7 +147,7 @@ Backup files contain sensitive application state. Encrypt them at rest, restrict
 
 ## Deployment
 
-The API and web images run as non-root and drop Linux capabilities. The local web container has a read-only root filesystem and bounded temporary filesystems. Compose binds only the edge to host loopback and preserves PostgreSQL and runtime-key named volumes.
+The single API image serves embedded UI files and runs as non-root with Linux capabilities dropped. Its container uses a read-only root filesystem and bounded temporary storage. Compose binds the application only to host loopback and preserves PostgreSQL and runtime-key named volumes.
 
 The cluster chart uses restricted pod security contexts, read-only roots, probes, resource bounds, an external PostgreSQL Secret, TLS ingress support, and one API replica with persistent runtime-key storage. Use registry-enforced immutable tags in current chart values. Digest fields and release artifact verification remain stage8 work; the current chart appends a tag.
 
@@ -192,7 +192,7 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 
 - Production restricted Docker access and namespace-scoped Kubernetes/partial-permission fidelity
 - browser-managed profile creation and credential editing remain unsupported; operator reference rotation uses deployment-owned files and stores no raw values
-- provider action integration proof and exact Stage 6 CI remain pending until the active plan records them
+- exact Stage 6 CI passed guarded Docker and Kubernetes writes against owned disposable targets; production operator actions remain disabled by default and require separate target evidence
 - live operator receiver, reverse-proxy/browser and provider-fidelity proof for the implemented alert windows and durable replay
 - target production PostgreSQL/restore/TLS, Compose, cluster, browser, accessibility and performance proof
 

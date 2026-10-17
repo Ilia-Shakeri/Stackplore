@@ -40,7 +40,6 @@ services:
       STACKPLORE_ENVIRONMENT: development
       STACKPLORE_HTTP_ADDRESS: 0.0.0.0:8080
       STACKPLORE_PUBLIC_ORIGIN: http://localhost:${STACKPLORE_COMPOSE_PORT:-8080}
-      STACKPLORE_TRUSTED_PROXY_PREFIXES: 172.30.0.0/24
       STACKPLORE_METRICS_ALLOWED_PREFIXES: 172.30.0.0/24
       STACKPLORE_DATA_DIRECTORY: /var/lib/stackplore
       STACKPLORE_DATABASE_URL: ${STACKPLORE_COMPOSE_DATABASE_URL:?set STACKPLORE_COMPOSE_DATABASE_URL}
@@ -65,36 +64,13 @@ services:
       timeout: 3s
       retries: 12
       start_period: 15s
+    ports:
+      - 127.0.0.1:${STACKPLORE_COMPOSE_PORT:-8080}:8080
     volumes:
       - stackplore-runtime:/var/lib/stackplore
     networks:
       stackplore:
         ipv4_address: 172.30.0.20
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-
-  web:
-    build:
-      context: .
-      dockerfile: deploy/Dockerfile.web
-    restart: unless-stopped
-    depends_on:
-      api:
-        condition: service_healthy
-    ports:
-      - 127.0.0.1:${STACKPLORE_COMPOSE_PORT:-8080}:8080
-    networks:
-      stackplore:
-        ipv4_address: 172.30.0.30
-    read_only: true
-    mem_limit: 128m
-    cpus: 0.5
-    pids_limit: 64
-    tmpfs:
-      - /var/cache/nginx:size=16m,mode=0755,uid=101,gid=101
-      - /var/run:size=1m,mode=0755,uid=101,gid=101
     security_opt:
       - no-new-privileges:true
     cap_drop:

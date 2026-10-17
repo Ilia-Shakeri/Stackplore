@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"errors"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/netip"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/webui"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -47,6 +49,7 @@ type Options struct {
 	Operations              OperationManager
 	ApplicationSettings     ApplicationSettings
 	ApplicationMutationMode ApplicationMutationMode
+	WebAssets               fs.FS
 	GuestDemo               *GuestDemoOptions
 
 	requestIDs requestIDSource
@@ -101,7 +104,11 @@ func NewHandler(options Options) (http.Handler, error) {
 		options.ApplicationMutationMode,
 		options.GuestDemo,
 	))
-	root.NotFound(plainNotFound)
+	if options.WebAssets == nil {
+		root.NotFound(plainNotFound)
+	} else {
+		root.NotFound(webui.Handler(options.WebAssets))
+	}
 	root.MethodNotAllowed(rootMethodNotAllowed)
 
 	var handler http.Handler = root

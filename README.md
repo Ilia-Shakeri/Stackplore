@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. Stages 1–5 are published development checkpoints through `0.5.0`; corrected main CI run 39018504287 passed for the exact `v0.5.0` revision. Stage 6 `0.6.0` local full gate passes; exact tagged CI and disposable action jobs remain open. Stages 7–9 remain open. A development checkpoint does not complete 1.0.
+> **Status:** 1.0 work is active. Stages 1–6 are published checkpoints through `0.6.0`. Stage 7 `0.7.0` unifies the UI and API in one same-origin Go image; local full verification and exact CI are tracked in the [evidence plan](docs/implementation-plan.md). Cluster installation, external PostgreSQL TLS, backup/restore, rollback, accessibility, performance and final release gates remain open. A development checkpoint does not complete 1.0.
 
 ## Implemented
 
@@ -20,11 +20,11 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 - Paginated overview, resources, detail, topology, logs, events and alert journeys with URL filters, truthful partial states, keyboard alternatives and English/Persian RTL. See [exploration](docs/exploration.md).
 - Administrator source enable/disable with exact target/version, impact preview, expiring one-use confirmation, purpose-bound recent authentication and atomic audit; profiles and credentials remain operator supplied
 - Covered evidence for all eight declared alert predicates, administrator rule management, persistent synthetic demo episodes, durable alert change replay and linked in-app notifications. Opt-in guarded webhook and Matrix lanes have safe status, recent-auth test delivery, stable retry payloads, fenced leases and terminal audit. See [semantics and limits](docs/alerts-notifications.md).
-- Non-root API and web images, a persistent local Compose profile, an external-PostgreSQL cluster chart, and CI definitions for code, PostgreSQL integration, image, Compose, and chart gates
+- One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and chart lint/render.
 
 ## Still required for 1.0
 
-- Exact tagged Stage 6 CI and opt-in disposable Docker Engine and Kubernetes kind write evidence
+- External PostgreSQL TLS and Helm installation/restart proof from the new 0.7.0 CI gates; no production cluster is claimed
 - Safe operator profile/reference rotation; no raw credentials are stored
 - Operator receiver/production deployment proof and final browser acceptance, plus immutable audit coverage for unfinished mutation paths
 - Release and installation gates listed in the roadmap; 1.0 remains incomplete

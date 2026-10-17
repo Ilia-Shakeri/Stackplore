@@ -75,6 +75,7 @@ jobs:
           helm template verify deploy/helm/stackplore --set api.setup.enabled=true --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --set ingress.enabled=true >/dev/null
           helm template verify deploy/helm/stackplore --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --set api.kubernetes.clusterObservation=true >/dev/null
           helm template verify deploy/helm/stackplore --set api.webhook.enabled=true --set api.matrix.enabled=true >/dev/null
+          helm template verify deploy/helm/stackplore --set api.databaseTLS.enabled=true --set api.databaseTLS.caSecretName=verify-database-ca >/dev/null
           helm template verify deploy/helm/stackplore --set podAnnotations.test=verify >/dev/null
       - name: Verify long release names keep separate observation roles
         run: |
@@ -90,15 +91,200 @@ jobs:
           tags: stackplore-api:verify
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
-      - name: Build web image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+
+  compose-install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Prepare disposable first-run configuration
+        run: |
+          password="$(openssl rand -hex 24)"
+          proof="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')"
+          expires="$(date -u -d '+60 minutes' '+%Y-%m-%dT%H:%M:%SZ')"
+          {
+            echo "STACKPLORE_COMPOSE_DATABASE_PASSWORD=$password"
+            echo "STACKPLORE_COMPOSE_DATABASE_URL=postgresql://stackplore:$password@postgres:5432/stackplore?sslmode=disable"
+            echo "STACKPLORE_COMPOSE_PORT=18080"
+            echo "STACKPLORE_SETUP_BOOTSTRAP_PROOF=$proof"
+            echo "STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT=$expires"
+          } >> "$GITHUB_ENV"
+      - name: Build and start fresh Compose install
+        run: docker compose up --build -d
+      - name: Verify UI, API, database migration, and restart persistence
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:18080/readyz >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent --show-error http://127.0.0.1:18080/readyz
+          setup_status="$(curl --fail --silent --show-error http://localhost:18080/api/v1/setup/status)"
+          printf '%s' "$setup_status" | jq -e '.state == "required" and .bootstrap_proof_required == true' >/dev/null
+          cookie_jar="$RUNNER_TEMP/stackplore-smoke-cookies"
+          preauth="$(curl --fail --silent --show-error -c "$cookie_jar" -H 'Origin: http://localhost:18080' -H 'Content-Type: application/json' -d '{"purpose":"setup"}' http://localhost:18080/api/v1/auth/preflight)"
+          preauth_proof="$(printf '%s' "$preauth" | jq -er '.preauth_proof')"
+          setup_body="$(jq -cn --arg proof "$STACKPLORE_SETUP_BOOTSTRAP_PROOF" '{login_name:"ci_operator",display_name:"CI Operator",password:"C1-Only-for-CI-Disposable-2026!",bootstrap_proof:$proof}')"
+          curl --fail --silent --show-error -b "$cookie_jar" -c "$cookie_jar" -H 'Origin: http://localhost:18080' -H 'Content-Type: application/json' -H "X-Stackplore-Preauth: $preauth_proof" -d "$setup_body" http://localhost:18080/api/v1/setup >/dev/null
+          closed_status="$(curl --fail --silent --show-error http://localhost:18080/api/v1/setup/status)"
+          printf '%s' "$closed_status" | jq -e '.state == "closed"' >/dev/null
+          page="$(curl --fail --silent --show-error http://127.0.0.1:18080/)"
+          asset="$(printf '%s' "$page" | grep -oE '/assets/[^" ]+\.js' | head -n 1)"
+          test -n "$asset"
+          curl --fail --silent --show-error "http://127.0.0.1:18080$asset" >/dev/null
+          curl --fail --silent --show-error -H 'Accept: text/html' http://127.0.0.1:18080/setup >/dev/null
+          migration_count="$(docker compose exec -T postgres psql -U stackplore -d stackplore -Atc 'SELECT count(*) FROM schema_migrations')"
+          test "$migration_count" -gt 0
+          unset STACKPLORE_SETUP_BOOTSTRAP_PROOF STACKPLORE_SETUP_BOOTSTRAP_EXPIRES_AT
+          docker compose up -d --force-recreate api
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:18080/readyz >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent --show-error http://127.0.0.1:18080/readyz
+          migration_count_after="$(docker compose exec -T postgres psql -U stackplore -d stackplore -Atc 'SELECT count(*) FROM schema_migrations')"
+          test "$migration_count" = "$migration_count_after"
+          curl --fail --silent --show-error -b "$cookie_jar" http://localhost:18080/api/v1/auth/session >/dev/null
+          test -n "$(curl --fail --silent --show-error -H 'Accept: text/html' http://127.0.0.1:18080/settings/application)"
+      - name: Stop disposable Compose stack and remove its volumes
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  helm-install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: azure/setup-helm@bf6a7d304bc2fdb57e0331155b7ebf2c504acf0a # v4
         with:
-          context: .
-          file: deploy/Dockerfile.web
-          push: false
-          tags: stackplore-web:verify
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=max,scope=web
+          version: v3.17.3
+      - name: Install verified kind binary
+        run: |
+          mkdir -p "$RUNNER_TEMP/stackplore-tools"
+          curl --fail --silent --show-error --location --retry 2 --max-time 60 https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 --output "$RUNNER_TEMP/stackplore-tools/kind"
+          printf '%s  %s\n' aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d "$RUNNER_TEMP/stackplore-tools/kind" | sha256sum --check --strict -
+          curl --fail --silent --show-error --location --retry 2 --max-time 120 https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl --output "$RUNNER_TEMP/stackplore-tools/kubectl"
+          printf '%s  %s\n' 65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8 "$RUNNER_TEMP/stackplore-tools/kubectl" | sha256sum --check --strict -
+          chmod 0755 "$RUNNER_TEMP/stackplore-tools/kind"
+          chmod 0755 "$RUNNER_TEMP/stackplore-tools/kubectl"
+          echo "$RUNNER_TEMP/stackplore-tools" >> "$GITHUB_PATH"
+      - name: Create isolated cluster and load application image
+        run: |
+          cluster_name="stackplore-install-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "STACKPLORE_INSTALL_KIND_NAME=$cluster_name" >> "$GITHUB_ENV"
+          kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --wait 180s
+          docker build --file deploy/Dockerfile.api --tag stackplore-api:verify .
+          kind load docker-image stackplore-api:verify --name "$cluster_name"
+      - name: Prepare external PostgreSQL with verified TLS
+        run: |
+          test_dir="$RUNNER_TEMP/stackplore-helm-install"
+          mkdir -m 0700 "$test_dir"
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout "$test_dir/ca.key" -out "$test_dir/ca.crt" -subj /CN=stackplore-disposable-test-ca -days 1
+          openssl req -newkey rsa:2048 -nodes -keyout "$test_dir/server.key" -out "$test_dir/server.csr" -subj /CN=postgres.stackplore.svc.cluster.local
+          printf 'subjectAltName=DNS:postgres.stackplore.svc.cluster.local\nextendedKeyUsage=serverAuth\n' > "$test_dir/server.ext"
+          openssl x509 -req -in "$test_dir/server.csr" -CA "$test_dir/ca.crt" -CAkey "$test_dir/ca.key" -CAcreateserial -out "$test_dir/server.crt" -days 1 -extfile "$test_dir/server.ext"
+          kubectl create namespace stackplore
+          kubectl -n stackplore create secret generic postgres-tls --from-file=tls.crt="$test_dir/server.crt" --from-file=tls.key="$test_dir/server.key"
+          kubectl -n stackplore create secret generic postgres-ca --from-file=ca.crt="$test_dir/ca.crt"
+          db_password="$(openssl rand -hex 24)"
+          db_url="postgresql://stackplore:${db_password}@postgres.stackplore.svc.cluster.local:5432/stackplore?sslmode=verify-full&sslrootcert=/var/run/stackplore/database-ca/ca.crt"
+          kubectl -n stackplore create secret generic stackplore-runtime --from-literal="database-url=$db_url"
+          cat > "$test_dir/postgres.yaml" <<'YAML'
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: postgres
+            namespace: stackplore
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: postgres
+            template:
+              metadata:
+                labels:
+                  app: postgres
+              spec:
+                securityContext:
+                  fsGroup: 999
+                containers:
+                  - name: postgres
+                    image: postgres:17.6-alpine
+                    args: ["postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/tls/tls.crt", "-c", "ssl_key_file=/tls/tls.key"]
+                    env:
+                      - name: POSTGRES_DB
+                        value: stackplore
+                      - name: POSTGRES_USER
+                        value: stackplore
+                      - name: POSTGRES_PASSWORD
+                        value: "PLACEHOLDER"
+                    ports:
+                      - name: postgres
+                        containerPort: 5432
+                    readinessProbe:
+                      exec:
+                        command: ["pg_isready", "-U", "stackplore", "-d", "stackplore"]
+                      initialDelaySeconds: 5
+                      periodSeconds: 2
+                    volumeMounts:
+                      - name: tls
+                        mountPath: /tls
+                        readOnly: true
+                      - name: data
+                        mountPath: /var/lib/postgresql/data
+                volumes:
+                  - name: tls
+                    secret:
+                      secretName: postgres-tls
+                      defaultMode: 0440
+                  - name: data
+                    emptyDir: {}
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: postgres
+            namespace: stackplore
+          spec:
+            selector:
+              app: postgres
+            ports:
+              - name: postgres
+                port: 5432
+                targetPort: postgres
+          YAML
+          sed -i "s/PLACEHOLDER/$db_password/" "$test_dir/postgres.yaml"
+          kubectl apply -f "$test_dir/postgres.yaml"
+          kubectl -n stackplore rollout status deployment/postgres --timeout=180s
+      - name: Install Helm chart against external TLS database
+        run: |
+          helm upgrade --install verify deploy/helm/stackplore \
+            --namespace stackplore \
+            --set api.image.repository=stackplore-api \
+            --set api.image.tag=verify \
+            --set api.image.pullPolicy=IfNotPresent \
+            --set api.databaseTLS.enabled=true \
+            --set api.databaseTLS.caSecretName=postgres-ca \
+            --set api.databaseTLS.caCertificateKey=ca.crt \
+            --set api.publicOrigin=https://stackplore.test \
+            --set ingress.enabled=true \
+            --wait --timeout 8m
+          kubectl -n stackplore rollout status deployment/verify-stackplore-api --timeout=180s
+          kubectl -n stackplore get ingress verify-stackplore -o json | jq -e '.spec.rules[0].http.paths[0].backend.service.name == "verify-stackplore-api" and .spec.rules[0].http.paths[0].backend.service.port.name == "http"' >/dev/null
+          kubectl -n stackplore port-forward service/verify-stackplore-api 18081:80 > "$RUNNER_TEMP/stackplore-port-forward.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/stackplore-port-forward.pid"
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:18081/readyz >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent --show-error http://127.0.0.1:18081/readyz
+          page="$(curl --fail --silent --show-error -H 'Accept: text/html' http://127.0.0.1:18081/settings/application)"
+          printf '%s' "$page" | grep -q 'Stackplore'
+          kubectl -n stackplore get pods -o json | jq -e '[.items[] | select(.metadata.labels["app.kubernetes.io/component"] == "api") | .spec.containers[0].volumeMounts[] | select(.mountPath == "/var/run/stackplore/database-ca" and .readOnly == true)] | length == 1' >/dev/null
+      - name: Delete only the owned disposable cluster
+        if: always() && env.STACKPLORE_INSTALL_KIND_NAME != ''
+        run: |
+          if test -f "$RUNNER_TEMP/stackplore-port-forward.pid"; then kill "$(cat "$RUNNER_TEMP/stackplore-port-forward.pid")" || true; fi
+          kind delete cluster --name "$STACKPLORE_INSTALL_KIND_NAME"
 
   docker-provider:
     runs-on: ubuntu-24.04

@@ -7,12 +7,17 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-17): stages 1–5 are published development checkpoints
-through `0.5.0`. Exact local and remote outcomes are separate in the evidence
+Current status (2026-10-17): stages 1–6 are published development checkpoints
+through `0.6.0`. Exact local and remote outcomes are separate in the evidence
 plan. Stage 4 passed its local, PostgreSQL, native and actual browser gates;
 [retained browser evidence](evidence/0.4.0/README.md) states the scope. Stage 5
 tag `v0.5.0` is at `c2f4c6a6de72f4574f56d57248f8aa3170d7b01f`; the corrected
-main runs `39018504287` and `39018996970` both passed on the exact tag commit. Stage 6 `0.6.0` source is implemented and the local full gate passes; exact commit/tag CI and opt-in disposable provider-write jobs remain open. Stages 7–9 remain open. [Exploration](exploration.md)
+main runs `39018504287` and `39018996970` both passed on the exact tag commit.
+Stage 6 `0.6.0` exact main/tag CI passed, including the disposable Engine and
+Kubernetes writer jobs. Stage 7 `0.7.0` is in progress; the Go image now embeds
+the UI, Compose CI checks fresh startup and restart, and Helm points ingress to
+the app Service. Its local and exact CI evidence remains open. Stages 8–9 remain
+open. [Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
 
@@ -154,9 +159,9 @@ Stage 6–9 work is not complete.
 
 ## Stage 6 — Narrow guarded actions and settings — 0.6.0
 
-Status: local implementation and full gate pass. The stage remains open until exact tagged CI and provider action jobs pass.
+Status: complete checkpoint: exact local, PostgreSQL and tagged CI gates passed, including disposable Engine and Kubernetes writer jobs. Production deployment and operator credential rotation remain open.
 
-Implemented: fixed allow/deny matrix with Docker restart, Kubernetes rollout restart and replica scaling; PostgreSQL intent/result audit, one-use confirmations, recent-auth gates and bounded recovery; settings/export/cleanup and bilingual personal preferences. Local concurrency, replay, synthetic source and real SQL tests pass.
+Implemented: fixed allow/deny matrix with Docker restart, Kubernetes rollout restart and replica scaling; PostgreSQL intent/result audit, one-use confirmations, recent-auth gates and bounded recovery; settings/export/cleanup and bilingual personal preferences. Local concurrency, replay, synthetic source and real SQL tests pass. Exact main and tag CI runs `39022543132` and `39023109917` passed, including disposable writer jobs.
 
 Operator quota, 90-day minimum, independently verified archive cutoff, immutable policy audit and bounded linked-row-safe expiry are implemented.
 Safe credential/reference rotation by the operator remains a documented deployment procedure; the application stores no raw writer credential.
@@ -167,7 +172,13 @@ denial, and opt-in disposable action proof. Writes remain disabled by default.
 
 ## Stage 7 — Verified installation and operator support — 0.7.0
 
-Align built-web serving with ADR-0001 before release. Run non-root container builds, Compose fresh install and persistence, safe
+Status: implementation in progress. The local application embeds the built UI;
+Compose now has a fresh-install, setup, readiness, asset, and restart/session
+gate; Helm accepts an operator CA Secret for PostgreSQL `verify-full`. CI now
+includes chart install in an owned kind cluster against a separate TLS
+PostgreSQL service. Exact changed-tree and release CI remain open.
+
+Verify built-web serving against ADR-0001. Run non-root image builds, Compose fresh install and persistence, safe
 bootstrap, readiness failure/recovery, native backup/empty-target restore and
 upgrade drills. Validate Helm render/lint/schema and install on a disposable
 cluster with external PostgreSQL TLS. Finish configuration reference,

@@ -2,11 +2,23 @@
 
 ## Current release status — 2026-10-17
 
-The earlier Stage 5 pending statements below are historical and superseded:
-`v0.5.0` is tagged at `c2f4c6a6de72f4574f56d57248f8aa3170d7b01f`.
-[Corrected main CI run 39018504287](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39018504287) and [run 39018996970](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39018996970) both passed on the exact tag commit. Stage 6 `0.6.0` full local gate passed after the audit lifecycle worker, real PostgreSQL pruning test, and web fixture fixes. The commit, exact tagged CI, and actual provider write jobs remain open.
+Published through Stage 6: `v0.6.0` is at commit
+`365dc214161bf74e0f77aaedc9d32529c1ec1cf2`. [Main CI run
+39022543132](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39022543132)
+and [tag CI run
+39023109917](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39023109917)
+passed on that exact commit. Both ran the full local gate, Go race tests, image
+and chart checks; the tag run also passed disposable Docker and Kubernetes
+guarded-writer jobs.
 
-Stage 6 local full gate: `npm.cmd run verify` passed with Node 24.18.0, Go 1.26.5, CI mode, and disposable PostgreSQL 17 at localhost port 55473. It includes real migration and repository tests, audit lifecycle verified-cutoff/bounded-delete proof, 36 API-client tests, 402 web tests, type checks and both production builds. `git diff --check` passed. Local Windows cannot provide actual Docker Engine or Kubernetes kind write proof; those separate opt-in CI jobs remain required.
+Stage 7 `0.7.0` is in progress. Current changes embed the production web bundle
+in the Go server, make Compose use one application service, remove the separate
+Nginx chart workload, add a Secret-mounted PostgreSQL CA option, and define CI
+for fresh Compose setup/restart plus a disposable Helm install against TLS
+PostgreSQL. The latest completed local Go tests, 402 web tests, API build and
+strict Helm render/lint are recorded below after the final changed-tree gate.
+
+Stage 6 local full gate: `npm.cmd run verify` passed with Node 24.18.0, Go 1.26.5, CI mode, and disposable PostgreSQL 17 at localhost port 55473. It includes real migration and repository tests, audit lifecycle verified-cutoff/bounded-delete proof, 36 API-client tests, 402 web tests, type checks and both production builds. `git diff --check` passed. Exact remote provider-write proof passed in the linked tag run.
 
 Stage 5 publication follow-up: candidate `e04bc622ddb22e08a9c493000edd4c18cc0dc717`
 was committed and pushed on 2026-10-17. The first
@@ -22,12 +34,12 @@ The application source and final full local gate are unchanged by this workflow
 correction. Replacement remote execution and the final annotated tag remain
 pending; Stage 6 implementation has begun in the working tree.
 
-Review dates: 2026-10-12–17. Target: 1.0.0. Stages 1–4 are verified development
-checkpoints through `0.4.0`. Stage 4 final local and browser gates passed; exact
-remote publication outcomes are recorded separately. Current work is Stage 5
-provider fidelity at the locally verified `0.5.0` checkpoint. Provider/guest behavior has
-scoped real-target and browser receipts; final changed-tree gate D passed with
-scoped quality 9/10. Commit/tag/remote CI remain pending. Stages 6–9 remain open.
+Review dates: 2026-10-12–17. Target: 1.0.0. Stages 1–6 are published
+checkpoints through `0.6.0`; local, CI and target proof remain separately named.
+Stage 5 provider fidelity passed its local gate and disposable provider/browser
+receipts. Stage 6 passed exact main and tag CI with disposable provider writers.
+Current work is Stage 7; no 1.0 deployment-completeness claim follows from these
+checkpoints. Stages 8–9 remain open.
 [Roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) defines ordered exit gates.
 [Audit](codebase-audit.md) records coverage and defects.
 [Historical evidence](history/implementation-plan-2026-08.md) retains prior results.
@@ -131,16 +143,15 @@ Failures were repaired: entry Go operation formatting; later web test formatting
 
 ## Remaining 1.0 scope
 
-Stages 1–4 are verified checkpoints; the detailed historical evidence follows.
-The Stage 5 candidate implements vendor clients, restricted Docker, scoped
-Kubernetes authority and the multi-environment guest demo. Its final optional-port
-clock and startup-profile fixes have scoped passing regressions; the complete
-changed-tree gate D passed; publication/CI remain open. Stage 6:
-operator audit quotas/minimum retention/reviewed cleanup, narrow operation gates
-and settings/export/cleanup. Stage 7: built-web serving alignment, real
-containers/cluster/TLS/upgrade/restore. Stage 8/9: safe PWA,
-accessibility/performance/security, artifacts/SBOM/provenance, complete bilingual
-docs and independent final 1.0 review.
+Stages 1–6 are published checkpoints. Stage 5 provider/guest behavior passed its
+scoped real-target and browser gates; Stage 6 passed exact main/tag CI, including
+disposable guarded writers. Stage 7 now implements built-web serving, a Compose
+first-install/restart workflow, and a Helm CA mount with a disposable TLS
+PostgreSQL install job. Exact Stage 7 local/remote outcomes are recorded in the
+current entry above. Its native backup/restore, upgrade and rollback evidence
+still needs exact-tree verification. Stage 8 covers PWA, accessibility,
+performance, security scans, SBOM/provenance and full bilingual operations;
+Stage 9 is the independent 1.0 review and final release.
 
 ## Stage 2 checkpoint — 2026-10-13
 

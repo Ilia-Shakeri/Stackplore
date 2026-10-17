@@ -24,6 +24,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/notification"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/webui"
 )
 
 const (
@@ -476,6 +477,7 @@ func newHTTPServerWithServices(
 		Operations:              operations,
 		ApplicationSettings:     applicationSettings,
 		ApplicationMutationMode: applicationMode,
+		WebAssets:               webui.Assets(),
 		GuestDemo:               guestHTTPOptions(settings),
 		RateLimit: httpapi.RateLimitConfig{
 			RequestsPerSecond: settings.RatePerSecond,
