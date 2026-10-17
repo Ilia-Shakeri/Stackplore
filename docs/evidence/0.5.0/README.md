@@ -4,6 +4,12 @@ This evidence covers disposable local targets. It does not establish production
 installation, capacity, complete assistive-technology acceptance or final 1.0
 delivery. Stages 6–9 remain open in the [active plan](../../implementation-plan.md).
 
+Candidate `e04bc62` was pushed. Its first remote run failed before job execution
+because of an invalid job-level runner context. A step-local temporary path
+corrects that admission error; Actionlint 1.7.7 rejects the original and accepts
+the corrected workflow. Replacement CI and the annotated release tag remain
+separate pending gates. The application code and full local proof did not change.
+
 - [Guest runtime](guest-runtime.json): real public reads without authentication
   cookies, seven private/write HTTP rejections, zero accounts, sessions, recent
   grants or outbound deliveries. Restart advanced the protected reset epoch from

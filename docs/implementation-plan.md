@@ -1,5 +1,19 @@
 # Stackplore active implementation evidence
 
+Stage 5 publication follow-up: candidate `e04bc622ddb22e08a9c493000edd4c18cc0dc717`
+was committed and pushed on 2026-10-17. The first
+[remote run 39018000098](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39018000098)
+failed workflow admission before any job ran: job-level environment expressions
+cannot use `runner.temp`. No remote code, race, image or provider success is
+claimed for that run. The temporary kubeconfig is now assigned from the step's
+`RUNNER_TEMP` and exported for subsequent steps. Actionlint 1.7.7 reproduced the
+old rejection and passed the corrected workflow, with optional shell/Python
+linters explicitly disabled for this context-only check. Receipts remain
+`.tmp/stage5-ci-context-before.log` and `.tmp/stage5-ci-context-after.log`.
+The application source and final full local gate are unchanged by this workflow
+correction. Replacement remote execution and the final annotated tag remain
+pending; Stage 6 implementation has begun in the working tree.
+
 Review dates: 2026-10-12–17. Target: 1.0.0. Stages 1–4 are verified development
 checkpoints through `0.4.0`. Stage 4 final local and browser gates passed; exact
 remote publication outcomes are recorded separately. Current work is Stage 5

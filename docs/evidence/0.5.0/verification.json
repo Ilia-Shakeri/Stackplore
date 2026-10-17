@@ -83,11 +83,23 @@
       "command": "npm.cmd run verify",
       "name": "fresh complete PostgreSQL and preceding full gate",
       "result": "PASS"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "actionlint v1.7.7 -shellcheck= -pyflakes= .github/workflows/ci.yml",
+      "name": "corrected workflow context",
+      "result": "PASS; previous committed workflow rejected"
     }
   ],
   "kubernetesTestBinarySha256": "b9614bc6a63e6eeb6a5d9c9932d2f49f5fad1f9ab0b3037e709377fef9f6753c",
   "kubernetesCleanupReceiptSha256": "8799b6cca604de1bc4f9f2fb774132d4d8d68e0b6aee29e10f1f849b0ec2379d",
-  "remoteCI": "pending",
+  "remoteCI": {
+    "tag": "pending",
+    "replacement": "pending",
+    "initialCandidate": "e04bc622ddb22e08a9c493000edd4c18cc0dc717",
+    "initialConclusion": "failure before workflow jobs; runner context invalid in job env",
+    "initialRun": 39018000098
+  },
   "remainingStages": [
     6,
     7,

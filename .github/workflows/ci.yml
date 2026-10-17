@@ -120,7 +120,6 @@ jobs:
     env:
       KUBERNETES_REQUIRED: '1'
       STACKPLORE_TEST_KUBE_DISPOSABLE: '1'
-      STACKPLORE_TEST_KUBECONFIG: ${{ runner.temp }}/stackplore-provider-kubeconfig
       KIND_EXPERIMENTAL_PROVIDER: docker
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -138,9 +137,11 @@ jobs:
       - name: Create owned disposable Kubernetes target
         run: |
           cluster_name="stackplore-proof-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          kubeconfig_file="$RUNNER_TEMP/stackplore-provider-kubeconfig"
           echo "STACKPLORE_TEST_KIND_NAME=$cluster_name" >> "$GITHUB_ENV"
-          kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --kubeconfig "$STACKPLORE_TEST_KUBECONFIG" --wait 180s
-          chmod 0600 "$STACKPLORE_TEST_KUBECONFIG"
+          echo "STACKPLORE_TEST_KUBECONFIG=$kubeconfig_file" >> "$GITHUB_ENV"
+          kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --kubeconfig "$kubeconfig_file" --wait 180s
+          chmod 0600 "$kubeconfig_file"
       - name: Verify namespace bounds with missing Metrics API on real Kubernetes
         run: go -C apps/api test ./internal/provider/kubernetes -run '^TestScopedSDKOnRealKubernetes$' -count=1 -timeout=8m -v
       - name: Install verified kubectl fixture tool
