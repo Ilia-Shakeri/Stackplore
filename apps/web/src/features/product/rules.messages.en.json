@@ -1,0 +1,7 @@
+{
+  "alerts.rules.pagination": "Alert rule pages",
+  "alerts.rules.firstPage": "First rules",
+  "alerts.rules.previousPage": "Previous rules",
+  "alerts.rules.nextPage": "Next rules",
+  "alerts.rules.reload": "Reload rules"
+}

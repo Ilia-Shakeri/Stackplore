@@ -12,6 +12,13 @@ A Compose `.env` contains `STACKPLORE_COMPOSE_*` names that the strict Go loader
 rejects; it cannot be reused unchanged for development. Direct Go/operator
 commands require their values in process environment.
 
+The Go loader's `PUBLIC_ORIGIN` default below is the API listener. The development
+launcher supplies `http://127.0.0.1:5173` when the operator has not set it, matching
+the browser-facing Vite origin. Vite preserves Host and Origin when forwarding.
+When starting each process directly, set `STACKPLORE_PUBLIC_ORIGIN` to the web
+origin and `STACKPLORE_DEV_API_ORIGIN` to the API listener. Explicit operator values
+take precedence; an authority mismatch is rejected rather than bypassed with CORS.
+
 `STACKPLORE_` prefixes every name in the tables. Keep private values in the
 operator secret system. [`.env.example`](../.env.example) is a development
 template, not production secrets or a promise that every feature is complete.

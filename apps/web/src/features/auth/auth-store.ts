@@ -31,6 +31,8 @@ export interface AuthStoreInitialState {
 
 type AuthListener = () => void;
 const maximumTimerDelay = 2_147_000_000;
+const activityRefreshInterval = 60_000;
+const activityRequestTimeout = 10_000;
 
 export class AuthStateError extends Error {
   constructor() {
@@ -45,6 +47,8 @@ export class AuthStore {
   #expiryTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   #generation = 0;
   #inFlight: Promise<AuthSnapshot> | null = null;
+  #activityRequest: Promise<void> | null = null;
+  #lastActivityRefresh = Number.NEGATIVE_INFINITY;
   readonly #listeners = new Set<AuthListener>();
   #snapshot: AuthSnapshot;
 
@@ -241,6 +245,43 @@ export class AuthStore {
       }
       throw error;
     }
+  };
+
+  recordActivity = (): Promise<void> => {
+    if (this.#snapshot.status !== 'authenticated') return Promise.resolve();
+    if (this.#activityRequest !== null) return this.#activityRequest;
+    const deadline = this.#sessionDeadline(this.#snapshot);
+    if (deadline === null || deadline <= Date.now()) return Promise.resolve();
+    const interval = Math.min(
+      activityRefreshInterval,
+      Math.max(1_000, (deadline - Date.now()) / 2),
+    );
+    if (Date.now() - this.#lastActivityRefresh < interval) return Promise.resolve();
+    this.#lastActivityRefresh = Date.now();
+    const generation = this.#generation;
+    const controller = new AbortController();
+    const timer = globalThis.setTimeout(() => {
+      controller.abort();
+    }, activityRequestTimeout);
+    const request = this.#api
+      .getSession(controller.signal)
+      .then(
+        (session) => {
+          if (generation === this.#generation) this.#acceptSession(session);
+        },
+        (error: unknown) => {
+          if (generation === this.#generation && isUnauthorizedFailure(error)) {
+            this.#generation += 1;
+            this.#setUnauthenticated();
+          }
+        },
+      )
+      .finally(() => {
+        globalThis.clearTimeout(timer);
+        if (this.#activityRequest === request) this.#activityRequest = null;
+      });
+    this.#activityRequest = request;
+    return request;
   };
 
   runRecentAction = async <Result>(

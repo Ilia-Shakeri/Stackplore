@@ -21,6 +21,48 @@ function renderRoute(path: string) {
 }
 
 describe('application shell', () => {
+  it.each([
+    ['en', 'light'],
+    ['en', 'dark'],
+    ['fa', 'light'],
+    ['fa', 'dark'],
+  ])('keeps header controls usable with %s and %s', async (locale, theme) => {
+    globalThis.localStorage.setItem('stackplore.locale', locale);
+    globalThis.localStorage.setItem('stackplore.theme', theme);
+    const user = userEvent.setup();
+    renderRoute('/about');
+    const navigationLabel = locale === 'fa' ? 'باز کردن ناوبری' : 'Open navigation';
+    const trigger = await screen.findByRole('button', { name: navigationLabel });
+    const search = screen.getByRole('searchbox', {
+      name: locale === 'fa' ? 'جست‌وجوی منابع' : 'Search resources',
+    });
+    await user.type(search, 'gateway');
+    await user.click(trigger);
+    expect(
+      await screen.findByRole('dialog', { name: locale === 'fa' ? 'ناوبری' : 'Navigation' }),
+    ).not.toBeNull();
+    await user.keyboard('{Escape}');
+    expect(document.activeElement).toBe(trigger);
+    await user.click(
+      screen.getByRole('button', {
+        name: locale === 'fa' ? 'باز کردن منوی کاربر' : 'Open user menu',
+      }),
+    );
+    expect(await screen.findByRole('menu')).not.toBeNull();
+    await user.keyboard('{Escape}');
+    const themeControl = screen.getByRole('combobox', {
+      name: locale === 'fa' ? 'پوسته' : 'Theme',
+    });
+    await user.selectOptions(themeControl, theme === 'light' ? 'dark' : 'light');
+    expect(document.documentElement.dataset.theme).toBe(theme === 'light' ? 'dark' : 'light');
+    expect(
+      screen.getByRole<HTMLSelectElement>('combobox', {
+        name: locale === 'fa' ? 'زبان' : 'Language',
+      }).value,
+    ).toBe(locale);
+    expect((search as HTMLInputElement).value).toBe('gateway');
+  });
+
   it('redirects the root to an accessible overview shell', async () => {
     renderRoute('/');
 

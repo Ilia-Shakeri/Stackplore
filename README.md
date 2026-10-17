@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. The 0.1.0 and 0.2.0 tagged checkpoints have recorded local, PostgreSQL, native restore and CI proof. Stage 3 is the locally verified 0.3.0 development checkpoint: covered alert windows, fenced claims, durable alert replay and isolated webhook/Matrix delivery. The full local gate with real PostgreSQL, disposable native restart/restore and HTTPS receiver checks, and Helm lint/render passed; exact evidence is recorded in the plan. Stages 4–9, provider fidelity, guarded actions, broader settings, browser/container/cluster and live operator receiver proof remain open. The current instructions prohibit push, so this stage has no new remote CI claim. A development checkpoint does not complete 1.0.
+> **Status:** 1.0 work is active. Stages 1–4 are verified development checkpoints through `0.4.0`, with exact local, PostgreSQL, disposable native/receiver, browser and remote CI outcomes recorded separately in the plan. Stage 4 has passed its final local and browser gates; its exact remote outcome is recorded after publication. Stages 5–9 retain provider fidelity, guarded actions/settings, installation, performance and final release gates. A development checkpoint does not complete 1.0.
 
 ## Implemented
 
@@ -15,7 +15,7 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 - Provider-neutral domain ports and a deterministic synthetic source with stable resource identity, cursor-bound inventory, health, topology, logs, current metrics, and event history
 - Persistent safe source references and normalized observations; product inventory, health, topology, metrics and events use PostgreSQL reads, while logs remain bounded live reads. Collection has concurrency limits, cancellation and retry backoff; fair bounded retention excludes protected audit history. See [observations and source settings](docs/observations.md).
 - Versioned OpenAPI contract, generated browser types, strict runtime response parsing, safe problems, request bounds, rate limits, proxy trust, liveness, readiness, and guarded process metrics
-- Responsive overview, resources, detail, topology, logs, and events in English and Persian RTL
+- Paginated overview, resources, detail, topology, logs, events and alert journeys with URL filters, truthful partial states, keyboard alternatives and English/Persian RTL. See [exploration](docs/exploration.md).
 - Administrator source enable/disable with exact target/version, impact preview, expiring one-use confirmation, purpose-bound recent authentication and atomic audit; profiles and credentials remain operator supplied
 - Covered evidence for all eight declared alert predicates, administrator rule management, persistent synthetic demo episodes, durable alert change replay and linked in-app notifications. Opt-in guarded webhook and Matrix lanes have safe status, recent-auth test delivery, stable retry payloads, fenced leases and terminal audit. See [semantics and limits](docs/alerts-notifications.md).
 - Non-root API and web images, a persistent local Compose profile, an external-PostgreSQL cluster chart, and CI definitions for code, PostgreSQL integration, image, Compose, and chart gates

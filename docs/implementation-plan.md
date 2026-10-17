@@ -1,14 +1,21 @@
 # Stackplore active implementation evidence
 
-Review dates: 2026-10-12–16. Target: 1.0.0. Current checkpoint: 0.3.0,
-stage 3 alert evidence and delivery, locally verified. Stages 1–2 are verified,
-committed and tagged with separate recorded CI results. Current stage 3 local
-proof follows the historical stage 2 section. No new remote outcome is claimed.
-[Roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) defines delivery order and exit gates.
-[Audit](codebase-audit.md) records defects/coverage. [Historical evidence](history/implementation-plan-2026-08.md) preserves earlier timing and is not current proof.
-Implementation, versions, commits and tags remain authorized. Replacement
-repository instructions on 2026-10-16 prohibit push, superseding earlier push
-authorization. Stage 3 remains local; target deployment evidence is separate.
+Review dates: 2026-10-12–17. Target: 1.0.0. Stages 1–4 are verified development
+checkpoints through `0.4.0`. Stage 4 final local and browser gates passed; exact
+remote publication outcomes are recorded separately. Current work is Stage 5
+provider fidelity. Stages 5–9 remain open.
+[Roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) defines ordered exit gates.
+[Audit](codebase-audit.md) records coverage and defects.
+[Historical evidence](history/implementation-plan-2026-08.md) retains prior results.
+
+On 2026-10-17 the maintainer explicitly renewed authorization to test,
+version, commit and push each remaining stage. This supersedes the earlier
+no-push instruction for this task. The unchanged `v0.3.0` implementation
+`7815e52a2e71b8452e1863f798beec5b7b0c8fb9` was pushed with its existing tag.
+[Main run 39007896683](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39007896683)
+and [tag run 39007898666](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39007898666)
+completed successfully. Code/full real-PostgreSQL/race and image-build/chart
+jobs passed; neither run proves a Compose start or a cluster install.
 
 ## Review entry and boundaries
 
@@ -267,7 +274,7 @@ checkpoint. Stages 4–9 remain open; no whole-product or target-readiness claim
 | Helm 3.17.3 lint and configured render                                                     | Passed actual local strict lint/render with setup, Kubernetes read profile, ingress, webhook and Matrix. Matrix token references the existing Secret; no cluster install claim                                                                                                                                  |
 | Final `npm.cmd run verify` with real PostgreSQL                                            | Passed exit0 on frozen runtime tree: PostgreSQL package68.899s, all Go packages,36 client tests,211 web tests,394 locale messages,192 bounded schemas, format/lint/types and both builds. Log `.tmp/stage3-verify.log`                                                                                          |
 | Final native drill after last runtime correction                                           | Fresh C passed on final compiled API/storage: `STAGE3_SEED_ACK_SSE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS`; source `stackplore_stage3_native_c`, restore `stackplore_stage3_restore_c`, private key directory `.tools/stage3-native-key-c`, ignored archive `.tools/stage3-review/native-backup-c.dump`   |
-| New remote CI/race/images/Compose/cluster/browser/live operator receiver                   | Not run for 0.3.0; push prohibited. Earlier 0.2 CI does not prove changed code                                                                                                                                                                                                                                  |
+| Remote CI/race/images/Compose/cluster/browser/live operator receiver                   | Initially local under then-current instructions; on 2026-10-17 exact unchanged main/tag CI passed code/race and image/chart builds. Compose start, cluster, browser and live operator receiver were not part of those runs                                                                                                                                                                                                                                  |
 
 Native helpers and private data remain under ignored `.tools/stage3-review` and
 repo-local test directories. Local proof logs stay in ignored `.tmp`; no credential,
@@ -278,8 +285,9 @@ runtime; no new race/image/startup claim is made.
 After all proof finished, the separate repo-local PostgreSQL process shut down
 cleanly; the system service was untouched. Version metadata, documents and
 reviewed release paths were rechecked after the final evidence update. The
-checkpoint is committed and tagged locally as `v0.3.0`; current instructions
-prohibit push, so no new remote revision or workflow outcome is claimed.
+checkpoint was committed and tagged locally as `v0.3.0`. The same immutable
+implementation/tag was pushed on 2026-10-17 under renewed authorization, with
+the exact successful CI results linked at the top of this plan.
 
 ### Disposable query plans
 
@@ -303,3 +311,98 @@ selection of the added range indexes. These numbers are not end-to-end latency,
 target scale, multi-source planner evidence or a service-level objective. The
 source, caps, predicates and aggregate deadlines are part of the reviewed query
 boundary. Broader measured capacity remains later-stage work.
+
+## Stage 4 — 0.4.0 verified exploration checkpoint — 2026-10-17
+
+The frozen runtime passed the full local gate, real PostgreSQL regressions, a
+fresh native restart/restore drill and actual browser journeys. This completes
+the scoped development stage; it does not complete 1.0 or target acceptance.
+
+### Scope and correction loop
+
+- Inventory filters run against the complete PostgreSQL set before keyset
+  pagination. Provider/environment/scope/health/availability, sorting and source
+  selection have closed query validation and cursor bindings. Counts aggregate
+  the active snapshot rather than the first 200 resources/100 health targets.
+- Source-wide topology/events no longer silently filter to an inventory prefix.
+  Exact-resource requests still validate identity. Relationship transport carries
+  bounded evidence; graph/list views preserve directions and isolated nodes.
+- Logs use exact bounded ranges and resource/container/previous selection.
+  Loaded-line search/severity and export remain bounded to loaded redacted data.
+  Empty source reads preserve availability without calling target-only adapters.
+- Product transport and pages are split by feature. Lists cap at 1,000 loaded
+  items; the graph caps at 200 nodes with 50-node/50-edge list pages. Late replies,
+  repeated cursors, cancellation and cap truncation have regressions.
+- Pointer/key activity requests a server session context at most once per 60
+  seconds, with a 10-second deadline, single-flight and session-generation fences.
+  There is no invented expiry or idle background extension.
+- Metric series use actual sample timestamps and keep separate resource curves.
+  Tables expose identity/time/value; charts do not invent synchronized fleet sums.
+
+| Pass | Scoped score | Findings and correction |
+| --- | --- | --- |
+| Initial feature review | 8/10 | First-page source counts and topology/event scoping; live default range cursor drift; partial/denied health; empty target reads; incomplete pagination and stale session deadlines. Fixed in domain, PostgreSQL, HTTP and web boundaries with regressions. |
+| Independent and real-browser review | 8/10 | Missing partial-summary reason, source capability stale filter order, fractional rule threshold validation, irregular metric spacing and resource aggregation, last-page cap truncation, fixed demonstration-clock boundary, slow tail read starvation, query patch races and mobile toolbar layout. Fixed and directly verified. |
+
+These are scoped architecture/implementation scores. Product completeness and
+target evidence remain separate; stages 5–9 retain their exit requirements.
+
+### Executed checks
+
+| Check | Result |
+| --- | --- |
+| Real PostgreSQL inventory regression | Three tests passed: 223-resource aggregate, 200+20 filtered continuation, all new filter cursor bindings, denied health, disabled-source stale and capability stale/denied classification. Latest focused run 9.073s. |
+| All Go packages with `STACKPLORE_TEST_POSTGRES_URL` | Passed after test-process recovery; PostgreSQL package 74.422s, HTTP 4.755s. Log `.tmp/stage4-api-all-recovered.log`. |
+| HTTP exploration query regressions | Eleven tests with subcases passed: closed filters, exact microsecond UTC ranges and bounds, previous/container targets, evidence mapping, all-source versus exact-resource pages, and 15 empty-source/status combinations. |
+| Runtime client/form checks | Focused API/rule, paging, chart, session and routing tests, strict types and lint passed; the final full gate reran the frozen runtime. |
+| Development proxy | Real Vite/upstream probe passed Host and Origin preservation for API, health, ready and metrics paths. Marker `DEVELOPMENT_PROXY_HOST_ORIGIN_FOUR_ROUTES_PASS`. |
+| Browser | Actual disposable PostgreSQL/API/Vite: 120 data-loaded product states, 40 authentication form states and 20 final topology rechecks passed, with real login/logout, inventory filter/reload/detail/log links, redacted log download, events, grouping/evidence/keyboard and persisted alert acknowledgement. [Retained receipts](evidence/0.4.0/README.md) state semantic accessibility and clipboard limits. |
+| Documents/version | Final document inventory/links, formatting, version and diff checks passed after the evidence update; all metadata matches 0.4.0. |
+| Full `npm.cmd run verify` | Passed exit 0 on the frozen runtime: all Go packages with the real disposable PostgreSQL URL (cached after the uncached 74.422s package proof), 36 client tests, 284 web tests in 26 files, 509 locale messages, 192 bounded schemas, format/lint/types and both builds (web 10.64s). Log `.tmp/stage4-final-verify.log`. |
+| Exact 0.4.0 commit/tag/push/CI | Not created yet; only record after final named gates pass. |
+
+An initial full web test run reported 267 passing and one cold lazy-route timing
+failure; the route regression was corrected without weakening assertions.
+The first new PostgreSQL probe used the wrong test variable and skipped; it is
+not SQL proof. Corrected real-URL runs above executed the tests. Denied-health
+fixture setup initially violated the database's enforced unknown-state invariant;
+the fixture was corrected, and the actual regression then passed.
+
+A tool/session interruption stopped the disposable processes during a full Go
+run. Its incomplete result was discarded. The separate repo-local cluster
+performed normal WAL recovery, reached readiness, and the complete Go suite was
+rerun successfully. The system PostgreSQL service was not changed. Local browser
+fixtures, private runtime keys and raw temporary logs remain ignored; committed
+evidence must contain no authentication material.
+
+
+### Final correction and native proof
+
+Final real-image review lowered the graph score from 9 to 8: a long edge crossed
+an unrelated card and implied a false link. Routing now uses bounded gutters and
+card-boundary ports; a halo separates crossings and geometry is memoized across
+pan/zoom. Thirteen focused tests passed, including 1,000 distinct paths among
+200 cards with every segment outside every card interior and inside world
+bounds. All 20 locale/theme/width topology states were then repeated with actual
+loaded data. Scoped architecture and implementation scores returned to 9/10.
+
+Fresh compiled 0.4 API/storage native drill D passed:
+`STAGE4_SEED_ACK_SSE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS`
+
+The source `stackplore_stage4_native_d` and restored
+`stackplore_stage4_restore_d` are disposable databases. Seed firing, one-use
+source version changes, durable SSE snapshot/change/replay, acknowledgement,
+API restart and preserved state passed. Native backup/list/empty-target restore
+verified ledger 10, one user, six resources, 54 metric facts, one seed and one
+acknowledged alert, zero outbound deliveries, disabled source version 2, zero
+sessions/preauth and restore generation 1. The old session returned 401 and a
+new login worked. Ownership loss terminated only the fixture process within the
+bounded failure window. Private keys, dump and helper logs remain ignored.
+
+The actual inventory query-plan drill also passed (5.735s package, 2.19s test)
+with 2,003 demonstration resources, 100 native resources, 21,003 metric facts,
+10,003 events and 10,000 audit records. Warm SQL-only observations were about
+0.19ms for 51 name-sorted resources, 17.80ms for the full aggregate, 5.98ms for
+101 health-filtered resources, 0.05ms for 51 events, 0.41ms for 100 current
+metrics, 1.42ms for a 250-row retention quota and 0.10ms for 51 audit rows.
+These are fixture SQL plans, not end-to-end latency, target scale or an SLO.

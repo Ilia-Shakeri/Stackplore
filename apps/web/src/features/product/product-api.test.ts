@@ -56,6 +56,255 @@ const alertRule = () => ({
 });
 
 describe('product API adapter', () => {
+  it('rejects a response for another source or resource', async () => {
+    const request = vi
+      .fn<ApiClient['request']>()
+      .mockResolvedValueOnce(
+        response({ ...observation(), items: [resource()], page: { has_more: false, limit: 50 } }),
+      )
+      .mockResolvedValueOnce(response(resource()));
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await expect(api.listResources({ sourceId: 'source_other' })).rejects.toThrow(
+      'Resource source is invalid.',
+    );
+    await expect(api.getResource(`r1_${'C'.repeat(43)}`)).rejects.toThrow(
+      'Resource response is invalid.',
+    );
+  });
+
+  it('accepts bounded topology provenance and rejects absent or corrupted evidence', async () => {
+    const evidence = {
+      id: 'evidence_demo',
+      provider: 'demo',
+      source_id: 'source_demo',
+      provenance: 'declared_dependency',
+      certainty: 'explicit',
+      confidence: 1,
+      observed_at: observedAt,
+      synthetic: true,
+    };
+    const edge = {
+      id: `rel1_${'A'.repeat(43)}`,
+      from: resourceId,
+      to: `r1_${'C'.repeat(43)}`,
+      kind: 'depends_on',
+      direction: 'source_to_target',
+      observed_at: observedAt,
+      synthetic: true,
+      confidence: 1,
+      evidence: [evidence],
+    };
+    const payload = (evidenceItems: unknown) => ({
+      ...observation(),
+      items: [{ ...edge, evidence: evidenceItems }],
+      page: { has_more: false, limit: 100 },
+    });
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(response(payload([evidence])));
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await expect(api.listTopology()).resolves.toMatchObject({
+      items: [{ evidence: [{ provenance: 'declared_dependency' }] }],
+    });
+    for (const evidenceItems of [
+      [],
+      [evidence, evidence],
+      [{ ...evidence, confidence: 2 }],
+      [{ ...evidence, provenance: 'guess' }],
+      [{ ...evidence, hidden: true }],
+      Array.from({ length: 33 }, (_, index) => ({ ...evidence, id: `evidence_${String(index)}` })),
+    ]) {
+      request.mockResolvedValueOnce(response(payload(evidenceItems)));
+      await expect(api.listTopology()).rejects.toThrow('Topology response is invalid.');
+    }
+  });
+
+  it('owns every inventory filter and continuation value', async () => {
+    const controller = new AbortController();
+    const request = vi
+      .fn<ApiClient['request']>()
+      .mockResolvedValue(
+        response({ ...observation(), items: [], page: { has_more: false, limit: 25 } }),
+      );
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await api.listResources({
+      availability: 'stale',
+      cursor: 'next_page',
+      direction: 'desc',
+      environmentId: 'env_shop',
+      health: 'degraded',
+      kind: 'docker.container',
+      limit: 25,
+      provider: 'docker',
+      scopeKind: 'project',
+      scopeName: 'shop',
+      search: 'worker',
+      signal: controller.signal,
+      sort: 'observed_at',
+      sourceId: 'source_docker',
+    });
+    expect(request).toHaveBeenCalledWith({
+      path: '/resources',
+      signal: controller.signal,
+      query: {
+        availability: 'stale',
+        cursor: 'next_page',
+        direction: 'desc',
+        environment_id: 'env_shop',
+        health: 'degraded',
+        kind: 'docker.container',
+        limit: 25,
+        provider: 'docker',
+        scope_kind: 'project',
+        scope_name: 'shop',
+        search: 'worker',
+        sort: 'observed_at',
+        source_id: 'source_docker',
+      },
+    });
+  });
+
+  it('keeps event and log cursor, resource, range and container values together', async () => {
+    const request = vi
+      .fn<ApiClient['request']>()
+      .mockResolvedValue(
+        response({ ...observation(), items: [], page: { has_more: false, limit: 25 } }),
+      );
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    const selection = {
+      cursor: 'next_page',
+      from: '2026-08-16T07:00:00Z',
+      limit: 25,
+      resourceId,
+      sourceId: 'source_kube',
+      to: observedAt,
+    };
+    await api.listEvents(selection);
+    await api.listLogs({ ...selection, container: 'api-v2', previous: true });
+    expect(request.mock.calls.map(([input]) => input.query)).toEqual([
+      {
+        cursor: 'next_page',
+        from: selection.from,
+        limit: 25,
+        resource_id: resourceId,
+        source_id: 'source_kube',
+        to: observedAt,
+      },
+      {
+        container: 'api-v2',
+        cursor: 'next_page',
+        from: selection.from,
+        limit: 25,
+        previous: true,
+        resource_id: resourceId,
+        source_id: 'source_kube',
+        to: observedAt,
+      },
+    ]);
+  });
+
+  it('uses an explicit history range without an implicit minutes filter', async () => {
+    const request = vi
+      .fn<ApiClient['request']>()
+      .mockResolvedValue(response({ ...observation(), items: [] }));
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await api.listMetricHistory({
+      from: '2026-08-16T07:00:00Z',
+      to: observedAt,
+      resourceId,
+      limit: 40,
+    });
+    expect(request).toHaveBeenCalledWith({
+      path: '/metrics/history',
+      query: {
+        from: '2026-08-16T07:00:00Z',
+        to: observedAt,
+        resource_id: resourceId,
+        limit: 40,
+      },
+    });
+    await expect(
+      api.listMetricHistory({ minutes: 60, from: '2026-08-16T07:00:00Z', to: observedAt }),
+    ).rejects.toThrow('Metric history range is invalid.');
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { from: observedAt },
+    { from: '2026-02-30T00:00:00Z', to: observedAt },
+    { from: observedAt, to: observedAt },
+    { from: '2026-08-16T08:00:00.0000001Z', to: '2026-08-16T08:00:01Z' },
+    { from: '2026-08-01T08:00:00Z', to: observedAt },
+    { from: '2026-08-09T08:00:00Z', to: '2026-08-16T08:00:00.000001Z' },
+  ])('rejects an invalid or oversized log range before reading %j', async (range) => {
+    const request = vi.fn<ApiClient['request']>();
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await expect(api.listLogs(range)).rejects.toThrow('Time range is invalid.');
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('retains sub-millisecond ranges and rejects bad page and container selections', async () => {
+    const request = vi
+      .fn<ApiClient['request']>()
+      .mockResolvedValue(
+        response({ ...observation(), items: [], page: { has_more: false, limit: 100 } }),
+      );
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await expect(
+      api.listLogs({ from: '2026-08-16T08:00:00Z', to: '2026-08-16T08:00:00.000001Z' }),
+    ).resolves.toMatchObject({ items: [] });
+    for (const options of [
+      { limit: 201 },
+      { limit: 0 },
+      { cursor: 'bad cursor' },
+      { resourceId: 'bad' },
+      { previous: true },
+      { container: 'api' },
+      { resourceId, container: '../api' },
+    ]) {
+      await expect(api.listLogs(options)).rejects.toThrow();
+    }
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['unsupported', 'unavailable', 'permission_denied'])(
+    'rejects resource data under a forbidden %s status',
+    async (availability) => {
+      const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+        response({
+          ...observation(),
+          availability,
+          reason_code: 'provider.read.failed',
+          items: [resource()],
+          page: { has_more: false, limit: 50 },
+        }),
+      );
+      const api = createProductApi({ request: request as ApiClient['request'] });
+      await expect(api.listResources()).rejects.toThrow('Resource page is invalid.');
+    },
+  );
+
+  it('keeps stale partial evidence, rejects unknown fields and invalid calendar timestamps', async () => {
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+      response({
+        ...observation(),
+        availability: 'stale',
+        completeness: 'partial',
+        reason_code: 'provider.capture.failed',
+        items: [resource()],
+        page: { has_more: false, limit: 50 },
+      }),
+    );
+    const api = createProductApi({ request: request as ApiClient['request'] });
+    await expect(api.listResources()).resolves.toMatchObject({
+      availability: 'stale',
+      completeness: 'partial',
+      items: [{ id: resourceId }],
+    });
+    request.mockResolvedValueOnce(response({ ...resource(), observed_at: '2026-02-30T08:00:00Z' }));
+    await expect(api.getResource(resourceId)).rejects.toThrow('Resource response is invalid.');
+    request.mockResolvedValueOnce(response({ ...resource(), secret: 'hidden' }));
+    await expect(api.getResource(resourceId)).rejects.toThrow('Resource response is invalid.');
+  });
+
   it('manages alert rules with session proof and strong versions', async () => {
     const request = vi
       .fn<ApiClient['request']>()
@@ -275,11 +524,13 @@ describe('product API adapter', () => {
   });
 
   it('parses a bounded resource page and owns search query values', async () => {
-    const request = vi
-      .fn<ApiClient['request']>()
-      .mockResolvedValue(
-        response({ ...observation(), items: [resource()], page: { has_more: false, limit: 50 } }),
-      );
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+      response({
+        ...observation(),
+        items: [{ ...resource(), source_id: 'source_cluster' }],
+        page: { has_more: false, limit: 50 },
+      }),
+    );
     const api = createProductApi({ request: request as ApiClient['request'] });
 
     await expect(
@@ -508,6 +759,18 @@ describe('product API adapter', () => {
           items: [
             {
               confidence: 1,
+              evidence: [
+                {
+                  id: 'evidence_demo',
+                  provider: 'demo',
+                  source_id: 'source_demo',
+                  provenance: 'declared_dependency',
+                  certainty: 'explicit',
+                  confidence: 1,
+                  observed_at: observedAt,
+                  synthetic: true,
+                },
+              ],
               direction: 'source_to_target',
               from: resourceId,
               id: `rel1_${'B'.repeat(43)}`,

@@ -1,47 +1,48 @@
 import type { ProductRelationship, ProductResource } from '@stackplore/api-client';
 import {
-  useId,
+  useEffect,
   useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
 } from 'react';
 
+import {
+  layoutTopology,
+  maximumGraphNodes,
+  topologyNeighborhood,
+  topologyResourceHref,
+  topologyViewportHeight,
+  type TopologyGrouping,
+  type TopologyNeighborhood,
+  type TopologyPoint,
+} from './topology-model';
 import { useLocale } from '../../i18n';
+import { TopologyList } from './TopologyList';
+import { TopologyCanvas } from './TopologyCanvas';
+import './topology.css';
+import { useExplorationView } from './exploration-ui';
 
 interface TopologyGraphProps {
   readonly relationships: readonly ProductRelationship[];
   readonly resources: readonly ProductResource[];
 }
-
-interface Point {
-  readonly x: number;
-  readonly y: number;
+const groupingValues = ['scope', 'environment', 'kind', 'none'] as const;
+const neighborhoodValues = ['all', 'neighbors', 'upstream', 'downstream'] as const;
+function readGrouping(value: string): TopologyGrouping {
+  return groupingValues.find((candidate) => candidate === value) ?? 'scope';
 }
-
-const graphWidth = 960;
-const graphHeight = 560;
-const nodeWidth = 168;
-const nodeHeight = 58;
-
-function readGraphParameter(name: string) {
-  if (typeof window === 'undefined') return '';
-  return new URLSearchParams(window.location.search).get(name)?.slice(0, 200) ?? '';
+function readNeighborhood(value: string): TopologyNeighborhood {
+  return neighborhoodValues.find((candidate) => candidate === value) ?? 'all';
 }
-
-function writeGraphParameter(name: string, value: string) {
-  if (typeof window === 'undefined') return;
-  const url = new URL(window.location.href);
-  if (value === '') url.searchParams.delete(name);
-  else url.searchParams.set(name, value);
-  window.history.replaceState(window.history.state, '', url);
-}
-
 export function TopologyGraph({ relationships, resources }: TopologyGraphProps) {
   const { t } = useLocale();
-  const markerId = useId().replaceAll(':', '');
-  const frame = useRef<HTMLDivElement>(null);
+  const view = useExplorationView();
+  const parameter = (name: string) => view.read(`topology_${name}`, name === 'scope' ? 300 : 200);
+  const writeParameter = (name: string, value: string) => {
+    view.write(`topology_${name}`, value);
+  };
+  const frame = useRef<HTMLElement>(null);
   const drag = useRef<{
     readonly id: number;
     readonly startX: number;
@@ -49,12 +50,41 @@ export function TopologyGraph({ relationships, resources }: TopologyGraphProps) 
     readonly x: number;
     readonly y: number;
   } | null>(null);
-  const [kind, setKind] = useState(() => readGraphParameter('topology_kind'));
-  const [query, setQuery] = useState(() => readGraphParameter('topology_q'));
+  const [kind, setKind] = useState(() => parameter('kind'));
+  const [query, setQuery] = useState(() => parameter('q'));
+  const [environment, setEnvironment] = useState(() => parameter('environment'));
+  const [scope, setScope] = useState(() => parameter('scope'));
+  const [health, setHealth] = useState(() => parameter('health'));
+  const [grouping, setGrouping] = useState<TopologyGrouping>(() =>
+    readGrouping(parameter('group')),
+  );
+  const [selected, setSelected] = useState(() => parameter('selected'));
+  const [neighborhood, setNeighborhood] = useState<TopologyNeighborhood>(() =>
+    readNeighborhood(parameter('neighbors')),
+  );
   const [scale, setScale] = useState(1);
-  const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
-  const kinds = useMemo(
-    () => [...new Set(resources.map((resource) => resource.kind))].sort(),
+  const [pan, setPan] = useState<TopologyPoint>({ x: 0, y: 0 });
+  useEffect(() => {
+    const restore = () => {
+      setKind(parameter('kind'));
+      setQuery(parameter('q'));
+      setEnvironment(parameter('environment'));
+      setScope(parameter('scope'));
+      setHealth(parameter('health'));
+      setGrouping(readGrouping(parameter('group')));
+      setSelected(parameter('selected'));
+      setNeighborhood(readNeighborhood(parameter('neighbors')));
+    };
+    restore();
+  }, [view.search]);
+  const kinds = useMemo(() => unique(resources.map((resource) => resource.kind)), [resources]);
+  const environments = useMemo(
+    () => unique(resources.map((resource) => resource.environment_id)),
+    [resources],
+  );
+  const scopes = useMemo(
+    () =>
+      unique(resources.map((resource) => `${resource.scope_kind}: ${resource.scope_name ?? '—'}`)),
     [resources],
   );
   const visible = useMemo(() => {
@@ -62,34 +92,70 @@ export function TopologyGraph({ relationships, resources }: TopologyGraphProps) 
     return resources.filter(
       (resource) =>
         (kind === '' || resource.kind === kind) &&
+        (environment === '' || resource.environment_id === environment) &&
+        (scope === '' || `${resource.scope_kind}: ${resource.scope_name ?? '—'}` === scope) &&
+        (health === '' || (resource.health ?? 'unknown') === health) &&
         (term === '' ||
-          resource.name.toLocaleLowerCase().includes(term) ||
-          resource.kind.toLocaleLowerCase().includes(term) ||
-          resource.id.toLocaleLowerCase().includes(term)),
+          `${resource.name}\n${resource.kind}\n${resource.id}`.toLocaleLowerCase().includes(term)),
     );
-  }, [kind, query, resources]);
+  }, [environment, health, kind, query, resources, scope]);
   const visibleIds = useMemo(() => new Set(visible.map((resource) => resource.id)), [visible]);
   const edges = useMemo(
-    () =>
-      relationships.filter(
-        (relationship) => visibleIds.has(relationship.from) && visibleIds.has(relationship.to),
-      ),
+    () => relationships.filter((edge) => visibleIds.has(edge.from) && visibleIds.has(edge.to)),
     [relationships, visibleIds],
   );
-  const points = useMemo(() => layoutNodes(visible), [visible]);
-
+  const graphResources = useMemo(() => visible.slice(0, maximumGraphNodes), [visible]);
+  const layout = useMemo(
+    () => layoutTopology(graphResources, grouping),
+    [graphResources, grouping],
+  );
+  const names = useMemo(
+    () => new Map(resources.map((resource) => [resource.id, resource])),
+    [resources],
+  );
+  const highlights = useMemo(
+    () => topologyNeighborhood(edges, visibleIds.has(selected) ? selected : '', neighborhood),
+    [edges, neighborhood, selected, visibleIds],
+  );
+  const selectedResource = visibleIds.has(selected) ? names.get(selected) : undefined;
+  const changeFilter = (name: string, value: string, apply: (value: string) => void) => {
+    apply(value);
+    writeParameter(name, value);
+  };
+  const selectNode = (value: string) => {
+    setSelected(value);
+    writeParameter('selected', value);
+    const point = layout.points.get(value);
+    if (point !== undefined) {
+      setPan({
+        x: layout.width / 2 - point.x * scale,
+        y: topologyViewportHeight / 2 - point.y * scale,
+      });
+    }
+  };
   const zoom = (amount: number) => {
-    setScale((value) => Math.min(2.5, Math.max(0.45, value + amount)));
+    setScale((value) =>
+      Math.min(4, Math.max(Math.min(0.1, topologyViewportHeight / layout.height), value + amount)),
+    );
   };
   const fit = () => {
-    setScale(1);
-    setPan({ x: 0, y: 0 });
+    const nextScale = Math.min(1, topologyViewportHeight / layout.height);
+    setScale(nextScale);
+    setPan({ x: (layout.width - layout.width * nextScale) / 2, y: 0 });
   };
-  const onWheel = (event: ReactWheelEvent<SVGSVGElement>) => {
-    event.preventDefault();
-    zoom(event.deltaY > 0 ? -0.1 : 0.1);
+  const endDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (drag.current?.id === event.pointerId) {
+      drag.current = null;
+      if (event.currentTarget.hasPointerCapture(event.pointerId))
+        event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (
+      event.button !== 0 ||
+      (event.target instanceof Element && event.target.closest('a') !== null)
+    )
+      return;
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {
       id: event.pointerId,
@@ -102,18 +168,17 @@ export function TopologyGraph({ relationships, resources }: TopologyGraphProps) 
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const current = drag.current;
     if (current?.id !== event.pointerId) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (bounds.width === 0 || bounds.height === 0) return;
+    const unit = Math.max(layout.width / bounds.width, topologyViewportHeight / bounds.height);
     setPan({
-      x: current.x + (event.clientX - current.startX) / scale,
-      y: current.y + (event.clientY - current.startY) / scale,
+      x: current.x + (event.clientX - current.startX) * unit,
+      y: current.y + (event.clientY - current.startY) * unit,
     });
   };
-  const endDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (drag.current?.id === event.pointerId) drag.current = null;
-  };
   const fullscreen = () => {
-    if (frame.current?.requestFullscreen !== undefined) {
+    if (frame.current?.requestFullscreen !== undefined)
       void frame.current.requestFullscreen().catch(() => undefined);
-    }
   };
 
   return (
@@ -128,27 +193,102 @@ export function TopologyGraph({ relationships, resources }: TopologyGraphProps) 
           <input
             maxLength={200}
             onChange={(event) => {
-              setQuery(event.target.value);
-              writeGraphParameter('topology_q', event.target.value);
+              changeFilter('q', event.target.value, setQuery);
             }}
             placeholder={t('product.topology.searchPlaceholder')}
             type="search"
             value={query}
           />
         </label>
+        <Filter
+          label={t('product.topology.kindLabel')}
+          allLabel={t('product.topology.allKinds')}
+          values={kinds}
+          value={kind}
+          onChange={(value) => {
+            changeFilter('kind', value, setKind);
+          }}
+        />
+        <Filter
+          label={t('topology.environment')}
+          allLabel={t('topology.allEnvironments')}
+          values={environments}
+          value={environment}
+          onChange={(value) => {
+            changeFilter('environment', value, setEnvironment);
+          }}
+        />
+        <Filter
+          label={t('topology.scope')}
+          allLabel={t('topology.allScopes')}
+          values={scopes}
+          value={scope}
+          onChange={(value) => {
+            changeFilter('scope', value, setScope);
+          }}
+        />
+        <Filter
+          label={t('topology.health')}
+          allLabel={t('topology.allHealth')}
+          values={['healthy', 'degraded', 'unhealthy', 'unknown']}
+          value={health}
+          valueLabel={(value) =>
+            t(`product.health.${value as NonNullable<ProductResource['health']>}`)
+          }
+          onChange={(value) => {
+            changeFilter('health', value, setHealth);
+          }}
+        />
         <label>
-          <span>{t('product.topology.kindLabel')}</span>
+          <span>{t('topology.group')}</span>
           <select
+            value={grouping}
             onChange={(event) => {
-              setKind(event.target.value);
-              writeGraphParameter('topology_kind', event.target.value);
+              const value =
+                groupingValues.find((candidate) => candidate === event.target.value) ?? 'scope';
+              setGrouping(value);
+              writeParameter('group', value);
+              fit();
             }}
-            value={kind}
           >
-            <option value="">{t('product.topology.allKinds')}</option>
-            {kinds.map((value) => (
+            {groupingValues.map((value) => (
+              <option value={value} key={value}>
+                {t(`topology.group.${value}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>{t('topology.select')}</span>
+          <select
+            value={selectedResource === undefined ? '' : selected}
+            onChange={(event) => {
+              selectNode(event.target.value);
+            }}
+          >
+            <option value="">{t('topology.noSelection')}</option>
+            {visible.map((resource) => (
+              <option key={resource.id} value={resource.id}>
+                {resource.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>{t('topology.highlight')}</span>
+          <select
+            disabled={selectedResource === undefined}
+            value={neighborhood}
+            onChange={(event) => {
+              const value =
+                neighborhoodValues.find((candidate) => candidate === event.target.value) ?? 'all';
+              setNeighborhood(value);
+              writeParameter('neighbors', value);
+            }}
+          >
+            {neighborhoodValues.map((value) => (
               <option key={value} value={value}>
-                {value}
+                {t(`topology.highlight.${value}`)}
               </option>
             ))}
           </select>
@@ -176,127 +316,106 @@ export function TopologyGraph({ relationships, resources }: TopologyGraphProps) 
           <button onClick={fullscreen} type="button">
             {t('product.topology.fullscreen')}
           </button>
+          {(['Left', 'Right', 'Up', 'Down'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => {
+                setPan((point) => ({
+                  x: point.x + (value === 'Left' ? -80 : value === 'Right' ? 80 : 0),
+                  y: point.y + (value === 'Up' ? -80 : value === 'Down' ? 80 : 0),
+                }));
+              }}
+            >
+              {t(`topology.pan${value}`)}
+            </button>
+          ))}
         </div>
       </div>
+      <p className="topology-legend">
+        <span className="topology-legend__explicit">{t('topology.explicit')}</span>
+        <span className="topology-legend__inferred">{t('topology.inferred')}</span>
+      </p>
       {visible.length === 0 ? (
         <p className="topology-empty" role="status">
           {t('product.topology.empty')}
         </p>
       ) : (
-        <div className="topology-canvas">
-          <svg
-            aria-label={t('product.topology.graphLabel')}
-            onPointerCancel={endDrag}
+        <>
+          {visible.length > maximumGraphNodes ? (
+            <p className="topology-limit" role="status">
+              {t('topology.graphLimit', { shown: maximumGraphNodes, count: visible.length })}
+            </p>
+          ) : null}
+          <TopologyCanvas
+            graphResources={graphResources}
+            edges={edges}
+            layout={layout}
+            highlights={highlights}
+            selected={selected}
+            scale={scale}
+            pan={pan}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onWheel={onWheel}
-            role="img"
-            viewBox={['0', '0', graphWidth, graphHeight].join(' ')}
-          >
-            <defs>
-              <marker
-                id={markerId}
-                markerHeight="8"
-                markerWidth="8"
-                orient="auto"
-                refX="7"
-                refY="4"
-              >
-                <path d="M0,0 L8,4 L0,8 z" />
-              </marker>
-            </defs>
-            <g transform={`translate(${String(pan.x)} ${String(pan.y)}) scale(${String(scale)})`}>
-              {edges.map((edge) => {
-                const from = points.get(edge.from);
-                const to = points.get(edge.to);
-                if (from === undefined || to === undefined) return null;
-                return (
-                  <line
-                    key={edge.id}
-                    markerEnd={`url(#${markerId})`}
-                    x1={from.x + nodeWidth / 2}
-                    x2={to.x - nodeWidth / 2}
-                    y1={from.y}
-                    y2={to.y}
-                  >
-                    <title>{`${edge.kind}, ${String(Math.round(edge.confidence * 100))}%`}</title>
-                  </line>
-                );
-              })}
-              {visible.map((resource) => {
-                const point = points.get(resource.id);
-                if (point === undefined) return null;
-                return (
-                  <a
-                    href={`/resources/${encodeURIComponent(resource.source_id)}/${encodeURIComponent(resource.provider)}/${encodeURIComponent(resource.kind)}/${encodeURIComponent(resource.id)}?source=${encodeURIComponent(resource.source_id)}`}
-                    key={resource.id}
-                  >
-                    <g className={`topology-node topology-node--${resource.health ?? 'unknown'}`}>
-                      <rect
-                        height={nodeHeight}
-                        rx="10"
-                        width={nodeWidth}
-                        x={point.x - nodeWidth / 2}
-                        y={point.y - nodeHeight / 2}
-                      />
-                      <text textAnchor="middle" x={point.x} y={point.y - 4}>
-                        {shortLabel(resource.name)}
-                      </text>
-                      <text
-                        className="topology-node__kind"
-                        textAnchor="middle"
-                        x={point.x}
-                        y={point.y + 16}
-                      >
-                        {shortLabel(resource.kind)}
-                      </text>
-                    </g>
-                  </a>
-                );
-              })}
-            </g>
-          </svg>
-          <svg
-            aria-label={t('product.topology.minimapLabel')}
-            className="topology-minimap"
-            role="img"
-            viewBox={['0', '0', graphWidth, graphHeight].join(' ')}
-          >
-            {visible.map((resource) => {
-              const point = points.get(resource.id);
-              return point === undefined ? null : (
-                <circle cx={point.x} cy={point.y} key={resource.id} r="12" />
-              );
-            })}
-          </svg>
-        </div>
+            endDrag={endDrag}
+            selectNode={selectNode}
+          />
+          {selectedResource === undefined ? null : (
+            <aside className="topology-selection" aria-label={t('topology.selectedDetail')}>
+              <strong>{selectedResource.name}</strong>
+              <bdi dir="ltr">
+                {selectedResource.provider} · {selectedResource.kind} ·{' '}
+                {selectedResource.scope_name ?? selectedResource.scope_kind}
+              </bdi>
+              <span>{t(`product.health.${selectedResource.health ?? 'unknown'}`)}</span>
+              <a href={topologyResourceHref(selectedResource)}>{t('topology.openResource')}</a>
+            </aside>
+          )}
+          <TopologyList
+            key={[kind, query, environment, scope, health].join('\u0000')}
+            resources={visible}
+            relationships={edges}
+          />
+        </>
       )}
     </section>
   );
 }
 
-function layoutNodes(resources: readonly ProductResource[]) {
-  const ordered = [...resources].sort((left, right) => {
-    const leftGroup = `${left.scope_name ?? ''}\u0000${left.kind}\u0000${left.name}`;
-    const rightGroup = `${right.scope_name ?? ''}\u0000${right.kind}\u0000${right.name}`;
-    return leftGroup.localeCompare(rightGroup);
-  });
-  const columns = Math.max(1, Math.ceil(Math.sqrt(ordered.length * 1.6)));
-  const columnGap = (graphWidth - 120) / Math.max(1, columns - 1);
-  const rows = Math.ceil(ordered.length / columns);
-  const rowGap = (graphHeight - 100) / Math.max(1, rows - 1);
-  return new Map(
-    ordered.map((resource, index) => [
-      resource.id,
-      {
-        x: 60 + (index % columns) * columnGap,
-        y: 50 + Math.floor(index / columns) * rowGap,
-      },
-    ]),
+function Filter({
+  label,
+  allLabel,
+  value,
+  values,
+  valueLabel,
+  onChange,
+}: {
+  readonly label: string;
+  readonly allLabel: string;
+  readonly value: string;
+  readonly values: readonly string[];
+  readonly valueLabel?: (value: string) => string;
+  readonly onChange: (value: string) => void;
+}) {
+  return (
+    <label>
+      <span>{label}</span>
+      <select
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+      >
+        <option value="">{allLabel}</option>
+        {values.map((item) => (
+          <option value={item} key={item}>
+            {valueLabel?.(item) ?? item}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
-
-function shortLabel(value: string) {
-  return value.length > 22 ? `${value.slice(0, 21)}…` : value;
+function unique(values: readonly string[]) {
+  return [...new Set(values)].sort();
 }

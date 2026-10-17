@@ -11,9 +11,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+const resourceHealthExpression = `CASE WHEN EXISTS(SELECT 1 FROM source_capabilities capability WHERE capability.source_id=resource.source_id AND capability.capability_name='health.read' AND capability.availability IN ('available','stale')) THEN COALESCE((SELECT CASE WHEN health.availability IN ('available','stale') AND health.completeness='complete' THEN health.health_state ELSE 'unknown' END FROM resource_health_current AS health WHERE health.resource_id=resource.id),'unknown') ELSE 'unknown' END`
+
 const observedResourceColumns = `resource.id,resource.source_id,resource.provider,resource.environment_id,
 resource.kind,resource.scope_kind,resource.scope_name,resource.native_id,resource.synthetic,
-snapshot.display_name,snapshot.resource_version,snapshot.availability,snapshot.completeness,snapshot.observed_at_us,snapshot.reason_code`
+snapshot.display_name,snapshot.resource_version,snapshot.availability,snapshot.completeness,snapshot.observed_at_us,snapshot.reason_code,` + resourceHealthExpression
 
 const activeResourceJoin = ` FROM resources AS resource
 JOIN infrastructure_sources AS source ON source.id=resource.source_id
@@ -151,6 +153,16 @@ func (store *observationRead) ListResources(ctx context.Context, query domain.In
 	if err != nil {
 		return domain.ResourcePage{}, err
 	}
+	if status.AllowsData() {
+		var cached bool
+		if err := store.queries.QueryRow(ctx, `SELECT EXISTS(SELECT 1`+activeResourceJoin+`)`, string(query.Source.SourceID), string(query.Source.Provider)).Scan(&cached); err != nil {
+			return domain.ResourcePage{}, mapRepositoryReadError(ctx, err)
+		}
+		status, err = store.observationCapabilityStatus(ctx, query.Source, domain.CapabilityInventoryList, status, cached)
+		if err != nil {
+			return domain.ResourcePage{}, err
+		}
+	}
 	result := domain.ResourcePage{Status: status, Resources: []domain.ResourceSnapshot{}, Page: domain.PageInfo{Limit: query.Page.Limit}}
 	if !status.AllowsData() {
 		return result, nil
@@ -169,6 +181,22 @@ func (store *observationRead) ListResources(ctx context.Context, query domain.In
 	placeholder := func(value any) string {
 		arguments = append(arguments, value)
 		return "$" + strconv.Itoa(len(arguments))
+	}
+	for _, filter := range []struct{ column, value string }{
+		{"resource.provider", string(query.Filter.Provider)}, {"resource.environment_id", string(query.Filter.EnvironmentID)},
+		{"resource.scope_kind", string(query.Filter.ScopeKind)}, {"resource.scope_name", query.Filter.ScopeName},
+		{resourceHealthExpression, string(query.Filter.Health)},
+	} {
+		if filter.value != "" {
+			statement += ` AND ` + filter.column + `=` + placeholder(filter.value)
+		}
+	}
+	if query.Filter.Availability != "" {
+		column := `snapshot.availability`
+		if status.State == domain.AvailabilityStale {
+			column = `CASE WHEN snapshot.availability IN ('available','stale') THEN 'stale' ELSE snapshot.availability END`
+		}
+		statement += ` AND (` + column + `)=` + placeholder(string(query.Filter.Availability))
 	}
 	if query.Filter.Search != "" {
 		statement += ` AND position(lower(` + placeholder(query.Filter.Search) + ` COLLATE pg_catalog."pg_c_utf8") in lower((snapshot.display_name||chr(10)||resource.id||chr(10)||resource.environment_id||chr(10)||resource.kind||chr(10)||resource.scope_kind||chr(10)||resource.scope_name) COLLATE pg_catalog."pg_c_utf8"))>0`
@@ -232,10 +260,6 @@ func (store *observationRead) ListResources(ctx context.Context, query domain.In
 		return domain.ResourcePage{}, mapRepositoryReadError(ctx, err)
 	}
 	rows.Close()
-	status, err = store.observationCapabilityStatus(ctx, query.Source, domain.CapabilityInventoryList, status, len(result.Resources) > 0)
-	if err != nil {
-		return domain.ResourcePage{}, err
-	}
 	result.Status = status
 	if !status.AllowsData() {
 		result.Resources = []domain.ResourceSnapshot{}
@@ -276,7 +300,7 @@ func scanObservedResource(row rowScanner) (domain.ResourceSnapshot, error) {
 	var availability, completeness string
 	var reason sql.NullString
 	if err := row.Scan(&id, &sourceID, &provider, &environmentID, &kind, &scopeKind, &scopeName, &nativeID, &synthetic,
-		&result.Resource.DisplayName, &result.Resource.Version, &availability, &completeness, &observedAt, &reason); err != nil {
+		&result.Resource.DisplayName, &result.Resource.Version, &availability, &completeness, &observedAt, &reason, &result.Health); err != nil {
 		return domain.ResourceSnapshot{}, err
 	}
 	identity, err := domain.NewResourceIdentity(domain.ProviderKind(provider), domain.SourceID(sourceID), domain.EnvironmentID(environmentID), domain.ResourceKind(kind), domain.Scope{Kind: domain.ScopeKind(scopeKind), Name: scopeName}, domain.NativeResourceID(nativeID))

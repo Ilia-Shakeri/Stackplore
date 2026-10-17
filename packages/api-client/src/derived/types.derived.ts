@@ -281,7 +281,7 @@ export type ProductResource = {
   environment_id: string;
   kind: ProductResourceKind;
   scope_kind: 'global' | 'project' | 'namespace';
-  scope_name?: string;
+  scope_name?: DisplayText;
   name: string;
   synthetic: boolean;
   observed_at: string;
@@ -314,6 +314,7 @@ export type ProductRelationship = {
   observed_at: Timestamp;
   synthetic: boolean;
   confidence: number;
+  evidence: Array<RelationshipEvidence>;
 };
 
 export type ProductRelationshipPage = {
@@ -336,6 +337,7 @@ export type ProductLogRecord = {
   redacted: boolean;
   truncated: boolean;
   synthetic: boolean;
+  container?: DisplayText;
 };
 
 export type ProductLogPage = {
@@ -1887,14 +1889,14 @@ export type HealthFilter = Array<HealthState>;
 export type AvailabilityFilter = Array<AvailabilityState>;
 
 /**
- * Inclusive UTC start of a bounded time range.
+ * Inclusive UTC start; supplied together with to, with at most six fractional second digits.
  */
-export type From = Timestamp;
+export type From = string;
 
 /**
- * Exclusive UTC end of a bounded time range.
+ * Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
  */
-export type To = Timestamp;
+export type To = string;
 
 /**
  * Direction for the operation-owned sort field.
@@ -2986,6 +2988,12 @@ export type ListResourcesData = {
     cursor?: string;
     sort?: 'name' | 'kind' | 'observed_at';
     direction?: 'asc' | 'desc';
+    provider?: ProviderKind;
+    environment_id?: EnvironmentId;
+    health?: HealthState;
+    availability?: AvailabilityState;
+    scope_kind?: ScopeKind;
+    scope_name?: DisplayText;
   };
   url: '/resources';
 };
@@ -3274,6 +3282,22 @@ export type ListProductLogsData = {
      * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
      */
     cursor?: Cursor;
+    /**
+     * Inclusive UTC start; supplied together with to, with at most six fractional second digits.
+     */
+    from?: string;
+    /**
+     * Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
+     */
+    to?: string;
+    /**
+     * Exact container name; requires resource_id.
+     */
+    container?: string;
+    /**
+     * Read the previous container instance; requires resource_id.
+     */
+    previous?: boolean;
   };
   url: '/logs';
 };
@@ -3413,6 +3437,14 @@ export type GetProductMetricHistoryData = {
     resource_id?: ResourceId;
     minutes?: number;
     limit?: number;
+    /**
+     * Inclusive UTC start; supplied together with to, with at most six fractional second digits.
+     */
+    from?: string;
+    /**
+     * Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
+     */
+    to?: string;
   };
   url: '/metrics/history';
 };
@@ -3491,6 +3523,14 @@ export type ListProductEventsData = {
      * Opaque cursor bound to normalized filter and sort state; its issuer owns forward progress.
      */
     cursor?: Cursor;
+    /**
+     * Inclusive UTC start; supplied together with to, with at most six fractional second digits.
+     */
+    from?: string;
+    /**
+     * Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
+     */
+    to?: string;
   };
   url: '/events';
 };

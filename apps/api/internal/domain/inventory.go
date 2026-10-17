@@ -23,13 +23,23 @@ func (field ResourceSortField) Validate() error {
 }
 
 type ResourceFilter struct {
-	Search string
-	Kinds  []ResourceKind
-	Scopes []Scope
+	Search        string
+	Kinds         []ResourceKind
+	Scopes        []Scope
+	Provider      ProviderKind
+	EnvironmentID EnvironmentID
+	ScopeKind     ScopeKind
+	ScopeName     string
+	Health        HealthState
+	Availability  AvailabilityState
 }
 
 // Matches applies the fixed inventory search law to safe public resource fields.
 func (filter ResourceFilter) Matches(resource Resource) bool {
+	identity := resource.Ref.Identity
+	if filter.Provider != "" && identity.Provider != filter.Provider || filter.EnvironmentID != "" && identity.EnvironmentID != filter.EnvironmentID || filter.ScopeKind != "" && identity.Scope.Kind != filter.ScopeKind || filter.ScopeName != "" && identity.Scope.Name != filter.ScopeName {
+		return false
+	}
 	if filter.Search == "" {
 		return true
 	}
@@ -51,6 +61,17 @@ func (filter ResourceFilter) Matches(resource Resource) bool {
 }
 
 func (filter ResourceFilter) Validate() error {
+	switch filter.ScopeKind {
+	case "", ScopeGlobal, ScopeProject, ScopeNamespace:
+	default:
+		return fmt.Errorf("invalid scope kind filter")
+	}
+	if filter.Provider != "" && filter.Provider.Validate() != nil || filter.EnvironmentID != "" && filter.EnvironmentID.Validate() != nil || filter.Health != "" && filter.Health.Validate() != nil || filter.Availability != "" && filter.Availability.Validate() != nil {
+		return fmt.Errorf("invalid resource filter")
+	}
+	if validateDisplayText("resource scope filter", filter.ScopeName, maxDisplayNameLength, true) != nil {
+		return fmt.Errorf("invalid scope filter")
+	}
 	if err := validateDisplayText("resource search", filter.Search, MaxSearchLength, true); err != nil {
 		return err
 	}
@@ -81,6 +102,14 @@ func (filter ResourceFilter) Validate() error {
 		seenScopes[scope] = struct{}{}
 	}
 	return nil
+}
+
+func (filter ResourceFilter) MatchesSnapshot(snapshot ResourceSnapshot) bool {
+	health := snapshot.Health
+	if health == "" {
+		health = HealthUnknown
+	}
+	return filter.Matches(snapshot.Resource) && (filter.Health == "" || filter.Health == health) && (filter.Availability == "" || filter.Availability == snapshot.Status.State)
 }
 
 type InventoryQuery struct {
@@ -219,7 +248,7 @@ func (page ResourcePage) ValidateFor(query InventoryQuery) error {
 		if !query.Source.Matches(snapshot.Resource.Ref) {
 			return fmt.Errorf("resource page contains a resource from another source")
 		}
-		if !query.Filter.Matches(snapshot.Resource) {
+		if !query.Filter.MatchesSnapshot(snapshot) {
 			return fmt.Errorf("resource page contains a resource outside the requested search")
 		}
 		if len(kinds) > 0 {

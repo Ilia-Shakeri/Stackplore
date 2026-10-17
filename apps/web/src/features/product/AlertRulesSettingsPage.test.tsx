@@ -1,12 +1,17 @@
 import type { AlertRuleRecord } from '@stackplore/api-client';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { createMemoryHistory } from '@tanstack/react-router';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductAlertRulesSettingsPage } from './AlertRulesSettingsPage';
 import type { ProductApi } from './product-api';
 import { ProductProvider } from './product-context';
 import { LocaleProvider } from '../../i18n';
+import { App } from '../../app/App';
+import { createAppRouter } from '../../app/router';
+import { createAuthenticatedAuthStore } from '../../test/auth';
+import { createTestUsersApi } from '../../test/users';
 
 const observedAt = '2026-08-20T08:00:00Z';
 const rule: AlertRuleRecord = {
@@ -62,6 +67,172 @@ function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
 }
 
 describe('alert rule settings', () => {
+  afterEach(() => {
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('keeps rule bookmarks and back navigation bound to the router history', async () => {
+    const second = { ...rule, id: 'rule_second', display_name: 'Second rule' };
+    const listAlertRules = vi.fn<ProductApi['listAlertRules']>().mockImplementation((options) =>
+      Promise.resolve({
+        items: [options?.cursor === 'cGFnZTI' ? second : rule],
+        page: { has_more: false, limit: 100 },
+      }),
+    );
+    const history = createMemoryHistory({
+      initialEntries: ['/settings/notifications?rule_cursor=cGFnZTI'],
+    });
+    const router = createAppRouter(
+      history,
+      createAuthenticatedAuthStore(),
+      createTestUsersApi(),
+      productApi({ listAlertRules }),
+    );
+    await router.load();
+    render(<App router={router} />);
+    await waitFor(() => {
+      expect(listAlertRules).toHaveBeenCalled();
+    });
+    expect(listAlertRules).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: 'cGFnZTI' }));
+    expect(await screen.findByRole('heading', { name: 'Second rule' })).not.toBeNull();
+    act(() => {
+      history.push('/settings/notifications');
+    });
+    expect(await screen.findByRole('heading', { name: 'Provider lost' })).not.toBeNull();
+    act(() => {
+      history.back();
+    });
+    expect(await screen.findByRole('heading', { name: 'Second rule' })).not.toBeNull();
+    expect(history.location.search).toBe('?rule_cursor=cGFnZTI');
+  });
+
+  it('accepts fractional metric thresholds through native form validation', async () => {
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi()}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await user.selectOptions(screen.getByLabelText('Rule kind'), 'cpu_threshold');
+    const threshold = screen.getByLabelText<HTMLInputElement>('Threshold value');
+    await user.clear(threshold);
+    await user.type(threshold, '0.5');
+    expect(threshold.validity.stepMismatch).toBe(false);
+    expect(threshold.checkValidity()).toBe(true);
+  });
+
+  it('shows one rule page and navigates through URL-backed cursors', async () => {
+    const secondRule = { ...rule, id: 'rule_second', display_name: 'Second rule' };
+    const listAlertRules = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: [rule],
+        page: { has_more: true, limit: 100, next_cursor: 'rule_page_two' },
+      })
+      .mockResolvedValueOnce({ items: [secondRule], page: { has_more: false, limit: 100 } })
+      .mockResolvedValueOnce({
+        items: [rule],
+        page: { has_more: true, limit: 100, next_cursor: 'rule_page_two' },
+      });
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ listAlertRules })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    expect(await screen.findByRole('heading', { name: 'Provider lost' })).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Next rules' }));
+    expect(await screen.findByRole('heading', { name: 'Second rule' })).not.toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Provider lost' })).toBeNull();
+    expect(new URLSearchParams(window.location.search).get('rule_cursor')).toBe('rule_page_two');
+    expect(listAlertRules).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ cursor: 'rule_page_two', limit: 100 }),
+    );
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Next rules' }).disabled).toBe(
+      true,
+    );
+    await user.click(screen.getByRole('button', { name: 'Previous rules' }));
+    expect(await screen.findByRole('heading', { name: 'Provider lost' })).not.toBeNull();
+    expect(new URLSearchParams(window.location.search).has('rule_cursor')).toBe(false);
+  });
+
+  it('reads a bookmarked page, reacts to browser navigation and ignores an old response', async () => {
+    window.history.replaceState(null, '', '/settings/alerts?rule_cursor=bookmark_page');
+    let resolveOld:
+      | ((value: { items: AlertRuleRecord[]; page: { has_more: false; limit: number } }) => void)
+      | undefined;
+    const listAlertRules = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOld = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({ items: [rule], page: { has_more: false, limit: 100 } });
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ listAlertRules })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await waitFor(() => {
+      expect(listAlertRules).toHaveBeenCalledWith(
+        expect.objectContaining({ cursor: 'bookmark_page' }),
+      );
+    });
+    act(() => {
+      window.history.replaceState(null, '', '/settings/alerts');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(await screen.findByRole('heading', { name: 'Provider lost' })).not.toBeNull();
+    act(() => {
+      resolveOld?.({
+        items: [{ ...rule, display_name: 'Old page' }],
+        page: { has_more: false, limit: 100 },
+      });
+    });
+    expect(screen.queryByRole('heading', { name: 'Old page' })).toBeNull();
+    expect((listAlertRules.mock.calls[0]?.[0] as { signal: AbortSignal }).signal.aborted).toBe(
+      true,
+    );
+  });
+
+  it('keeps a failed next page honest and allows retry without losing the list', async () => {
+    const listAlertRules = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: [rule],
+        page: { has_more: true, limit: 100, next_cursor: 'next_page' },
+      })
+      .mockRejectedValueOnce(new Error('Unavailable'))
+      .mockResolvedValueOnce({ items: [], page: { has_more: false, limit: 100 } });
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ listAlertRules })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    expect(await screen.findByRole('heading', { name: 'Provider lost' })).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Next rules' }));
+    await user.click(await screen.findByRole('button', { name: 'Reload rules' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Provider lost' })).toBeNull();
+    });
+    expect(listAlertRules).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ cursor: 'next_page' }),
+    );
+  });
+
   it('shows secret-free outbound delivery state', async () => {
     const api = productApi({
       getNotificationSettings: vi.fn().mockResolvedValue({

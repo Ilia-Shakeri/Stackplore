@@ -48,6 +48,7 @@ import {
 import { createUsersApi, type UsersApi } from '../features/users/users-api';
 import { UsersProvider } from '../features/users/users-context';
 import { useLocale } from '../i18n';
+import { productViewSearch, validViewParameter } from '../features/product/product-view-search';
 
 interface RouterContext {
   readonly auth: AuthStore;
@@ -74,7 +75,11 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
       typeof search.q === 'string'
         ? readProductQuery(new URLSearchParams({ q: search.q }).toString())
         : '';
-    return { ...(source === undefined ? {} : { source }), ...(q === '' ? {} : { q }) };
+    return {
+      ...productViewSearch(search),
+      ...(source === undefined ? {} : { source }),
+      ...(q === '' ? {} : { q }),
+    };
   },
   component: RootRoute,
   notFoundComponent: () => <Navigate to="/not-found" replace />,
@@ -82,6 +87,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 
 function RootRoute() {
   const { auth, product, users } = rootRoute.useRouteContext();
+  const validatedSearch = rootRoute.useSearch();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const search = useRouterState({ select: (state) => state.location.searchStr });
   const router = useRouter();
@@ -92,7 +98,7 @@ function RootRoute() {
   const query = readProductQuery(search);
   const replaceSearch = useCallback(
     (name: string, value: string) => {
-      const url = new URL(router.latestLocation.href, 'http://localhost');
+      const url = new URL(router.history.location.href, 'http://localhost');
       if (value === '') url.searchParams.delete(name);
       else url.searchParams.set(name, value);
       router.history.replace(`${url.pathname}${url.search}${url.hash}`);
@@ -111,6 +117,12 @@ function RootRoute() {
     },
     [replaceSearch],
   );
+  const selectViewParameter = useCallback(
+    (name: string, value: string) => {
+      if (validViewParameter(name, value)) replaceSearch(name, value);
+    },
+    [replaceSearch],
+  );
   const { t } = useLocale();
 
   useEffect(() => {
@@ -125,6 +137,8 @@ function RootRoute() {
         onSourceChange={selectSource}
         onQueryChange={selectQuery}
         query={query}
+        viewSearch={new URLSearchParams(productViewSearch(validatedSearch)).toString()}
+        onViewParameterChange={selectViewParameter}
         {...(selectedSource === undefined ? {} : { sourceId: selectedSource })}
       >
         <UsersProvider api={users}>

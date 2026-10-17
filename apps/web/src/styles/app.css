@@ -176,6 +176,7 @@
   z-index: var(--sp-layer-sticky);
   inset-block-start: 0;
   display: flex;
+  min-inline-size: 0;
   min-block-size: var(--shell-topbar-height);
   align-items: center;
   justify-content: space-between;
@@ -1868,6 +1869,62 @@ html[dir='rtl'] .route-page__eyebrow {
 
   .showcase-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 63.99rem) {
+  :root {
+    --shell-topbar-height: 6.5rem;
+  }
+
+  .app-topbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--sp-space-2) var(--sp-space-3);
+    padding-block: var(--sp-space-2);
+  }
+
+  .app-topbar__mobile-leading {
+    grid-area: 1 / 1;
+  }
+
+  .app-topbar__search {
+    grid-area: 1 / 2;
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+
+  .app-topbar__actions {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr);
+    inline-size: 100%;
+    max-inline-size: 34rem;
+    justify-self: end;
+  }
+
+  .app-topbar__actions > .ui-select,
+  .app-topbar__actions .locale-control,
+  .app-topbar__actions .theme-control,
+  .app-topbar__actions .user-menu__trigger {
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+
+  .app-topbar__actions .ui-select__control {
+    padding-inline-start: var(--sp-space-2);
+    padding-inline-end: 1.75rem;
+  }
+
+  .app-topbar__actions .ui-select__icon {
+    inset-inline-end: var(--sp-space-2);
+  }
+
+  .app-topbar__actions .user-menu__trigger {
+    padding-inline: var(--sp-space-2);
   }
 }
 

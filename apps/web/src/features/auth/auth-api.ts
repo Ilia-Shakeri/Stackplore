@@ -66,7 +66,7 @@ export interface AuthApi {
     purpose: RecentAuthPurpose,
     csrfProof: string,
   ): Promise<string>;
-  getSession(): Promise<SessionContext>;
+  getSession(signal?: AbortSignal): Promise<SessionContext>;
   getSetupStatus(): Promise<SetupStatus>;
   login(input: LoginInput): Promise<SessionContext>;
   logout(csrfProof: string): Promise<void>;
@@ -313,8 +313,11 @@ export function createAuthApi(client: ApiClient): AuthApi {
       });
       return parseRecentAuthProof(response.data, purpose);
     },
-    async getSession() {
-      const response = await client.request<unknown>({ path: '/auth/session' });
+    async getSession(signal) {
+      const response = await client.request<unknown>({
+        path: '/auth/session',
+        ...(signal === undefined ? {} : { signal }),
+      });
       return parseSession(response.data);
     },
     async getSetupStatus() {

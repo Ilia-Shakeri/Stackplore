@@ -12,16 +12,56 @@ const productPage = <Name extends keyof typeof ProductPageExports>(name: Name) =
   );
 
 const ProductOverviewPage = productPage('ProductOverviewPage');
-const ProductTopologyPage = productPage('ProductTopologyPage');
-const ProductResourcesPage = productPage('ProductResourcesPage');
-const ProductSearchPage = productPage('ProductSearchPage');
-const ProductResourceDetailPage = productPage('ProductResourceDetailPage');
-const ProductLogsPage = productPage('ProductLogsPage');
-const ProductEventsPage = productPage('ProductEventsPage');
-const ProductAlertsPage = productPage('ProductAlertsPage');
-const ProductNotificationsPage = productPage('ProductNotificationsPage');
-const ProductAuditPage = productPage('ProductAuditPage');
-const ProductSystemSettingsPage = productPage('ProductSystemSettingsPage');
+const ProductTopologyPage = lazy(() =>
+  import('../features/product/ExplorationTopologyPage').then((module) => ({
+    default: module.ProductTopologyPage,
+  })),
+);
+const ProductResourcesPage = lazy(() =>
+  import('../features/product/ExplorationResourcesPage').then((module) => ({
+    default: module.ProductResourcesPage,
+  })),
+);
+const ProductSearchPage = lazy(() =>
+  import('../features/product/ExplorationResourcesPage').then((module) => ({
+    default: module.ProductSearchPage,
+  })),
+);
+const ProductResourceDetailPage = lazy(() =>
+  import('../features/product/ExplorationResourceDetailPage').then((module) => ({
+    default: module.ProductResourceDetailPage,
+  })),
+);
+const ProductLogsPage = lazy(() =>
+  import('../features/product/ExplorationLogsPage').then((module) => ({
+    default: module.ProductLogsPage,
+  })),
+);
+const ProductEventsPage = lazy(() =>
+  import('../features/product/ExplorationEventsPage').then((module) => ({
+    default: module.ProductEventsPage,
+  })),
+);
+const ProductAlertsPage = lazy(() =>
+  import('../features/product/ExplorationAlertsPage').then((module) => ({
+    default: module.ProductAlertsPage,
+  })),
+);
+const ProductNotificationsPage = lazy(() =>
+  import('../features/product/ProductHistoryPages').then((module) => ({
+    default: module.ProductNotificationsPage,
+  })),
+);
+const ProductAuditPage = lazy(() =>
+  import('../features/product/ProductHistoryPages').then((module) => ({
+    default: module.ProductAuditPage,
+  })),
+);
+const ProductSystemSettingsPage = lazy(() =>
+  import('../features/product/ProductHistoryPages').then((module) => ({
+    default: module.ProductSystemSettingsPage,
+  })),
+);
 const SourceSettingsPage = lazy(() =>
   import('../features/product/SourceSettingsPage').then((module) => ({
     default: module.SourceSettingsPage,

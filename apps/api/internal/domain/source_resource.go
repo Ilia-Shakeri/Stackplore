@@ -109,9 +109,13 @@ func (resource Resource) Validate() error {
 type ResourceSnapshot struct {
 	Resource Resource
 	Status   ObservationStatus
+	Health   HealthState
 }
 
 func (snapshot ResourceSnapshot) Validate() error {
+	if snapshot.Health != "" && snapshot.Health.Validate() != nil {
+		return fmt.Errorf("invalid resource health")
+	}
 	if err := snapshot.Resource.Validate(); err != nil {
 		return err
 	}

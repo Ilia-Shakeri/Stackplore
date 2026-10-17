@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
@@ -181,6 +180,23 @@ func (handler productHTTP) sources(w http.ResponseWriter, r *http.Request) {
 
 func (handler productHTTP) sourceSummary(r *http.Request, provider ProductProvider) sourceResponse {
 	ref := providerRef(provider)
+	if reader, ok := provider.(domain.InventorySummaryProvider); ok {
+		result, err := reader.GetInventorySummary(r.Context(), ref)
+		source := provider.Source()
+		response := sourceResponse{ID: source.ID, Provider: string(source.Provider), Name: source.Name, Synthetic: source.Synthetic, ObservedAt: authTimestamp(time.Now().UTC()), Availability: string(domain.AvailabilityUnavailable), Completeness: string(domain.CompletenessComplete)}
+		if fixture, ok := provider.(interface{ FixtureVersion() string }); ok {
+			response.FixtureVersion = fixture.FixtureVersion()
+		}
+		if err != nil || result.Validate() != nil {
+			return response
+		}
+		response.ObservedAt = authTimestamp(result.Status.ObservedAt)
+		response.Availability = string(result.Status.State)
+		response.Completeness = string(result.Status.Completeness)
+		response.Resources = int(result.Resources)
+		response.Health = healthSummary{Healthy: int(result.Healthy), Degraded: int(result.Degraded), Unhealthy: int(result.Unhealthy), Unknown: int(result.Unknown)}
+		return response
+	}
 	query := domain.InventoryQuery{
 		Source: ref, SortField: domain.ResourceSortName, SortDirection: domain.SortAscending,
 		Page: domain.PageRequest{Limit: domain.MaxPageSize},
@@ -457,7 +473,7 @@ func (handler productHTTP) parseResourceQuery(r *http.Request) (domain.Inventory
 			return domain.InventoryQuery{}, errors.New("invalid resource query")
 		}
 		switch key {
-		case "search", "kind", "limit", "cursor", "sort", "direction", "source_id":
+		case "search", "kind", "limit", "cursor", "sort", "direction", "source_id", "provider", "environment_id", "health", "availability", "scope_kind", "scope_name":
 		default:
 			return domain.InventoryQuery{}, errors.New("unknown resource query")
 		}
@@ -483,8 +499,14 @@ func (handler productHTTP) parseResourceQuery(r *http.Request) (domain.Inventory
 		SortField: sortField, SortDirection: direction,
 		Page: domain.PageRequest{Limit: limit, Cursor: domain.PageCursor(values.Get("cursor"))},
 	}
+	query.Filter.Provider = domain.ProviderKind(values.Get("provider"))
+	query.Filter.EnvironmentID = domain.EnvironmentID(values.Get("environment_id"))
+	query.Filter.Health = domain.HealthState(values.Get("health"))
+	query.Filter.Availability = domain.AvailabilityState(values.Get("availability"))
+	query.Filter.ScopeKind = domain.ScopeKind(values.Get("scope_kind"))
+	query.Filter.ScopeName = values.Get("scope_name")
 	if kind := values.Get("kind"); kind != "" {
-		query.Filter.Kinds = []domain.ResourceKind{domain.ResourceKind(strings.TrimSpace(kind))}
+		query.Filter.Kinds = []domain.ResourceKind{domain.ResourceKind(kind)}
 	}
 	if err := query.Filter.Validate(); err != nil {
 		return domain.InventoryQuery{}, err
@@ -499,6 +521,9 @@ func (handler productHTTP) parseResourceQuery(r *http.Request) (domain.Inventory
 }
 
 func resourceJSON(snapshot domain.ResourceSnapshot, health string) resourceResponse {
+	if health == "" {
+		health = string(snapshot.Health)
+	}
 	identity := snapshot.Resource.Ref.Identity
 	return resourceResponse{
 		ID: snapshot.Resource.Ref.ID, Provider: string(identity.Provider), SourceID: identity.SourceID,

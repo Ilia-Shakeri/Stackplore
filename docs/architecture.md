@@ -1,6 +1,8 @@
 # Architecture
 
-Status: active 1.0 implementation; locally verified 0.3.0 development checkpoint, with exact proof in the active evidence plan
+Status: active 1.0 implementation. Stages 1–3 are verified tagged checkpoints
+through 0.3.0. The 0.4.0 exploration checkpoint passed its local and actual browser gates;
+exact current proof is in the active evidence plan.
 
 ## System shape
 
@@ -163,8 +165,14 @@ Connected pages include overview, resources, resource detail, topology, logs,
 events, alerts, audit, search, notification center, source settings and
 alert/notification settings. Source settings support an administrator-only exact
 enable/disable preview and confirmation; unknown operator profiles cannot be
-enabled. Preferences, full detail tabs, rich paging/log controls, broader profile
-setup and guarded infrastructure actions remain planned. Requests carry explicit
+enabled. Paginated exploration has URL filters, bounded log target/range/tail,
+copy and loaded-line export, evidence-based topology with accessible lists, and
+independent timestamp-based metric series. Product pages and transport guards
+are feature-owned modules. Lists cap at 1,000 loaded items; graph rendering caps
+at 200 nodes with 50-node/50-edge list pages. Activity checks use actual server
+session deadlines and bounded, single-flight renewal. See [exploration](exploration.md).
+Preferences, full detail tabs, broader profile setup and guarded infrastructure
+actions remain planned. Requests carry explicit
 source identity; direct resource links use their route source. Missing metric
 samples are not summed into fake zero totals.
 
@@ -184,8 +192,9 @@ CI defines locked package installation, full code verification, a real PostgreSQ
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
 Linux race tests and image builds; see [exact run evidence](implementation-plan.md).
-The verified 0.3.0 checkpoint stays local under the current no-push rule and has no new
-remote CI claim.
+The verified unchanged 0.3.0 tag was pushed under renewed authorization on
+2026-10-17. Both exact remote code/deploy runs passed; the evidence plan links
+them and distinguishes these builds from target startup.
 Compose startup, cluster installation and live provider checks remain open.
 
 ## Security and reliability rules

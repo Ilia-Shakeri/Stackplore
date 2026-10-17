@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.4.0] - 2026-10-17
+
+### Added
+
+- Paginated exploration with URL-backed inventory, time, log and topology filters;
+  bounded loaded-line search, selection, copy and download, previous-container
+  targeting and pause/resume. Source counts use a complete PostgreSQL aggregate.
+- Relationship evidence, correct directions, grouping and keyboard graph controls,
+  paginated accessible node/edge lists and independent timestamp-based metric series.
+- Activity-based session checks use the actual server deadline, bounded requests
+  and stale-response fences. Product pages and runtime transport guards are split
+  by feature; all production text has English and Persian parity.
+- Bilingual exploration guides and current stage evidence.
+
+### Fixed
+
+- Development proxy preserves browser authority and uses the web public origin.
+- Source-wide topology and events no longer inherit a first-inventory-page filter;
+  empty target reads preserve availability, and bounded selections report partial.
+- Health filtering respects denied/partial observations and source capabilities.
+- Exact time windows remain stable through pagination; demonstration clock anchors
+  include observations at their exclusive upper boundary.
+- Rule edits retain event targets and accept fractional thresholds.
+
+### Limits
+
+- This development checkpoint does not complete 1.0. Stages 5–9 retain provider,
+  guarded action/settings, installation, performance and final release requirements.
+- Log download includes only the loaded, redacted lines (at most 1,000). Graphs
+  show at most 200 nodes, with paginated alternatives and explicit loaded-edge bounds.
+- Real provider/container/cluster and final assistive-technology acceptance remain
+  separate from local browser/DOM and PostgreSQL evidence.
+
+
 ## [0.3.0] - 2026-10-16
 
 ### Added

@@ -92,6 +92,8 @@ VALUES('environment_plan_native',$1,'docker','Native plan fixture','available','
 		arguments       []any
 	}{
 		{"inventory_name", `SELECT resource.id,snapshot.display_name` + activeResourceJoin + ` ORDER BY snapshot.display_name COLLATE "C",resource.id COLLATE "C" LIMIT 51`, []any{string(fixture.source.Source.ID), "demo"}},
+		{"inventory_summary", inventorySummarySQL, []any{string(fixture.source.Source.ID), "demo"}},
+		{"inventory_health", `SELECT resource.id,` + resourceHealthExpression + activeResourceJoin + ` AND (` + resourceHealthExpression + `)='unknown' ORDER BY snapshot.display_name COLLATE "C",resource.id COLLATE "C" LIMIT 101`, []any{string(fixture.source.Source.ID), "demo"}},
 		{"event_keyset", `SELECT id,occurred_at_us FROM infrastructure_events WHERE source_id=$1 AND provider='demo'
 AND occurred_at_us>=$2 AND occurred_at_us<$3 AND occurred_at_us<=$4 AND (occurred_at_us<$4 OR (occurred_at_us=$4 AND id COLLATE "C">$5 COLLATE "C"))
 ORDER BY occurred_at_us DESC,id COLLATE "C" LIMIT 51`, []any{string(fixture.source.Source.ID), fixture.at.Add(-time.Hour).UnixMicro(), fixture.at.UnixMicro(), fixture.at.Add(-time.Minute).UnixMicro(), "event_plan_1"}},

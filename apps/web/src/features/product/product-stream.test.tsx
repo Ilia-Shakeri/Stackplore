@@ -24,6 +24,25 @@ afterEach(() => {
 });
 
 describe('product stream', () => {
+  it('closes the connection on pause and opens a new one on resume', () => {
+    vi.stubGlobal('EventSource', FakeEventSource);
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useProductStream('logs', 'source_demo', enabled),
+      { initialProps: { enabled: true } },
+    );
+    const first = FakeEventSource.instances[0];
+    act(() => {
+      first?.dispatchEvent(new Event('logs.snapshot.v1'));
+    });
+    rerender({ enabled: false });
+    expect(first?.close).toHaveBeenCalledOnce();
+    act(() => {
+      first?.dispatchEvent(new Event('logs.snapshot.v1'));
+    });
+    expect(result.current.revision).toBe(1);
+    rerender({ enabled: true });
+    expect(FakeEventSource.instances).toHaveLength(2);
+  });
   it('tracks connection, snapshots, reset, and cleanup', () => {
     vi.stubGlobal('EventSource', FakeEventSource);
     const { result, unmount } = renderHook(() => useProductStream('events', 'source_demo'));

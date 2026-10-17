@@ -7,15 +7,12 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-16): stages 1 and 2 are the verified tagged `0.1.0` and
-`0.2.0` checkpoints. Their full local, real PostgreSQL, restart, disposable restore
-and exact tagged CI results are recorded separately. Stage 3 is the locally verified
-`0.3.0` development checkpoint. Its full local gate with real PostgreSQL,
-disposable native restart/restore and HTTPS receiver checks, and Helm lint/render
-passed; exact results are in the evidence plan.
-[Observations](observations.md) ([فارسی](observations.fa.md)) and
-[alerts and delivery](alerts-notifications.md) describe the implemented boundaries.
-Live target checks remain distinct; stages 4 through 9 remain open.
+Current status (2026-10-17): stages 1–4 are verified development checkpoints
+through `0.4.0`. Exact local and remote outcomes are separate in the evidence
+plan. Stage 4 passed its local, PostgreSQL, native and actual browser gates;
+[retained browser evidence](evidence/0.4.0/README.md) states the scope. Stages 5–9 remain open. [Exploration](exploration.md)
+([فارسی](exploration.fa.md)), [observations](observations.md) and
+[alerts and delivery](alerts-notifications.md) describe current boundaries.
 
 ## Version and delivery rules
 
@@ -23,10 +20,10 @@ Each completed stage receives one version in the root and workspace manifests,
 HTTP contract metadata, chart metadata, and changelog. A release check rejects
 drift. Commit reviewed source, tests, generated transport types, and documents;
 create the matching annotated `vVERSION` tag. Keep existing contributor work and
-secrets out of accidental edits. The replacement repository instructions on
-2026-10-16 prohibit push and supersede the earlier push authorization; current
-commits and tags stay local. No new remote CI result follows from local work.
-No 1.0 tag is made before all final evidence exists.
+secrets out of accidental edits. The maintainer's explicit
+2026-10-17 test/version/commit/push request supersedes the earlier task no-push
+restriction. Push only reviewed, tested milestones without rewriting history,
+and inspect the exact remote revision's CI. No 1.0 tag is made before all final evidence exists.
 
 Prerelease stages are development checkpoints, with limitations stated in the
 changelog and README. No production support promise follows from a 0.x tag.
@@ -80,8 +77,10 @@ until their owning stage proves them.
 
 Status: complete locally verified development checkpoint. Full local/real
 PostgreSQL, disposable native restart/restore, HTTPS receiver and Helm lint/render
-proof is recorded in the active evidence plan. Current instructions prohibit
-push; no new remote CI result is claimed. Stages 4–9 remain open.
+proof is recorded in the active evidence plan. Instructions prohibited push
+at the time of the local checkpoint. On 2026-10-17 the unchanged tag was
+pushed under renewed authorization and both exact CI runs passed. Stage 4
+verification and stages 5–9 remain open.
 
 Delivered covered alert windows and observed restart increments per window,
 raw connection-loss evidence and the whole bounded scoped event window. Alert
@@ -101,6 +100,10 @@ Remaining browser/proxy/live operator receiver and provider fidelity checks stay
 in their later target stages; disposable HTTPS is not an operator production claim.
 
 ## Stage 4 — Complete exploration journeys — 0.4.0
+
+Status: verified development checkpoint; final local, PostgreSQL, native and
+actual-browser gates passed. [Evidence](evidence/0.4.0/README.md) states the scope;
+exact publication outcomes are recorded separately in the active plan.
 
 Paginate inventory, topology, alerts/rules, logs, and search; show partial results
 honestly. Extend the existing URL source/search synchronization to all shareable

@@ -9,6 +9,7 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | Product scope and completion rules | [Specification](../SPEC.md) |
 | Current gaps and review coverage | [Codebase audit](codebase-audit.md) |
 | Current user journeys | [User guide](user-guide.md), [راهنمای کاربر](user-guide.fa.md) |
+| Paginated exploration, time correlation, logs and topology | [Exploration](exploration.md), [بررسی مشاهده‌ها](exploration.fa.md) |
 | System boundaries | [Architecture](architecture.md), [decisions](adr/README.md) |
 | Threat model and private reporting | [Security model](security.md), [policy](../SECURITY.md) |
 | Local tools and commands | [Development](development.md) |

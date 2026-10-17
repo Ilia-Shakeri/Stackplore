@@ -2,13 +2,17 @@ import type { ApiClient } from '@stackplore/api-client';
 import { createMemoryHistory } from '@tanstack/react-router';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createProductApi } from './product-api';
 import { App } from '../../app/App';
 import { createAppRouter } from '../../app/router';
 import { createAuthenticatedAuthStore } from '../../test/auth';
 import { createTestUsersApi } from '../../test/users';
+
+beforeAll(async () => {
+  await Promise.all([import('./ExplorationResourcesPage'), import('./ExplorationLogsPage')]);
+});
 
 const observedAt = '2026-08-16T08:00:00Z';
 const dockerId = `r1_${'B'.repeat(43)}`;
@@ -71,6 +75,116 @@ function renderProductRoute(path: string) {
 }
 
 describe('source-bound product routes', () => {
+  it('preserves batched tail and time parameters in the real route history', async () => {
+    const user = userEvent.setup();
+    const { history } = renderProductRoute(`/logs?source=source_docker&resource_id=${dockerId}`);
+    await user.click(await screen.findByRole('button', { name: 'Pause live tail' }));
+    await waitFor(() => {
+      const params = new URLSearchParams(history.location.search);
+      expect(params.get('tail')).toBe('paused');
+      expect(params.get('source')).toBe('source_docker');
+      expect(params.get('resource_id')).toBe(dockerId);
+      expect(Number.isFinite(Date.parse(params.get('from') ?? ''))).toBe(true);
+      expect(Number.isFinite(Date.parse(params.get('to') ?? ''))).toBe(true);
+    });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Time range' }), '360');
+    await waitFor(() => {
+      const params = new URLSearchParams(history.location.search);
+      expect(params.get('minutes')?.replaceAll('"', '')).toBe('360');
+      expect(params.get('tail')).toBe('paused');
+      expect(Date.parse(params.get('to') ?? '') - Date.parse(params.get('from') ?? '')).toBe(
+        360 * 60000,
+      );
+    });
+    await user.click(screen.getByRole('button', { name: 'Resume live tail' }));
+    await waitFor(() => {
+      const params = new URLSearchParams(history.location.search);
+      expect(params.get('tail')).toBe('live');
+      expect(params.has('from')).toBe(false);
+      expect(params.has('to')).toBe(false);
+      expect(params.get('resource_id')).toBe(dockerId);
+    });
+  });
+  it('loads validated inventory filters from a deep link and restores them through history', async () => {
+    const user = userEvent.setup();
+    const { history, request } = renderProductRoute(
+      '/resources?source=source_docker&provider=docker&health=unknown&availability=available&kind=docker.container&scope_kind=project&scope_name=shop&environment_id=env_test&sort=observed_at&direction=desc',
+    );
+    expect(await screen.findByRole('link', { name: /Worker/u })).not.toBeNull();
+    const latestResourceQuery = () =>
+      request.mock.calls.filter(([input]) => input.path === '/resources').at(-1)?.[0].query;
+    expect(latestResourceQuery()).toMatchObject({
+      source_id: 'source_docker',
+      provider: 'docker',
+      health: 'unknown',
+      availability: 'available',
+      kind: 'docker.container',
+      scope_kind: 'project',
+      scope_name: 'shop',
+      environment_id: 'env_test',
+      sort: 'observed_at',
+      direction: 'desc',
+    });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Health' }), 'healthy');
+    await waitFor(() => {
+      expect(new URLSearchParams(history.location.search).get('health')).toBe('healthy');
+      expect(latestResourceQuery()?.health).toBe('healthy');
+    });
+    act(() => {
+      history.push('/resources?source=source_demo&health=degraded&sort=kind');
+    });
+    await waitFor(() => {
+      expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Health' }).value).toBe(
+        'degraded',
+      );
+      expect(latestResourceQuery()).toMatchObject({
+        health: 'degraded',
+        sort: 'kind',
+        source_id: 'source_demo',
+      });
+    });
+    act(() => {
+      history.back();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Health' }).value).toBe(
+        'healthy',
+      );
+      expect(latestResourceQuery()).toMatchObject({
+        health: 'healthy',
+        sort: 'observed_at',
+        source_id: 'source_docker',
+      });
+    });
+  });
+
+  it('keeps resource, container and exact time bounds in a log deep link', async () => {
+    const from = '2026-08-16T07:00:00Z';
+    const to = '2026-08-16T08:00:00Z';
+    const { request } = renderProductRoute(
+      `/logs?source=source_docker&resource_id=${dockerId}&container=worker&previous=true&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(await screen.findByRole('heading', { name: 'Logs', level: 1 })).not.toBeNull();
+    await waitFor(() => {
+      expect(request.mock.calls.find(([input]) => input.path === '/logs')?.[0].query).toMatchObject(
+        {
+          resource_id: dockerId,
+          source_id: 'source_docker',
+          container: 'worker',
+          previous: true,
+          from,
+          to,
+        },
+      );
+    });
+    expect(screen.getByRole<HTMLInputElement>('combobox', { name: 'Container name' }).value).toBe(
+      'worker',
+    );
+    expect(
+      screen.getByRole<HTMLInputElement>('checkbox', { name: 'Previous container' }).checked,
+    ).toBe(true);
+  });
+
   it('switches source before each request and follows URL history', async () => {
     const user = userEvent.setup();
     const { history, request } = renderProductRoute('/resources?source=source_demo');

@@ -37,19 +37,19 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          changeOrigin: true,
+          changeOrigin: false,
           target: apiOrigin,
         },
         '/healthz': {
-          changeOrigin: true,
+          changeOrigin: false,
           target: apiOrigin,
         },
         '/readyz': {
-          changeOrigin: true,
+          changeOrigin: false,
           target: apiOrigin,
         },
         '/metrics': {
-          changeOrigin: true,
+          changeOrigin: false,
           target: apiOrigin,
         },
       },

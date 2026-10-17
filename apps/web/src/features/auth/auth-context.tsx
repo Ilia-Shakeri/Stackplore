@@ -19,6 +19,19 @@ export interface AuthProviderProps {
 export function AuthProvider({ children, store }: AuthProviderProps) {
   useEffect(() => {
     void store.ensureLoaded();
+    const activity = () => {
+      void store.recordActivity();
+    };
+    window.addEventListener('pointerdown', activity, { passive: true });
+    window.addEventListener('keydown', activity);
+    window.addEventListener('wheel', activity, { passive: true });
+    window.addEventListener('touchmove', activity, { passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', activity);
+      window.removeEventListener('keydown', activity);
+      window.removeEventListener('wheel', activity);
+      window.removeEventListener('touchmove', activity);
+    };
   }, [store]);
 
   return <AuthContext value={store}>{children}</AuthContext>;

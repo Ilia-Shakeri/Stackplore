@@ -12,10 +12,16 @@ interface ProductStreamState {
 
 const sourcePattern = /^[A-Za-z][A-Za-z0-9_-]{0,127}$/u;
 
-export function useProductStream(topic: ProductStreamTopic, sourceId?: string): ProductStreamState {
+export function useProductStream(
+  topic: ProductStreamTopic,
+  sourceId?: string,
+  enabled = true,
+): ProductStreamState {
   const [state, setState] = useState<ProductStreamState>({ revision: 0, status: 'connecting' });
 
   useEffect(() => {
+    if (!enabled) return;
+    setState((current) => ({ ...current, status: 'connecting' }));
     if (typeof EventSource === 'undefined') {
       setState({ revision: 0, status: 'unavailable' });
       return;
@@ -52,7 +58,7 @@ export function useProductStream(topic: ProductStreamTopic, sourceId?: string): 
       stream.removeEventListener('error', onError);
       stream.close();
     };
-  }, [sourceId, topic]);
+  }, [enabled, sourceId, topic]);
 
   return state;
 }

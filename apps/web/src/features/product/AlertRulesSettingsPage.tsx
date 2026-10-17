@@ -1,232 +1,103 @@
-import type {
-  AlertRuleInput,
-  AlertRuleRecord,
-  NotificationSettingsStatus,
-} from '@stackplore/api-client';
-import { useEffect, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react';
+import type { AlertRuleRecord } from '@stackplore/api-client';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react';
 
-import { useProductApi } from './product-context';
+import { NotificationDeliverySettings } from './NotificationDeliverySettings';
+import {
+  kinds,
+  severities,
+  comparisons,
+  emptyDraft,
+  isMetricKind,
+  isCountKind,
+  needsResource,
+  draftInput,
+  recordInput,
+  recordDraft,
+  type RuleDraft,
+  type RuleKind,
+  type Severity,
+} from './alert-rule-draft';
+
+import { useProductApi, useProductView } from './product-context';
 import { useLocale } from '../../i18n';
-
-type RuleKind = AlertRuleInput['kind'];
-type Severity = AlertRuleInput['severity'];
-
-interface RuleDraft {
-  comparison: NonNullable<AlertRuleInput['comparison_operator']>;
-  displayName: string;
-  enabled: boolean;
-  environmentId: string;
-  evaluationSeconds: string;
-  kind: RuleKind;
-  minimumSeverity: Severity;
-  pendingSeconds: string;
-  resourceId: string;
-  severity: Severity;
-  sourceId: string;
-  thresholdCount: string;
-  thresholdValue: string;
-  windowSeconds: string;
-}
-
-const kinds: readonly RuleKind[] = [
-  'resource_unavailable',
-  'resource_unhealthy',
-  'restart_threshold',
-  'cpu_threshold',
-  'memory_threshold',
-  'workload_unavailable_replicas',
-  'event_severity_match',
-  'provider_connection_lost',
-];
-const severities: readonly Severity[] = ['debug', 'info', 'warning', 'error', 'critical'];
-const comparisons: readonly NonNullable<AlertRuleInput['comparison_operator']>[] = [
-  'greater_than',
-  'greater_than_or_equal',
-  'less_than',
-  'less_than_or_equal',
-  'equal',
-];
-
-const emptyDraft = (): RuleDraft => ({
-  comparison: 'greater_than_or_equal',
-  displayName: '',
-  enabled: true,
-  environmentId: '',
-  evaluationSeconds: '30',
-  kind: 'resource_unavailable',
-  minimumSeverity: 'warning',
-  pendingSeconds: '60',
-  resourceId: '',
-  severity: 'warning',
-  sourceId: '',
-  thresholdCount: '1',
-  thresholdValue: '80',
-  windowSeconds: '300',
-});
-
-const isHealthKind = (kind: RuleKind) =>
-  kind === 'resource_unavailable' || kind === 'resource_unhealthy';
-const isMetricKind = (kind: RuleKind) => kind === 'cpu_threshold' || kind === 'memory_threshold';
-const isCountKind = (kind: RuleKind) =>
-  kind === 'restart_threshold' || kind === 'workload_unavailable_replicas';
-const needsResource = (kind: RuleKind) =>
-  isHealthKind(kind) || isMetricKind(kind) || isCountKind(kind);
-
-function positiveInteger(value: string, minimum: number, maximum: number) {
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null;
-}
-
-function draftInput(draft: RuleDraft): AlertRuleInput | null {
-  const evaluation = positiveInteger(draft.evaluationSeconds, 1, 86_400);
-  const pending = positiveInteger(draft.pendingSeconds, 0, 86_400);
-  if (
-    draft.displayName.trim() === '' ||
-    draft.sourceId.trim() === '' ||
-    evaluation === null ||
-    pending === null
-  )
-    return null;
-  if (needsResource(draft.kind) && draft.resourceId.trim() === '') return null;
-  const input: AlertRuleInput = {
-    display_name: draft.displayName.trim(),
-    enabled: draft.enabled,
-    evaluation_interval_seconds: evaluation,
-    kind: draft.kind,
-    pending_for_seconds: pending,
-    severity: draft.severity,
-    source_id: draft.sourceId.trim(),
-    ...(draft.environmentId.trim() === '' ? {} : { environment_id: draft.environmentId.trim() }),
-    ...(needsResource(draft.kind) ? { resource_id: draft.resourceId.trim() } : {}),
-  };
-  if (isMetricKind(draft.kind)) {
-    const threshold = Number(draft.thresholdValue);
-    const window = positiveInteger(draft.windowSeconds, 1, 86_400);
-    if (
-      !Number.isFinite(threshold) ||
-      threshold < 0 ||
-      threshold > Number.MAX_SAFE_INTEGER ||
-      window === null
-    )
-      return null;
-    return {
-      ...input,
-      comparison_operator: draft.comparison,
-      threshold_value: threshold,
-      window_seconds: window,
-    };
-  }
-  if (isCountKind(draft.kind)) {
-    const threshold = positiveInteger(draft.thresholdCount, 1, Number.MAX_SAFE_INTEGER);
-    const window = positiveInteger(draft.windowSeconds, 1, 86_400);
-    if (threshold === null || window === null) return null;
-    return {
-      ...input,
-      comparison_operator: draft.comparison,
-      threshold_count: threshold,
-      window_seconds: window,
-    };
-  }
-  if (draft.kind === 'event_severity_match')
-    return { ...input, minimum_event_severity: draft.minimumSeverity };
-  return input;
-}
-
-function recordInput(rule: AlertRuleRecord): AlertRuleInput {
-  return {
-    display_name: rule.display_name,
-    enabled: rule.enabled,
-    evaluation_interval_seconds: rule.evaluation_interval_seconds,
-    kind: rule.kind,
-    pending_for_seconds: rule.pending_for_seconds,
-    severity: rule.severity,
-    source_id: rule.source_id,
-    ...(rule.environment_id === undefined ? {} : { environment_id: rule.environment_id }),
-    ...(rule.resource_id === undefined ? {} : { resource_id: rule.resource_id }),
-    ...(rule.comparison_operator === undefined
-      ? {}
-      : { comparison_operator: rule.comparison_operator }),
-    ...(rule.threshold_value === undefined ? {} : { threshold_value: rule.threshold_value }),
-    ...(rule.threshold_count === undefined ? {} : { threshold_count: rule.threshold_count }),
-    ...(rule.window_seconds === undefined ? {} : { window_seconds: rule.window_seconds }),
-    ...(rule.minimum_event_severity === undefined
-      ? {}
-      : { minimum_event_severity: rule.minimum_event_severity }),
-  };
-}
-
-function recordDraft(rule: AlertRuleRecord): RuleDraft {
-  return {
-    comparison: rule.comparison_operator ?? 'greater_than_or_equal',
-    displayName: rule.display_name,
-    enabled: rule.enabled,
-    environmentId: rule.environment_id ?? '',
-    evaluationSeconds: String(rule.evaluation_interval_seconds),
-    kind: rule.kind,
-    minimumSeverity: rule.minimum_event_severity ?? 'warning',
-    pendingSeconds: String(rule.pending_for_seconds),
-    resourceId: rule.resource_id ?? '',
-    severity: rule.severity,
-    sourceId: rule.source_id,
-    thresholdCount: String(rule.threshold_count ?? 1),
-    thresholdValue: String(rule.threshold_value ?? 80),
-    windowSeconds: String(rule.window_seconds ?? 300),
-  };
-}
 
 export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: ReactNode }) {
   const api = useProductApi();
+  const { search, selectParameter } = useProductView();
+  const urlCursor = readRuleCursor(search);
   const { t } = useLocale();
+  const [cursor, setCursor] = useState<string | undefined>();
+  const [previousCursors, setPreviousCursors] = useState<Array<string | undefined>>([]);
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
+  const loadController = useRef<AbortController | null>(null);
+  const loadGeneration = useRef(0);
   const [rules, setRules] = useState<readonly AlertRuleRecord[]>([]);
   const [draft, setDraft] = useState<RuleDraft>(emptyDraft);
   const [editing, setEditing] = useState<AlertRuleRecord | null>(null);
   const [deleteIntent, setDeleteIntent] = useState<string | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'saving' | 'error'>('loading');
-  const [delivery, setDelivery] = useState<
-    | { readonly kind: 'loading' | 'error' }
-    | { readonly kind: 'ready'; readonly status: NotificationSettingsStatus }
-  >({ kind: 'loading' });
-  const [testPassword, setTestPassword] = useState('');
-  const [testAdapter, setTestAdapter] = useState<'generic_webhook' | 'matrix'>('generic_webhook');
-  const [testDelivery, setTestDelivery] = useState<
-    | { readonly kind: 'idle' | 'sending' | 'error' }
-    | { readonly kind: 'queued'; readonly notificationId: string }
-  >({ kind: 'idle' });
   const input = useMemo(() => draftInput(draft), [draft]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void api
-      .listAlertRules({ signal: controller.signal })
-      .then((page) => {
+  const loadPage = useCallback(
+    async (pageCursor?: string) => {
+      loadController.current?.abort();
+      const controller = new AbortController();
+      loadController.current = controller;
+      const generation = ++loadGeneration.current;
+      setState('loading');
+      try {
+        const page = await api.listAlertRules({
+          limit: 100,
+          signal: controller.signal,
+          ...(pageCursor === undefined ? {} : { cursor: pageCursor }),
+        });
+        if (controller.signal.aborted || generation !== loadGeneration.current) return false;
+        if (page.page.has_more && page.page.next_cursor === pageCursor)
+          throw new Error('Rule page did not advance.');
         setRules(page.items);
+        setNextCursor(page.page.has_more ? page.page.next_cursor : undefined);
+        setCursor(pageCursor);
         setState('ready');
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setState('error');
-      });
-    return () => {
-      controller.abort();
-    };
-  }, [api]);
+        return true;
+      } catch {
+        if (!controller.signal.aborted && generation === loadGeneration.current) setState('error');
+        return false;
+      }
+    },
+    [api],
+  );
 
   useEffect(() => {
-    const controller = new AbortController();
-    void api.getNotificationSettings(controller.signal).then(
-      (status) => {
-        setDelivery({ kind: 'ready', status });
-        if (!status.enabled && status.matrix.enabled) setTestAdapter('matrix');
-      },
-      (error: unknown) => {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          setDelivery({ kind: 'error' });
-        }
-      },
-    );
+    void loadPage(urlCursor);
     return () => {
-      controller.abort();
+      loadController.current?.abort();
+      loadGeneration.current++;
     };
-  }, [api]);
+  }, [loadPage, urlCursor]);
+
+  const nextPage = () => {
+    if (nextCursor === undefined || state !== 'ready') return;
+    setState('loading');
+    setPreviousCursors((current) => [...current.slice(-63), cursor]);
+    selectParameter('rule_cursor', nextCursor);
+    setDeleteIntent(null);
+  };
+
+  const previousPage = () => {
+    if (state === 'loading' || state === 'saving' || urlCursor === undefined) return;
+    setState('loading');
+    selectParameter('rule_cursor', previousCursors.at(-1) ?? '');
+    setPreviousCursors((current) => current.slice(0, -1));
+    setDeleteIntent(null);
+  };
 
   const update = <Key extends keyof RuleDraft>(key: Key, value: RuleDraft[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -234,33 +105,43 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
 
   const save = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (input === null || state === 'saving') return;
+    if (input === null || state === 'saving' || state === 'loading') return;
+    const generation = loadGeneration.current;
     setState('saving');
     try {
       const saved =
         editing === null
           ? await api.createAlertRule(input)
           : await api.replaceAlertRule(editing.id, editing.version, input);
-      setRules((current) => [saved, ...current.filter((rule) => rule.id !== saved.id)]);
+      if (generation !== loadGeneration.current) return;
+      if (editing === null) {
+        setPreviousCursors([]);
+        selectParameter('rule_cursor', '');
+        if (urlCursor === undefined) await loadPage();
+      } else {
+        setRules((current) => current.map((rule) => (rule.id === saved.id ? saved : rule)));
+      }
       setEditing(null);
       setDraft(emptyDraft());
-      setState('ready');
+      if (editing !== null) setState('ready');
     } catch {
-      setState('error');
+      if (generation === loadGeneration.current) setState('error');
     }
   };
 
   const toggle = async (rule: AlertRuleRecord) => {
+    const generation = loadGeneration.current;
     setState('saving');
     try {
       const saved = await api.replaceAlertRule(rule.id, rule.version, {
         ...recordInput(rule),
         enabled: !rule.enabled,
       });
+      if (generation !== loadGeneration.current) return;
       setRules((current) => current.map((item) => (item.id === saved.id ? saved : item)));
       setState('ready');
     } catch {
-      setState('error');
+      if (generation === loadGeneration.current) setState('error');
     }
   };
 
@@ -269,31 +150,16 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
       setDeleteIntent(rule.id);
       return;
     }
+    const generation = loadGeneration.current;
     setState('saving');
     try {
       await api.deleteAlertRule(rule.id, rule.version);
+      if (generation !== loadGeneration.current) return;
       setRules((current) => current.filter((item) => item.id !== rule.id));
       setDeleteIntent(null);
       setState('ready');
     } catch {
-      setState('error');
-    }
-  };
-
-  const sendTest = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (testPassword === '' || testDelivery.kind === 'sending') return;
-    setTestDelivery({ kind: 'sending' });
-    try {
-      const result =
-        testAdapter === 'matrix'
-          ? await api.testNotification(testPassword, 'matrix')
-          : await api.testNotification(testPassword);
-      setTestDelivery({ kind: 'queued', notificationId: result.notification_id });
-    } catch {
-      setTestDelivery({ kind: 'error' });
-    } finally {
-      setTestPassword('');
+      if (generation === loadGeneration.current) setState('error');
     }
   };
 
@@ -305,132 +171,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
         <p>{t('alerts.rules.description')}</p>
       </header>
       {toolbar}
-      <section className="notification-delivery-panel" aria-labelledby="delivery-status-title">
-        <header>
-          <div>
-            <h2 id="delivery-status-title">{t('notifications.settings.title')}</h2>
-            <p>{t('notifications.settings.description')}</p>
-          </div>
-          {delivery.kind === 'ready' ? (
-            <span
-              className={`readiness-state readiness-state--${delivery.status.enabled || delivery.status.matrix.enabled ? 'ready' : 'not_ready'}`}
-            >
-              {delivery.status.enabled || delivery.status.matrix.enabled
-                ? t('notifications.settings.enabled')
-                : t('notifications.settings.disabled')}
-            </span>
-          ) : null}
-        </header>
-        {delivery.kind === 'loading' ? (
-          <p aria-live="polite">{t('notifications.settings.loading')}</p>
-        ) : null}
-        {delivery.kind === 'error' ? <p role="alert">{t('notifications.settings.error')}</p> : null}
-        {delivery.kind === 'ready' ? (
-          <>
-            <dl>
-              <div>
-                <dt>{t('notifications.settings.adapter')}</dt>
-                <dd>{t('notifications.settings.adapter.webhook')}</dd>
-              </div>
-              <div>
-                <dt>{t('notifications.settings.delivery')}</dt>
-                <dd>{t('notifications.settings.delivery.atLeastOnce')}</dd>
-              </div>
-              <div>
-                <dt>{t('notifications.settings.destination')}</dt>
-                <dd>
-                  <code dir="ltr">
-                    {delivery.status.enabled
-                      ? delivery.status.destination_reference_id
-                      : t('notifications.settings.none')}
-                  </code>
-                </dd>
-              </div>
-            </dl>
-            <dl>
-              <div>
-                <dt>{t('notifications.settings.adapter.matrix')}</dt>
-                <dd>
-                  {delivery.status.matrix.enabled
-                    ? t('notifications.settings.enabled')
-                    : t('notifications.settings.disabled')}
-                </dd>
-              </div>
-              <div>
-                <dt>{t('notifications.settings.destination.matrix')}</dt>
-                <dd>
-                  <code dir="ltr">
-                    {delivery.status.matrix.enabled
-                      ? delivery.status.matrix.destination_reference_id
-                      : t('notifications.settings.none')}
-                  </code>
-                </dd>
-              </div>
-            </dl>
-            <p className="notification-delivery-panel__note">
-              {t('notifications.settings.operatorNote')}
-            </p>
-            {delivery.status.enabled || delivery.status.matrix.enabled ? (
-              <form
-                className="notification-delivery-panel__test"
-                onSubmit={(event) => {
-                  void sendTest(event);
-                }}
-              >
-                <label>
-                  <span>{t('notifications.settings.test.adapter')}</span>
-                  <select
-                    value={testAdapter}
-                    disabled={testDelivery.kind === 'sending'}
-                    onChange={(event) => {
-                      setTestAdapter(
-                        event.target.value === 'matrix' ? 'matrix' : 'generic_webhook',
-                      );
-                      setTestDelivery({ kind: 'idle' });
-                    }}
-                  >
-                    <option value="generic_webhook" disabled={!delivery.status.enabled}>
-                      {t('notifications.settings.adapter.webhook')}
-                    </option>
-                    <option value="matrix" disabled={!delivery.status.matrix.enabled}>
-                      {t('notifications.settings.adapter.matrix')}
-                    </option>
-                  </select>
-                </label>
-                <label>
-                  <span>{t('notifications.settings.test.password')}</span>
-                  <input
-                    autoComplete="current-password"
-                    dir="ltr"
-                    maxLength={128}
-                    required
-                    type="password"
-                    value={testPassword}
-                    onChange={(event) => {
-                      setTestPassword(event.target.value);
-                    }}
-                  />
-                </label>
-                <button
-                  className="button button--primary"
-                  disabled={testDelivery.kind === 'sending'}
-                >
-                  {testDelivery.kind === 'sending'
-                    ? t('notifications.settings.test.sending')
-                    : t('notifications.settings.test.send')}
-                </button>
-                <p aria-live="polite">
-                  {testDelivery.kind === 'queued'
-                    ? `${t('notifications.settings.test.queued')} ${testDelivery.notificationId}`
-                    : testDelivery.kind === 'error'
-                      ? t('notifications.settings.test.error')
-                      : t('notifications.settings.test.help')}
-                </p>
-              </form>
-            ) : null}
-          </>
-        ) : null}
-      </section>
+      <NotificationDeliverySettings />
       <p className="alert-rule-settings__status" aria-live="polite">
         {state === 'loading'
           ? t('alerts.rules.loading')
@@ -440,6 +181,16 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
               ? t('alerts.rules.error')
               : ''}
       </p>
+      {state === 'error' ? (
+        <button
+          className="ui-button ui-button--secondary ui-focus-ring"
+          onClick={() => {
+            void loadPage(urlCursor);
+          }}
+        >
+          {t('alerts.rules.reload')}
+        </button>
+      ) : null}
       <section className="alert-rule-settings__panel" aria-labelledby="rule-editor-title">
         <h2 id="rule-editor-title">
           {editing === null ? t('alerts.rules.create') : t('alerts.rules.edit')}
@@ -462,6 +213,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
           </RuleField>
           <RuleField label={t('alerts.rules.source')}>
             <input
+              dir="ltr"
               required
               maxLength={128}
               value={draft.sourceId}
@@ -471,15 +223,18 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
               }}
             />
           </RuleField>
-          <RuleField label={t('alerts.rules.environment')}>
-            <input
-              maxLength={128}
-              value={draft.environmentId}
-              onChange={(event) => {
-                update('environmentId', event.target.value);
-              }}
-            />
-          </RuleField>
+          {draft.kind !== 'provider_connection_lost' ? (
+            <RuleField label={t('alerts.rules.environment')}>
+              <input
+                dir="ltr"
+                maxLength={128}
+                value={draft.environmentId}
+                onChange={(event) => {
+                  update('environmentId', event.target.value);
+                }}
+              />
+            </RuleField>
+          ) : null}
           <RuleField label={t('alerts.rules.kind')}>
             <select
               value={draft.kind}
@@ -494,10 +249,12 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
               ))}
             </select>
           </RuleField>
-          {needsResource(draft.kind) ? (
+          {needsResource(draft.kind) || draft.kind === 'event_severity_match' ? (
             <RuleField label={t('alerts.rules.resource')}>
               <input
-                required
+                required={needsResource(draft.kind)}
+                dir="ltr"
+                maxLength={46}
                 value={draft.resourceId}
                 onChange={(event) => {
                   update('resourceId', event.target.value);
@@ -540,6 +297,8 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
               <input
                 type="number"
                 min="0"
+                step="any"
+                dir="ltr"
                 required
                 value={draft.thresholdValue}
                 onChange={(event) => {
@@ -629,7 +388,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
           <div className="alert-rule-settings__actions">
             <button
               className="ui-button ui-button--primary ui-focus-ring"
-              disabled={input === null || state === 'saving'}
+              disabled={input === null || state === 'saving' || state === 'loading'}
               type="submit"
             >
               {editing === null ? t('alerts.rules.createAction') : t('alerts.rules.saveAction')}
@@ -651,21 +410,25 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
       </section>
       <section className="alert-rule-settings__panel" aria-labelledby="rule-list-title">
         <h2 id="rule-list-title">{t('alerts.rules.list')}</h2>
-        {state !== 'loading' && rules.length === 0 ? <p>{t('alerts.rules.empty')}</p> : null}
-        <div className="alert-rule-settings__list">
+        {state === 'ready' && rules.length === 0 ? <p>{t('alerts.rules.empty')}</p> : null}
+        <div
+          className="alert-rule-settings__list"
+          aria-busy={state === 'loading' || state === 'saving'}
+        >
           {rules.map((rule) => (
             <article className="alert-rule-card" key={rule.id}>
               <div>
                 <h3>{rule.display_name}</h3>
                 <p>
-                  <code dir="ltr">{rule.kind}</code> · {t(`alerts.rules.severity.${rule.severity}`)}
+                  <span>{t(`alerts.rules.kind.${rule.kind}`)}</span> ·{' '}
+                  {t(`alerts.rules.severity.${rule.severity}`)}
                 </p>
                 <p>{rule.enabled ? t('alerts.rules.on') : t('alerts.rules.off')}</p>
               </div>
               <div className="alert-rule-settings__actions">
                 <button
                   className="ui-button ui-button--secondary ui-focus-ring"
-                  disabled={state === 'saving'}
+                  disabled={state === 'saving' || state === 'loading'}
                   onClick={() => {
                     setEditing(rule);
                     setDraft(recordDraft(rule));
@@ -675,14 +438,14 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
                 </button>
                 <button
                   className="ui-button ui-button--secondary ui-focus-ring"
-                  disabled={state === 'saving'}
+                  disabled={state === 'saving' || state === 'loading'}
                   onClick={() => void toggle(rule)}
                 >
                   {rule.enabled ? t('alerts.rules.disable') : t('alerts.rules.enable')}
                 </button>
                 <button
                   className="ui-button ui-button--danger ui-focus-ring"
-                  disabled={state === 'saving'}
+                  disabled={state === 'saving' || state === 'loading'}
                   onClick={() => void remove(rule)}
                 >
                   {deleteIntent === rule.id
@@ -693,6 +456,28 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
             </article>
           ))}
         </div>
+        <nav aria-label={t('alerts.rules.pagination')} className="alert-rule-settings__actions">
+          <button
+            className="ui-button ui-button--secondary ui-focus-ring"
+            disabled={urlCursor === undefined || state === 'loading' || state === 'saving'}
+            onClick={() => {
+              previousPage();
+            }}
+          >
+            {previousCursors.length === 0
+              ? t('alerts.rules.firstPage')
+              : t('alerts.rules.previousPage')}
+          </button>
+          <button
+            className="ui-button ui-button--secondary ui-focus-ring"
+            disabled={nextCursor === undefined || state !== 'ready'}
+            onClick={() => {
+              nextPage();
+            }}
+          >
+            {t('alerts.rules.nextPage')}
+          </button>
+        </nav>
       </section>
     </div>
   );
@@ -705,4 +490,9 @@ function RuleField({ children, label }: { readonly children: ReactNode; readonly
       {children}
     </label>
   );
+}
+
+function readRuleCursor(search: string) {
+  const value = new URLSearchParams(search).get('rule_cursor');
+  return value !== null && /^[A-Za-z0-9_-]{1,4096}$/u.test(value) ? value : undefined;
 }

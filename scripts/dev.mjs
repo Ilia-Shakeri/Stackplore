@@ -12,6 +12,8 @@ if (existsSync(environmentPath)) {
   process.loadEnvFile(environmentPath);
 }
 
+process.env.STACKPLORE_PUBLIC_ORIGIN ??= 'http://127.0.0.1:5173';
+
 const { result } = concurrently(
   [
     {

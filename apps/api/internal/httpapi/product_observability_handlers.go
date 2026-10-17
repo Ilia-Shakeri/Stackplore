@@ -13,14 +13,26 @@ import (
 )
 
 type relationshipResponse struct {
-	ID         domain.RelationshipID `json:"id"`
-	From       domain.ResourceID     `json:"from"`
-	To         domain.ResourceID     `json:"to"`
-	Kind       string                `json:"kind"`
-	Direction  string                `json:"direction"`
-	ObservedAt string                `json:"observed_at"`
-	Synthetic  bool                  `json:"synthetic"`
-	Confidence float64               `json:"confidence"`
+	ID         domain.RelationshipID          `json:"id"`
+	From       domain.ResourceID              `json:"from"`
+	To         domain.ResourceID              `json:"to"`
+	Kind       string                         `json:"kind"`
+	Direction  string                         `json:"direction"`
+	ObservedAt string                         `json:"observed_at"`
+	Synthetic  bool                           `json:"synthetic"`
+	Confidence float64                        `json:"confidence"`
+	Evidence   []relationshipEvidenceResponse `json:"evidence"`
+}
+
+type relationshipEvidenceResponse struct {
+	ID         domain.EvidenceID             `json:"id"`
+	Provider   domain.ProviderKind           `json:"provider"`
+	SourceID   domain.SourceID               `json:"source_id"`
+	Provenance domain.RelationshipProvenance `json:"provenance"`
+	Certainty  domain.EvidenceCertainty      `json:"certainty"`
+	Confidence float64                       `json:"confidence"`
+	ObservedAt string                        `json:"observed_at"`
+	Synthetic  bool                          `json:"synthetic"`
 }
 
 type relationshipPageResponse struct {
@@ -32,6 +44,7 @@ type relationshipPageResponse struct {
 type logResponse struct {
 	ID         domain.LogEntryID `json:"id"`
 	ResourceID domain.ResourceID `json:"resource_id"`
+	Container  string            `json:"container,omitempty"`
 	Stream     string            `json:"stream"`
 	Sequence   uint64            `json:"sequence"`
 	Severity   string            `json:"severity"`
@@ -125,7 +138,7 @@ func (handler productHTTP) topology(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	refs, err := handler.resourceRefs(r, provider, resourceID, domain.MaxFilterValues)
+	refs, err := handler.optionalResourceRefs(r, provider, resourceID)
 	if err != nil {
 		writeResourceProblem(w, r, err)
 		return
@@ -145,6 +158,10 @@ func (handler productHTTP) topology(w http.ResponseWriter, r *http.Request) {
 			ID: relationship.ID, From: relationship.From, To: relationship.To,
 			Kind: string(relationship.Kind), Direction: string(relationship.Direction),
 			ObservedAt: authTimestamp(relationship.ObservedAt), Synthetic: relationshipSynthetic(relationship), Confidence: confidence,
+		}
+		items[index].Evidence = make([]relationshipEvidenceResponse, len(relationship.Evidence))
+		for i, evidence := range relationship.Evidence {
+			items[index].Evidence[i] = relationshipEvidenceResponse{ID: evidence.ID, Provider: evidence.Provider, SourceID: evidence.SourceID, Provenance: evidence.Provenance, Certainty: evidence.Certainty, Confidence: evidence.Confidence, ObservedAt: authTimestamp(evidence.ObservedAt), Synthetic: evidence.Synthetic}
 		}
 	}
 	writeJSON(w, http.StatusOK, relationshipPageResponse{observationResponse: observationJSON(result.Status), Items: items, Page: pageJSON(result.Page)})
@@ -169,7 +186,7 @@ func (handler productHTTP) logs(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
-	refs, err := handler.resourceRefs(r, provider, resourceID, domain.MaxLogTargets)
+	refs, selectionStatus, err := handler.resourceSelection(r, provider, resourceID, domain.MaxLogTargets)
 	if err != nil {
 		writeResourceProblem(w, r, err)
 		return
@@ -179,19 +196,43 @@ func (handler productHTTP) logs(w http.ResponseWriter, r *http.Request) {
 		targets[index] = domain.LogTarget{Resource: ref}
 	}
 	end := observationTime(provider).Add(time.Nanosecond)
+	rangeValue, err := parseObservationRange(r, domain.TimeRange{Start: end.Add(-24 * time.Hour), End: end}, domain.MaxLogLookback)
+	if err != nil {
+		writeProblem(w, r, invalidRequestProblem)
+		return
+	}
+	container, previous, err := parseLogSelection(r, resourceID)
+	if err != nil {
+		writeProblem(w, r, invalidRequestProblem)
+		return
+	}
+	for i := range targets {
+		targets[i].Container = container
+		targets[i].Previous = previous
+	}
+	if len(targets) == 0 {
+		status, err := emptyReadStatus(r, provider, selectionStatus, domain.CapabilityLogRead)
+		if err != nil {
+			writeProviderProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, logPageResponse{observationResponse: observationJSON(status), Items: []logResponse{}, Page: pageJSON(domain.PageInfo{Limit: page.Limit})})
+		return
+	}
 	result, err := logProvider.ReadLogs(r.Context(), domain.LogReadQuery{
 		Source: providerRef(provider), Targets: targets,
-		Range:     domain.TimeRange{Start: end.Add(-24 * time.Hour), End: end},
+		Range:     rangeValue,
 		LineLimit: page.Limit, ByteLimit: domain.MaxLogBytes, Cursor: page.Cursor,
 	})
 	if err != nil {
 		writeProviderProblem(w, r, err)
 		return
 	}
+	result.Status = withSelectionStatus(result.Status, selectionStatus)
 	items := make([]logResponse, len(result.Records))
 	for index, record := range result.Records {
 		items[index] = logResponse{
-			ID: record.ID, ResourceID: record.ResourceID, Stream: string(record.Stream), Sequence: record.Sequence,
+			ID: record.ID, ResourceID: record.ResourceID, Container: record.Container, Stream: string(record.Stream), Sequence: record.Sequence,
 			Severity: string(record.Severity), Timestamp: authTimestamp(record.Timestamp), Message: record.Message,
 			Redacted: record.Redacted, Truncated: record.Truncated, Synthetic: record.Synthetic,
 		}
@@ -218,12 +259,21 @@ func (handler productHTTP) metrics(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
-	refs, err := handler.resourceRefs(r, provider, resourceID, domain.MaxMetricTargets)
+	refs, selectionStatus, err := handler.resourceSelection(r, provider, resourceID, domain.MaxMetricTargets)
 	if err != nil {
 		writeResourceProblem(w, r, err)
 		return
 	}
 	names := []domain.MetricName{domain.MetricCPUUsageCores, domain.MetricMemoryUsageBytes, domain.MetricRestartCount}
+	if len(refs) == 0 {
+		status, err := emptyReadStatus(r, provider, selectionStatus, domain.CapabilityMetricCurrent)
+		if err != nil {
+			writeProviderProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, metricResponseSet{observationResponse: observationJSON(status), Items: []metricResponse{}})
+		return
+	}
 	result, err := metricProvider.GetCurrentMetrics(r.Context(), domain.CurrentMetricQuery{Source: providerRef(provider), Resources: refs, Names: names})
 	if err != nil {
 		writeProviderProblem(w, r, err)
@@ -239,7 +289,7 @@ func (handler productHTTP) metrics(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	status := currentMetricStatus(result)
+	status := withSelectionStatus(currentMetricStatus(result), selectionStatus)
 	if len(items) > domain.MaxPageSize {
 		items = items[:domain.MaxPageSize]
 		status.Completeness = domain.CompletenessPartial
@@ -307,7 +357,7 @@ func (handler productHTTP) metricHistory(w http.ResponseWriter, r *http.Request)
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
-	refs, err := handler.resourceRefs(r, provider, resourceID, domain.MaxMetricTargets)
+	refs, selectionStatus, err := handler.resourceSelection(r, provider, resourceID, domain.MaxMetricTargets)
 	if err != nil {
 		writeResourceProblem(w, r, err)
 		return
@@ -317,14 +367,29 @@ func (handler productHTTP) metricHistory(w http.ResponseWriter, r *http.Request)
 		domain.MetricNetworkReceiveBytesTotal, domain.MetricNetworkSendBytesTotal, domain.MetricRestartCount,
 	}
 	end := observationTime(provider).Add(time.Nanosecond)
+	rangeValue, err := parseObservationRange(r, domain.TimeRange{Start: end.Add(-lookback), End: end}, domain.MaxMetricLookback)
+	if err != nil {
+		writeProblem(w, r, invalidRequestProblem)
+		return
+	}
+	if len(refs) == 0 {
+		status, err := emptyReadStatus(r, provider, selectionStatus, domain.CapabilityMetricHistory)
+		if err != nil {
+			writeProviderProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, metricHistoryResponse{Availability: string(status.State), Completeness: string(status.Completeness), ObservedAt: authTimestamp(status.ObservedAt), ReasonCode: string(status.ReasonCode), Items: []metricResponse{}})
+		return
+	}
 	result, err := historyProvider.GetMetricHistory(r.Context(), domain.MetricHistoryQuery{
 		Source: providerRef(provider), Resources: refs, Names: names,
-		Range: domain.TimeRange{Start: end.Add(-lookback), End: end}, PointLimit: limit,
+		Range: rangeValue, PointLimit: limit,
 	})
 	if err != nil {
 		writeProviderProblem(w, r, err)
 		return
 	}
+	result.Status = withSelectionStatus(result.Status, selectionStatus)
 	items := make([]metricResponse, len(result.Samples))
 	for index, sample := range result.Samples {
 		items[index] = metricResponse{
@@ -358,15 +423,20 @@ func (handler productHTTP) events(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, unavailableProblem)
 		return
 	}
-	refs, err := handler.resourceRefs(r, provider, resourceID, domain.MaxEventTargets)
+	refs, err := handler.optionalResourceRefs(r, provider, resourceID)
 	if err != nil {
 		writeResourceProblem(w, r, err)
 		return
 	}
 	end := observationTime(provider).Add(time.Nanosecond)
+	rangeValue, err := parseObservationRange(r, domain.TimeRange{Start: end.Add(-24 * time.Hour), End: end}, 30*24*time.Hour)
+	if err != nil {
+		writeProblem(w, r, invalidRequestProblem)
+		return
+	}
 	result, err := eventProvider.ListEvents(r.Context(), domain.EventQuery{
 		Source: providerRef(provider), Resources: refs,
-		Range: domain.TimeRange{Start: end.Add(-24 * time.Hour), End: end}, Page: page,
+		Range: rangeValue, Page: page,
 	})
 	if err != nil {
 		writeProviderProblem(w, r, err)
@@ -510,6 +580,14 @@ func parseReadQuery(r *http.Request, defaultLimit int, metrics bool) (domain.Pag
 		}
 		switch key {
 		case "resource_id", "source_id":
+		case "from", "to":
+			if r.URL.Path != "/api/v1/logs" && r.URL.Path != "/api/v1/events" {
+				return domain.PageRequest{}, "", errors.New("time filter unsupported")
+			}
+		case "container", "previous":
+			if r.URL.Path != "/api/v1/logs" {
+				return domain.PageRequest{}, "", errors.New("container filter unsupported")
+			}
 		case "limit", "cursor":
 			if metrics {
 				return domain.PageRequest{}, "", errors.New("metrics do not use pages")
@@ -540,7 +618,7 @@ func parseReadQuery(r *http.Request, defaultLimit int, metrics bool) (domain.Pag
 func parseMetricHistoryQuery(r *http.Request) (domain.ResourceID, time.Duration, int, error) {
 	values := r.URL.Query()
 	for key, items := range values {
-		if len(items) != 1 || items[0] == "" || key != "resource_id" && key != "minutes" && key != "limit" && key != "source_id" {
+		if len(items) != 1 || items[0] == "" || key != "resource_id" && key != "minutes" && key != "limit" && key != "source_id" && key != "from" && key != "to" {
 			return "", 0, 0, errors.New("invalid metric history query")
 		}
 	}
@@ -549,6 +627,9 @@ func parseMetricHistoryQuery(r *http.Request) (domain.ResourceID, time.Duration,
 		return "", 0, 0, errors.New("invalid resource ID")
 	}
 	minutes := 60
+	if values.Has("minutes") && (values.Has("from") || values.Has("to")) {
+		return "", 0, 0, errors.New("conflicting history range")
+	}
 	if value := values.Get("minutes"); value != "" {
 		parsed, err := strconv.Atoi(value)
 		if err != nil {
@@ -571,25 +652,44 @@ func parseMetricHistoryQuery(r *http.Request) (domain.ResourceID, time.Duration,
 }
 
 func (handler productHTTP) resourceRefs(r *http.Request, provider ProductProvider, selected domain.ResourceID, limit int) ([]domain.ResourceRef, error) {
+	refs, _, err := handler.resourceSelection(r, provider, selected, limit)
+	return refs, err
+}
+
+func (handler productHTTP) optionalResourceRefs(r *http.Request, provider ProductProvider, selected domain.ResourceID) ([]domain.ResourceRef, error) {
+	if selected == "" {
+		return nil, nil
+	}
+	return handler.resourceRefs(r, provider, selected, 1)
+}
+
+func (handler productHTTP) resourceSelection(r *http.Request, provider ProductProvider, selected domain.ResourceID, limit int) ([]domain.ResourceRef, domain.ObservationStatus, error) {
 	if selected != "" {
 		snapshot, err := provider.GetResource(r.Context(), domain.ResourceDetailQuery{Source: providerRef(provider), ResourceID: selected})
 		if err != nil {
-			return nil, err
+			return nil, domain.ObservationStatus{}, err
 		}
-		return []domain.ResourceRef{snapshot.Resource.Ref}, nil
+		return []domain.ResourceRef{snapshot.Resource.Ref}, snapshot.Status, nil
 	}
 	page, err := provider.ListResources(r.Context(), domain.InventoryQuery{
 		Source: providerRef(provider), SortField: domain.ResourceSortName, SortDirection: domain.SortAscending,
 		Page: domain.PageRequest{Limit: limit},
 	})
 	if err != nil {
-		return nil, err
+		return nil, domain.ObservationStatus{}, err
 	}
 	refs := make([]domain.ResourceRef, 0, len(page.Resources))
 	for _, resource := range page.Resources {
 		refs = append(refs, resource.Resource.Ref)
 	}
-	return refs, nil
+	status := page.Status
+	if page.Page.HasMore && status.AllowsData() {
+		status.Completeness = domain.CompletenessPartial
+		if status.ReasonCode == "" {
+			status.ReasonCode = "source.resource_selection_bound"
+		}
+	}
+	return refs, status, nil
 }
 
 func observationTime(provider ProductProvider) time.Time {

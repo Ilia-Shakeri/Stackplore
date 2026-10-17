@@ -1,7 +1,7 @@
 import { ApiProblemError } from '@stackplore/api-client';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AuthApi } from './auth-api';
+import type { AuthApi, SessionContext } from './auth-api';
 import { AuthStateError, AuthStore } from './auth-store';
 import {
   closedSetupStatus,
@@ -241,4 +241,154 @@ describe('auth store', () => {
     });
     expect(JSON.stringify(store.getSnapshot())).not.toContain(rotated.csrfProof);
   });
+
+  it('extends an active session only to the deadline returned by the service', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-08-02T10:00:00Z'));
+      const session = {
+        ...createTestSession(),
+        absoluteExpiresAt: '2026-08-02T10:10:00Z',
+        idleExpiresAt: '2026-08-02T10:00:10Z',
+      };
+      const getSession = vi
+        .fn<AuthApi['getSession']>()
+        .mockResolvedValue({ ...session, idleExpiresAt: '2026-08-02T10:00:25Z' });
+      const store = new AuthStore(createTestAuthApi({ getSession }), {
+        csrfProof: session.csrfProof,
+        snapshot: sessionSnapshot(session),
+      });
+      await vi.advanceTimersByTimeAsync(5_000);
+      await store.recordActivity();
+      await store.recordActivity();
+      expect(getSession).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(6_000);
+      expect(store.getSnapshot()).toMatchObject({
+        status: 'authenticated',
+        idleExpiresAt: '2026-08-02T10:00:25Z',
+      });
+      await vi.advanceTimersByTimeAsync(14_001);
+      expect(store.getSnapshot()).toEqual({ status: 'unauthenticated' });
+      expect(getSession).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not extend a session when activity refresh fails or the absolute limit passes', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-08-02T10:00:00Z'));
+      const session = {
+        ...createTestSession(),
+        absoluteExpiresAt: '2026-08-02T10:00:10Z',
+        idleExpiresAt: '2026-08-02T10:00:08Z',
+      };
+      const getSession = vi.fn<AuthApi['getSession']>().mockRejectedValue(new Error('offline'));
+      const store = new AuthStore(createTestAuthApi({ getSession }), {
+        csrfProof: session.csrfProof,
+        snapshot: sessionSnapshot(session),
+      });
+      await store.recordActivity();
+      await vi.advanceTimersByTimeAsync(8_001);
+      expect(store.getSnapshot()).toEqual({ status: 'unauthenticated' });
+      await store.recordActivity();
+      expect(getSession).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('ignores an old activity response after logout and deduplicates pending refresh', async () => {
+    const session = createTestSession();
+    let finish: ((value: typeof session) => void) | undefined;
+    const response = new Promise<typeof session>((resolve) => {
+      finish = resolve;
+    });
+    const getSession = vi.fn<AuthApi['getSession']>().mockReturnValue(response);
+    const store = new AuthStore(
+      createTestAuthApi({ getSession, logout: () => Promise.resolve() }),
+      {
+        csrfProof: session.csrfProof,
+        snapshot: sessionSnapshot(session),
+      },
+    );
+    const first = store.recordActivity();
+    expect(store.recordActivity()).toBe(first);
+    await store.logout();
+    finish?.(session);
+    await first;
+    expect(store.getSnapshot()).toEqual({ status: 'unauthenticated' });
+    expect(getSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the absolute deadline even when valid activity extends idle expiry', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-08-02T10:00:00Z'));
+      const session = {
+        ...createTestSession(),
+        absoluteExpiresAt: '2026-08-02T10:00:10Z',
+        idleExpiresAt: '2026-08-02T10:00:08Z',
+      };
+      const getSession = vi
+        .fn<AuthApi['getSession']>()
+        .mockResolvedValue({ ...session, idleExpiresAt: '2026-08-02T10:10:00Z' });
+      const store = new AuthStore(createTestAuthApi({ getSession }), {
+        csrfProof: session.csrfProof,
+        snapshot: sessionSnapshot(session),
+      });
+      await store.recordActivity();
+      await vi.advanceTimersByTimeAsync(10_001);
+      expect(store.getSnapshot()).toEqual({ status: 'unauthenticated' });
+      expect(getSession).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('aborts a stalled activity check and retains the last proven deadline', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-08-02T10:00:00Z'));
+      const session = {
+        ...createTestSession(),
+        absoluteExpiresAt: '2026-08-02T10:10:00Z',
+        idleExpiresAt: '2026-08-02T10:00:20Z',
+      };
+      const getSession = vi.fn<AuthApi['getSession']>().mockImplementation(
+        (signal) =>
+          new Promise((_resolve, reject) => {
+            signal?.addEventListener('abort', () => {
+              reject(new DOMException('Aborted', 'AbortError'));
+            });
+          }),
+      );
+      const store = new AuthStore(createTestAuthApi({ getSession }), {
+        csrfProof: session.csrfProof,
+        snapshot: sessionSnapshot(session),
+      });
+      const check = store.recordActivity();
+      await vi.advanceTimersByTimeAsync(10_001);
+      await check;
+      expect(getSession.mock.calls[0]?.[0]?.aborted).toBe(true);
+      expect(store.getSnapshot()).toMatchObject({
+        status: 'authenticated',
+        idleExpiresAt: session.idleExpiresAt,
+      });
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(store.getSnapshot()).toEqual({ status: 'unauthenticated' });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
+
+function sessionSnapshot(session: SessionContext) {
+  return {
+    status: 'authenticated' as const,
+    absoluteExpiresAt: session.absoluteExpiresAt,
+    idleExpiresAt: session.idleExpiresAt,
+    user: session.user,
+  };
+}

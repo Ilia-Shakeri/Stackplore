@@ -5,14 +5,14 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. `0.x` checkpoints
 do not claim production support or publish images merely by tagging source.
 
-Current state: `0.1.0` and `0.2.0` are verified/tagged checkpoints. The `0.3.0`
-development checkpoint is locally verified: covered alert evidence, durable replay
-and isolated outbound lanes. Full local/real PostgreSQL, disposable HTTPS/native
-and Helm lint/render checks passed; exact results live in the evidence plan.
-Commit/tag identities are recorded there only after they exist. The replacement
-repository instructions on 2026-10-16 prohibit push; no new remote result is claimed.
-See [observation boundaries](observations.md) and [alert/delivery boundaries](alerts-notifications.md). Preserve old proof as historical;
-rerun applicable gates when code changes after the recorded verification.
+Current state: stages 1–3 are verified/tagged checkpoints, including exact remote
+results for the unchanged 0.3.0 tag pushed on 2026-10-17. The 0.4.0 exploration
+checkpoint passed its final local, PostgreSQL, native and browser gates; exact
+publication outcomes are recorded separately. The maintainer's explicit
+test/version/commit/push request on 2026-10-17 supersedes the earlier no-push
+instruction for this task. Record commit/tag identities only after they exist.
+See [exploration](exploration.md), [observations](observations.md),
+[alerts](alerts-notifications.md) and the [evidence plan](implementation-plan.md).
 
 1. Read the [roadmap](roadmap.md), [audit](codebase-audit.md) and current
    [evidence](implementation-plan.md). Preserve unrelated work.
@@ -23,8 +23,9 @@ rerun applicable gates when code changes after the recorded verification.
 5. Inspect the full diff, untracked files and `git diff --check`. Exclude runtime
    data, generated builds, unknown screenshots, local secrets and tool caches.
 6. Commit one reviewed stage using Conventional Commits. Create an annotated
-   `vVERSION` tag at that commit. Current work stays local under the no-push rule.
-7. If later explicitly authorized to push, inspect CI for that exact revision.
+   `vVERSION` tag at that commit, then push the reviewed commit and matching tag
+   under the maintainer authorization. Never force push or move a published tag.
+7. Inspect CI for that exact pushed revision.
    Report failed, pending or unobserved
    remote gates honestly. CI definitions are not CI proof.
 

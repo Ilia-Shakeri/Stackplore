@@ -57,6 +57,12 @@ This starts:
 - the Vite web server on `http://127.0.0.1:5173`;
 - a same-origin development proxy from the web server to the API.
 
+The launcher defaults the public origin to `http://127.0.0.1:5173`; an explicit
+operator value takes precedence. Vite preserves the browser Host and Origin.
+When running Go and Vite separately, set `STACKPLORE_PUBLIC_ORIGIN` to the web
+origin and `STACKPLORE_DEV_API_ORIGIN` to the API listener. A mismatched origin
+fails closed. Do not enable general CORS to bypass a proxy configuration error.
+
 The API exits if configuration, migration history, database ownership, the local digest key, or first-run bootstrap policy is invalid. `/healthz` proves the process can answer. `/readyz` additionally proves current database readiness.
 
 Startup preserves existing source settings while registering missing fixed
@@ -73,8 +79,10 @@ real PostgreSQL, disposable native restart/restore and HTTPS receiver checks, an
 Helm lint/render passed; exact results are in the evidence plan. Both outbound lanes use operator-owned secret
 configuration; enable them only against an intended public HTTPS destination.
 For semantics, fixed bounds, unknown evidence and stable retries, use the
-[alert guide](alerts-notifications.md). Current repository instructions prohibit
-push, so local checks cannot imply a new remote CI result.
+[alert guide](alerts-notifications.md). The unchanged 0.3.0 implementation/tag was pushed under renewed authorization
+on 2026-10-17 and both exact CI runs passed; see the evidence plan. The 0.4.0
+exploration candidate adds URL filters, bounded paging and documented browser
+journeys; its current verification status is recorded separately.
 
 ## Verification
 

@@ -289,7 +289,8 @@ func (provider *Provider) ListResources(ctx context.Context, query domain.Invent
 	}
 	items := make([]domain.ResourceSnapshot, 0, len(state.resources))
 	for _, item := range state.resources {
-		if query.Filter.Matches(item.Resource) && containsKind(query.Filter.Kinds, item.Resource.Ref.Identity.Kind) && containsScope(query.Filter.Scopes, item.Resource.Ref.Identity.Scope) {
+		item.Health = state.health[item.Resource.Ref.ID].InventoryState()
+		if query.Filter.MatchesSnapshot(item) && containsKind(query.Filter.Kinds, item.Resource.Ref.Identity.Kind) && containsScope(query.Filter.Scopes, item.Resource.Ref.Identity.Scope) {
 			items = append(items, item)
 		}
 	}
@@ -1378,7 +1379,7 @@ func compareResources(left, right domain.ResourceSnapshot, query domain.Inventor
 }
 
 func inventoryFingerprint(query domain.InventoryQuery) string {
-	return pageFingerprint("inventory", string(query.Source.SourceID), query.Filter.Search, string(query.SortField), string(query.SortDirection), fmt.Sprint(query.Filter.Kinds), fmt.Sprint(query.Filter.Scopes))
+	return pageFingerprint("inventory", string(query.Source.SourceID), fmt.Sprint(query.Filter), string(query.SortField), string(query.SortDirection), fmt.Sprint(query.Filter.Kinds), fmt.Sprint(query.Filter.Scopes))
 }
 
 func topologyFingerprint(query domain.TopologyQuery) string {

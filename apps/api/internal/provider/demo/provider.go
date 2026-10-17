@@ -164,7 +164,8 @@ func (provider *Provider) ListResources(ctx context.Context, query domain.Invent
 	}
 	items := make([]domain.ResourceSnapshot, 0, len(provider.resources))
 	for _, item := range provider.resources {
-		if !query.Filter.Matches(item.Resource) || !containsKind(query.Filter.Kinds, item.Resource.Ref.Identity.Kind) ||
+		item.Health = provider.health[item.Resource.Ref.ID].InventoryState()
+		if !query.Filter.MatchesSnapshot(item) || !containsKind(query.Filter.Kinds, item.Resource.Ref.Identity.Kind) ||
 			!containsScope(query.Filter.Scopes, item.Resource.Ref.Identity.Scope) {
 			continue
 		}
@@ -350,6 +351,7 @@ func resourceFingerprint(query domain.InventoryQuery) string {
 	}
 	return fingerprint(
 		string(query.Source.Provider), string(query.Source.SourceID), query.Filter.Search,
+		fmt.Sprint(query.Filter),
 		strings.Join(kinds, ","), strings.Join(scopes, ","), string(query.SortField), string(query.SortDirection),
 	)
 }

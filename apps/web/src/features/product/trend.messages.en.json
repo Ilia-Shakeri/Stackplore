@@ -1,0 +1,5 @@
+{
+  "trend.seriesCount": "{count} resource series",
+  "trend.perResource": "Each line shows one resource at its actual observation times. The table identifies each resource; lines are not a fleet total.",
+  "trend.resource": "Resource"
+}

@@ -113,6 +113,21 @@ func (provider *CachedProvider) ListResources(ctx context.Context, query domain.
 	return result, readError(ctx, "observation.inventory.resources", err)
 }
 
+func (provider *CachedProvider) GetInventorySummary(ctx context.Context, source domain.ProviderRef) (domain.InventorySummary, error) {
+	if err := provider.checkQuery(ctx, source, source.Validate()); err != nil {
+		return domain.InventorySummary{}, err
+	}
+	reader, ok := provider.reader.(domain.InventorySummaryProvider)
+	if !ok {
+		return domain.InventorySummary{}, readError(ctx, "observation.inventory.summary", ErrUnavailable)
+	}
+	result, err := reader.GetInventorySummary(ctx, source)
+	if err == nil && result.Validate() != nil {
+		err = ErrUnavailable
+	}
+	return result, readError(ctx, "observation.inventory.summary", err)
+}
+
 func (provider *CachedProvider) GetResource(ctx context.Context, query domain.ResourceDetailQuery) (domain.ResourceSnapshot, error) {
 	if err := provider.checkQuery(ctx, query.Source, query.Validate()); err != nil {
 		return domain.ResourceSnapshot{}, err

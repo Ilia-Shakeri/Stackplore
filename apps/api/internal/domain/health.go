@@ -74,6 +74,15 @@ type HealthSnapshot struct {
 	Evidence   []HealthEvidence
 }
 
+// InventoryState exposes a health classification only when its observation is
+// usable and complete. Missing, denied and partial evidence stays unknown.
+func (snapshot HealthSnapshot) InventoryState() HealthState {
+	if snapshot.Status.Validate() != nil || !snapshot.Status.AllowsData() || snapshot.Status.Completeness != CompletenessComplete || snapshot.State.Validate() != nil {
+		return HealthUnknown
+	}
+	return snapshot.State
+}
+
 func (snapshot HealthSnapshot) Validate() error {
 	if err := snapshot.ResourceID.Validate(); err != nil {
 		return err

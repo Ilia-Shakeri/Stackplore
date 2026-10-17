@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.3.0
+  version: 0.4.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -853,6 +853,30 @@ paths:
             type: string
             enum: [asc, desc]
             default: asc
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProviderKind'
+        - name: environment_id
+          in: query
+          schema:
+            $ref: '#/components/schemas/EnvironmentId'
+        - name: health
+          in: query
+          schema:
+            $ref: '#/components/schemas/HealthState'
+        - name: availability
+          in: query
+          schema:
+            $ref: '#/components/schemas/AvailabilityState'
+        - name: scope_kind
+          in: query
+          schema:
+            $ref: '#/components/schemas/ScopeKind'
+        - name: scope_name
+          in: query
+          schema:
+            $ref: '#/components/schemas/DisplayText'
       responses:
         '200':
           description: One bounded normalized resource page.
@@ -1002,7 +1026,10 @@ paths:
     get:
       operationId: listProductLogs
       summary: Read normalized infrastructure logs
-      description: Returns one cursor-bound page with bounded line and response sizes.
+      description: >-
+        Returns one cursor-bound page with bounded line and response sizes. Explicit from/to must be paired UTC microsecond timestamps.
+        The maximum range is seven days.
+        Keep the exact range while following a cursor.
       security:
         - BrowserSession: []
       parameters:
@@ -1011,6 +1038,21 @@ paths:
         - $ref: '#/components/parameters/ProductResourceFilter'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - name: container
+          in: query
+          description: Exact container name; requires resource_id.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+            pattern: ^[A-Za-z0-9][A-Za-z0-9_.-]{0,255}$
+        - name: previous
+          in: query
+          description: Read the previous container instance; requires resource_id.
+          schema:
+            type: boolean
       responses:
         '200':
           description: One bounded log page.
@@ -1082,7 +1124,10 @@ paths:
     get:
       operationId: getProductMetricHistory
       summary: Read bounded normalized metric history
-      description: Returns a server-reduced time series with explicit completeness.
+      description: >-
+        Returns a server-reduced time series with explicit completeness. Explicit from/to must be paired UTC microsecond timestamps.
+        The maximum range is thirty days.
+        Explicit range cannot be combined with minutes.
       security:
         - BrowserSession: []
       parameters:
@@ -1103,6 +1148,8 @@ paths:
             minimum: 1
             maximum: 200
             default: 200
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
       responses:
         '200':
           description: Bounded metric history in ascending sample order.
@@ -1135,7 +1182,10 @@ paths:
     get:
       operationId: listProductEvents
       summary: Read normalized infrastructure events
-      description: Returns one cursor-bound page in descending occurrence order.
+      description: >-
+        Returns one cursor-bound page in descending occurrence order. Explicit from/to must be paired UTC microsecond timestamps.
+        The maximum range is thirty days.
+        Keep the exact range while following a cursor.
       security:
         - BrowserSession: []
       parameters:
@@ -1144,6 +1194,8 @@ paths:
         - $ref: '#/components/parameters/ProductResourceFilter'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
       responses:
         '200':
           description: One bounded event page.
@@ -2493,9 +2545,7 @@ components:
           type: string
           enum: [global, project, namespace]
         scope_name:
-          type: string
-          minLength: 1
-          maxLength: 256
+          $ref: '#/components/schemas/DisplayText'
         name:
           type: string
           minLength: 1
@@ -2554,7 +2604,7 @@ components:
     ProductRelationship:
       type: object
       additionalProperties: false
-      required: [id, from, to, kind, direction, observed_at, synthetic, confidence]
+      required: [id, from, to, kind, direction, observed_at, synthetic, confidence, evidence]
       properties:
         id:
           $ref: '#/components/schemas/RelationshipId'
@@ -2576,6 +2626,12 @@ components:
           type: number
           minimum: 0
           maximum: 1
+        evidence:
+          type: array
+          minItems: 1
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/RelationshipEvidence'
     ProductRelationshipPage:
       type: object
       additionalProperties: false
@@ -2638,6 +2694,8 @@ components:
           type: boolean
         synthetic:
           type: boolean
+        container:
+          $ref: '#/components/schemas/DisplayText'
     ProductLogPage:
       type: object
       additionalProperties: false
@@ -5386,16 +5444,24 @@ components:
       name: from
       in: query
       required: false
-      description: Inclusive UTC start of a bounded time range.
+      description: Inclusive UTC start; supplied together with to, with at most six fractional second digits.
       schema:
-        $ref: '#/components/schemas/Timestamp'
+        type: string
+        format: date-time
+        minLength: 20
+        maxLength: 27
+        pattern: ^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$
     To:
       name: to
       in: query
       required: false
-      description: Exclusive UTC end of a bounded time range.
+      description: Exclusive UTC end; supplied together with from, with at most six fractional second digits and at most one minute in the future.
       schema:
-        $ref: '#/components/schemas/Timestamp'
+        type: string
+        format: date-time
+        minLength: 20
+        maxLength: 27
+        pattern: ^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$
     SortDirection:
       name: direction
       in: query

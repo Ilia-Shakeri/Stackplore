@@ -341,7 +341,7 @@ func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider Produc
 			items[index] = logResponse{
 				ID: record.ID, ResourceID: record.ResourceID, Stream: string(record.Stream), Sequence: record.Sequence,
 				Severity: string(record.Severity), Timestamp: authTimestamp(record.Timestamp), Message: record.Message,
-				Redacted: record.Redacted, Truncated: record.Truncated, Synthetic: record.Synthetic,
+				Redacted: record.Redacted, Truncated: record.Truncated, Synthetic: record.Synthetic, Container: record.Container,
 			}
 		}
 		observedAt, data = result.Status.ObservedAt, items

@@ -77,10 +77,36 @@ These regressions supplement the full local gate. The final 0.3.0 local gate wit
 real PostgreSQL, disposable native restart/restore and replay drill, HTTPS receiver
 checks, and Helm lint/render passed. Exact commands and outcomes are in the active
 evidence plan. Stages 4–9, live providers, browser/proxy, complete Matrix homeserver
-and target deployment proof remain open. Current instructions prohibit push;
-older tagged CI results do not certify the current tree.
+and target deployment proof remain separate. Under renewed authorization on
+2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
+jobs. Older tagged results do not certify the 0.4.0 candidate; current results
+are recorded in the evidence plan.
 
 ## Coverage and performance
+
+The 0.4 exploration regressions add fixed full-set inventory filtering and cursor
+binding, complete source counts beyond transport limits, capability-aware health,
+stable paired UTC ranges, safe current/previous container targets, all-source
+topology/events and truthful empty reads. Run the real PostgreSQL cases with
+the disposable URL before claiming SQL behavior:
+
+```powershell
+go -C apps/api test ./internal/postgres -run TestInventory -count=1 -v
+go -C apps/api test ./internal/httpapi -count=1
+npm.cmd run test:web
+npm.cmd run verify
+```
+
+New web checks cover late/cancelled page responses, replayed cursors, the 1,000-item
+bound, URL history and compound filters, log pause/range/export, graph 200-node
+bound and accessible pagination/evidence, timestamp-separated metric series,
+fractional rules and activity-driven server-confirmed session extension.
+The [retained 0.4 browser matrix](evidence/0.4.0/README.md) records 120 loaded
+product states, 40 authentication form states and 20 final topology rechecks.
+Actual keyboard and accessibility-tree checks prove semantic behavior; no
+Narrator/NVDA process execution is claimed. The final evidence plan distinguishes
+component/DOM checks, actual browser journeys and broader release acceptance. Do not replace a
+missing browser or deployment result with the presence of a test definition.
 
 The specification requires measured meaningful coverage; do not estimate it from
 test counts. Collect Go coverage and frontend feature coverage with the owning

@@ -4,6 +4,14 @@ import shellEn from '../app/shell/messages.en.json';
 import shellFa from '../app/shell/messages.fa.json';
 import authEn from '../features/auth/messages.en.json';
 import authFa from '../features/auth/messages.fa.json';
+import topologyEn from '../features/product/topology.messages.en.json';
+import topologyFa from '../features/product/topology.messages.fa.json';
+import trendEn from '../features/product/trend.messages.en.json';
+import trendFa from '../features/product/trend.messages.fa.json';
+import explorationEn from '../features/product/exploration.messages.en.json';
+import explorationFa from '../features/product/exploration.messages.fa.json';
+import rulesEn from '../features/product/rules.messages.en.json';
+import rulesFa from '../features/product/rules.messages.fa.json';
 import usersEn from '../features/users/messages.en.json';
 import usersFa from '../features/users/messages.fa.json';
 import designSystemEn from '../routes/design-system.messages.en.json';
@@ -16,6 +24,10 @@ const enCatalog = {
   ...appEn,
   ...shellEn,
   ...authEn,
+  ...topologyEn,
+  ...trendEn,
+  ...explorationEn,
+  ...rulesEn,
   ...usersEn,
   ...routesEn,
   ...designSystemEn,
@@ -36,6 +48,10 @@ const faCatalog = {
   ...appFa,
   ...shellFa,
   ...authFa,
+  ...topologyFa,
+  ...trendFa,
+  ...explorationFa,
+  ...rulesFa,
   ...usersFa,
   ...routesFa,
   ...designSystemFa,

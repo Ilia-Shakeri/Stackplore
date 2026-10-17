@@ -16,6 +16,8 @@ interface ProductContextValue {
   readonly selectSource: (sourceId: string) => void;
   readonly query: string;
   readonly selectQuery: (query: string) => void;
+  readonly viewSearch: string;
+  readonly selectViewParameter: (name: string, value: string) => void;
 }
 
 const ProductContext = createContext<ProductContextValue | null>(null);
@@ -47,6 +49,8 @@ export function ProductProvider({
   sourceId,
   onQueryChange,
   query: controlledQuery,
+  viewSearch,
+  onViewParameterChange,
 }: {
   readonly api: ProductApi;
   readonly children: ReactNode;
@@ -54,22 +58,27 @@ export function ProductProvider({
   readonly sourceId?: string;
   readonly onQueryChange?: (query: string) => void;
   readonly query?: string;
+  readonly viewSearch?: string;
+  readonly onViewParameterChange?: (name: string, value: string) => void;
 }) {
+  const [localViewSearch, setLocalViewSearch] = useState(() =>
+    typeof window === 'undefined' ? '' : window.location.search,
+  );
   const [localSource, setLocalSource] = useState<string | undefined>(initialSource);
   const selectedSource = onSourceChange === undefined ? localSource : sourceId;
   const [localQuery, setLocalQuery] = useState(initialQuery);
   const query = onQueryChange === undefined ? localQuery : (controlledQuery ?? '');
   useEffect(() => {
-    if (onSourceChange !== undefined) return;
     const syncSource = () => {
-      setLocalSource(initialSource());
-      setLocalQuery(initialQuery());
+      if (onSourceChange === undefined) setLocalSource(initialSource());
+      if (onQueryChange === undefined) setLocalQuery(initialQuery());
+      setLocalViewSearch(window.location.search);
     };
     window.addEventListener('popstate', syncSource);
     return () => {
       window.removeEventListener('popstate', syncSource);
     };
-  }, [onSourceChange]);
+  }, [onSourceChange, onQueryChange]);
   const selectSource = useCallback(
     (sourceId: string) => {
       if (!sourcePattern.test(sourceId)) throw new Error('Source identifier is invalid.');
@@ -103,15 +112,41 @@ export function ProductProvider({
     },
     [onQueryChange],
   );
+  const selectViewParameter = useCallback(
+    (name: string, value: string) => {
+      if (onViewParameterChange !== undefined) {
+        onViewParameterChange(name, value);
+        return;
+      }
+      if (typeof window === 'undefined') return;
+      const url = new URL(window.location.href);
+      if (value === '') url.searchParams.delete(name);
+      else url.searchParams.set(name, value);
+      window.history.replaceState(window.history.state, '', url);
+      setLocalViewSearch(url.search);
+    },
+    [onViewParameterChange],
+  );
   const value = useMemo(
     () => ({
       api,
       query,
       selectQuery,
       selectSource,
+      viewSearch: viewSearch ?? localViewSearch,
+      selectViewParameter,
       ...(selectedSource === undefined ? {} : { selectedSource }),
     }),
-    [api, query, selectQuery, selectSource, selectedSource],
+    [
+      api,
+      query,
+      selectQuery,
+      selectSource,
+      selectedSource,
+      viewSearch,
+      localViewSearch,
+      selectViewParameter,
+    ],
   );
   return <ProductContext value={value}>{children}</ProductContext>;
 }
@@ -130,5 +165,34 @@ export function useProductSource() {
     selectSource: value.selectSource,
     query: value.query,
     selectQuery: value.selectQuery,
+  };
+}
+
+export function useProductView() {
+  const value = useContext(ProductContext);
+  const [fallbackSearch, setFallbackSearch] = useState(() =>
+    typeof window === 'undefined' ? '' : window.location.search,
+  );
+  useEffect(() => {
+    if (value !== null) return;
+    const sync = () => {
+      setFallbackSearch(window.location.search);
+    };
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener('popstate', sync);
+    };
+  }, [value]);
+  const fallbackWrite = useCallback((name: string, entry: string) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (entry === '') url.searchParams.delete(name);
+    else url.searchParams.set(name, entry);
+    window.history.replaceState(window.history.state, '', url);
+    setFallbackSearch(url.search);
+  }, []);
+  return {
+    search: value?.viewSearch ?? fallbackSearch,
+    selectParameter: value?.selectViewParameter ?? fallbackWrite,
   };
 }

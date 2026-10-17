@@ -1,7 +1,11 @@
 import type { ProductAlert, ProductAlertPage } from '@stackplore/api-client';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+afterEach(() => {
+  window.history.replaceState(null, '', '/');
+});
 
 import {
   ProductAuditPage,
@@ -98,6 +102,32 @@ const productApi: ProductApi = {
 };
 
 describe('product resource detail', () => {
+  it('keeps verified resource identity when optional health cannot be read', async () => {
+    const api: ProductApi = {
+      ...productApi,
+      getResourceHealth: vi.fn().mockRejectedValue(new Error('Health unavailable.')),
+    };
+    render(
+      <LocaleProvider defaultLocale="en">
+        <ProductProvider api={api}>
+          <ProductResourceDetailPage
+            id={resourceId}
+            kind="demo.gateway"
+            provider="demo"
+            source="source_demo"
+          />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    expect(await screen.findByRole('heading', { level: 2, name: 'Gateway' })).not.toBeNull();
+    expect(
+      screen.getByText('Health is unavailable. Resource metadata remains visible.'),
+    ).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Resource logs' }).getAttribute('href')).toBe(
+      `/logs?source=source_demo&resource_id=${resourceId}`,
+    );
+    expect(screen.getByText('Unknown')).not.toBeNull();
+  });
   it('renders connected identity and health data', async () => {
     render(
       <LocaleProvider defaultLocale="en" storageKey="stackplore.product-test.locale">
@@ -120,6 +150,306 @@ describe('product resource detail', () => {
 });
 
 describe('product observation state', () => {
+  it('lets a slow log read finish while stream changes queue behind it', async () => {
+    const streams: EventTarget[] = [];
+    class Stream extends EventTarget {
+      constructor() {
+        super();
+        streams.push(this);
+      }
+      close() {}
+    }
+    vi.stubGlobal('EventSource', Stream);
+    let finish!: () => void;
+    const response: Awaited<ReturnType<ProductApi['listLogs']>> = {
+      availability: 'available',
+      completeness: 'complete',
+      observed_at: observedAt,
+      page: { has_more: false, limit: 100 },
+      items: [
+        {
+          id: 'slow_log',
+          resource_id: resourceId,
+          stream: 'stdout',
+          sequence: 1,
+          severity: 'info',
+          timestamp: observedAt,
+          message: 'slow target finished',
+          redacted: false,
+          truncated: false,
+          synthetic: false,
+        },
+      ],
+    };
+    const listLogs = vi
+      .fn<ProductApi['listLogs']>()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = () => {
+              resolve(response);
+            };
+          }),
+      )
+      .mockResolvedValue(response);
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-17T08:00:00Z'));
+    try {
+      render(
+        <LocaleProvider defaultLocale="en">
+          <ProductProvider
+            api={{ ...productApi, listLogs }}
+            sourceId="source_docker"
+            onSourceChange={() => {}}
+          >
+            <ProductLogsPage />
+          </ProductProvider>
+        </LocaleProvider>,
+      );
+      await waitFor(() => {
+        expect(listLogs).toHaveBeenCalledTimes(1);
+      });
+      const firstSignal = listLogs.mock.calls[0]?.[0]?.signal;
+      clock.mockReturnValue(Date.parse('2026-10-17T08:00:08Z'));
+      act(() => {
+        for (let index = 0; index < 4; index++)
+          streams[0]?.dispatchEvent(new Event('logs.snapshot.v1'));
+      });
+      expect(firstSignal?.aborted).toBe(false);
+      expect(listLogs).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        finish();
+        await Promise.resolve();
+      });
+      expect(await screen.findByText('slow target finished')).not.toBeNull();
+      await waitFor(() => {
+        expect(listLogs).toHaveBeenCalledTimes(2);
+      });
+    } finally {
+      clock.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+  it('polls an exact log target and advances its rolling window without a source snapshot', async () => {
+    let poll: (() => void) | undefined;
+    const realTimer = window.setTimeout.bind(window);
+    const timer = vi.spyOn(window, 'setTimeout').mockImplementation((handler, delay, ...args) => {
+      if (delay === 5000 && typeof handler === 'function')
+        poll = () => {
+          handler(...args);
+        };
+      return realTimer(handler, delay, ...args) as unknown as ReturnType<typeof window.setTimeout>;
+    });
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-17T08:00:00Z'));
+    try {
+      const listLogs = vi.fn<ProductApi['listLogs']>().mockResolvedValue({
+        availability: 'available',
+        completeness: 'complete',
+        observed_at: observedAt,
+        page: { has_more: false, limit: 100 },
+        items: [
+          {
+            id: 'target_line',
+            resource_id: resourceId,
+            stream: 'stdout',
+            sequence: 1,
+            severity: 'info',
+            timestamp: observedAt,
+            message: 'target outside snapshot budget',
+            redacted: false,
+            truncated: false,
+            synthetic: false,
+          },
+        ],
+      });
+      const api: ProductApi = { ...productApi, listLogs };
+      render(
+        <LocaleProvider defaultLocale="en">
+          <ProductProvider
+            api={api}
+            sourceId="source_docker"
+            onSourceChange={() => {}}
+            viewSearch={`resource_id=${resourceId}&container=worker&tail=live&minutes=360`}
+          >
+            <ProductLogsPage />
+          </ProductProvider>
+        </LocaleProvider>,
+      );
+      expect(await screen.findByText('target outside snapshot budget')).not.toBeNull();
+      expect(listLogs.mock.calls.at(-1)?.[0]).toMatchObject({
+        resourceId,
+        container: 'worker',
+        from: '2026-10-17T02:00:00.000Z',
+        to: '2026-10-17T08:00:00.000Z',
+      });
+      clock.mockReturnValue(Date.parse('2026-10-17T08:00:05Z'));
+      act(() => {
+        poll?.();
+      });
+      await waitFor(() => {
+        expect(listLogs.mock.calls.at(-1)?.[0]).toMatchObject({
+          resourceId,
+          container: 'worker',
+          from: '2026-10-17T02:00:05.000Z',
+          to: '2026-10-17T08:00:05.000Z',
+        });
+      });
+      const current = listLogs.mock.calls.length;
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: 'Pause live tail' }));
+      const pausedCalls = listLogs.mock.calls.length;
+      expect(pausedCalls).toBeGreaterThanOrEqual(current);
+      clock.mockReturnValue(Date.parse('2026-10-17T08:00:10Z'));
+      expect(screen.getByText('target outside snapshot budget')).not.toBeNull();
+    } finally {
+      timer.mockRestore();
+      clock.mockRestore();
+    }
+  });
+  it('anchors demo log windows and range changes to the observed fixture clock', async () => {
+    const listLogs = vi.fn<ProductApi['listLogs']>().mockImplementation((options) =>
+      Promise.resolve({
+        availability: 'available',
+        completeness: 'complete',
+        observed_at: observedAt,
+        page: { has_more: false, limit: 100 },
+        items:
+          Date.parse(options?.from ?? '') <= Date.parse(observedAt) &&
+          Date.parse(options?.to ?? '') > Date.parse(observedAt)
+            ? [
+                {
+                  id: 'demo_clock_log',
+                  resource_id: resourceId,
+                  stream: 'stdout',
+                  sequence: 1,
+                  severity: 'info',
+                  timestamp: observedAt,
+                  message: 'fixture clock line',
+                  redacted: false,
+                  truncated: false,
+                  synthetic: true,
+                },
+              ]
+            : [],
+      }),
+    );
+    const api: ProductApi = {
+      ...productApi,
+      listLogs,
+      listSources: vi.fn().mockResolvedValue([
+        {
+          id: 'source_demo',
+          name: 'Demo',
+          provider: 'demo',
+          synthetic: true,
+          availability: 'available',
+          completeness: 'complete',
+          observed_at: observedAt,
+          resource_count: 1,
+          health: { healthy: 1, degraded: 0, unhealthy: 0, unknown: 0 },
+        },
+      ]),
+    };
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider defaultLocale="en">
+        <ProductProvider api={api} sourceId="source_demo" onSourceChange={() => {}}>
+          <ProductLogsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    expect(await screen.findByText('fixture clock line')).not.toBeNull();
+    expect(listLogs.mock.calls.at(-1)?.[0]).toMatchObject({
+      from: '2026-08-16T07:00:00.001Z',
+      to: '2026-08-16T08:00:00.001Z',
+    });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Time range' }), '360');
+    await waitFor(() => {
+      expect(listLogs.mock.calls.at(-1)?.[0]).toMatchObject({
+        from: '2026-08-16T02:00:00.001Z',
+        to: '2026-08-16T08:00:00.001Z',
+      });
+    });
+    expect(screen.getByText('fixture clock line')).not.toBeNull();
+  });
+  it('pauses live tail, copies selected redacted lines, and downloads only loaded lines', async () => {
+    const streams: { readonly close: ReturnType<typeof vi.fn> }[] = [];
+    class Stream extends EventTarget {
+      readonly close = vi.fn();
+      constructor() {
+        super();
+        streams.push(this);
+      }
+    }
+    vi.stubGlobal('EventSource', Stream);
+    const createUrl = vi.fn().mockReturnValue('blob:loaded-log-lines');
+    const revokeUrl = vi.fn();
+    class LogURL extends URL {
+      static override createObjectURL = createUrl;
+      static override revokeObjectURL = revokeUrl;
+    }
+    vi.stubGlobal('URL', LogURL);
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    try {
+      const user = userEvent.setup();
+      const copied = vi.spyOn(navigator.clipboard, 'writeText');
+      const api: ProductApi = {
+        ...productApi,
+        listLogs: vi.fn().mockResolvedValue({
+          availability: 'stale',
+          completeness: 'partial',
+          reason_code: 'logs.partial',
+          observed_at: observedAt,
+          page: { has_more: false, limit: 100 },
+          items: [
+            {
+              id: 'log_loaded',
+              resource_id: resourceId,
+              stream: 'stdout',
+              sequence: 1,
+              severity: 'warning',
+              timestamp: observedAt,
+              message: 'safe [redacted] output',
+              redacted: true,
+              truncated: false,
+              synthetic: true,
+            },
+          ],
+        }),
+      };
+      render(
+        <LocaleProvider defaultLocale="en">
+          <ProductProvider api={api}>
+            <ProductLogsPage />
+          </ProductProvider>
+        </LocaleProvider>,
+      );
+      expect(await screen.findByText('safe [redacted] output')).not.toBeNull();
+      expect(screen.getByText('Sensitive text removed')).not.toBeNull();
+      expect(screen.getByText('Stale Partial observation')).not.toBeNull();
+      await user.click(screen.getByRole('checkbox', { name: 'Select log line 1' }));
+      await user.click(screen.getByRole('button', { name: 'Copy selected lines' }));
+      expect(copied).toHaveBeenCalledWith(`${observedAt} warning safe [redacted] output`);
+      await user.click(screen.getByRole('button', { name: 'Download loaded lines' }));
+      expect(createUrl).toHaveBeenCalledOnce();
+      expect(revokeUrl).toHaveBeenCalledWith('blob:loaded-log-lines');
+      expect(click).toHaveBeenCalledOnce();
+      await user.click(screen.getByRole('button', { name: 'Pause live tail' }));
+      expect(streams[0]?.close).toHaveBeenCalledOnce();
+      expect(screen.getByText('safe [redacted] output')).not.toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Resume live tail' }));
+      expect(streams).toHaveLength(2);
+      await user.click(screen.getByRole('checkbox', { name: 'Wrap lines' }));
+      expect(
+        screen.getByLabelText('Observed resource logs').classList.contains('log-list--no-wrap'),
+      ).toBe(true);
+    } finally {
+      click.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it.each(['available', 'permission_denied', 'unsupported', 'unavailable'] as const)(
     'shows missing %s metrics without invented zero values',
     async (availability) => {
@@ -360,8 +690,10 @@ describe('product alert history', () => {
         await ack.promise;
       });
       expect(container.querySelector('#alert-alert_fresh')).not.toBeNull();
-      expect(screen.getByText('Resolved')).not.toBeNull();
-      expect(screen.queryByText('Acknowledged')).toBeNull();
+      const alertList = container.querySelector('.alert-list');
+      if (!(alertList instanceof HTMLElement)) throw new Error('Alert list is missing.');
+      expect(within(alertList).getByText('Resolved')).not.toBeNull();
+      expect(within(alertList).queryByText('Acknowledged')).toBeNull();
     } finally {
       vi.unstubAllGlobals();
     }
@@ -465,45 +797,52 @@ describe('product alert history', () => {
     expect(container.textContent).not.toContain('product.alert.');
   });
 
-  it('lets an administrator acknowledge a persisted firing alert', async () => {
-    const user = userEvent.setup();
-    const firing = {
-      id: 'alert_live',
-      rule_id: 'rule_live',
-      severity: 'warning' as const,
-      started_at: observedAt,
-      state: 'firing' as const,
-      summary_code: 'alert.resource_unhealthy.matched',
-      synthetic: false,
-      updated_at: observedAt,
-    };
-    const acknowledgeAlert = vi.fn().mockResolvedValue({
-      ...firing,
-      acknowledged_at: observedAt,
-      state: 'acknowledged',
-    });
-    const api: ProductApi = {
-      ...productApi,
-      acknowledgeAlert,
-      listAlerts: vi.fn().mockResolvedValue({
-        items: [firing],
-        page: { has_more: false, limit: 100 },
-      }),
-    };
-    render(
-      <LocaleProvider defaultLocale="en" storageKey="stackplore.alert-ack-test.locale">
-        <AuthProvider store={createAuthenticatedAuthStore()}>
-          <ProductProvider api={api}>
-            <ProductAlertsPage />
-          </ProductProvider>
-        </AuthProvider>
-      </LocaleProvider>,
-    );
+  it.each([false, true])(
+    'lets an administrator acknowledge a persisted firing alert (synthetic: %s)',
+    async (synthetic) => {
+      const user = userEvent.setup();
+      const firing = {
+        id: 'alert_live',
+        rule_id: 'rule_live',
+        severity: 'warning' as const,
+        started_at: observedAt,
+        state: 'firing' as const,
+        summary_code: 'alert.resource_unhealthy.matched',
+        synthetic,
+        updated_at: observedAt,
+      };
+      const acknowledgeAlert = vi.fn().mockResolvedValue({
+        ...firing,
+        acknowledged_at: observedAt,
+        state: 'acknowledged',
+      });
+      const api: ProductApi = {
+        ...productApi,
+        acknowledgeAlert,
+        listAlerts: vi.fn().mockResolvedValue({
+          items: [firing],
+          page: { has_more: false, limit: 100 },
+        }),
+      };
+      render(
+        <LocaleProvider defaultLocale="en" storageKey="stackplore.alert-ack-test.locale">
+          <AuthProvider store={createAuthenticatedAuthStore()}>
+            <ProductProvider api={api}>
+              <ProductAlertsPage />
+            </ProductProvider>
+          </AuthProvider>
+        </LocaleProvider>,
+      );
 
-    await user.click(await screen.findByRole('button', { name: 'Acknowledge' }));
-    expect(acknowledgeAlert).toHaveBeenCalledWith('alert_live');
-    expect(await screen.findByText('Acknowledged')).not.toBeNull();
-  });
+      await user.click(await screen.findByRole('button', { name: 'Acknowledge' }));
+      expect(acknowledgeAlert).toHaveBeenCalledWith('alert_live');
+      await waitFor(() => {
+        expect(document.querySelector('.alert-state--acknowledged')?.textContent).toBe(
+          'Acknowledged',
+        );
+      });
+    },
+  );
 
   it('loads older cursor pages without dropping current alerts', async () => {
     const user = userEvent.setup();
@@ -554,7 +893,9 @@ describe('product alert history', () => {
     await user.click(screen.getByRole('button', { name: 'Load older alerts' }));
     expect(await screen.findByText('Provider connection lost')).not.toBeNull();
     expect(screen.getByText('Checkout health check is failing')).not.toBeNull();
-    expect(listAlerts).toHaveBeenLastCalledWith({ cursor: 'older_alerts' });
+    expect(listAlerts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cursor: 'older_alerts' }),
+    );
   });
 });
 

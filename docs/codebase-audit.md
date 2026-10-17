@@ -103,10 +103,24 @@ lint/render passed. Exact results are recorded in the active evidence plan.
 Independent reviews score the stage's infrastructure and code quality 9/10;
 this score covers the delivered scope. This review does not close full exploration,
 least-privilege provider, operator receiver, browser, deployment, guarded-action,
-protected audit or release-hardening work. Current instructions prohibit push;
-no new remote CI result is claimed.
+protected audit or release-hardening work. On 2026-10-17 the unchanged 0.3.0
+implementation/tag was pushed under renewed authorization and both exact remote
+CI runs passed; links and limits are in the evidence plan.
 
 ## Correction loop
+
+Stage 4 final review on 2026-10-17 extends the audit across feature-split
+transport guards, all exploration pages, PostgreSQL filters/aggregate counts,
+exact observation ranges, topology evidence/list navigation, metric time
+spacing, bounded paging and activity-based sessions. Regression and real-browser
+checks found count truncation, whole-source prefix filtering, denied/stale health
+classification, empty target adapter calls, cap truncation, fixed demonstration
+time exclusion, query patch races and a narrow-screen toolbar defect. The active
+evidence plan records corrections and passed local, PostgreSQL, native and
+actual-browser gates. Final graph review also found misleading paths through
+intermediate cards; bounded routing, distinct lanes and card-interior regression
+checks corrected them. The delivered stage scores 9/10 for architecture and
+implementation. This scoped score does not close stages 5–9 or target acceptance.
 
 Each loop records score, remaining defects, fixes and commands in the active
 evidence plan. Architecture quality, feature completeness and target deployment

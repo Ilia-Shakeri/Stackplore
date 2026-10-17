@@ -1,6 +1,6 @@
 # Current user guide
 
-This describes the authenticated 0.3 checkpoint. Current local/PostgreSQL proof
+This describes the authenticated 0.4 development checkpoint. Current local/PostgreSQL proof
 is recorded in the evidence plan; live browser and target deployment evidence
 remain separate. It is not a promise that every 1.0 feature exists. See [remaining work](roadmap.md) and
 [راهنمای فارسی](user-guide.fa.md).
@@ -20,9 +20,12 @@ remain separate. It is not a promise that every 1.0 feature exists. See [remaini
    and denied data. A displayed partial page is not the whole estate.
 5. Use `/topology` for the graph and its list alternative, `/logs` for bounded
    current log reads, and `/events` for infrastructure events. Do not treat an
-   inferred edge as a guaranteed dependency. Rich paging, correlated history
-   and full log controls are still being completed.
-6. Read `/alerts` and `/notifications`. Administrators can acknowledge an alert,
+   inferred edge as a guaranteed dependency. Inventory, events, topology and
+   alert history have bounded paging; shared filters, correlated time windows,
+   and log tail/pause/wrap/copy/download controls are described in the
+   [exploration guide](exploration.md). Log downloads contain loaded redacted
+   lines, and local log/alert filters apply only to their loaded set.
+6. Read `/alerts` and `/notifications`. Administrators can acknowledge a persisted firing alert, including synthetic demonstration metadata,
    manage alert rules, inspect safe notification status, and request a guarded
    test delivery when operator webhook or Matrix configuration allows it. Select
    the configured test lane and supply the current password. A queued test

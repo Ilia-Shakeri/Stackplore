@@ -3,9 +3,29 @@ import { resolve } from 'node:path';
 import process from 'node:process';
 
 const catalogPairs = [
+  [
+    'trend',
+    'apps/web/src/features/product/trend.messages.en.json',
+    'apps/web/src/features/product/trend.messages.fa.json',
+  ],
+  [
+    'rules',
+    'apps/web/src/features/product/rules.messages.en.json',
+    'apps/web/src/features/product/rules.messages.fa.json',
+  ],
   ['app', 'apps/web/src/app/messages.en.json', 'apps/web/src/app/messages.fa.json'],
   ['shell', 'apps/web/src/app/shell/messages.en.json', 'apps/web/src/app/shell/messages.fa.json'],
   ['routes', 'apps/web/src/routes/messages.en.json', 'apps/web/src/routes/messages.fa.json'],
+  [
+    'topology',
+    'apps/web/src/features/product/topology.messages.en.json',
+    'apps/web/src/features/product/topology.messages.fa.json',
+  ],
+  [
+    'exploration',
+    'apps/web/src/features/product/exploration.messages.en.json',
+    'apps/web/src/features/product/exploration.messages.fa.json',
+  ],
   [
     'showcase',
     'apps/web/src/routes/design-system.messages.en.json',
