@@ -1,51 +1,81 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
 	"errors"
 	"io"
-	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/moby/moby/client"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 )
 
 func (collector *EngineCollector) ReadContainerLogs(ctx context.Context, request ContainerLogRequest) ([]ContainerLogLine, error) {
-	if collector == nil || collector.client == nil || ctx == nil || ctx.Err() != nil || len(request.ContainerIDs) > domain.MaxLogTargets ||
+	batch, err := collector.ReadContainerLogBatch(ctx, request)
+	return batch.Lines, err
+}
+
+type ContainerLogBatch struct {
+	Lines     []ContainerLogLine
+	Truncated bool
+}
+
+func (collector *EngineCollector) ReadContainerLogBatch(ctx context.Context, request ContainerLogRequest) (ContainerLogBatch, error) {
+	if collector == nil || collector.sdk == nil || ctx == nil || ctx.Err() != nil || len(request.ContainerIDs) > domain.MaxLogTargets ||
 		request.LineLimit < 1 || request.LineLimit > domain.MaxLogLines || request.ByteLimit < 1 || request.ByteLimit > domain.MaxLogBytes ||
 		request.Start.Location() != time.UTC || request.End.Location() != time.UTC || !request.Start.Before(request.End) {
-		return nil, errors.Join(ErrUnavailable, contextCause(ctx))
+		return ContainerLogBatch{}, errors.Join(ErrUnavailable, contextCause(ctx))
 	}
+	ctx = engineObservationContext(ctx)
 	result := make([]ContainerLogLine, 0, request.LineLimit)
 	seen := make(map[string]struct{}, len(request.ContainerIDs))
 	bytesUsed := 0
+	wireBytes := 0
+	truncated := false
 	for _, identifier := range request.ContainerIDs {
 		if !safeDockerID(identifier) {
-			return nil, ErrUnavailable
+			return ContainerLogBatch{}, ErrUnavailable
 		}
 		if _, exists := seen[identifier]; exists {
-			return nil, ErrUnavailable
+			return ContainerLogBatch{}, ErrUnavailable
 		}
 		seen[identifier] = struct{}{}
-		var inspection engineContainerInspect
-		if err := collector.getJSON(ctx, "/containers/"+identifier+"/json", &inspection); err != nil {
-			return nil, err
+		inspection, err := collector.sdk.ContainerInspect(ctx, identifier, client.ContainerInspectOptions{})
+		if err != nil || inspection.Container.Config == nil {
+			return ContainerLogBatch{}, engineError(ctx, firstError(err, ErrUnavailable))
 		}
-		values := url.Values{
-			"follow": {"false"}, "stdout": {"true"}, "stderr": {"true"}, "timestamps": {"true"},
-			"since": {strconv.FormatInt(request.Start.Unix(), 10)}, "until": {strconv.FormatInt(request.End.Unix(), 10)},
-			"tail": {strconv.Itoa(request.LineLimit)},
+		if expected := request.ContainerNames[identifier]; expected != "" && expected != strings.TrimPrefix(inspection.Container.Name, "/") {
+			return ContainerLogBatch{}, ErrUnsupported
 		}
-		remaining := request.ByteLimit - bytesUsed
-		data, responseTruncated, err := collector.getRaw(ctx, "/containers/"+identifier+"/logs?"+values.Encode(), remaining)
+		remaining := request.ByteLimit - wireBytes
+		if remaining <= 0 {
+			return ContainerLogBatch{Lines: result, Truncated: true}, nil
+		}
+		stream, err := collector.sdk.ContainerLogs(ctx, identifier, client.ContainerLogsOptions{
+			ShowStdout: true, ShowStderr: true, Timestamps: true,
+			Since: request.Start.Format(time.RFC3339Nano), Until: request.End.Format(time.RFC3339Nano), Tail: strconv.Itoa(request.LineLimit),
+		})
 		if err != nil {
-			return nil, err
+			return ContainerLogBatch{}, engineError(ctx, err)
 		}
-		lines := parseDockerLogPayload(identifier, data, inspection.Config.TTY)
+		data, readErr := io.ReadAll(io.LimitReader(stream, int64(remaining)+1))
+		_ = stream.Close()
+		responseTruncated := len(data) > remaining || errors.Is(readErr, errEngineResponseLimit)
+		if readErr != nil && !responseTruncated {
+			return ContainerLogBatch{}, engineError(ctx, readErr)
+		}
+		if len(data) > remaining {
+			data = data[:remaining]
+		}
+		wireBytes += len(data)
+		truncated = truncated || responseTruncated
+		lines, malformed := parseDockerLogPayloadChecked(identifier, data, inspection.Container.Config.Tty)
+		truncated = truncated || malformed
 		if responseTruncated && len(lines) > 0 {
 			lines[len(lines)-1].Truncated = true
 		}
@@ -55,89 +85,76 @@ func (collector *EngineCollector) ReadContainerLogs(ctx context.Context, request
 			}
 			lineBytes := len(line.Message)
 			if len(result) >= request.LineLimit || lineBytes > request.ByteLimit-bytesUsed {
-				return result, nil
+				return ContainerLogBatch{Lines: result, Truncated: true}, nil
 			}
 			bytesUsed += lineBytes
 			result = append(result, line)
 		}
 		if len(result) >= request.LineLimit || bytesUsed >= request.ByteLimit {
+			truncated = true
 			break
 		}
 	}
-	return result, nil
-}
-
-func (collector *EngineCollector) getRaw(ctx context.Context, path string, maximum int) ([]byte, bool, error) {
-	if maximum < 1 {
-		return nil, false, ErrUnavailable
-	}
-	maximum = min(maximum, int(collector.maximumResponse))
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, collector.baseURL+path, nil)
-	if err != nil {
-		return nil, false, ErrUnavailable
-	}
-	request.Header.Set("Accept", "application/vnd.docker.raw-stream, text/plain")
-	response, err := collector.client.Do(request)
-	if err != nil {
-		if ctx.Err() != nil {
-			return nil, false, errors.Join(ErrUnavailable, ctx.Err())
-		}
-		return nil, false, errors.Join(ErrUnavailable, err)
-	}
-	defer response.Body.Close()
-	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-		return nil, false, ErrPermissionDenied
-	}
-	if response.StatusCode < 200 || response.StatusCode > 299 {
-		return nil, false, ErrUnavailable
-	}
-	data, err := io.ReadAll(io.LimitReader(response.Body, int64(maximum)+1))
-	if err != nil {
-		return nil, false, ErrUnavailable
-	}
-	truncated := len(data) > maximum
-	if truncated {
-		data = data[:maximum]
-	}
-	return data, truncated, nil
+	return ContainerLogBatch{Lines: result, Truncated: truncated}, nil
 }
 
 func parseDockerLogPayload(containerID string, data []byte, tty bool) []ContainerLogLine {
+	lines, _ := parseDockerLogPayloadChecked(containerID, data, tty)
+	return lines
+}
+
+func parseDockerLogPayloadChecked(containerID string, data []byte, tty bool) ([]ContainerLogLine, bool) {
 	if tty {
-		return parseStampedLogLines(containerID, domain.LogStreamUnknown, data)
+		return parseStampedLogLinesChecked(containerID, domain.LogStreamUnknown, data)
 	}
-	result := make([]ContainerLogLine, 0)
+	var stdout, stderr bytes.Buffer
+	malformed := false
 	for len(data) >= 8 {
 		length := int(binary.BigEndian.Uint32(data[4:8]))
 		if length < 0 || length > len(data)-8 {
+			malformed = true
 			break
 		}
-		stream := domain.LogStreamSystem
+		if data[1] != 0 || data[2] != 0 || data[3] != 0 {
+			malformed = true
+			break
+		}
 		switch data[0] {
 		case 1:
-			stream = domain.LogStreamStdout
+			_, _ = stdout.Write(data[8 : 8+length])
 		case 2:
-			stream = domain.LogStreamStderr
+			_, _ = stderr.Write(data[8 : 8+length])
+		default:
+			malformed = true
+			data = nil
+			break
 		}
-		result = append(result, parseStampedLogLines(containerID, stream, data[8:8+length])...)
+		if malformed {
+			break
+		}
 		data = data[8+length:]
 	}
-	return result
+	result, stdoutMalformed := parseStampedLogLinesChecked(containerID, domain.LogStreamStdout, stdout.Bytes())
+	errorLines, stderrMalformed := parseStampedLogLinesChecked(containerID, domain.LogStreamStderr, stderr.Bytes())
+	return append(result, errorLines...), malformed || len(data) > 0 || stdoutMalformed || stderrMalformed
 }
 
-func parseStampedLogLines(containerID string, stream domain.LogStreamKind, data []byte) []ContainerLogLine {
+func parseStampedLogLinesChecked(containerID string, stream domain.LogStreamKind, data []byte) ([]ContainerLogLine, bool) {
 	parts := strings.Split(string(data), "\n")
 	result := make([]ContainerLogLine, 0, len(parts))
+	malformed := false
 	for _, part := range parts {
 		if part == "" {
 			continue
 		}
 		timestampText, message, found := strings.Cut(part, " ")
 		if !found {
+			malformed = true
 			continue
 		}
 		timestamp, err := time.Parse(time.RFC3339Nano, timestampText)
 		if err != nil {
+			malformed = true
 			continue
 		}
 		truncated := len(message) > domain.MaxLogLineBytes
@@ -149,7 +166,7 @@ func parseStampedLogLines(containerID string, stream domain.LogStreamKind, data 
 			Timestamp: timestamp.UTC().Truncate(time.Microsecond), Message: message, Truncated: truncated,
 		})
 	}
-	return result
+	return result, malformed
 }
 
 var _ LogCollector = (*EngineCollector)(nil)

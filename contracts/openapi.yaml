@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 0.4.0
+  version: 0.5.0
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -726,9 +726,10 @@ paths:
     get:
       operationId: listSources
       summary: List configured infrastructure sources
-      description: Returns safe bounded source summaries for any authenticated local user.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns safe bounded source summaries for any authenticated local user.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
       responses:
@@ -762,9 +763,10 @@ paths:
     get:
       operationId: listEnvironments
       summary: List normalized environments
-      description: Returns one cursor-bound page of safe provider-neutral environment summaries.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns one cursor-bound page of safe provider-neutral environment summaries.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -812,9 +814,10 @@ paths:
     get:
       operationId: listResources
       summary: List normalized resources
-      description: Returns one cursor-bound page of safe provider-neutral resource summaries.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns one cursor-bound page of safe provider-neutral resource summaries.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -907,9 +910,10 @@ paths:
     get:
       operationId: getResource
       summary: Read one normalized resource
-      description: Returns one safe provider-neutral resource and its current health state.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns one safe provider-neutral resource and its current health state.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ResourceId'
@@ -946,9 +950,10 @@ paths:
     get:
       operationId: getResourceHealth
       summary: Read current normalized resource health
-      description: Returns current bounded health and normalized reason codes for one resource.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns current bounded health and normalized reason codes for one resource.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ResourceId'
@@ -985,9 +990,10 @@ paths:
     get:
       operationId: getProductTopology
       summary: Read normalized infrastructure relationships
-      description: Returns one cursor-bound page of observed source-to-target relationships.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns one cursor-bound page of observed source-to-target relationships.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1026,12 +1032,14 @@ paths:
     get:
       operationId: listProductLogs
       summary: Read normalized infrastructure logs
-      description: >-
+      description:
+        Public only in an explicitly isolated guest demonstration; normal installations require a browser session. >-
         Returns one cursor-bound page with bounded line and response sizes. Explicit from/to must be paired UTC microsecond timestamps.
         The maximum range is seven days.
         Keep the exact range while following a cursor.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1085,9 +1093,10 @@ paths:
     get:
       operationId: getProductMetrics
       summary: Read current normalized resource metrics
-      description: Returns the fixed current CPU, memory, and restart metric set.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns the fixed current CPU, memory, and restart metric set.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1124,12 +1133,14 @@ paths:
     get:
       operationId: getProductMetricHistory
       summary: Read bounded normalized metric history
-      description: >-
+      description:
+        Public only in an explicitly isolated guest demonstration; normal installations require a browser session. >-
         Returns a server-reduced time series with explicit completeness. Explicit from/to must be paired UTC microsecond timestamps.
         The maximum range is thirty days.
         Explicit range cannot be combined with minutes.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1182,12 +1193,14 @@ paths:
     get:
       operationId: listProductEvents
       summary: Read normalized infrastructure events
-      description: >-
+      description:
+        Public only in an explicitly isolated guest demonstration; normal installations require a browser session. >-
         Returns one cursor-bound page in descending occurrence order. Explicit from/to must be paired UTC microsecond timestamps.
         The maximum range is thirty days.
         Keep the exact range while following a cursor.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1228,9 +1241,10 @@ paths:
     get:
       operationId: listProductAlerts
       summary: Read current normalized alerts
-      description: Returns the bounded local alert state, including clear synthetic markers.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns the bounded local alert state, including clear synthetic markers.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1475,9 +1489,10 @@ paths:
     get:
       operationId: listNotifications
       summary: Read in-application notifications
-      description: Returns a newest-first bounded notification page with safe alert and resource links.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Returns a newest-first bounded notification page with safe alert and resource links.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/Cursor'
@@ -1791,9 +1806,10 @@ paths:
     get:
       operationId: streamProductHealth
       summary: Stream bounded health snapshots
-      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1817,9 +1833,10 @@ paths:
     get:
       operationId: streamProductMetrics
       summary: Stream bounded current metric snapshots
-      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1843,9 +1860,10 @@ paths:
     get:
       operationId: streamProductEvents
       summary: Stream bounded event snapshots
-      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1869,9 +1887,10 @@ paths:
     get:
       operationId: streamProductLogs
       summary: Stream bounded log snapshots
-      description: Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
+      description: Public only in an explicitly isolated guest demonstration; normal installations require a browser session. Opens an authenticated, source-scoped SSE feed with replay IDs, keepalives, bounded queues, and a finite connection lifetime.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -1895,7 +1914,8 @@ paths:
     get:
       operationId: streamProductAlerts
       summary: Stream bounded alert snapshots
-      description: >-
+      description:
+        Public only in an explicitly isolated guest demonstration; normal installations require a browser session. >-
         Source-scoped committed PostgreSQL changes with restart-stable decimal SSE IDs.
         alerts.snapshot.v1 data follows ProductAlertSnapshotEnvelope, a bounded first page.
         alerts.changed.v1 data follows ProductAlertChangesEnvelope and triggers HTTP refetch.
@@ -1907,6 +1927,7 @@ paths:
         bounded retention preserves the newest position; actual history may last longer.
       security:
         - BrowserSession: []
+        - {}
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ProductSourceSelection'
@@ -2159,6 +2180,31 @@ components:
         - required
         - closed
     SetupStatus:
+      description: Public sign-in choice or explicitly isolated read-only guest fixture.
+      oneOf:
+        - $ref: '#/components/schemas/NormalSetupStatus'
+        - $ref: '#/components/schemas/GuestDemoStatus'
+    GuestDemoStatus:
+      type: object
+      description: Public observation metadata without a user, session, or authentication proof.
+      additionalProperties: false
+      required: [state, fixture_version, scenario_step, observed_at]
+      properties:
+        state:
+          type: string
+          enum: [guest_demo]
+        fixture_version:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$
+        scenario_step:
+          type: integer
+          minimum: 0
+          maximum: 2
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+    NormalSetupStatus:
       type: object
       description: Minimum public state needed to choose setup or sign-in.
       additionalProperties: false
@@ -2558,6 +2604,8 @@ components:
           maxLength: 35
         health:
           $ref: '#/components/schemas/HealthState'
+        metadata:
+          $ref: '#/components/schemas/ResourceMetadata'
     ProductResourcePage:
       type: object
       additionalProperties: false
@@ -2578,6 +2626,248 @@ components:
             $ref: '#/components/schemas/ProductResource'
         page:
           $ref: '#/components/schemas/PageInfo'
+    ResourceMetadata:
+      description: Reviewed provider facts only; exactly one envelope matching the resource provider.
+      oneOf:
+        - $ref: '#/components/schemas/DockerMetadataEnvelope'
+        - $ref: '#/components/schemas/KubernetesMetadataEnvelope'
+    DockerMetadataEnvelope:
+      type: object
+      additionalProperties: false
+      required: [docker]
+      properties:
+        docker:
+          $ref: '#/components/schemas/DockerResourceMetadata'
+    KubernetesMetadataEnvelope:
+      type: object
+      additionalProperties: false
+      required: [kubernetes]
+      properties:
+        kubernetes:
+          $ref: '#/components/schemas/KubernetesResourceMetadata'
+    DockerResourceMetadata:
+      type: object
+      additionalProperties: false
+      required: [state, health, restart_count, ports, mounts, labels]
+      properties:
+        engine_version:
+          type: string
+          maxLength: 64
+        state:
+          type: string
+          enum: [created, running, paused, restarting, exited, removing, dead, unknown]
+        image:
+          type: string
+          minLength: 1
+          maxLength: 256
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}(@sha256:[a-f0-9]{64})?$'
+        health:
+          type: string
+          enum: [healthy, unhealthy, starting, none, unknown]
+        restart_count:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        started_at:
+          type: string
+          format: date-time
+          minLength: 20
+          maxLength: 27
+          pattern: '^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?Z$'
+        exit_code:
+          type: integer
+          minimum: -2147483648
+          maximum: 2147483647
+        ports:
+          type: array
+          maxItems: 64
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/DockerPortMetadata'
+        mounts:
+          type: array
+          maxItems: 64
+          items:
+            $ref: '#/components/schemas/DockerMountMetadata'
+        labels:
+          type: array
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/DockerLabelMetadata'
+        cpu_limit_cores:
+          type: number
+          minimum: 0
+          maximum: 1048576
+          not:
+            const: 0
+        memory_limit_bytes:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+    DockerPortMetadata:
+      type: object
+      additionalProperties: false
+      required: [container_port, protocol, published]
+      properties:
+        container_port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        host_port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        protocol:
+          type: string
+          enum: [tcp, udp, sctp]
+        published:
+          type: boolean
+      oneOf:
+        - required: [host_port]
+          properties:
+            host_port:
+              type: integer
+              minimum: 1
+              maximum: 65535
+            published:
+              const: true
+        - not:
+            required: [host_port]
+            properties:
+              host_port:
+                type: integer
+                minimum: 1
+                maximum: 65535
+          properties:
+            published:
+              const: false
+    DockerMountMetadata:
+      type: object
+      additionalProperties: false
+      required: [type, target, read_only]
+      properties:
+        type:
+          type: string
+          enum: [volume, bind, tmpfs]
+        target:
+          type: string
+          minLength: 1
+          maxLength: 256
+          pattern: '^/'
+        read_only:
+          type: boolean
+    DockerLabelMetadata:
+      type: object
+      additionalProperties: false
+      required: [key, value]
+      properties:
+        key:
+          type: string
+          enum: [com.docker.compose.project, com.docker.compose.service, stackplore.io/depends-on]
+        value:
+          type: string
+          minLength: 1
+          maxLength: 256
+          pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}(,[A-Za-z0-9][A-Za-z0-9_.-]{0,127}){0,31}$'
+      oneOf:
+        - properties:
+            key:
+              enum: [com.docker.compose.project, com.docker.compose.service]
+            value:
+              type: string
+              minLength: 1
+              maxLength: 128
+              pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$'
+        - properties:
+            key:
+              const: stackplore.io/depends-on
+    KubernetesResourceMetadata:
+      type: object
+      additionalProperties: false
+      required: [containers, conditions]
+      properties:
+        containers:
+          type: array
+          maxItems: 64
+          items:
+            $ref: '#/components/schemas/KubernetesContainerMetadata'
+        conditions:
+          type: array
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/KubernetesConditionMetadata'
+    KubernetesContainerMetadata:
+      type: object
+      additionalProperties: false
+      required: [name, state, ready, restart_count]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 63
+          pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+        state:
+          type: string
+          enum: [unknown, waiting, running, terminated]
+        ready:
+          type: boolean
+        restart_count:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        reason_code:
+          type: string
+          enum:
+            - kubernetes.container.waiting
+            - kubernetes.container.running
+            - kubernetes.container.terminated
+            - kubernetes.container.crash_loop
+            - kubernetes.container.image_pull
+            - kubernetes.container.config_error
+            - kubernetes.container.creating
+            - kubernetes.container.out_of_memory
+            - kubernetes.container.completed
+            - kubernetes.container.error
+        cpu_request_cores:
+          type: number
+          minimum: 0
+          maximum: 1000000000
+        cpu_limit_cores:
+          type: number
+          minimum: 0
+          maximum: 1000000000
+        memory_request_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        memory_limit_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+    KubernetesConditionMetadata:
+      type: object
+      additionalProperties: false
+      required: [type, status]
+      properties:
+        type:
+          type: string
+          enum:
+            - ready
+            - containers_ready
+            - initialized
+            - scheduled
+            - available
+            - progressing
+            - replica_failure
+            - complete
+            - failed
+        status:
+          type: string
+          enum: ['true', 'false', unknown]
+        reason_code:
+          type: string
+          enum:
+            [kubernetes.condition.true, kubernetes.condition.false, kubernetes.condition.unknown]
     ProductResourceHealth:
       type: object
       additionalProperties: false

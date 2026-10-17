@@ -10,3 +10,4 @@ test-results/
 *.md
 LICENSE
 pnpm-lock.yaml
+apps/api/licenses/modules/

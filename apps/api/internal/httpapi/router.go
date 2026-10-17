@@ -44,6 +44,7 @@ type Options struct {
 	NotificationTester     NotificationTester
 	AlertManager           AlertManager
 	SourceSettings         SourceSettings
+	GuestDemo              *GuestDemoOptions
 
 	requestIDs requestIDSource
 	now        func() time.Time
@@ -92,6 +93,7 @@ func NewHandler(options Options) (http.Handler, error) {
 		options.NotificationTester,
 		options.AlertManager,
 		options.SourceSettings,
+		options.GuestDemo,
 	))
 	root.NotFound(plainNotFound)
 	root.MethodNotAllowed(rootMethodNotAllowed)
@@ -134,6 +136,9 @@ func validateOptions(options Options) error {
 	if err := validateProductProviders(options.ProductProviders); err != nil {
 		return errInvalidOptions
 	}
+	if !validGuestDemo(options.GuestDemo, options.ProductProviders) {
+		return errInvalidOptions
+	}
 	return nil
 }
 
@@ -154,8 +159,11 @@ func validPrefixes(prefixes []netip.Prefix) bool {
 	return true
 }
 
-func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings) http.Handler {
+func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings, guest ...*GuestDemoOptions) http.Handler {
 	authRoutes := newAuthHTTP(authentication, proxy.origin, readiness, now, maximumBody)
+	if len(guest) == 1 {
+		authRoutes.guestDemo = guest[0]
+	}
 	if len(providers) == 0 {
 		providers = []ProductProvider{demo.MustNew()}
 	}
@@ -165,6 +173,7 @@ func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticati
 	router.Use(proxy.requirePublicOrigin)
 	router.Use(limitRequestBody(maximumBody))
 	router.Use(rejectMalformedQuery)
+	router.Use(guestReadBoundary(authRoutes.guestDemo))
 	router.Get("/setup/status", authRoutes.setupStatus)
 	router.Post("/setup", authRoutes.setup)
 	router.Post("/auth/preflight", authRoutes.preflight)

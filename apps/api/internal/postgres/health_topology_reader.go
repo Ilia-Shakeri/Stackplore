@@ -31,12 +31,15 @@ func (store *observationRead) GetHealth(ctx context.Context, query domain.Health
 	ctx, cancel := store.queryContext(ctx, store.queryTimeout)
 	defer cancel()
 	ids := resourceIDs(query.Resources)
-	rows, err := store.queries.Query(ctx, `SELECT health.resource_id,health.health_state,health.availability,health.completeness,
-health.observed_at_us,health.reason_code FROM resource_health_current AS health
+	rows, err := store.queries.Query(ctx, `SELECT health.resource_id,
+CASE WHEN `+partitionStale+` OR `+partitionPartial+` THEN 'unknown' ELSE health.health_state END,
+CASE WHEN `+partitionStale+` THEN 'stale' ELSE health.availability END,
+CASE WHEN `+partitionPartial+` THEN 'partial' ELSE health.completeness END,
+health.observed_at_us,CASE WHEN `+partitionStale+` THEN 'source.partition_stale' WHEN `+partitionPartial+` THEN 'source.partition_partial' ELSE health.reason_code END FROM resource_health_current AS health
 JOIN resources AS resource ON resource.id=health.resource_id
 JOIN infrastructure_sources AS source ON source.id=resource.source_id
 WHERE resource.source_id=$1 AND resource.provider=$2 AND resource.id=ANY($3::text[])
-AND resource.retired_at_us IS NULL AND resource.capture_generation>=source.completed_generation LIMIT $4`, string(query.Source.SourceID), string(query.Source.Provider), ids, len(ids))
+AND `+activeResourcePredicate+` LIMIT $4`, string(query.Source.SourceID), string(query.Source.Provider), ids, len(ids))
 	if err != nil {
 		return domain.HealthResult{}, mapRepositoryReadError(ctx, err)
 	}
@@ -150,8 +153,8 @@ JOIN resources AS origin ON origin.id=relationship.from_resource_id
 JOIN resources AS target ON target.id=relationship.to_resource_id
 WHERE relationship.source_id=$1 AND source.provider=$2 AND relationship.retired_at_us IS NULL
 AND relationship.capture_generation>=source.relationship_completed_generation
-AND origin.retired_at_us IS NULL AND origin.capture_generation>=source.completed_generation
-AND target.retired_at_us IS NULL AND target.capture_generation>=source.completed_generation
+AND `+activeIdentityPredicate("origin")+`
+AND `+activeIdentityPredicate("target")+`
 AND (cardinality($3::text[])=0 OR relationship.from_resource_id=ANY($3::text[]) OR relationship.to_resource_id=ANY($3::text[]))
 AND relationship.id COLLATE "C">$4 COLLATE "C" ORDER BY relationship.id COLLATE "C" LIMIT $5`, string(query.Source.SourceID), string(query.Source.Provider), ids, after, query.Page.Limit+1)
 	if err != nil {

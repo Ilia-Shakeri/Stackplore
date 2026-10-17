@@ -14,6 +14,7 @@ type InventoryCapture struct {
 	Health           []HealthSnapshot
 	Relationships    []Relationship
 	WorkloadReplicas []WorkloadReplicaSnapshot
+	Coverage         []InventoryCoverage
 	Complete         bool
 }
 
@@ -22,6 +23,9 @@ type InventoryCaptureProvider interface {
 }
 
 func (capture InventoryCapture) ValidateFor(source ProviderRef) error {
+	if ValidateInventoryCoverage(source, capture.Coverage) != nil {
+		return ErrRepositoryInvalidInput
+	}
 	if source.Validate() != nil || capture.Source != source || capture.Status.Validate() != nil ||
 		!repositoryTimeSupported(capture.Status.ObservedAt) || len(capture.Environments) > MaxInventoryCaptureItems ||
 		len(capture.Resources) > MaxInventoryCaptureItems || len(capture.Health) > MaxInventoryCaptureItems ||
@@ -48,6 +52,17 @@ func (capture InventoryCapture) ValidateFor(source ProviderRef) error {
 		environments[environment.ID] = struct{}{}
 	}
 	resources := make(map[ResourceID]struct{}, len(capture.Resources))
+	coverageByKind := make(map[string][]InventoryCoverage, len(capture.Coverage))
+	for _, item := range capture.Coverage {
+		if item.Status.ObservedAt.After(capture.Status.ObservedAt) || capture.Complete && !item.Complete() {
+			return ErrRepositoryInvalidInput
+		}
+		if _, known := environments[item.EnvironmentID]; !known {
+			return ErrRepositoryInvalidInput
+		}
+		key := string(item.EnvironmentID) + "\x00" + string(item.Kind)
+		coverageByKind[key] = append(coverageByKind[key], item)
+	}
 	for _, resource := range capture.Resources {
 		if resource.Validate() != nil || !source.Matches(resource.Resource.Ref) || resource.Resource.Synthetic != synthetic ||
 			resource.Status.ObservedAt.After(capture.Status.ObservedAt) || !repositoryTimeSupported(resource.Status.ObservedAt) {
@@ -58,6 +73,19 @@ func (capture InventoryCapture) ValidateFor(source ProviderRef) error {
 		}
 		if _, duplicate := resources[resource.Resource.Ref.ID]; duplicate {
 			return ErrRepositoryInvalidInput
+		}
+		if len(capture.Coverage) > 0 {
+			ref := resource.Resource.Ref
+			covered := false
+			for _, item := range coverageByKind[string(ref.Identity.EnvironmentID)+"\x00"+string(ref.Identity.Kind)] {
+				if item.Matches(ref) && item.Status.AllowsData() {
+					covered = true
+					break
+				}
+			}
+			if !covered {
+				return ErrRepositoryInvalidInput
+			}
 		}
 		resources[resource.Resource.Ref.ID] = struct{}{}
 	}

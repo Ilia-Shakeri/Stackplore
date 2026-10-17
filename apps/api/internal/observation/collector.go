@@ -16,12 +16,8 @@ type collection struct {
 	events       []domain.InfrastructureEvent
 }
 
-func (worker *Worker) collect(ctx context.Context, configuration domain.SourceConfiguration) (collection, error) {
+func (worker *Worker) collect(ctx context.Context, configuration domain.SourceConfiguration, live LiveProvider, clock func() time.Time) (collection, error) {
 	ref := domain.ProviderRef{Provider: configuration.Source.Provider, SourceID: configuration.Source.ID}
-	live, err := worker.resolver.ResolveProvider(ctx, configuration)
-	if err != nil || live == nil || live.Source().ID != ref.SourceID || live.Source().Provider != ref.Provider {
-		return collection{}, errors.Join(ErrUnavailable, err)
-	}
 	capabilities, err := live.GetCapabilities(ctx, ref)
 	if err != nil || capabilities.ValidateFor(ref) != nil {
 		return collection{}, errors.Join(ErrUnavailable, err)
@@ -34,7 +30,7 @@ func (worker *Worker) collect(ctx context.Context, configuration domain.SourceCo
 			err = inventory.ValidateFor(ref)
 		}
 	} else {
-		inventory, err = worker.collectPages(ctx, live, ref, &capabilities)
+		inventory, err = worker.collectPages(ctx, live, ref, &capabilities, clock)
 	}
 	if err != nil {
 		return collection{}, errors.Join(ErrUnavailable, err)
@@ -53,12 +49,13 @@ func (worker *Worker) collect(ctx context.Context, configuration domain.SourceCo
 		setCapability(&capabilities, domain.CapabilityTopology, partialStatus(inventory.Status, "observation.inventory_bound"))
 	}
 	result := collection{inventory: inventory, capabilities: capabilities}
-	worker.collectMetrics(ctx, live, &result)
-	worker.collectEvents(ctx, live, &result)
+	worker.collectMetrics(ctx, live, &result, clock)
+	worker.collectFixtureMetricHistory(ctx, live, &result)
+	worker.collectEvents(ctx, live, &result, clock)
 	return result, nil
 }
 
-func (worker *Worker) collectPages(ctx context.Context, provider LiveProvider, ref domain.ProviderRef, capabilities *domain.CapabilitySet) (domain.InventoryCapture, error) {
+func (worker *Worker) collectPages(ctx context.Context, provider LiveProvider, ref domain.ProviderRef, capabilities *domain.CapabilitySet, clock func() time.Time) (domain.InventoryCapture, error) {
 	capture := domain.InventoryCapture{Source: ref, Complete: true}
 	page := domain.PageRequest{Limit: min(domain.MaxPageSize, worker.maximumItems)}
 	seen := make(map[domain.PageCursor]struct{})
@@ -126,7 +123,7 @@ func (worker *Worker) collectPages(ctx context.Context, provider LiveProvider, r
 		query := domain.HealthQuery{Source: ref, Resources: refs}
 		result, err := provider.GetHealth(ctx, query)
 		if err != nil || result.ValidateFor(query) != nil {
-			healthStatus = errorStatus(err, worker.time())
+			healthStatus = errorStatus(err, clock())
 			continue
 		}
 		healthStatus = mergeStatus(healthStatus, result.Status)
@@ -144,7 +141,7 @@ func (worker *Worker) collectPages(ctx context.Context, provider LiveProvider, r
 		query := domain.TopologyQuery{Source: ref, Page: page}
 		result, err := provider.GetRelationships(ctx, query)
 		if err != nil || result.ValidateFor(query) != nil || !result.Status.AllowsData() {
-			topologyStatus = errorStatus(err, worker.time())
+			topologyStatus = errorStatus(err, clock())
 			if err == nil && result.Status.Validate() == nil && !result.Status.AllowsData() {
 				topologyStatus = result.Status
 			}
@@ -175,6 +172,7 @@ func (worker *Worker) collectPages(ctx context.Context, provider LiveProvider, r
 }
 
 func (worker *Worker) boundInventory(capture domain.InventoryCapture) domain.InventoryCapture {
+	initialResourceCount, initialEnvironmentCount := len(capture.Resources), len(capture.Environments)
 	if len(capture.Environments) > worker.maximumItems || len(capture.Resources) > worker.maximumItems {
 		capture.Complete = false
 		capture.Status = partialStatus(capture.Status, "observation.inventory_bound")
@@ -196,6 +194,17 @@ func (worker *Worker) boundInventory(capture domain.InventoryCapture) domain.Inv
 		ids[resource.Resource.Ref.ID] = struct{}{}
 	}
 	capture.Resources = resources
+	coverage := make([]domain.InventoryCoverage, 0, len(capture.Coverage))
+	for _, item := range capture.Coverage {
+		if _, kept := environments[item.EnvironmentID]; !kept {
+			continue
+		}
+		if (len(resources) != initialResourceCount || len(capture.Environments) != initialEnvironmentCount) && item.Complete() {
+			item.Status = partialStatus(item.Status, "observation.inventory_bound")
+		}
+		coverage = append(coverage, item)
+	}
+	capture.Coverage = coverage
 	health := make([]domain.HealthSnapshot, 0, min(len(capture.Health), worker.maximumItems))
 	for _, snapshot := range capture.Health {
 		if _, kept := ids[snapshot.ResourceID]; kept {
@@ -222,10 +231,10 @@ func (worker *Worker) boundInventory(capture domain.InventoryCapture) domain.Inv
 	return capture
 }
 
-func (worker *Worker) collectMetrics(ctx context.Context, provider LiveProvider, collected *collection) {
+func (worker *Worker) collectMetrics(ctx context.Context, provider LiveProvider, collected *collection, clock func() time.Time) {
 	metrics, supported := provider.(domain.CurrentMetricProvider)
 	if !supported {
-		status := unavailableStatus(domain.AvailabilityUnsupported, worker.time(), "observation.metrics_unsupported")
+		status := unavailableStatus(domain.AvailabilityUnsupported, clock(), "observation.metrics_unsupported")
 		setCapability(&collected.capabilities, domain.CapabilityMetricCurrent, status)
 		setCapability(&collected.capabilities, domain.CapabilityMetricHistory, status)
 		return
@@ -242,7 +251,7 @@ func (worker *Worker) collectMetrics(ctx context.Context, provider LiveProvider,
 			Resources: resourceRefs(collected.inventory.Resources[offset:min(offset+domain.MaxMetricTargets, len(collected.inventory.Resources))]), Names: names}
 		result, err := metrics.GetCurrentMetrics(ctx, query)
 		if err != nil || result.ValidateFor(query) != nil {
-			status = errorStatus(err, worker.time())
+			status = errorStatus(err, clock())
 			break
 		}
 		status = mergeStatus(status, result.Status)
@@ -287,16 +296,13 @@ func (worker *Worker) collectMetrics(ctx context.Context, provider LiveProvider,
 	setCapability(&collected.capabilities, domain.CapabilityMetricHistory, status)
 }
 
-func (worker *Worker) collectEvents(ctx context.Context, provider LiveProvider, collected *collection) {
+func (worker *Worker) collectEvents(ctx context.Context, provider LiveProvider, collected *collection, clock func() time.Time) {
 	events, supported := provider.(domain.EventHistoryProvider)
 	if !supported {
-		setCapability(&collected.capabilities, domain.CapabilityEventHistory, unavailableStatus(domain.AvailabilityUnsupported, worker.time(), "observation.events_unsupported"))
+		setCapability(&collected.capabilities, domain.CapabilityEventHistory, unavailableStatus(domain.AvailabilityUnsupported, clock(), "observation.events_unsupported"))
 		return
 	}
-	end := worker.time()
-	if clock, ok := provider.(interface{ ObservationTime() time.Time }); ok {
-		end = clock.ObservationTime()
-	}
+	end := clock()
 	end = end.UTC().Truncate(time.Microsecond)
 	page := domain.PageRequest{Limit: min(domain.MaxPageSize, worker.maximumEvents)}
 	seen := make(map[domain.PageCursor]struct{})
@@ -314,7 +320,7 @@ func (worker *Worker) collectEvents(ctx context.Context, provider LiveProvider, 
 			Range: domain.TimeRange{Start: end.Add(-worker.eventLookback), End: end}, Page: page}
 		result, err := events.ListEvents(ctx, query)
 		if err != nil || result.ValidateFor(query) != nil {
-			status = errorStatus(err, worker.time())
+			status = errorStatus(err, clock())
 			break
 		}
 		status = mergeStatus(status, result.Status)
@@ -346,7 +352,7 @@ func (worker *Worker) collectEvents(ctx context.Context, provider LiveProvider, 
 			break
 		}
 		if _, repeated := seen[result.Page.NextCursor]; repeated {
-			status = unavailableStatus(domain.AvailabilityUnavailable, worker.time(), "observation.event_cursor_reused")
+			status = unavailableStatus(domain.AvailabilityUnavailable, clock(), "observation.event_cursor_reused")
 			break
 		}
 		seen[result.Page.NextCursor] = struct{}{}

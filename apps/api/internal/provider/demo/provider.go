@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"slices"
 	"sort"
@@ -19,14 +20,17 @@ import (
 const (
 	SourceID       domain.SourceID      = "source_demo"
 	EnvironmentID  domain.EnvironmentID = "env_demo_shop"
-	FixtureVersion                      = "demo-v1"
+	FixtureVersion                      = "demo-v2"
 )
 
 var observedAt = time.Date(2026, time.August, 16, 8, 0, 0, 0, time.UTC)
 
 type Provider struct {
 	source        domain.InfrastructureSource
-	environment   domain.Environment
+	environments  []domain.Environment
+	clock         time.Time
+	step          int
+	profiles      map[domain.ResourceID]metricProfile
 	resources     []domain.ResourceSnapshot
 	health        map[domain.ResourceID]domain.HealthSnapshot
 	relationships []domain.Relationship
@@ -35,68 +39,7 @@ type Provider struct {
 	alerts        []domain.Alert
 }
 
-func New() (*Provider, error) {
-	status := availableStatus()
-	provider := &Provider{
-		source: domain.InfrastructureSource{ID: SourceID, Provider: domain.ProviderDemo, Name: "Demo shop", Synthetic: true},
-		environment: domain.Environment{
-			ID: EnvironmentID, SourceID: SourceID, Provider: domain.ProviderDemo, Name: "Demo production", Status: status, Synthetic: true,
-		},
-		health: make(map[domain.ResourceID]domain.HealthSnapshot),
-	}
-	definitions := []struct {
-		name, kind, nativeID string
-		health               domain.HealthState
-	}{
-		{"API", "demo.service", "api", domain.HealthHealthy},
-		{"Checkout", "demo.service", "checkout", domain.HealthUnhealthy},
-		{"Gateway", "demo.gateway", "gateway", domain.HealthDegraded},
-		{"PostgreSQL", "demo.database", "postgres", domain.HealthHealthy},
-		{"Redis", "demo.cache", "redis", domain.HealthHealthy},
-		{"Worker", "demo.worker", "worker", domain.HealthHealthy},
-	}
-	for _, definition := range definitions {
-		identity, err := domain.NewResourceIdentity(
-			domain.ProviderDemo, SourceID, EnvironmentID, domain.ResourceKind(definition.kind),
-			domain.Scope{Kind: domain.ScopeProject, Name: "demo-shop"}, domain.NativeResourceID(definition.nativeID),
-		)
-		if err != nil {
-			return nil, err
-		}
-		ref, err := domain.NewResourceRef(identity)
-		if err != nil {
-			return nil, err
-		}
-		provider.resources = append(provider.resources, domain.ResourceSnapshot{
-			Resource: domain.Resource{Ref: ref, DisplayName: definition.name, Synthetic: true}, Status: status,
-		})
-		healthStatus := status
-		evidenceStatus := domain.EvidencePositive
-		code := domain.ReasonCode("demo.health.ready")
-		if definition.health == domain.HealthDegraded {
-			evidenceStatus = domain.EvidenceUnknown
-			code = "demo.health.latency"
-		}
-		if definition.health == domain.HealthUnhealthy {
-			evidenceStatus = domain.EvidenceNegative
-			code = "demo.health.failure"
-		}
-		provider.health[ref.ID] = domain.HealthSnapshot{
-			ResourceID: ref.ID, State: definition.health, Status: healthStatus,
-			Evidence: []domain.HealthEvidence{{
-				ID: domain.EvidenceID("evidence_" + definition.nativeID), Code: code,
-				SourceCode: code, Status: evidenceStatus, ObservedAt: observedAt, Synthetic: true,
-			}},
-		}
-	}
-	if err := seedObservability(provider); err != nil {
-		return nil, err
-	}
-	if err := provider.validate(); err != nil {
-		return nil, err
-	}
-	return provider, nil
-}
+func New() (*Provider, error) { return NewAtStep(0) }
 
 func MustNew() *Provider {
 	provider, err := New()
@@ -115,7 +58,7 @@ func (provider *Provider) FixtureVersion() string {
 }
 
 func (provider *Provider) ObservationTime() time.Time {
-	return observedAt
+	return provider.clock
 }
 
 func ObservationTime() time.Time {
@@ -128,12 +71,12 @@ func (provider *Provider) CaptureInventory(ctx context.Context) (domain.Inventor
 		return domain.InventoryCapture{}, invalid("demo.inventory.capture", err)
 	}
 	capture := domain.InventoryCapture{
-		Source: ref, Status: availableStatus(), Environments: []domain.Environment{provider.environment},
-		Resources: slices.Clone(provider.resources), Relationships: slices.Clone(provider.relationships), Complete: true,
+		Source: ref, Status: provider.availableStatus(), Environments: slices.Clone(provider.environments),
+		Resources: slices.Clone(provider.resources), Relationships: cloneRelationships(provider.relationships), Complete: true,
 		Health: make([]domain.HealthSnapshot, 0, len(provider.health)),
 	}
 	for _, resource := range provider.resources {
-		capture.Health = append(capture.Health, provider.health[resource.Resource.Ref.ID])
+		capture.Health = append(capture.Health, cloneHealth(provider.health[resource.Resource.Ref.ID]))
 	}
 	if err := capture.ValidateFor(ref); err != nil {
 		return domain.InventoryCapture{}, invalid("demo.inventory.capture", err)
@@ -146,12 +89,12 @@ func (provider *Provider) ListEnvironments(ctx context.Context, query domain.Env
 		return domain.EnvironmentPage{}, invalid("demo.inventory.environments", err)
 	}
 	offset, err := decodeCursor(query.Page.Cursor, environmentFingerprint(query))
-	if err != nil || offset > 1 {
+	if err != nil || offset > len(provider.environments) {
 		return domain.EnvironmentPage{}, invalid("demo.inventory.environments", err)
 	}
-	items := []domain.Environment{provider.environment}
+	items := provider.environments
 	pageItems, page := paginate(items, offset, query.Page.Limit, environmentFingerprint(query))
-	result := domain.EnvironmentPage{Status: availableStatus(), Environments: pageItems, Page: page}
+	result := domain.EnvironmentPage{Status: provider.availableStatus(), Environments: pageItems, Page: page}
 	if err := result.ValidateFor(query); err != nil {
 		return domain.EnvironmentPage{}, invalid("demo.inventory.environments", err)
 	}
@@ -178,7 +121,7 @@ func (provider *Provider) ListResources(ctx context.Context, query domain.Invent
 		return domain.ResourcePage{}, invalid("demo.inventory.resources", err)
 	}
 	pageItems, page := paginate(items, offset, query.Page.Limit, fingerprint)
-	result := domain.ResourcePage{Status: availableStatus(), Resources: pageItems, Page: page}
+	result := domain.ResourcePage{Status: provider.availableStatus(), Resources: pageItems, Page: page}
 	if err := result.ValidateFor(query); err != nil {
 		return domain.ResourcePage{}, invalid("demo.inventory.resources", err)
 	}
@@ -201,13 +144,13 @@ func (provider *Provider) GetHealth(ctx context.Context, query domain.HealthQuer
 	if err := provider.validateContext(ctx, query.Source); err != nil || query.Validate() != nil {
 		return domain.HealthResult{}, invalid("demo.health.read", err)
 	}
-	result := domain.HealthResult{Status: availableStatus(), Snapshots: make([]domain.HealthSnapshot, 0, len(query.Resources))}
+	result := domain.HealthResult{Status: provider.availableStatus(), Snapshots: make([]domain.HealthSnapshot, 0, len(query.Resources))}
 	for _, resource := range query.Resources {
 		snapshot, exists := provider.health[resource.ID]
 		if !exists {
 			return domain.HealthResult{}, notFound("demo.health.read")
 		}
-		result.Snapshots = append(result.Snapshots, snapshot)
+		result.Snapshots = append(result.Snapshots, cloneHealth(snapshot))
 	}
 	if err := result.ValidateFor(query); err != nil {
 		return domain.HealthResult{}, invalid("demo.health.read", err)
@@ -228,12 +171,12 @@ func (provider *Provider) GetCapabilities(ctx context.Context, source domain.Pro
 	}
 	result := domain.CapabilitySet{Source: source, Capabilities: make([]domain.CapabilityStatus, 0, len(capabilities))}
 	for _, name := range capabilities {
-		status := unsupportedStatus()
+		status := provider.unsupportedStatus()
 		switch name {
 		case domain.CapabilityInventoryList, domain.CapabilityInventoryDetail, domain.CapabilityHealth,
 			domain.CapabilityTopology, domain.CapabilityLogRead, domain.CapabilityMetricCurrent,
 			domain.CapabilityMetricHistory, domain.CapabilityEventHistory:
-			status = availableStatus()
+			status = provider.availableStatus()
 		}
 		result.Capabilities = append(result.Capabilities, domain.CapabilityStatus{Name: name, Status: status})
 	}
@@ -247,8 +190,10 @@ func (provider *Provider) validate() error {
 	if err := provider.source.Validate(); err != nil {
 		return err
 	}
-	if err := provider.environment.Validate(); err != nil {
-		return err
+	for _, environment := range provider.environments {
+		if err := environment.Validate(); err != nil {
+			return err
+		}
 	}
 	for _, resource := range provider.resources {
 		if err := resource.Validate(); err != nil {
@@ -282,7 +227,26 @@ func (provider *Provider) validate() error {
 }
 
 func (provider *Provider) Alerts() []domain.Alert {
-	return slices.Clone(provider.alerts)
+	items := slices.Clone(provider.alerts)
+	for index := range items {
+		if items[index].ResourceID != nil {
+			value := *items[index].ResourceID
+			items[index].ResourceID = &value
+		}
+		if items[index].EnvironmentID != nil {
+			value := *items[index].EnvironmentID
+			items[index].EnvironmentID = &value
+		}
+		if items[index].ResolvedAt != nil {
+			value := *items[index].ResolvedAt
+			items[index].ResolvedAt = &value
+		}
+		if items[index].AcknowledgedAt != nil {
+			value := *items[index].AcknowledgedAt
+			items[index].AcknowledgedAt = &value
+		}
+	}
+	return items
 }
 
 func (provider *Provider) validateContext(ctx context.Context, source domain.ProviderRef) error {
@@ -298,14 +262,14 @@ func (provider *Provider) validateContext(ctx context.Context, source domain.Pro
 	return nil
 }
 
-func availableStatus() domain.ObservationStatus {
-	return domain.ObservationStatus{State: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, ObservedAt: observedAt}
+func (provider *Provider) availableStatus() domain.ObservationStatus {
+	return domain.ObservationStatus{State: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, ObservedAt: provider.clock}
 }
 
-func unsupportedStatus() domain.ObservationStatus {
+func (provider *Provider) unsupportedStatus() domain.ObservationStatus {
 	return domain.ObservationStatus{
 		State: domain.AvailabilityUnsupported, Completeness: domain.CompletenessComplete,
-		ObservedAt: observedAt, ReasonCode: "demo.capability.not_implemented",
+		ObservedAt: provider.clock, ReasonCode: "demo.capability.not_implemented",
 	}
 }
 
@@ -357,7 +321,7 @@ func resourceFingerprint(query domain.InventoryQuery) string {
 }
 
 func fingerprint(parts ...string) string {
-	digest := sha256.Sum256([]byte(strings.Join(parts, "\x00")))
+	digest := sha256.Sum256([]byte(strings.Join(append([]string{FixtureVersion}, parts...), "\x00")))
 	return hex.EncodeToString(digest[:8])
 }
 
@@ -395,7 +359,14 @@ func invalid(operation domain.ProviderOperation, cause error) error {
 	if cause == nil {
 		cause = fmt.Errorf("invalid request")
 	}
-	result, _ := domain.NewProviderError(operation, domain.ProviderErrorInvalidRequest, false, cause)
+	code := domain.ProviderErrorInvalidRequest
+	if errors.Is(cause, context.Canceled) {
+		code = domain.ProviderErrorCanceled
+	}
+	if errors.Is(cause, context.DeadlineExceeded) {
+		code = domain.ProviderErrorDeadlineExceeded
+	}
+	result, _ := domain.NewProviderError(operation, code, false, cause)
 	return result
 }
 

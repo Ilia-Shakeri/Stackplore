@@ -34,6 +34,7 @@ changing the decision.
 | [ADR-0010](0010-versioned-contract-and-derived-client.md) | Accepted | Version the HTTP contract and derive the browser client |
 | [ADR-0011](0011-postgresql-primary-persistence.md) | Accepted | Use PostgreSQL as the primary persistence system |
 | [ADR-0012](0012-durable-alert-change-replay.md) | Accepted | Replay committed source-scoped alert changes across restarts |
+| [ADR-0013](0013-provider-coverage-and-demo-lifecycle.md) | Accepted | Publish bounded inventory authority by kind and scope; isolate demonstration lifecycle |
 
 ## Adding a record
 

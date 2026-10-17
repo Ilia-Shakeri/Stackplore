@@ -118,7 +118,7 @@ func (record LogRecord) ValidateForTail(query LogTailQuery) error {
 		return fmt.Errorf("log tail record predates requested replay window")
 	}
 	for _, target := range query.Targets {
-		if record.ResourceID == target.Resource.ID && record.Container == target.Container {
+		if record.ResourceID == target.Resource.ID && (target.Container == "" || record.Container == target.Container) {
 			return nil
 		}
 	}
@@ -208,7 +208,9 @@ func (page LogPage) ValidateFor(query LogReadQuery) error {
 			return err
 		}
 		if _, exists := targets[string(record.ResourceID)+"\x00"+record.Container]; !exists {
-			return fmt.Errorf("log page contains an unrequested target")
+			if _, allContainers := targets[string(record.ResourceID)+"\x00"]; !allContainers {
+				return fmt.Errorf("log page contains an unrequested target")
+			}
 		}
 		if record.Timestamp.Before(query.Range.Start) || !record.Timestamp.Before(query.Range.End) {
 			return fmt.Errorf("log page contains a record outside the requested range")

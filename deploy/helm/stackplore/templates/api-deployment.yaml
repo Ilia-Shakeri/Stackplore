@@ -79,6 +79,12 @@ spec:
             {{- end }}
             - name: STACKPLORE_KUBERNETES_ENABLED
               value: {{ .Values.api.kubernetes.enabled | quote }}
+            {{- if .Values.api.kubernetes.enabled }}
+            - name: STACKPLORE_KUBERNETES_NAMESPACES
+              value: {{ join "," .Values.api.kubernetes.namespaces | quote }}
+            - name: STACKPLORE_KUBERNETES_CLUSTER_OBSERVATION
+              value: {{ .Values.api.kubernetes.clusterObservation | quote }}
+            {{- end }}
             - name: STACKPLORE_WEBHOOK_ENABLED
               value: {{ .Values.api.webhook.enabled | quote }}
             {{- if .Values.api.webhook.enabled }}

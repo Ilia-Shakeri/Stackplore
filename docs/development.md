@@ -80,9 +80,12 @@ Helm lint/render passed; exact results are in the evidence plan. Both outbound l
 configuration; enable them only against an intended public HTTPS destination.
 For semantics, fixed bounds, unknown evidence and stable retries, use the
 [alert guide](alerts-notifications.md). The unchanged 0.3.0 implementation/tag was pushed under renewed authorization
-on 2026-10-17 and both exact CI runs passed; see the evidence plan. The 0.4.0
-exploration candidate adds URL filters, bounded paging and documented browser
-journeys; its current verification status is recorded separately.
+on 2026-10-17 and both exact CI runs passed; see the evidence plan. The verified
+0.4.0 exploration checkpoint adds URL filters, bounded paging and actual browser
+journeys. The 0.5.0 candidate adds bounded official provider clients, scoped
+inventory authority, safe metadata and the isolated guest demonstration. Its
+real disposable provider, PostgreSQL and browser receipts and final gate status
+are recorded separately in the evidence plan.
 
 ## Verification
 

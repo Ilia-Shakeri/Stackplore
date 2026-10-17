@@ -9,6 +9,8 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 )
 
+const currentMetricMaximumAge = 5 * time.Minute
+
 func metricNames(names []domain.MetricName) []string {
 	values := make([]string, 0, len(names))
 	for _, name := range names {
@@ -46,6 +48,20 @@ func (store *observationRead) GetCurrentMetrics(ctx context.Context, query domai
 	if !status.AllowsData() {
 		return result, nil
 	}
+	// Optional metric collection has its own clock and can finish after inventory.
+	// Bound sample selection by that port before choosing the newest retained row.
+	metricStatus, err := store.observationCapabilityStatus(ctx, query.Source, domain.CapabilityMetricCurrent, status, false)
+	if err != nil {
+		return domain.CurrentMetricResult{}, err
+	}
+	metricClock := time.Now().UTC().Truncate(time.Microsecond)
+	if query.Source.Provider == domain.ProviderDemo {
+		metricClock = metricStatus.ObservedAt
+	}
+	latestPermittedSample := metricStatus.ObservedAt
+	if bound := metricClock.Add(time.Minute); latestPermittedSample.After(bound) {
+		latestPermittedSample = bound
+	}
 	ctx, cancel := store.queryContext(ctx, store.queryTimeout)
 	defer cancel()
 	rows, err := store.queries.Query(ctx, `SELECT sample.id,sample.resource_id,sample.metric_name,sample.unit,
@@ -53,11 +69,11 @@ sample.value,sample.sampled_at_us,sample.interval_seconds,sample.synthetic
 FROM resources AS resource JOIN infrastructure_sources AS source ON source.id=resource.source_id
 CROSS JOIN unnest($3::text[]) AS name(metric_name)
 JOIN LATERAL (SELECT id,resource_id,metric_name,unit,value,sampled_at_us,interval_seconds,synthetic
-FROM metric_samples WHERE resource_id=resource.id AND metric_name=name.metric_name
+FROM metric_samples WHERE resource_id=resource.id AND metric_name=name.metric_name AND sampled_at_us<=$6
 ORDER BY sampled_at_us DESC,id COLLATE "C" LIMIT 1) AS sample ON TRUE
 WHERE resource.source_id=$1 AND resource.provider=$2 AND resource.id=ANY($4::text[])
-AND resource.retired_at_us IS NULL AND resource.capture_generation>=source.completed_generation
-ORDER BY resource.id COLLATE "C",sample.metric_name COLLATE "C" LIMIT $5`, string(query.Source.SourceID), string(query.Source.Provider), metricNames(query.Names), resourceIDs(query.Resources), len(query.Resources)*len(query.Names))
+AND `+activeResourcePredicate+`
+ORDER BY resource.id COLLATE "C",sample.metric_name COLLATE "C" LIMIT $5`, string(query.Source.SourceID), string(query.Source.Provider), metricNames(query.Names), resourceIDs(query.Resources), len(query.Resources)*len(query.Names), latestPermittedSample.UnixMicro())
 	if err != nil {
 		return domain.CurrentMetricResult{}, mapRepositoryReadError(ctx, err)
 	}
@@ -100,6 +116,14 @@ ORDER BY resource.id COLLATE "C",sample.metric_name COLLATE "C" LIMIT $5`, strin
 			result.Status.Completeness = domain.CompletenessPartial
 			result.Status.ReasonCode = "source.metric_partial"
 		}
+		for _, sample := range samples {
+			if metricClock.Sub(sample.SampledAt) > currentMetricMaximumAge {
+				setStatus.State = domain.AvailabilityStale
+				setStatus.ReasonCode = "source.metric_stale"
+				result.Status.State = domain.AvailabilityStale
+				result.Status.ReasonCode = "source.metric_stale"
+			}
+		}
 		result.Sets = append(result.Sets, domain.CurrentMetricSet{ResourceID: resource.ID, Status: setStatus, Samples: samples})
 	}
 	if result.ValidateFor(query) != nil {
@@ -125,8 +149,10 @@ func (store *observationRead) GetMetricHistory(ctx context.Context, query domain
 	rows, err := store.queries.Query(ctx, `SELECT sample.id,sample.resource_id,sample.metric_name,sample.unit,
 sample.value,sample.sampled_at_us,sample.interval_seconds,sample.synthetic
 FROM metric_samples AS sample JOIN resources AS resource ON resource.id=sample.resource_id
+JOIN infrastructure_sources AS source ON source.id=resource.source_id
 WHERE resource.source_id=$1 AND resource.provider=$2 AND sample.resource_id=ANY($3::text[])
 AND sample.metric_name=ANY($4::text[]) AND sample.sampled_at_us>=$5 AND sample.sampled_at_us<$6
+AND `+authorizedResourcePredicate+`
 ORDER BY sample.sampled_at_us, sample.resource_id COLLATE "C",sample.metric_name COLLATE "C",sample.id COLLATE "C" LIMIT $7`, string(query.Source.SourceID), string(query.Source.Provider), resourceIDs(query.Resources), metricNames(query.Names), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), query.PointLimit+1)
 	if err != nil {
 		return domain.MetricHistoryResult{}, mapRepositoryReadError(ctx, err)
@@ -199,6 +225,9 @@ func (store *observationRead) ListEvents(ctx context.Context, query domain.Event
 	defer cancel()
 	rows, err := store.queries.Query(ctx, `SELECT id,provider,source_id,environment_id,resource_id,kind,severity,reason_code,summary,occurred_at_us,observed_at_us,synthetic
 FROM infrastructure_events WHERE source_id=$1 AND provider=$2 AND occurred_at_us>=$3 AND occurred_at_us<$4
+AND EXISTS(SELECT 1 FROM infrastructure_sources AS source WHERE source.id=infrastructure_events.source_id
+AND (source.partition_generation=0
+OR (infrastructure_events.resource_id IS NOT NULL AND EXISTS(SELECT 1 FROM resources AS resource WHERE resource.id=infrastructure_events.resource_id AND `+authorizedResourcePredicate+`))))
 AND (cardinality($5::text[])=0 OR resource_id=ANY($5::text[]))
 AND (cardinality($6::text[])=0 OR severity=ANY($6::text[]))
 AND occurred_at_us<=$7 AND (occurred_at_us<$7 OR (occurred_at_us=$7 AND id COLLATE "C">$8 COLLATE "C"))

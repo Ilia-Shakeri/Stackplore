@@ -4,6 +4,16 @@ import process from 'node:process';
 
 const catalogPairs = [
   [
+    'metadata',
+    'apps/web/src/features/product/metadata.messages.en.json',
+    'apps/web/src/features/product/metadata.messages.fa.json',
+  ],
+  [
+    'demo',
+    'apps/web/src/features/demo/demo.messages.en.json',
+    'apps/web/src/features/demo/demo.messages.fa.json',
+  ],
+  [
     'trend',
     'apps/web/src/features/product/trend.messages.en.json',
     'apps/web/src/features/product/trend.messages.fa.json',

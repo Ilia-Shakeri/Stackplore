@@ -95,7 +95,7 @@ func New(repository Repository, profiles map[domain.SourceID]domain.SourceProfil
 	}
 	copyProfiles := make(map[domain.SourceID]domain.SourceProfileID, len(profiles))
 	for id, profile := range profiles {
-		if id.Validate() != nil || profile != domain.SourceProfileDemoFixture && profile != domain.SourceProfileDockerSocketDevelopment && profile != domain.SourceProfileKubernetesInCluster {
+		if id.Validate() != nil || profile != domain.SourceProfileDemoFixture && profile != domain.SourceProfileDockerSocketDevelopment && profile != domain.SourceProfileDockerRestrictedProxy && profile != domain.SourceProfileKubernetesInCluster {
 			return nil, ErrInvalid
 		}
 		copyProfiles[id] = profile

@@ -70,6 +70,7 @@ type AlertRule struct {
 }
 
 type AlertRuleRecord struct {
+	SystemOwned     bool
 	Rule            AlertRule
 	CreatedByUserID UserID
 	UpdatedByUserID UserID
@@ -79,7 +80,8 @@ type AlertRuleRecord struct {
 }
 
 func (record AlertRuleRecord) Validate() error {
-	if record.Rule.Validate() != nil || record.CreatedByUserID.Validate() != nil || record.UpdatedByUserID.Validate() != nil ||
+	owned := record.CreatedByUserID.Validate() == nil && record.UpdatedByUserID.Validate() == nil && !record.SystemOwned || record.SystemOwned && record.Rule.SourceID == "source_demo" && record.CreatedByUserID == "" && record.UpdatedByUserID == ""
+	if record.Rule.Validate() != nil || !owned ||
 		validateUTCTime("alert rule creation time", record.CreatedAt) != nil ||
 		validateUTCTime("alert rule update time", record.UpdatedAt) != nil ||
 		record.UpdatedAt.Before(record.CreatedAt) || record.Version < 1 {
@@ -123,7 +125,7 @@ type AlertRuleCreate struct {
 }
 
 func (command AlertRuleCreate) Validate() error {
-	if command.Record.Validate() != nil || command.Record.CreatedAt != command.Record.UpdatedAt || command.Record.Version != 1 ||
+	if command.Record.SystemOwned || command.Record.Validate() != nil || command.Record.CreatedAt != command.Record.UpdatedAt || command.Record.Version != 1 ||
 		command.Record.CreatedByUserID != command.Record.UpdatedByUserID ||
 		!alertRuleAuditMatches(command.Audit, command.Record.Rule.ID, command.Record.UpdatedByUserID, command.Record.UpdatedAt, "alert.rule_create", "alert.rule_created") {
 		return fmt.Errorf("alert rule create is invalid")
@@ -138,7 +140,7 @@ type AlertRuleReplace struct {
 }
 
 func (command AlertRuleReplace) Validate() error {
-	if command.Record.Validate() != nil || command.ExpectedVersion < 1 || command.Record.Version != command.ExpectedVersion+1 ||
+	if command.Record.SystemOwned || command.Record.Validate() != nil || command.ExpectedVersion < 1 || command.Record.Version != command.ExpectedVersion+1 ||
 		!command.Record.UpdatedAt.After(command.Record.CreatedAt) ||
 		!alertRuleAuditMatches(command.Audit, command.Record.Rule.ID, command.Record.UpdatedByUserID, command.Record.UpdatedAt, "alert.rule_replace", "alert.rule_replaced") {
 		return fmt.Errorf("alert rule replacement is invalid")

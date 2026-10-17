@@ -19,7 +19,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes"
 )
 
-type staticClusterCollector struct{}
+type staticClusterCollector struct{ clusterObserved bool }
 
 type auditReaderFunc func(context.Context, domain.PageRequest) (domain.AuditPage, error)
 
@@ -65,10 +65,11 @@ func (alertManagerFunc) DeleteRule(context.Context, domain.AlertRuleID, int64, d
 	return alerting.ErrManagementUnavailable
 }
 
-func (staticClusterCollector) Snapshot(context.Context) (kubernetes.Snapshot, error) {
+func (collector staticClusterCollector) Snapshot(context.Context) (kubernetes.Snapshot, error) {
 	return kubernetes.Snapshot{
 		ObservedAt: time.Date(2026, 8, 16, 11, 0, 0, 0, time.UTC), ClusterID: "cluster-one", ClusterName: "Main cluster",
-		Namespaces: []kubernetes.Namespace{{Name: "shop", Phase: "Active"}},
+		ClusterObserved: collector.clusterObserved,
+		Namespaces:      []kubernetes.Namespace{{UID: "namespace-one", Name: "shop", Phase: "Active"}},
 	}, nil
 }
 
@@ -90,14 +91,14 @@ func TestDemoProductReadFlowRequiresSessionAndReturnsSyntheticData(t *testing.T)
 	}
 	var sourceItems []sourceResponse
 	if err := json.Unmarshal(sources.Body.Bytes(), &sourceItems); err != nil || len(sourceItems) != 1 ||
-		!sourceItems[0].Synthetic || sourceItems[0].Resources != 6 || sourceItems[0].Health.Unhealthy != 1 {
+		!sourceItems[0].Synthetic || sourceItems[0].Resources != 9 || sourceItems[0].Health.Unhealthy != 1 {
 		t.Fatalf("sources = %#v, %v", sourceItems, err)
 	}
 
 	environments := authenticatedProductRequest(handler, "/api/v1/environments?limit=10")
 	var environmentPage environmentPageResponse
 	if environments.Code != http.StatusOK || json.Unmarshal(environments.Body.Bytes(), &environmentPage) != nil ||
-		len(environmentPage.Items) != 1 || environmentPage.Items[0].Availability != "available" || !environmentPage.Items[0].Synthetic {
+		len(environmentPage.Items) != 2 || environmentPage.Items[0].Availability != "available" || !environmentPage.Items[0].Synthetic {
 		t.Fatalf("environments = (%d, %#v, %q)", environments.Code, environmentPage, environments.Body.String())
 	}
 
@@ -150,7 +151,7 @@ func TestDemoResourceQueryRejectsUnknownAndReboundCursor(t *testing.T) {
 }
 
 func TestProductRoutesSelectOneProviderAndListAllSources(t *testing.T) {
-	cluster, err := kubernetes.New("source_cluster", "Main cluster", staticClusterCollector{})
+	cluster, err := kubernetes.New("source_cluster", "Main cluster", staticClusterCollector{clusterObserved: true})
 	if err != nil {
 		t.Fatalf("cluster provider: %v", err)
 	}
@@ -187,6 +188,27 @@ func TestProductRoutesSelectOneProviderAndListAllSources(t *testing.T) {
 	}
 }
 
+func TestNamespaceProviderDoesNotInventHealthyClusterResource(t *testing.T) {
+	cluster, err := kubernetes.New("source_cluster", "Namespace-only fixture", staticClusterCollector{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler, _, _ := makeHandler(t, func(options *Options) {
+		options.ProductProviders = []ProductProvider{cluster}
+		options.Authentication = &testAuthentication{authenticateFunc: func(context.Context, string) (auth.Authentication, error) { return auth.Authentication{}, nil }}
+	})
+	response := authenticatedProductRequest(handler, "/api/v1/resources?source_id=source_cluster&limit=10")
+	var page resourcePageResponse
+	if response.Code != http.StatusOK || json.Unmarshal(response.Body.Bytes(), &page) != nil || len(page.Items) != 1 || page.Items[0].Kind != "kubernetes.namespace" {
+		t.Fatalf("namespace resource page = %d", response.Code)
+	}
+	sources := authenticatedProductRequest(handler, "/api/v1/sources")
+	var items []sourceResponse
+	if sources.Code != http.StatusOK || json.Unmarshal(sources.Body.Bytes(), &items) != nil || len(items) != 1 || items[0].Resources != 1 || items[0].Health.Healthy != 1 {
+		t.Fatal("configured cluster identity invented another healthy resource")
+	}
+}
+
 func TestDemoObservabilityRoutesReturnBoundedSyntheticData(t *testing.T) {
 	handler, _, _ := makeHandler(t, func(options *Options) {
 		options.Authentication = &testAuthentication{authenticateFunc: func(context.Context, string) (auth.Authentication, error) {
@@ -197,21 +219,21 @@ func TestDemoObservabilityRoutesReturnBoundedSyntheticData(t *testing.T) {
 	topology := authenticatedProductRequest(handler, "/api/v1/topology?limit=10")
 	var relationships relationshipPageResponse
 	if topology.Code != http.StatusOK || json.Unmarshal(topology.Body.Bytes(), &relationships) != nil ||
-		len(relationships.Items) != 5 || !relationships.Items[0].Synthetic {
+		len(relationships.Items) != 10 || !relationships.Page.HasMore || !relationships.Items[0].Synthetic {
 		t.Fatalf("topology = (%d, %#v, %q)", topology.Code, relationships, topology.Body.String())
 	}
 
 	logs := authenticatedProductRequest(handler, "/api/v1/logs?limit=10")
 	var logPage logPageResponse
 	if logs.Code != http.StatusOK || json.Unmarshal(logs.Body.Bytes(), &logPage) != nil ||
-		len(logPage.Items) != 6 || !logPage.Items[0].Synthetic {
+		len(logPage.Items) != 9 || !logPage.Items[0].Synthetic {
 		t.Fatalf("logs = (%d, %#v, %q)", logs.Code, logPage, logs.Body.String())
 	}
 
 	metrics := authenticatedProductRequest(handler, "/api/v1/metrics/current")
 	var metricSet metricResponseSet
 	if metrics.Code != http.StatusOK || json.Unmarshal(metrics.Body.Bytes(), &metricSet) != nil ||
-		len(metricSet.Items) != 18 || !metricSet.Items[0].Synthetic {
+		len(metricSet.Items) != 27 || !metricSet.Items[0].Synthetic {
 		t.Fatalf("metrics = (%d, %#v, %q)", metrics.Code, metricSet, metrics.Body.String())
 	}
 
@@ -225,7 +247,7 @@ func TestDemoObservabilityRoutesReturnBoundedSyntheticData(t *testing.T) {
 	events := authenticatedProductRequest(handler, "/api/v1/events?limit=10")
 	var eventPage eventPageResponse
 	if events.Code != http.StatusOK || json.Unmarshal(events.Body.Bytes(), &eventPage) != nil ||
-		len(eventPage.Items) != 6 || !eventPage.Items[0].Synthetic {
+		len(eventPage.Items) != 9 || !eventPage.Items[0].Synthetic {
 		t.Fatalf("events = (%d, %#v, %q)", events.Code, eventPage, events.Body.String())
 	}
 

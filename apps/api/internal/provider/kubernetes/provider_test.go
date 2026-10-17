@@ -54,30 +54,30 @@ func (collector logFixtureCollector) Snapshot(context.Context) (Snapshot, error)
 	return collector.snapshot, nil
 }
 
-func (collector logFixtureCollector) ReadPodLogs(_ context.Context, request PodLogRequest) ([]PodLogLine, error) {
+func (collector logFixtureCollector) ReadPodLogs(_ context.Context, request PodLogRequest) (LogObservation, error) {
 	if len(request.Targets) == 0 {
-		return nil, nil
+		return LogObservation{}, nil
 	}
-	return []PodLogLine{{
+	return LogObservation{Lines: []PodLogLine{{
 		TargetKey: request.Targets[0].Key, Timestamp: collector.timestamp,
 		Message: "request token=sample-value done",
-	}}, nil
+	}}}, nil
 }
 
 func (collector metricFixtureCollector) Snapshot(context.Context) (Snapshot, error) {
 	return collector.snapshot, nil
 }
 
-func (collector metricFixtureCollector) CurrentPodMetrics(context.Context) ([]PodMetric, error) {
-	return append([]PodMetric(nil), collector.metrics...), nil
+func (collector metricFixtureCollector) CurrentPodMetrics(context.Context) (MetricObservation, error) {
+	return MetricObservation{Metrics: append([]PodMetric(nil), collector.metrics...)}, nil
 }
 
 func (collector eventFixtureCollector) Snapshot(context.Context) (Snapshot, error) {
 	return collector.snapshot, nil
 }
 
-func (collector eventFixtureCollector) ClusterEvents(context.Context) ([]ClusterEvent, error) {
-	return append([]ClusterEvent(nil), collector.events...), nil
+func (collector eventFixtureCollector) ClusterEvents(context.Context) (EventObservation, error) {
+	return EventObservation{Events: append([]ClusterEvent(nil), collector.events...)}, nil
 }
 
 func TestProviderNormalizesClusterInventoryHealthAndTopology(t *testing.T) {
@@ -279,11 +279,12 @@ func TestProviderReturnsBoundedKubernetesEvents(t *testing.T) {
 
 func TestProviderReturnsCurrentPodMetrics(t *testing.T) {
 	snapshot := fixtureSnapshot()
+	snapshot.Pods[0].CreatedAt = snapshot.ObservedAt.Add(-time.Hour)
 	snapshot.Pods[0].ContainerRestarts = map[string]uint64{"api": 2, "proxy": 1}
 	collector := metricFixtureCollector{
 		snapshot: snapshot,
 		metrics: []PodMetric{{
-			Namespace: "shop", PodName: "api-abc-1", SampledAt: snapshot.ObservedAt.Add(-time.Minute), Window: 30 * time.Second,
+			PodUID: snapshot.Pods[0].UID, Namespace: "shop", PodName: "api-abc-1", SampledAt: snapshot.ObservedAt.Add(-time.Minute), Window: 30 * time.Second,
 			Containers: []ContainerMetric{{Name: "api", CPUCores: 0.25, MemoryBytes: 128 << 20}, {Name: "proxy", CPUCores: 0.05, MemoryBytes: 32 << 20}},
 		}},
 	}
@@ -415,7 +416,7 @@ func inventoryQuery() domain.InventoryQuery {
 func fixtureSnapshot() Snapshot {
 	return Snapshot{
 		ObservedAt: time.Date(2026, time.August, 16, 9, 0, 0, 0, time.UTC),
-		ClusterID:  "cluster-one", ClusterName: "Main cluster", ContextName: "prod",
+		ClusterID:  "cluster-one", ClusterName: "Main cluster", ContextName: "prod", ClusterObserved: true,
 		Namespaces: []Namespace{{Name: "shop", Phase: "Active"}},
 		Nodes:      []Node{{UID: "node-one", Name: "worker-1", Ready: true, ReadyKnown: true}},
 		Workloads: []Workload{

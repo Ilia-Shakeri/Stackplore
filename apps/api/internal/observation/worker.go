@@ -204,28 +204,44 @@ func (worker *Worker) RunOnce(ctx context.Context) error {
 
 func (worker *Worker) captureOne(ctx context.Context, configuration domain.SourceConfiguration) error {
 	readContext, cancelRead := context.WithTimeout(ctx, worker.readTimeout)
-	collected, collectionErr := worker.collect(readContext, configuration)
+	live, collectionErr := worker.resolver.ResolveProvider(readContext, configuration)
+	if collectionErr == nil && (live == nil || live.Source().Validate() != nil || live.Source().ID != configuration.Source.ID || live.Source().Provider != configuration.Source.Provider || live.Source().Synthetic != configuration.Source.Synthetic) {
+		collectionErr = ErrUnavailable
+	}
+	observationClock := worker.time
+	if configuration.Source.Synthetic {
+		at, err := worker.syntheticCaptureTime(configuration, live, collectionErr)
+		if err != nil {
+			cancelRead()
+			return err
+		}
+		observationClock = func() time.Time { return at }
+	}
+	var collected collection
+	if collectionErr == nil {
+		collected, collectionErr = worker.collect(readContext, configuration, live, observationClock)
+	}
 	cancelRead()
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 	writeContext, cancelWrite := context.WithTimeout(ctx, worker.writeTimeout)
 	defer cancelWrite()
-	token, err := worker.repository.BeginCapture(writeContext, configuration.Source.ID, configuration.Version, worker.time())
+	token, err := worker.repository.BeginCapture(writeContext, configuration.Source.ID, configuration.Version, observationClock())
 	if err != nil || token.Validate() != nil {
 		return errors.Join(ErrUnavailable, err)
 	}
 	if collectionErr != nil {
 		status := errorStatus(collectionErr, token.ObservedAt)
-		completion := domain.CaptureCompletion{Token: token, Status: status, Capabilities: unavailableCapabilities(token.Source, status)}
+		completion := domain.CaptureCompletion{Token: token, CollectedAt: worker.time(), Status: status, Capabilities: unavailableCapabilities(token.Source, status)}
 		return errors.Join(collectionErr, worker.repository.FinishCapture(writeContext, completion))
 	}
 	if err := worker.save(writeContext, token, collected); err != nil {
 		status := unavailableStatus(domain.AvailabilityUnavailable, token.ObservedAt, "observation.persistence_failed")
-		_ = worker.repository.FinishCapture(writeContext, domain.CaptureCompletion{Token: token, Status: status, Capabilities: unavailableCapabilities(token.Source, status)})
+		_ = worker.repository.FinishCapture(writeContext, domain.CaptureCompletion{Token: token, CollectedAt: worker.time(), Status: status, Capabilities: unavailableCapabilities(token.Source, status)})
 		return errors.Join(ErrUnavailable, err)
 	}
-	completion := domain.CaptureCompletion{Token: token, Status: collected.inventory.Status, Capabilities: collected.capabilities, Complete: collected.inventory.Complete}
+	completion := domain.CaptureCompletion{Token: token, CollectedAt: worker.time(), Status: collected.inventory.Status, Capabilities: collected.capabilities, Complete: collected.inventory.Complete, Coverage: collected.inventory.Coverage}
 	if completion.Validate() != nil {
 		return ErrUnavailable
 	}
@@ -235,7 +251,7 @@ func (worker *Worker) captureOne(ctx context.Context, configuration domain.Sourc
 	if !completion.Status.AllowsData() {
 		return ErrUnavailable
 	}
-	if !completion.Complete {
+	if !completion.Complete && len(completion.Coverage) == 0 {
 		return nil
 	}
 	for range worker.retirementBatches {
@@ -248,6 +264,22 @@ func (worker *Worker) captureOne(ctx context.Context, configuration domain.Sourc
 		}
 	}
 	return nil
+}
+
+func (worker *Worker) syntheticCaptureTime(configuration domain.SourceConfiguration, provider LiveProvider, resolveErr error) (time.Time, error) {
+	if resolveErr != nil || provider == nil || configuration.Source.Provider != domain.ProviderDemo || configuration.ProfileID != domain.SourceProfileDemoFixture {
+		return time.Time{}, errors.Join(ErrUnavailable, resolveErr)
+	}
+	clock, ok := provider.(interface{ ObservationTime() time.Time })
+	if !ok {
+		return time.Time{}, ErrUnavailable
+	}
+	at := clock.ObservationTime()
+	token := domain.CaptureToken{Source: domain.ProviderRef{Provider: configuration.Source.Provider, SourceID: configuration.Source.ID}, ConfigurationVersion: configuration.Version, Generation: 1, ObservedAt: at}
+	if token.Validate() != nil || at.After(worker.time()) {
+		return time.Time{}, ErrUnavailable
+	}
+	return at, nil
 }
 
 func (worker *Worker) time() time.Time { return worker.now().UTC().Truncate(time.Microsecond) }

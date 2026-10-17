@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"crypto/rand"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"io"
@@ -14,7 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -26,9 +24,6 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/notification"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/observability"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/docker"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes"
 )
 
 const (
@@ -162,6 +157,7 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errors.Join(errHTTPBoundary, errProductStart))
 	}
+	defer closeProductProviders(providers)
 	observations, err := buildObservationRuntime(serviceContext, settings, database, providers, logger)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
@@ -434,6 +430,7 @@ func newHTTPServerWithProviders(
 		NotificationTester:     notificationTester,
 		AlertManager:           alertManager,
 		SourceSettings:         sourceSettings,
+		GuestDemo:              guestHTTPOptions(settings),
 		RateLimit: httpapi.RateLimitConfig{
 			RequestsPerSecond: settings.RatePerSecond,
 			Burst:             settings.RateBurst,
@@ -560,73 +557,38 @@ type productHistoryReader interface {
 }
 
 func buildProductProviders(settings config.Config) ([]httpapi.ProductProvider, error) {
-	providers := []httpapi.ProductProvider{demo.MustNew()}
-	if settings.DockerEnabled {
-		transport := &http.Transport{
-			Proxy: nil, DisableCompression: true, MaxIdleConns: 8, MaxIdleConnsPerHost: 8,
-			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-				return (&net.Dialer{Timeout: settings.DatabaseConnectTimeout}).DialContext(ctx, "unix", settings.DockerSocketPath)
-			},
-		}
-		collector, err := docker.NewEngineCollector(docker.EngineCollectorOptions{
-			Client: &http.Client{Transport: transport, Timeout: settings.RequestTimeout}, BaseURL: "http://docker",
-			MaximumItems: 10_000, MaximumResponse: 32 * 1024 * 1024, InspectConcurrency: 8,
-		})
-		if err != nil {
-			return nil, errProductStart
-		}
-		provider, err := docker.New("source_docker", "Local Docker", collector)
-		if err != nil {
-			return nil, errProductStart
-		}
-		providers = append(providers, provider)
-	}
-	if settings.KubernetesEnabled {
-		tokenBytes, err := readBoundedFile(settings.KubernetesTokenFile, 16*1024)
-		if err != nil {
-			return nil, errProductStart
-		}
-		token := strings.TrimSpace(string(tokenBytes))
-		clear(tokenBytes)
-		caBytes, err := readBoundedFile(settings.KubernetesCAFile, 1024*1024)
-		if err != nil {
-			return nil, errProductStart
-		}
-		roots := x509.NewCertPool()
-		if !roots.AppendCertsFromPEM(caBytes) {
-			clear(caBytes)
-			return nil, errProductStart
-		}
-		clear(caBytes)
-		transport := &http.Transport{
-			Proxy: nil, DisableCompression: true, MaxIdleConns: 8, MaxIdleConnsPerHost: 8,
-			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots, ServerName: "kubernetes.default.svc"},
-		}
-		collector, err := kubernetes.NewAPICollector(kubernetes.APICollectorOptions{
-			Client: &http.Client{Transport: transport, Timeout: settings.RequestTimeout}, BearerToken: token,
-			MaximumItems: 10_000, MaximumResponse: 32 * 1024 * 1024,
-		})
-		if err != nil {
-			return nil, errProductStart
-		}
-		provider, err := kubernetes.New("source_kubernetes", "In-cluster Kubernetes", collector)
-		if err != nil {
-			return nil, errProductStart
-		}
-		providers = append(providers, provider)
-	}
-	return providers, nil
+	return configuredProductProviders(settings)
 }
 
 func readBoundedFile(path string, limit int64) ([]byte, error) {
 	if limit < 1 {
 		return nil, errProductStart
 	}
-	file, err := os.Open(path)
+	root, err := filepath.EvalSymlinks(filepath.Dir(path))
+	if err != nil {
+		return nil, errProductStart
+	}
+	resolved, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return nil, errProductStart
+	}
+	relative, err := filepath.Rel(root, resolved)
+	if err != nil || !filepath.IsLocal(relative) {
+		return nil, errProductStart
+	}
+	initial, err := os.Lstat(resolved)
+	if err != nil || !initial.Mode().IsRegular() || initial.Size() > limit {
+		return nil, errProductStart
+	}
+	file, err := os.Open(resolved)
 	if err != nil {
 		return nil, errProductStart
 	}
 	defer file.Close()
+	opened, err := file.Stat()
+	if err != nil || !opened.Mode().IsRegular() || !os.SameFile(initial, opened) || opened.Size() > limit {
+		return nil, errProductStart
+	}
 	data, err := io.ReadAll(io.LimitReader(file, limit+1))
 	if err != nil || int64(len(data)) > limit {
 		clear(data)

@@ -1,4 +1,4 @@
-# Repository review — 2026-10-12
+# Repository review — 2026-10-12–17
 
 Scope: all first-party backend, frontend, interface/client packages, contracts,
 migrations, deployment, workflows, scripts, configuration, tests, and documents.
@@ -137,3 +137,42 @@ evidence plan. The resolved-current worker robustness item is a future
 contract edge case at that checkpoint, not a verified current PostgreSQL recurrence
 defect. Stage 3 also supplies a fresh candidate identifier for resolved-current
 worker input.
+
+## Stage 5 follow-up review — 2026-10-17
+
+The `0.5.0` candidate adds official Docker/Kubernetes clients behind bounded
+adapters, restricted mTLS Docker observation, explicit namespace inventory,
+independent coverage publication, typed safe metadata and a deterministic
+nine-resource/two-environment guest deployment. Named disposable Engine and
+kind tests, guest browser/runtime receipts and real PostgreSQL regressions are
+recorded in the active evidence plan. They do not alone close the milestone.
+
+Review found and corrected normal fixture upgrades erasing administrator rules
+or re-enabling disabled sources; optional health reads erasing resource identity;
+revoked partition evidence entering alert history; partial replica evidence
+claiming complete coverage; policy changes exposing cached scopes during outage;
+derived reference names surviving a denied parent kind; and logs/usage joining
+recreated Pods by reusable names. Log reads now check UID before and after, and
+usage requires stable UID and a full sample window inside the observed lifetime.
+Any known usage denial closes the metric port; missing usage with configured
+facts is stale. Detail metadata keeps separately observed configuration.
+
+Final review lowered the stage score to **8.5/10** for an environment-name
+authority gap and an optional metric-port clock regression. The environment
+failure was reproduced against real PostgreSQL before correction; the shared
+predicate now hides omitted/denied/unsupported names before pagination and in
+initial-port inference, while retaining authorized empty environments. Five
+focused SQL tests passed. Synthetic collection separately preserves its fixture
+clock through in-progress writes and failures, with operational collection
+receipts kept distinct. Three final clock/retention/future-sample SQL regressions
+passed in 6.295s. A final startup review also reproduced the source-settings
+allowlist rejecting the valid restricted Docker profile; its narrow fix passed
+source-settings/server tests in 1.581s/6.208s. Final changed-tree gate D then
+passed with real PostgreSQL, 36 client tests, 350 web tests and both builds.
+Final independent index/scope review assigns **9/10** after these fixes and the
+complete gate. Exact publication/CI remain pending; no whole-product score follows.
+
+Stages 6–9 remain open: guarded operations, settings/export/cleanup and protected
+audit lifecycle; built-web serving and actual installation/upgrade/restore;
+release accessibility/performance/security/PWA; final packaging and independent
+1.0 review. Target-version proof, local validation and remote CI remain distinct.

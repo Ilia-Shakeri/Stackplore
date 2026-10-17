@@ -7,10 +7,13 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-17): stages 1–4 are verified development checkpoints
-through `0.4.0`. Exact local and remote outcomes are separate in the evidence
+Current status (2026-10-17): stages 1–5 are locally verified development checkpoints
+through `0.5.0`. Exact local and remote outcomes are separate in the evidence
 plan. Stage 4 passed its local, PostgreSQL, native and actual browser gates;
-[retained browser evidence](evidence/0.4.0/README.md) states the scope. Stages 5–9 remain open. [Exploration](exploration.md)
+[retained browser evidence](evidence/0.4.0/README.md) states the scope. Stage 5
+is locally verified at `0.5.0` with named disposable Engine/kind,
+PostgreSQL and guest-browser receipts and a passing final changed-tree gate.
+Exact commit/tag/CI are pending. Stages 6–9 remain open. [Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
 
@@ -79,8 +82,8 @@ Status: complete locally verified development checkpoint. Full local/real
 PostgreSQL, disposable native restart/restore, HTTPS receiver and Helm lint/render
 proof is recorded in the active evidence plan. Instructions prohibited push
 at the time of the local checkpoint. On 2026-10-17 the unchanged tag was
-pushed under renewed authorization and both exact CI runs passed. Stage 4
-verification and stages 5–9 remain open.
+pushed under renewed authorization and both exact CI runs passed. Stage 4 is
+also verified; Stage 5 publication/CI and Stages 6–9 remain open.
 
 Delivered covered alert windows and observed restart increments per window,
 raw connection-loss evidence and the whole bounded scoped event window. Alert
@@ -96,8 +99,9 @@ leases and recovery; disposable HTTPS receiver with signature/idempotency,
 redirect/SSRF/timeout and uncertain outcome checks.
 
 Implemented semantics and explicit limits are in [alerts and notifications](alerts-notifications.md).
-Remaining browser/proxy/live operator receiver and provider fidelity checks stay
-in their later target stages; disposable HTTPS is not an operator production claim.
+Later exploration/provider receipts are recorded below. Operator receiver,
+installation and release acceptance remain separate; disposable HTTPS is not
+an operator production claim.
 
 ## Stage 4 — Complete exploration journeys — 0.4.0
 
@@ -122,18 +126,32 @@ widths; keyboard and screen-reader checks; large-fixture budgets.
 
 ## Stage 5 — Provider fidelity and deterministic demo — 0.5.0
 
-Implement the accepted restricted production Docker access profile; direct
-socket access remains loopback development only. Complete Docker Engine/Compose inventory, current stats, bounded historic logs,
-event collection, and evidence-backed relationships. Align collectors with the accepted vendor-client decision. Complete namespace-scoped
-Kubernetes discovery, partial/denied capabilities, current/previous container
-logs, metrics/events, and topology. Do not fail a whole source when one optional
-resource type is denied. Build at least two deterministic demo environments and
-the required proxy/frontend/API/worker/PostgreSQL/Redis/monitoring story. Add
-explicit guest-demo isolation, fixture version/reset, and no-outbound proof.
+Locally verified checkpoint; exact publication/CI pending. Official vendor
+clients now back restricted mTLS Docker observation and namespace-scoped
+Kubernetes discovery, safe typed metadata, health/topology, metrics/events and
+bounded historic/current/previous logs. Independently published kind/scope
+coverage preserves allowed inventory while hiding denied, unsupported or omitted
+cache; environment names use the same current authority before pagination.
+Pod logs require stable UID checks around the read, and usage samples require a
+stable UID and a full sample window inside the Pod lifetime. Known usage denial
+conservatively closes the entire metric port; missing usage with known
+configuration is stale, while configuration remains visible in detail metadata.
+
+The `demo-v2` story has nine stable resources in two environments. Isolated guest
+mode has separate marked storage, no accounts/sessions, write-route denial and
+no outbound delivery. Ordinary same-version Demo restarts preserve durable
+acknowledgements; isolated startup resets derived facts and fixture upgrades
+preserve protected history and normal administrator choices. See [Docker](docker-provider.md),
+[Kubernetes](kubernetes-provider.md) and [Demo](demo.md).
 
 Exit: provider contract suites; real disposable Engine and cluster read proof;
 permission-denied and missing Metrics API behavior; stable fixture snapshots,
 story browser journey, and guest mode rejection of real sources and writes.
+Those scoped receipts are recorded in the active plan. Environment authority,
+optional-port clock and restricted-profile startup fixes have scoped passing
+regressions and the complete changed-tree gate D passed. Final independent scope
+review is 9/10 after the 8.5/10 correction loop. Exact publication/CI are pending;
+Stage 6–9 work is not complete.
 
 ## Stage 6 — Narrow guarded actions and settings — 0.6.0
 

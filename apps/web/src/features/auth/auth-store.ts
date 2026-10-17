@@ -18,6 +18,12 @@ export type AuthSnapshot =
     }
   | { readonly status: 'unauthenticated' }
   | {
+      readonly status: 'guest_demo';
+      readonly fixtureVersion: string;
+      readonly scenarioStep: 0 | 1 | 2;
+      readonly observedAt: string;
+    }
+  | {
       readonly absoluteExpiresAt: string;
       readonly idleExpiresAt: string;
       readonly status: 'authenticated';
@@ -160,6 +166,15 @@ export class AuthStore {
       if (generation !== this.#generation) {
         return this.#snapshot;
       }
+      if (setupStatus.state === 'guest_demo') {
+        this.#publishWithoutSession({
+          status: 'guest_demo',
+          fixtureVersion: setupStatus.fixtureVersion,
+          scenarioStep: setupStatus.scenarioStep,
+          observedAt: setupStatus.observedAt,
+        });
+        return this.#snapshot;
+      }
       if (setupStatus.state === 'required') {
         this.#publishWithoutSession({
           bootstrapProofRequired: setupStatus.bootstrapProofRequired,
@@ -216,12 +231,14 @@ export class AuthStore {
   };
 
   login = async (input: LoginInput) => {
+    if (this.#snapshot.status === 'guest_demo') throw new AuthStateError();
     const session = await this.#api.login(input);
     this.#generation += 1;
     this.#acceptSession(session);
   };
 
   setup = async (input: SetupInput) => {
+    if (this.#snapshot.status === 'guest_demo') throw new AuthStateError();
     const session = await this.#api.setup(input);
     this.#generation += 1;
     this.#acceptSession(session);
@@ -335,6 +352,7 @@ export class AuthStore {
   };
 
   logout = async () => {
+    if (this.#snapshot.status === 'guest_demo') throw new AuthStateError();
     if (this.#snapshot.status !== 'authenticated' || this.#csrfProof === null) {
       this.#setUnauthenticated();
       return;

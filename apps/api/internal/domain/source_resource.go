@@ -107,12 +107,16 @@ func (resource Resource) Validate() error {
 }
 
 type ResourceSnapshot struct {
+	Metadata *ResourceMetadata
 	Resource Resource
 	Status   ObservationStatus
 	Health   HealthState
 }
 
 func (snapshot ResourceSnapshot) Validate() error {
+	if snapshot.Metadata != nil && snapshot.Metadata.ValidateFor(snapshot.Resource.Ref.Identity.Provider) != nil {
+		return ErrRepositoryInvalidInput
+	}
 	if snapshot.Health != "" && snapshot.Health.Validate() != nil {
 		return fmt.Errorf("invalid resource health")
 	}

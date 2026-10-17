@@ -93,6 +93,31 @@ fetch hidden raw text. Redacted and shortened lines have explicit labels. Logs
 are technical LTR text in both interface languages and are not stored as a
 general PostgreSQL archive.
 
+## Observed resource configuration
+
+Resource detail shows optional, reviewed provider facts from its stored inventory
+observation. Missing metadata is explicitly not reported. It is never a raw
+provider response. A Docker engine reports its engine version. Docker containers
+show lifecycle/health state, restart count, image, engine version, start/exit facts, resource limits, container/published port
+numbers, mount targets/types/access mode and the three allowlisted public label
+keys. Host mount source paths, environment values and commands have no field.
+Lists are bounded to 64 ports, 64 mounts and 16 labels.
+
+Kubernetes shows up to 64 container entries and 16 typed conditions. Container
+facts include readiness, state, restart count, safe reason codes and configured
+CPU/memory requests/limits. Unknown runtime state keeps readiness and restarts
+unknown, even when a workload template has zero placeholders. An explicitly
+reported configured zero is retained. Pod and container resource links select
+their exact source, resource and observed container name for logs; a previous
+container link requires an observed nonzero restart count. Unsupported or denied
+log requests keep their own explicit states.
+
+Technical names, image references, ports, mount targets and public label keys/
+values remain isolated LTR in both languages. Optional absent quantities are
+not displayed as zero. Metadata envelopes must match the resource provider;
+unknown fields, unsafe strings, oversized collections and duplicate port/label/container/condition identities are rejected
+at the browser boundary. Stored metadata has a separate 32 KiB bound.
+
 ## Events and alerts
 
 Events use the exact selected source, optional resource, and time window, with
@@ -107,6 +132,10 @@ alerts, including persisted synthetic demonstration metadata. This changes alert
 state and does not authorize a provider write. A later stream refresh wins over a delayed acknowledgement or old-page
 reply. Durable replay gaps trigger a fresh read. Rule settings also paginate;
 their current server cursor is shareable as `rule_cursor`.
+
+An explicitly isolated [guest demonstration](demo.md) has no account session,
+administration or alert acknowledgement action. Its observation stream is
+read only; synthetic provenance stays visible.
 
 ## Topology and keyboard use
 

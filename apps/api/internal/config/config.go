@@ -166,6 +166,7 @@ const (
 
 // Config is the fully validated server configuration.
 type Config struct {
+	ProviderProfiles
 	Environment Environment
 
 	HTTPAddress            string
@@ -367,6 +368,9 @@ func Load(getter Getter) (Config, error) {
 	if err := loadMatrix(getter, &result); err != nil {
 		return Config{}, err
 	}
+	if err := loadProviderProfiles(getter, &result); err != nil {
+		return Config{}, err
+	}
 
 	durationFields := []struct {
 		key     string
@@ -483,14 +487,11 @@ func Validate(result Config) error {
 	if err := validateDatabaseURL(result.DatabaseURL.Reveal(), result.Environment); err != nil {
 		return err
 	}
-	if result.DockerEnabled && !validAbsolutePath(result.DockerSocketPath) {
+	if result.DockerEnabled && result.DockerAccessProfile != DockerProfileRestrictedProxy && !validAbsolutePath(result.DockerSocketPath) {
 		return invalid(dockerSocketPathKey, "is invalid")
 	}
-	if result.DockerEnabled {
-		listenerHost, _, _ := parseAddress(result.HTTPAddress)
-		if result.Environment != EnvironmentDevelopment || !isLoopbackHost(listenerHost) || !isLoopbackHost(result.PublicOrigin.Hostname()) {
-			return invalid(dockerEnabledKey, "requires the loopback development socket profile")
-		}
+	if err := validateProviderProfiles(result); err != nil {
+		return err
 	}
 	if result.KubernetesEnabled && (!validAbsolutePath(result.KubernetesTokenFile) || !validAbsolutePath(result.KubernetesCAFile)) {
 		return invalid(kubernetesTokenFileKey, "is invalid")
@@ -633,6 +634,9 @@ func validateEnvironmentKeys(entries []string) error {
 		matrixEnabledKey: {}, matrixReferenceKey: {}, matrixOriginKey: {}, matrixRoomIDKey: {}, matrixAccessTokenKey: {},
 	}
 	seen := make(map[string]struct{}, len(allowed))
+	for _, key := range providerProfileKeys {
+		allowed[key] = struct{}{}
+	}
 	for _, entry := range entries {
 		name, _, found := strings.Cut(entry, "=")
 		if !found || !strings.HasPrefix(strings.ToUpper(name), prefix) {
@@ -875,6 +879,9 @@ func validateSetupBootstrap(result Config) error {
 
 // SetupBootstrapRequired reports whether first-run setup needs operator proof.
 func SetupBootstrapRequired(result Config) bool {
+	if result.GuestDemo {
+		return false
+	}
 	return setupExposureRequired(result) || result.SetupBootstrapProof.Present()
 }
 

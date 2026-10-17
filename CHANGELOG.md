@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.5.0] - 2026-10-17
+
+### Added
+
+- Official versioned Docker and Kubernetes clients behind bounded observation
+  transports, a separate mTLS Docker observation proxy, explicit Kubernetes
+  namespace authority and separately enabled cluster observation.
+- Closed safe container, condition, port, mount-target, label and resource-limit
+  metadata with strict storage, contract and browser validation.
+- Atomic partition coverage and bounded independent retirement. Optional denied
+  kinds preserve other observations; changed operator authority closes old cache
+  until fresh coverage publishes. Projected Kubernetes credentials refresh safely.
+- Versioned nine-resource/two-environment deterministic fixture with stable facts,
+  controlled scenario steps and initial synthetic metric history.
+- Explicit isolated deployment/database/directory modes and public read-only guest
+  viewing, without manufactured accounts or sessions. Synthetic alert evidence
+  persists through the normal engine; outbound configuration and writes are denied.
+- Provider, guest, lifecycle and deployment guides in English and Persian, plus
+  required real disposable Engine/cluster test jobs.
+
+### Fixed
+
+- Docker CPU uses a prior sample; missing/reset evidence is unavailable. Event
+  history is partial unless its unfiltered retained ring proves the requested range.
+- Kubernetes optional-kind permissions, previous/container log identity, stable
+  bounded log pagination, byte budgets, UID recreation and rolling replica surges.
+- Resource identity/detail reads survive unavailable optional health observations.
+- Ordinary same-fixture restarts preserve administrator choices; isolated resets
+  and fixture upgrades preserve accounts and protected audit history.
+- Omitted environments cannot disclose old names through paginated cached reads.
+  Current metrics respect their independent collection clock, preserve the last
+  valid retained point and label observations older than five minutes as stale.
+- Restricted Docker observation profiles pass source-settings startup validation
+  and use the same guarded enable/disable flow as other reviewed profiles.
+
+### Limits
+
+- This is a development checkpoint. Stages 6–9 retain guarded actions/settings,
+  installation, measured hardening and final release requirements.
+- Historical live-provider logs/events remain bounded and explicitly partial
+  where upstream retention, permissions or request limits cannot prove coverage.
+- Local, browser, real-provider and remote evidence are recorded separately in
+  the active plan; test definitions alone do not prove a target deployment.
+
+
 ## [0.4.0] - 2026-10-17
 
 ### Added

@@ -1,0 +1,12 @@
+{
+  "demo.mode.title": "حالت نمونه",
+  "demo.mode.guest": "مهمان",
+  "demo.mode.readOnly": "فقط‌خواندنی · دادهٔ ساختگی",
+  "demo.mode.description": "نمونهٔ ثابت را بررسی کنید. تغییر زیرساخت، تغییر حساب و اعلان بیرونی غیرفعال است.",
+  "demo.mode.fixture": "نسخهٔ دادهٔ نمونه",
+  "demo.mode.step": "گام داستان",
+  "demo.mode.clock": "ساعت داستان",
+  "demo.step.initial": "پرداخت خارج از دسترس",
+  "demo.step.recovering": "پرداخت در حال بازیابی",
+  "demo.step.healthy": "سرویس‌ها بازیابی شده‌اند"
+}

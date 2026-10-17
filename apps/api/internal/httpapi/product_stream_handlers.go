@@ -47,15 +47,22 @@ type streamGate struct {
 	maximum int
 	perUser int
 	active  int
-	byUser  map[auth.UserID]int
+	byUser  map[string]int
 }
 
 func newStreamGate(maximum, perUser int) *streamGate {
-	return &streamGate{maximum: maximum, perUser: perUser, byUser: make(map[auth.UserID]int)}
+	return &streamGate{maximum: maximum, perUser: perUser, byUser: make(map[string]int)}
 }
 
 func (gate *streamGate) acquire(userID auth.UserID) (func(), bool) {
 	if gate == nil || userID.Validate() != nil {
+		return nil, false
+	}
+	return gate.acquireBucket("user:" + string(userID))
+}
+
+func (gate *streamGate) acquireBucket(userID string) (func(), bool) {
+	if gate == nil || userID == "" || len(userID) > 128 {
 		return nil, false
 	}
 	gate.mu.Lock()
@@ -104,11 +111,22 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	identity, ok := handler.authenticateIdentity(w, r)
-	if !ok {
-		return
+	var bucket string
+	if handler.auth.guestDemo != nil {
+		var ok bool
+		bucket, ok = guestStreamBucket(r)
+		if !ok {
+			writeProblem(w, r, invalidRequestProblem)
+			return
+		}
+	} else {
+		identity, ok := handler.authenticateIdentity(w, r)
+		if !ok {
+			return
+		}
+		bucket = "user:" + string(identity.User.ID)
 	}
-	release, ok := handler.streamGate.acquire(identity.User.ID)
+	release, ok := handler.streamGate.acquireBucket(bucket)
 	if !ok {
 		writeProblem(w, r, rateLimitProblem)
 		return
@@ -179,6 +197,9 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 			_ = writeSSE(w, 0, "stream.reset.v1", []byte(`{"reason":"lifetime"}`))
 			return
 		case <-authCheck.C:
+			if handler.auth.guestDemo != nil {
+				continue
+			}
 			readContext, cancelRead := context.WithTimeout(r.Context(), streamReadTimeout)
 			_, err := handler.auth.service.Authenticate(readContext, sessionToken)
 			cancelRead()

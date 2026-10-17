@@ -157,11 +157,15 @@ WHERE environments.source_id=EXCLUDED.source_id AND environments.provider=EXCLUD
 }
 
 func saveCapturedResource(ctx context.Context, transaction pgx.Tx, token domain.CaptureToken, snapshot domain.ResourceSnapshot) error {
+	metadata, err := encodeResourceMetadata(snapshot)
+	if err != nil {
+		return err
+	}
 	resource, status := snapshot.Resource, snapshot.Status
 	identity := resource.Ref.Identity
 	var refresh bool
 	var hadReplicas bool
-	err := transaction.QueryRow(ctx, `SELECT resource.capture_generation<>$2,snapshot.desired_replicas IS NOT NULL FROM resources AS resource LEFT JOIN resource_snapshots AS snapshot ON snapshot.resource_id=resource.id WHERE resource.id=$1`, string(resource.Ref.ID), token.Generation).Scan(&refresh, &hadReplicas)
+	err = transaction.QueryRow(ctx, `SELECT resource.capture_generation<>$2,snapshot.desired_replicas IS NOT NULL FROM resources AS resource LEFT JOIN resource_snapshots AS snapshot ON snapshot.resource_id=resource.id WHERE resource.id=$1`, string(resource.Ref.ID), token.Generation).Scan(&refresh, &hadReplicas)
 	if errors.Is(err, pgx.ErrNoRows) {
 		refresh = true
 	} else if err != nil {
@@ -185,11 +189,11 @@ WHERE resources.source_id=EXCLUDED.source_id AND resources.provider=EXCLUDED.pro
 		return err
 	}
 	_, err = transaction.Exec(ctx, `INSERT INTO resource_snapshots
-(resource_id,display_name,resource_version,availability,completeness,observed_at_us,reason_code)
-VALUES($1,$2,$3,$4,$5,$6,$7)
+(resource_id,display_name,resource_version,availability,completeness,observed_at_us,reason_code,metadata)
+VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb)
 ON CONFLICT(resource_id) DO UPDATE SET display_name=EXCLUDED.display_name,resource_version=EXCLUDED.resource_version,
 availability=EXCLUDED.availability,completeness=EXCLUDED.completeness,observed_at_us=EXCLUDED.observed_at_us,
-reason_code=EXCLUDED.reason_code,row_version=resource_snapshots.row_version+1`, string(resource.Ref.ID), resource.DisplayName, resource.Version, string(status.State), string(status.Completeness), status.ObservedAt.UnixMicro(), optionalString(string(status.ReasonCode)))
+reason_code=EXCLUDED.reason_code,metadata=EXCLUDED.metadata,row_version=resource_snapshots.row_version+1`, string(resource.Ref.ID), resource.DisplayName, resource.Version, string(status.State), string(status.Completeness), status.ObservedAt.UnixMicro(), optionalString(string(status.ReasonCode)), metadata)
 	if err == nil && refresh {
 		_, err = transaction.Exec(ctx, `UPDATE resource_snapshots SET desired_replicas=NULL,ready_replicas=NULL,replicas_availability=NULL,replicas_completeness=NULL,replicas_observed_at_us=NULL,replicas_reason_code=NULL WHERE resource_id=$1`, string(resource.Ref.ID))
 	}
@@ -292,6 +296,9 @@ func (store *Store) FinishCapture(ctx context.Context, completion domain.Capture
 			return err
 		}
 		status := completion.Status
+		if err := saveInventoryPartitions(ctx, transaction.transaction, completion); err != nil {
+			return err
+		}
 		if !completion.Complete && status.AllowsData() && status.Completeness == domain.CompletenessComplete {
 			status.Completeness = domain.CompletenessPartial
 			status.ReasonCode = "source.collection_partial"
@@ -316,9 +323,11 @@ completeness=EXCLUDED.completeness,observed_at_us=EXCLUDED.observed_at_us,reason
 			}
 		}
 		_, err := transaction.transaction.Exec(ctx, `UPDATE infrastructure_sources SET capture_finished_at_us=$1,
+partition_generation=CASE WHEN $5 THEN capture_generation WHEN $2 THEN 0 ELSE partition_generation END,
+operator_policy_pending=CASE WHEN $2 OR $5 THEN false ELSE operator_policy_pending END,
 completed_generation=CASE WHEN $2 THEN capture_generation ELSE completed_generation END,
 relationship_completed_generation=CASE WHEN $3 THEN capture_generation ELSE relationship_completed_generation END
-WHERE id=$4`, completion.Token.ObservedAt.UnixMicro(), completion.Complete, completion.Complete && topologyComplete, string(completion.Token.Source.SourceID))
+WHERE id=$4`, completion.Token.ObservedAt.UnixMicro(), completion.Complete, completion.Complete && topologyComplete, string(completion.Token.Source.SourceID), len(completion.Coverage) > 0)
 		return err
 	})
 	return mapRepositoryWriteError(ctx, err)
@@ -341,6 +350,21 @@ func (store *Store) RetireUnseen(ctx context.Context, token domain.CaptureToken,
 			generationColumn := "completed_generation"
 			if table == "relationships" {
 				generationColumn = "relationship_completed_generation"
+			}
+			if table == "resources" {
+				result, err := transaction.transaction.Exec(ctx, `WITH unseen AS (
+SELECT resource.id FROM resources AS resource JOIN infrastructure_sources AS source ON source.id=resource.source_id
+WHERE resource.source_id=$1 AND resource.retired_at_us IS NULL
+AND ((source.partition_generation=0 AND source.completed_generation=$2 AND resource.capture_generation<$2)
+OR (`+retiredPartitionResourcePredicate+`))
+ORDER BY resource.capture_generation,resource.id LIMIT $3 FOR UPDATE OF resource SKIP LOCKED)
+UPDATE resources AS resource SET retired_at_us=GREATEST(resource.last_seen_at_us,$4),row_version=resource.row_version+1
+FROM unseen WHERE resource.id=unseen.id`, string(token.Source.SourceID), token.Generation, remaining, token.ObservedAt.UnixMicro())
+				if err != nil {
+					return err
+				}
+				retired += result.RowsAffected()
+				continue
 			}
 			statement := `WITH unseen AS (SELECT item.id FROM ` + table + ` AS item
 JOIN infrastructure_sources AS source ON source.id=item.source_id

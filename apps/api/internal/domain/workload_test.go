@@ -11,6 +11,10 @@ func TestWorkloadReplicaSnapshotBindsResourceAndCounts(t *testing.T) {
 	}
 
 	snapshot.Ready = 4
+	if err := snapshot.ValidateFor(query); err != nil {
+		t.Fatalf("rolling surge is valid: %v", err)
+	}
+	snapshot.Ready = 9_007_199_254_740_992
 	requireInvalid(t, snapshot.ValidateFor(query))
 	snapshot.Ready = 2
 	query.ResourceID = fixtureResourceRef(t, "workload-beta").ID

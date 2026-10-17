@@ -34,7 +34,11 @@ func (resolver *ProviderEvidence) replicaCondition(ctx context.Context, provider
 			snapshot.Status.ObservedAt.After(history.Status.ObservedAt) {
 			return ConditionResult{}, ErrEvaluationUnavailable
 		}
-		samples = append(samples, sampledValue{value: float64(snapshot.Desired - snapshot.Ready), sampledAt: snapshot.Status.ObservedAt})
+		deficit := uint64(0)
+		if snapshot.Desired > snapshot.Ready {
+			deficit = snapshot.Desired - snapshot.Ready
+		}
+		samples = append(samples, sampledValue{value: float64(deficit), sampledAt: snapshot.Status.ObservedAt})
 	}
 	value, err := sampledWindowValue(samples, window, resolver.maximumGap, false)
 	if err != nil {

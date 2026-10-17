@@ -69,7 +69,7 @@ func (handler productHTTP) notifications(w http.ResponseWriter, r *http.Request)
 		writeProblem(w, r, invalidRequestProblem)
 		return
 	}
-	if _, ok := handler.authenticateIdentity(w, r); !ok {
+	if !handler.authenticate(w, r) {
 		return
 	}
 	if handler.notificationReader == nil {
@@ -99,6 +99,10 @@ func (handler productHTTP) notifications(w http.ResponseWriter, r *http.Request)
 	}
 	items := make([]notificationResponse, len(page.Notifications))
 	for index, notification := range page.Notifications {
+		if handler.auth.guestDemo != nil && (!notification.Synthetic || notification.SourceID == nil || *notification.SourceID != handler.ordered[0].Source().ID) {
+			writeProblem(w, r, unavailableProblem)
+			return
+		}
 		items[index] = notificationResponse{
 			ID: notification.ID, SourceID: notification.SourceID, AlertID: notification.AlertID,
 			ResourceID: notification.ResourceID, Kind: string(notification.Kind),

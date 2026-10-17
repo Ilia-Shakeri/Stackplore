@@ -41,7 +41,44 @@ Do not trust whole private network ranges merely because they are private.
 Chart example proxy CIDRs must be narrowed to the actual edge network. Browser
 request values cannot select filesystem locations or provider endpoints.
 
-## PostgreSQL
+## Provider and demonstration profiles
+
+`STACKPLORE_` prefixes these names. Every endpoint and file reference is selected
+by the operator at startup; browser requests cannot supply one.
+
+| Name | Default | Accepted rule |
+| --- | --- | --- |
+| `DOCKER_ACCESS_PROFILE` | `docker_socket_dev` | Development socket or `docker_restricted_proxy`; the socket profile requires loopback development |
+| `DOCKER_PROXY_ORIGIN` | absent | One exact HTTPS origin for the restricted proxy; no user info, path, query or fragment |
+| `DOCKER_PROXY_CA_FILE` | absent | Absolute operator CA reference; required with the restricted proxy |
+| `DOCKER_PROXY_CERT_FILE` | absent | Absolute operator client certificate reference; required with the restricted proxy |
+| `DOCKER_PROXY_KEY_FILE` | absent | Absolute private client key reference; required with the restricted proxy |
+| `KUBERNETES_NAMESPACES` | absent | Required when Kubernetes is enabled: one to 64 explicit DNS namespace labels, comma-separated without spaces |
+| `KUBERNETES_CLUSTER_OBSERVATION` | `false` | Separate opt-in global observation; namespace lists still stay inside the allowlist |
+| `DEMO_DEPLOYMENT` | `false` | Isolated synthetic deployment; rejects real providers, provider credentials, outbound settings and infrastructure writes |
+| `GUEST_DEMO` | `false` | Public named product GET routes only; requires isolated demo deployment |
+| `DEMO_DATA_DIRECTORY` | absent | Required isolated absolute private directory, separate from `DATA_DIRECTORY`; an ordinary or unmarked nonempty directory is refused |
+
+Certificate and credential files are bounded regular files. Projected credential
+symlinks may resolve within their selected mount directory; escaping links,
+directories and special files are refused. TLS verifies the exact configured
+hostname and CA; proxy environment variables and redirects are disabled.
+Projected Kubernetes tokens refresh without persisting their values.
+
+The application has no Docker socket in the restricted profile. Its mTLS proxy
+admits only reviewed bounded observation requests. Write permission remains a
+separate deployment concern and cannot be enabled through that observation
+proxy. [Docker](docker-provider.md) and [Kubernetes](kubernetes-provider.md) give
+the exact supported endpoints, limits and configuration examples.
+
+An isolated demo must use a fresh separate PostgreSQL database. The persisted
+deployment mode rejects an ordinary database even if its current resources are
+synthetic. Never reuse an ordinary Compose environment for guest mode: forbidden
+credential keys are rejected even when empty. Guest mode needs no bootstrap
+proof and offers no account setup, session or mutation route. The
+[demo guide](demo.md) explains the launch and reset contract.
+
+## PostgreSQL pool
 
 | Name                         | Default                                   | Bounds                                                                           |
 | ---------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
@@ -90,7 +127,7 @@ metrics requests have their documented operational rate-limit exemption.
 | `SETUP_BOOTSTRAP_EXPIRES_AT` | absent                              | Canonical UTC RFC3339, at most one hour ahead; must be future on first setup                        |
 | `DOCKER_ENABLED`             | `false`                             | Direct socket is restricted to the explicit loopback development profile                            |
 | `DOCKER_SOCKET_PATH`         | `/var/run/docker.sock`              | Operator-owned absolute local Unix socket path; no browser path input                               |
-| `KUBERNETES_ENABLED`         | `false`                             | Opt-in mounted service-account collector; current reads require explicit cluster observation rights |
+| `KUBERNETES_ENABLED`         | `false`                             | Opt-in mounted service-account collector with explicit namespaces; cluster reads are separate opt-in |
 | `KUBERNETES_TOKEN_FILE`      | Standard service-account token path | Operator-owned absolute local mount                                                                 |
 | `KUBERNETES_CA_FILE`         | Standard service-account CA path    | Operator-owned absolute local mount                                                                 |
 | `MUTATIONS_ENABLED`          | `false`                             | Policy flag only; no current live operation route                                                   |
@@ -100,12 +137,15 @@ metrics requests have their documented operational rate-limit exemption.
 Generate setup material using [account recovery/setup](operations/account-recovery.md).
 Do not store it in tracked files, command arguments or logs. Mounted provider
 credentials are never returned by the product. Namespace-only collection and
-the production restricted Docker access profile remain [roadmap](roadmap.md) work.
+restricted Docker access have the profiles described above; their executed
+proof is recorded in the [active plan](implementation-plan.md).
 Policy flags never replace role, CSRF, recent auth, preview, exact version,
 one-use confirmation, durable intent and outcome audit checks.
 
 Registered profiles and enabled state persist in PostgreSQL. Startup adds only
-missing profiles; it preserves stored enabled state and versions. Administrator
+missing profiles and preserves enabled state. Reviewed startup Docker profile
+selection and authority changes advance the version, append protected audit and
+fence old cache until fresh coverage publishes. Unchanged startup is a no-op. Administrator
 source toggles need their own CSRF, exact-version preview, one-use confirmation
 and `source.update` recent-auth grant. They do not depend on infrastructure write
 flags and do not grant provider write authority. Browsers cannot create profiles,

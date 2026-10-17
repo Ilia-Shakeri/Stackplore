@@ -163,7 +163,16 @@ function RootIndexRoute() {
   if (snapshot.status === 'setup_required') {
     return <Navigate to="/setup" replace />;
   }
-  return <Navigate to={snapshot.status === 'authenticated' ? '/overview' : '/login'} replace />;
+  return (
+    <Navigate
+      to={
+        snapshot.status === 'authenticated' || snapshot.status === 'guest_demo'
+          ? '/overview'
+          : '/login'
+      }
+      replace
+    />
+  );
 }
 
 const standaloneRoute = createRoute({
@@ -183,7 +192,7 @@ function SetupRoute() {
   if (snapshot.status === 'loading' || snapshot.status === 'unavailable') {
     return <AuthBootPage />;
   }
-  if (snapshot.status === 'authenticated') {
+  if (snapshot.status === 'authenticated' || snapshot.status === 'guest_demo') {
     return <Navigate to="/overview" replace />;
   }
   if (snapshot.status === 'unauthenticated') {
@@ -230,7 +239,7 @@ function LoginRoute() {
   if (snapshot.status === 'setup_required') {
     return <Navigate to="/setup" replace />;
   }
-  if (snapshot.status === 'authenticated') {
+  if (snapshot.status === 'authenticated' || snapshot.status === 'guest_demo') {
     return <Navigate to="/overview" replace />;
   }
   return <LoginPage {...(search.next === undefined ? {} : { next: search.next })} />;
@@ -361,7 +370,10 @@ const settingsRoute = createRoute({
 
 function SettingsEntryRoute() {
   const { snapshot } = useAuth();
-  if (snapshot.status === 'authenticated' && snapshot.user.role === 'viewer') {
+  if (
+    snapshot.status === 'guest_demo' ||
+    (snapshot.status === 'authenticated' && snapshot.user.role === 'viewer')
+  ) {
     return <Navigate to="/settings/preferences" replace />;
   }
   return <SettingsPage />;

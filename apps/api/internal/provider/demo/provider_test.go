@@ -27,7 +27,7 @@ func TestFixtureIsDeterministicAndValid(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second ListResources() error = %v", err)
 	}
-	if len(firstPage.Resources) != 6 || len(secondPage.Resources) != 6 {
+	if len(firstPage.Resources) != 9 || len(secondPage.Resources) != 9 {
 		t.Fatalf("resource counts = %d, %d", len(firstPage.Resources), len(secondPage.Resources))
 	}
 	for index := range firstPage.Resources {

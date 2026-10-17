@@ -51,13 +51,15 @@ helm upgrade --install stackplore deploy/helm/stackplore \
 
 The API stays at one replica because its digest key uses a ReadWriteOnce persistent volume and the current process enforces single-writer ownership. The web edge defaults to two replicas and has a disruption budget.
 
-The chart keeps the Kubernetes inventory source off by default. Enable
-`api.kubernetes.enabled=true` only for an explicit cluster-observation profile.
-Its ClusterRole grants only `get` and `list` for namespaces, nodes, workloads,
-pods, services, claims, ingresses, endpoint slices, events, pod logs and the
-optional Metrics API pods. Logs/events are sensitive read surfaces. It grants no Secret or
-ConfigMap bodies; only safe declared references appear. Namespace-only and
-partial-permission collection remain roadmap work. Do not grant cluster-admin.
+The Kubernetes source defaults off. Enabling `api.kubernetes.enabled` requires
+one to 64 explicit entries in `api.kubernetes.namespaces`. Each namespace gets
+a read Role and RoleBinding for workloads, pods/logs, services, claims,
+ingresses, endpoint slices, events and optional Metrics API pods. Cluster
+observation is a separate flag; its ClusterRole adds only node lists and GETs
+for the named namespaces. Logs/events remain sensitive read surfaces. No Secret
+or ConfigMap value reads are granted. Optional-kind denial preserves other
+allowed partitions. Use the [provider guide](../kubernetes-provider.md) for the
+exact access and token-rotation boundaries. Do not grant cluster-admin.
 
 Generic webhook delivery stays off by default. For Compose, set `STACKPLORE_WEBHOOK_ENABLED=true`, a stable safe `STACKPLORE_WEBHOOK_DESTINATION_REFERENCE_ID`, an HTTPS `STACKPLORE_WEBHOOK_URL`, and a canonical unpadded base64url 32-byte `STACKPLORE_WEBHOOK_SIGNING_KEY`. For the chart, set `api.webhook.enabled=true`; place the URL and signing key under `api.webhook.urlSecretKey` and `api.webhook.signingKeySecretKey` in `api.existingSecret`. Never put either secret value in a values file. Delivery uses stable idempotency keys, fixed signed payload bytes, bounded attempts, and PostgreSQL leases. Live receiver proof remains a separate target-environment check.
 

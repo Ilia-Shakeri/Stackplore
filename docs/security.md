@@ -1,6 +1,7 @@
 # Security Model
 
-Status: tagged 0.1/0.2 foundations and the locally verified 0.3.0 development checkpoint; current local outcomes, prior tagged CI, target proof and 1.0 gaps remain explicit
+Status: verified checkpoints through 0.4.0 and the 0.5.0 candidate boundaries;
+exact local, remote and target evidence remain in the active plan.
 
 ## Assets
 
@@ -65,15 +66,34 @@ Every capability is explicit. Unsupported, denied, unavailable, stale, and parti
 
 Docker socket access is effectively host-root access. A production Docker adapter should prefer a narrowly scoped proxy or remote read-only API and must document remaining authority. Kubernetes credentials should use a dedicated ServiceAccount and the smallest resource/verb/namespace set needed for enabled capabilities. Secret read permission is not needed for the planned default feature set.
 
-Docker and Kubernetes read adapters are wired behind operator flags. The Docker
-direct socket profile is restricted to loopback development; production support
-waits for the narrow proxy design. Kubernetes currently requires explicit cluster
-observation rights, and its chart defaults off. PostgreSQL stores safe fixed
-profile references and enabled state. Browser APIs can only preview/toggle a
-registered profile; they cannot create one, set an endpoint/path or upload
-credentials. Namespace-scoped fidelity and broader operator-reference rotation
-remain open. Provider credential values remain operator-owned mounted/runtime
-material and are not persisted in application tables.
+Docker and Kubernetes adapters remain behind operator flags. The Docker
+production profile requires a fixed HTTPS origin, server verification and a
+client certificate. The private proxy and adapter both enforce a bounded GET
+allowlist; the application has no daemon socket. The proxy still has root-level
+daemon authority and is part of the trusted operator boundary. Kubernetes uses
+explicit namespaces; cluster reads are opt-in and never include Secret or
+ConfigMap values. Projected token refresh remains in memory. Safe reference files
+must be regular bounded files; projected links cannot escape the selected mount
+directory. PostgreSQL stores profile references and enablement, never credential
+values. Browser APIs cannot create profiles or supply endpoints, paths or
+credentials. Broader operator-reference rotation remains stage 6 work.
+
+Changing configured scope/profile raises a durable authority fence and source
+version before serving cache. Failed collection cannot clear it. Fresh partition
+coverage closes denied/unsupported/omitted resource reads, associated topology
+and metric/event evidence. Unscoped events cannot prove namespace authority and
+are hidden once partitioned coverage is active. Derived Secret/ConfigMap reference
+coverage also fails closed when a contributing parent kind is denied.
+
+An explicit guest deployment must use a separate empty database and private data
+directory with a persistent mode marker. Only the synthetic provider is allowed;
+outbound settings and real-provider inputs are rejected even when supplied empty.
+Named public reads create no account/session and set no authentication cookie.
+Every mutation and private administration/authentication read is denied before
+its handler. Guest stream quotas use bounded verified-peer buckets, not an
+invented account. Restart resets derived fixture state while preserving audit
+and authentication history. This mode is deliberately separate from a normal
+installation; see [the isolation guide](demo.md).
 
 Source changes require administrator role, exact same origin, CSRF, quoted
 version, exact target/state impact preview, an expiring one-use confirmation and

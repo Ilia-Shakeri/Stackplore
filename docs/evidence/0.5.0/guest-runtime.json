@@ -1,0 +1,56 @@
+{
+  "marker": "STAGE5_GUEST_PUBLIC_NO_SESSION_DENIAL_RESET_AND_NO_OUTBOUND_PASS",
+  "before": {
+    "sessions": 0,
+    "reset_epoch": 1,
+    "resources": 9,
+    "metrics": 972,
+    "users": 0,
+    "deliveries": 0,
+    "grants": 0,
+    "audit": 1
+  },
+  "after": {
+    "sessions": 0,
+    "reset_epoch": 2,
+    "resources": 9,
+    "metrics": 972,
+    "users": 0,
+    "deliveries": 0,
+    "grants": 0,
+    "audit": 2
+  },
+  "fixture": "demo-v2",
+  "observed_at": "2026-08-16T08:00:00Z",
+  "sets_authentication_cookie": false,
+  "http_denials": [
+    {
+      "path": "/api/v1/auth/session",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/users",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/audit",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/settings/sources",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/auth/login",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/alerts/fixture/acknowledge",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/settings/sources/source_demo",
+      "status": 403
+    }
+  ]
+}

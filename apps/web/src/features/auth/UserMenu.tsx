@@ -24,6 +24,9 @@ export function UserMenu() {
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  if (snapshot.status === 'guest_demo')
+    return <span className="guest-demo-badge">{t('demo.mode.guest')}</span>;
+
   if (snapshot.status !== 'authenticated') {
     return null;
   }

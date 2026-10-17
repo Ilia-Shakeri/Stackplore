@@ -22,8 +22,8 @@ func (snapshot WorkloadReplicaSnapshot) ValidateFor(query ResourceDetailQuery) e
 	if !query.Source.Matches(snapshot.Resource) || query.ResourceID != snapshot.Resource.ID {
 		return fmt.Errorf("workload replica snapshot does not match requested resource")
 	}
-	if snapshot.Ready > snapshot.Desired {
-		return fmt.Errorf("workload ready replica count exceeds desired count")
+	if snapshot.Ready > 9_007_199_254_740_991 || snapshot.Desired > 9_007_199_254_740_991 {
+		return fmt.Errorf("workload replica count exceeds supported bound")
 	}
 	return nil
 }

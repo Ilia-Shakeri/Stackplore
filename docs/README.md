@@ -10,13 +10,17 @@ the [evidence plan](implementation-plan.md) states what actually passed.
 | Current gaps and review coverage | [Codebase audit](codebase-audit.md) |
 | Current user journeys | [User guide](user-guide.md), [راهنمای کاربر](user-guide.fa.md) |
 | Paginated exploration, time correlation, logs and topology | [Exploration](exploration.md), [بررسی مشاهده‌ها](exploration.fa.md) |
+| Deterministic scenario and isolated guest mode | [Demonstration](demo.md), [نمونه و مهمان](demo.fa.md) |
 | System boundaries | [Architecture](architecture.md), [decisions](adr/README.md) |
 | Threat model and private reporting | [Security model](security.md), [policy](../SECURITY.md) |
 | Local tools and commands | [Development](development.md) |
 | Runtime names, defaults and bounds | [Configuration](configuration.md) |
 | Collection, source toggles and retention | [Observations](observations.md), [مشاهده‌ها](observations.fa.md) |
+| Restricted Docker access and runtime facts | [Docker provider](docker-provider.md), [فراهم‌کنندهٔ Docker](docker-provider.fa.md) |
+| Namespace authority and Kubernetes runtime facts | [Kubernetes provider](kubernetes-provider.md), [فراهم‌کنندهٔ Kubernetes](kubernetes-provider.fa.md) |
 | Alert evidence, durable streams and outbound delivery | [Alerts and notifications](alerts-notifications.md), [هشدار و اعلان](alerts-notifications.fa.md) |
 | Proof levels and test gates | [Testing](testing.md) |
+| Provider and guest checkpoint receipts | [0.5 evidence](evidence/0.5.0/README.md) |
 | Install and first administrator | [Deployment](operations/deployment.md), [setup/recovery](operations/account-recovery.md) |
 | Protect and recover data | [Backup/restore](operations/backup-restore.md), [upgrade/rollback](operations/upgrade-rollback.md) |
 | Diagnose failures | [Troubleshooting](operations/troubleshooting.md) |

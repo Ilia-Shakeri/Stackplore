@@ -11,17 +11,20 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const resourceHealthExpression = `CASE WHEN EXISTS(SELECT 1 FROM source_capabilities capability WHERE capability.source_id=resource.source_id AND capability.capability_name='health.read' AND capability.availability IN ('available','stale')) THEN COALESCE((SELECT CASE WHEN health.availability IN ('available','stale') AND health.completeness='complete' THEN health.health_state ELSE 'unknown' END FROM resource_health_current AS health WHERE health.resource_id=resource.id),'unknown') ELSE 'unknown' END`
+const resourceHealthExpression = `CASE WHEN (source.partition_generation=0 OR EXISTS(SELECT 1 FROM inventory_partitions AS partition WHERE ` + matchingPartition + ` AND partition.availability='available' AND partition.completeness='complete')) AND EXISTS(SELECT 1 FROM source_capabilities capability WHERE capability.source_id=resource.source_id AND capability.capability_name='health.read' AND capability.availability IN ('available','stale')) THEN COALESCE((SELECT CASE WHEN health.availability IN ('available','stale') AND health.completeness='complete' THEN health.health_state ELSE 'unknown' END FROM resource_health_current AS health WHERE health.resource_id=resource.id),'unknown') ELSE 'unknown' END`
 
 const observedResourceColumns = `resource.id,resource.source_id,resource.provider,resource.environment_id,
 resource.kind,resource.scope_kind,resource.scope_name,resource.native_id,resource.synthetic,
-snapshot.display_name,snapshot.resource_version,snapshot.availability,snapshot.completeness,snapshot.observed_at_us,snapshot.reason_code,` + resourceHealthExpression
+snapshot.display_name,snapshot.resource_version,
+CASE WHEN ` + partitionStale + ` THEN 'stale' ELSE snapshot.availability END,
+CASE WHEN ` + partitionPartial + ` THEN 'partial' ELSE snapshot.completeness END,
+snapshot.observed_at_us,CASE WHEN ` + partitionStale + ` THEN 'source.partition_stale' WHEN ` + partitionPartial + ` THEN 'source.partition_partial' ELSE snapshot.reason_code END,` + resourceHealthExpression + `,snapshot.metadata`
 
 const activeResourceJoin = ` FROM resources AS resource
 JOIN infrastructure_sources AS source ON source.id=resource.source_id
 JOIN resource_snapshots AS snapshot ON snapshot.resource_id=resource.id
 WHERE source.id=$1 AND source.provider=$2 AND source.deleted_at_us IS NULL
-AND resource.retired_at_us IS NULL AND resource.capture_generation>=source.completed_generation`
+AND ` + activeResourcePredicate
 
 func (store *observationRead) ListEnvironments(ctx context.Context, query domain.EnvironmentQuery) (domain.EnvironmentPage, error) {
 	if ctx == nil || query.Validate() != nil {
@@ -49,8 +52,7 @@ func (store *observationRead) ListEnvironments(ctx context.Context, query domain
 	rows, err := store.queries.Query(ctx, `SELECT environment.id,environment.display_name,environment.availability,
 environment.completeness,environment.observed_at_us,environment.reason_code,environment.synthetic
 FROM environments AS environment JOIN infrastructure_sources AS source ON source.id=environment.source_id
-WHERE environment.source_id=$1 AND environment.provider=$2 AND environment.retired_at_us IS NULL
-AND environment.capture_generation>=source.completed_generation AND environment.id COLLATE "C">$3 COLLATE "C"
+WHERE environment.source_id=$1 AND environment.provider=$2 AND `+activeEnvironmentPredicate+` AND environment.id COLLATE "C">$3 COLLATE "C"
 ORDER BY environment.id COLLATE "C" LIMIT $4`, string(query.Source.SourceID), string(query.Source.Provider), after, query.Page.Limit+1)
 	if err != nil {
 		return domain.EnvironmentPage{}, mapRepositoryReadError(ctx, err)
@@ -192,7 +194,7 @@ func (store *observationRead) ListResources(ctx context.Context, query domain.In
 		}
 	}
 	if query.Filter.Availability != "" {
-		column := `snapshot.availability`
+		column := `CASE WHEN ` + partitionStale + ` THEN 'stale' ELSE snapshot.availability END`
 		if status.State == domain.AvailabilityStale {
 			column = `CASE WHEN snapshot.availability IN ('available','stale') THEN 'stale' ELSE snapshot.availability END`
 		}
@@ -299,8 +301,9 @@ func scanObservedResource(row rowScanner) (domain.ResourceSnapshot, error) {
 	var synthetic, observedAt int64
 	var availability, completeness string
 	var reason sql.NullString
+	var metadata []byte
 	if err := row.Scan(&id, &sourceID, &provider, &environmentID, &kind, &scopeKind, &scopeName, &nativeID, &synthetic,
-		&result.Resource.DisplayName, &result.Resource.Version, &availability, &completeness, &observedAt, &reason, &result.Health); err != nil {
+		&result.Resource.DisplayName, &result.Resource.Version, &availability, &completeness, &observedAt, &reason, &result.Health, &metadata); err != nil {
 		return domain.ResourceSnapshot{}, err
 	}
 	identity, err := domain.NewResourceIdentity(domain.ProviderKind(provider), domain.SourceID(sourceID), domain.EnvironmentID(environmentID), domain.ResourceKind(kind), domain.Scope{Kind: domain.ScopeKind(scopeKind), Name: scopeName}, domain.NativeResourceID(nativeID))
@@ -308,6 +311,10 @@ func scanObservedResource(row rowScanner) (domain.ResourceSnapshot, error) {
 		return domain.ResourceSnapshot{}, domain.ErrRepositoryUnavailable
 	}
 	result.Resource.Ref = domain.ResourceRef{ID: domain.ResourceID(id), Identity: identity}
+	result.Metadata, err = decodeResourceMetadata(metadata, identity.Provider)
+	if err != nil {
+		return domain.ResourceSnapshot{}, err
+	}
 	result.Resource.Synthetic = synthetic == 1
 	result.Status = scanObservationStatus(availability, completeness, observedAt, reason)
 	if result.Validate() != nil {
@@ -338,6 +345,10 @@ FROM resource_snapshots WHERE resource_id=$1`, string(query.ResourceID)).Scan(&d
 	}
 	if resource.Status.State == domain.AvailabilityStale && result.Status.AllowsData() {
 		result.Status.State = domain.AvailabilityStale
+		result.Status.ReasonCode = resource.Status.ReasonCode
+	}
+	if resource.Status.Completeness == domain.CompletenessPartial && result.Status.AllowsData() {
+		result.Status.Completeness = domain.CompletenessPartial
 		result.Status.ReasonCode = resource.Status.ReasonCode
 	}
 	if result.ValidateFor(query) != nil {

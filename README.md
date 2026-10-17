@@ -6,13 +6,15 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** 1.0 work is active. Stages 1–4 are verified development checkpoints through `0.4.0`, with exact local, PostgreSQL, disposable native/receiver, browser and remote CI outcomes recorded separately in the plan. Stage 4 passed its final local/browser gates and both exact main/tag CI runs. Stages 5–9 retain provider fidelity, guarded actions/settings, installation, performance and final release gates. A development checkpoint does not complete 1.0.
+> **Status:** 1.0 work is active. Stages 1–5 are locally verified development checkpoints through `0.5.0`. Stage 5 passed its final changed-tree gate with real PostgreSQL, separate disposable Engine/cluster and guest-browser receipts, and scoped quality review of 9/10. Its commit/tag publication and remote CI are still pending in the [evidence plan](docs/implementation-plan.md). Stages 6–9 remain open. A development checkpoint does not complete 1.0.
 
 ## Implemented
 
 - PostgreSQL-only server startup with bounded pooling, embedded forward migrations, advisory migration and ownership locks, readiness checks, and native `pg_dump`/`pg_restore` operations
 - Local administrator/viewer accounts, Argon2id credentials, opaque sessions, CSRF and recent-auth proofs, first-run setup, user administration, and operator recovery
 - Provider-neutral domain ports and a deterministic synthetic source with stable resource identity, cursor-bound inventory, health, topology, logs, current metrics, and event history
+- Official Docker and Kubernetes clients behind bounded adapters: restricted mTLS Docker observation, namespace-scoped Kubernetes with independent inventory coverage, safe typed resource facts, exact Pod log identity checks and metric lifetime checks. See [Docker](docs/docker-provider.md) and [Kubernetes](docs/kubernetes-provider.md) for limits and disposable target receipts.
+- Versioned nine-resource, two-environment demonstration with stable absolute-clock facts, isolated guest viewing without accounts or sessions, server-side write denial and disabled outbound delivery. Normal authenticated Demo restarts preserve same-version acknowledgements; isolated deployments reset derived facts while preserving protected history. See [demo](docs/demo.md).
 - Persistent safe source references and normalized observations; product inventory, health, topology, metrics and events use PostgreSQL reads, while logs remain bounded live reads. Collection has concurrency limits, cancellation and retry backoff; fair bounded retention excludes protected audit history. See [observations and source settings](docs/observations.md).
 - Versioned OpenAPI contract, generated browser types, strict runtime response parsing, safe problems, request bounds, rate limits, proxy trust, liveness, readiness, and guarded process metrics
 - Paginated overview, resources, detail, topology, logs, events and alert journeys with URL filters, truthful partial states, keyboard alternatives and English/Persian RTL. See [exploration](docs/exploration.md).
@@ -22,9 +24,9 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 
 ## Still required for 1.0
 
-- Restricted production Docker access, namespace-scoped Kubernetes and partial-permission fidelity, plus live-provider proof
+- Exact `0.5.0` publication/CI; current provider proof covers named disposable Engine and kind versions, not every operator environment
 - Broader safe profile setup and operator-owned credential-reference rotation; configurable quotas, protected audit cleanup, export and preferences
-- Live operator receiver and proxy/browser proof, plus immutable audit coverage for unfinished mutation paths
+- Operator receiver/production deployment proof and final browser acceptance, plus immutable audit coverage for unfinished mutation paths
 - Explicitly guarded supported operations with authorization, confirmation, idempotency, timeouts, and audit records
 - Live target proof for PostgreSQL backup/restore, Compose, cluster install/upgrade/rollback, browser flows, accessibility, and performance budgets
 

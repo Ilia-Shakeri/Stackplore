@@ -20,13 +20,13 @@ func (store *observationRead) GetObservationStatus(ctx context.Context, source d
 	var observedAt sql.NullInt64
 	var captureStarted, captureFinished sql.NullInt64
 	var createdAt, enabled int64
-	var cached bool
+	var cached, policyPending bool
 	err := store.queries.QueryRow(ctx, `SELECT status.availability,status.completeness,status.reason_code,status.observed_at_us,
-source.created_at_us,source.enabled,source.capture_started_at_us,source.capture_finished_at_us,
+source.created_at_us,source.enabled,source.capture_started_at_us,source.capture_finished_at_us,source.operator_policy_pending,
 (EXISTS(SELECT 1 FROM resources WHERE source_id=source.id LIMIT 1)
  OR EXISTS(SELECT 1 FROM environments WHERE source_id=source.id LIMIT 1))
 FROM infrastructure_sources AS source LEFT JOIN source_status AS status ON status.source_id=source.id
-WHERE source.id=$1 AND source.provider=$2 AND source.deleted_at_us IS NULL`, string(source.SourceID), string(source.Provider)).Scan(&availability, &completeness, &reason, &observedAt, &createdAt, &enabled, &captureStarted, &captureFinished, &cached)
+WHERE source.id=$1 AND source.provider=$2 AND source.deleted_at_us IS NULL`, string(source.SourceID), string(source.Provider)).Scan(&availability, &completeness, &reason, &observedAt, &createdAt, &enabled, &captureStarted, &captureFinished, &policyPending, &cached)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.ObservationStatus{}, domain.ErrRepositoryNotFound
 	}
@@ -34,6 +34,9 @@ WHERE source.id=$1 AND source.provider=$2 AND source.deleted_at_us IS NULL`, str
 		return domain.ObservationStatus{}, mapRepositoryReadError(ctx, err)
 	}
 	status := domain.ObservationStatus{State: domain.AvailabilityUnavailable, Completeness: domain.CompletenessComplete, ObservedAt: time.UnixMicro(createdAt).UTC(), ReasonCode: "source.collection_pending"}
+	if policyPending {
+		return domain.ObservationStatus{State: domain.AvailabilityPermissionDenied, Completeness: domain.CompletenessComplete, ObservedAt: status.ObservedAt, ReasonCode: "source.profile_changed"}, nil
+	}
 	if availability.Valid && completeness.Valid && observedAt.Valid {
 		status = domain.ObservationStatus{State: domain.AvailabilityState(availability.String), Completeness: domain.Completeness(completeness.String), ObservedAt: time.UnixMicro(observedAt.Int64).UTC(), ReasonCode: domain.ReasonCode(reason.String)}
 	}
@@ -194,6 +197,12 @@ FROM source_capabilities WHERE source_id=$1 AND capability_name=$2`, string(sour
 			status.Completeness = domain.CompletenessPartial
 		}
 	}
+	if (name == domain.CapabilityInventoryList || name == domain.CapabilityInventoryDetail) && sourceStatus.Completeness == domain.CompletenessPartial && status.AllowsData() {
+		status.Completeness = domain.CompletenessPartial
+		if status.ReasonCode == "" {
+			status.ReasonCode = "source.collection_partial"
+		}
+	}
 	if status.Validate() != nil {
 		return domain.ObservationStatus{}, domain.ErrRepositoryUnavailable
 	}
@@ -235,11 +244,9 @@ func (store *observationRead) observationInitialPorts(ctx context.Context, sourc
 SELECT resource.id FROM resources AS resource
 JOIN infrastructure_sources AS source ON source.id=resource.source_id
 JOIN resource_snapshots AS snapshot ON snapshot.resource_id=resource.id
-WHERE resource.source_id=$1 AND resource.provider=$2 AND resource.retired_at_us IS NULL
-AND resource.capture_generation>=source.completed_generation)
+WHERE resource.source_id=$1 AND resource.provider=$2 AND `+activeResourcePredicate+`)
 SELECT EXISTS(SELECT 1 FROM environments AS environment JOIN infrastructure_sources AS source ON source.id=environment.source_id
-WHERE environment.source_id=$1 AND environment.provider=$2 AND environment.retired_at_us IS NULL
-AND environment.capture_generation>=source.completed_generation LIMIT 1),
+WHERE environment.source_id=$1 AND environment.provider=$2 AND `+activeEnvironmentPredicate+` LIMIT 1),
 EXISTS(SELECT 1 FROM active_resources LIMIT 1),
 EXISTS(SELECT 1 FROM active_resources AS resource JOIN resource_health_current AS health ON health.resource_id=resource.id LIMIT 1),
 EXISTS(SELECT 1 FROM relationships AS relationship JOIN infrastructure_sources AS source ON source.id=relationship.source_id

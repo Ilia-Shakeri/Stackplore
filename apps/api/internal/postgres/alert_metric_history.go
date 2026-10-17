@@ -19,7 +19,7 @@ func (store *Store) GetAlertMetricHistory(ctx context.Context, query domain.Aler
 		if !status.AllowsData() {
 			return result, nil
 		}
-		rows, err := reader.queries.Query(ctx, `SELECT sample.id,sample.resource_id,sample.metric_name,sample.unit,sample.value,sample.sampled_at_us,sample.interval_seconds,sample.synthetic FROM metric_samples AS sample JOIN resources AS resource ON resource.id=sample.resource_id WHERE resource.source_id=$1 AND resource.provider=$2 AND sample.resource_id=$3 AND sample.metric_name=$4 AND sample.sampled_at_us>=$5 AND sample.sampled_at_us<$6 ORDER BY sample.sampled_at_us,sample.id COLLATE "C" LIMIT $7`, string(query.Source.SourceID), string(query.Source.Provider), string(query.Resource.ID), string(query.Name), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), query.Limit+1)
+		rows, err := reader.queries.Query(ctx, `SELECT sample.id,sample.resource_id,sample.metric_name,sample.unit,sample.value,sample.sampled_at_us,sample.interval_seconds,sample.synthetic FROM metric_samples AS sample JOIN resources AS resource ON resource.id=sample.resource_id JOIN infrastructure_sources AS source ON source.id=resource.source_id WHERE resource.source_id=$1 AND resource.provider=$2 AND sample.resource_id=$3 AND sample.metric_name=$4 AND sample.sampled_at_us>=$5 AND sample.sampled_at_us<$6 AND `+authorizedResourcePredicate+` ORDER BY sample.sampled_at_us,sample.id COLLATE "C" LIMIT $7`, string(query.Source.SourceID), string(query.Source.Provider), string(query.Resource.ID), string(query.Name), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), query.Limit+1)
 		if err != nil {
 			return domain.MetricHistoryResult{}, mapRepositoryReadError(ctx, err)
 		}

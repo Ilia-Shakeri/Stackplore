@@ -4,15 +4,14 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Stackplore 1.0 implementation active; tagged 0.1.0
-  baseline verified. The verified/tagged 0.2.0 checkpoint implements persisted source settings,
-  normalized observations, cached reads and bounded collection/retention; its
-  local gate and disposable PostgreSQL/restart/restore proof passed. The 0.3.0
-  locally verified development checkpoint adds covered alert windows, durable
-  changes and webhook/Matrix lanes. Its full local/real PostgreSQL, disposable
-  native restart/restore, HTTPS receiver and Helm lint/render results are recorded
-  in the active evidence plan. Stages 4–9, provider fidelity, protected audit policy and remaining 1.0
-  requirements are still open.
+- **Implementation status:** Stackplore 1.0 implementation is active. Stages 1–4
+  are verified development checkpoints through `0.4.0`; exact local and remote
+  results are recorded in the evidence plan. The locally verified `0.5.0` checkpoint implements
+  official Docker/Kubernetes adapters, restricted/scoped observation, typed safe
+  facts and the isolated guest demo. Named disposable provider, PostgreSQL and
+  browser receipts exist; its final changed-tree gate passed with scoped quality
+  9/10. Exact publication/CI remain pending. Stages 6–9, protected audit lifecycle,
+  guarded actions/settings, installation and final release requirements remain open.
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and
@@ -586,15 +585,34 @@ evidence-backed topology edges.
 Values, timestamps relative to the demo clock, and identifiers must be stable
 across runs and tests. Synthetic data must always be labeled.
 
-The demo scenario resets to its versioned initial step at process start and on
-an explicit reset. A fixture-version change clears prior demo-derived runtime
-history before the new fixture is served; state from different fixture versions
-is never merged.
+In an explicitly isolated demonstration deployment, process startup resets the
+scenario and derived facts to the versioned initial step before serving. An
+explicit reset uses that deployment's process restart; the browser has no reset
+or scenario-advance control. A fixture-version change replaces prior packaged
+synthetic runtime history; different fixture versions are never merged. Reset
+is bounded and resumable after interruption and preserves protected audit and
+authentication history.
+
+Selecting Demo in an ordinary authenticated installation does not activate that
+reset or guest mode. Same-version alert acknowledgements survive ordinary
+restarts. A packaged fixture upgrade preserves accounts, audit, administrator
+rule configuration, real observations and the Demo source's enable/disable choice
+while replacing its packaged synthetic runtime facts. These lifecycle rules are
+clarified in [ADR-0013](docs/adr/0013-provider-coverage-and-demo-lifecycle.md).
 
 A guest demo deployment requires a separate data root and database marked with
 the active fixture version. Startup fails if it finds a real provider row or
-non-demo history. A database from a normal installation can never be mounted
+non-synthetic observation history. A database from a normal installation can never be mounted
 into guest demo mode.
+
+Guest viewing is a separate explicit setting within the isolated deployment.
+It creates no account, session or CSRF proof; only named read routes are public.
+The server rejects account, audit, settings and all write routes. Real provider
+and outbound notification configuration are forbidden even when unused. The
+packaged alert rule is system owned and needs no placeholder user. Observation
+facts use the trusted fixed scenario clock; collection receipts and scheduling
+use the operational clock. The current `demo-v2` fixture has nine resources in
+two environments; [the demo guide](docs/demo.md) records its stable story and bounds.
 
 ### 6.16 Progressive web application
 
@@ -811,24 +829,30 @@ backup/restore. It checks process ownership before immutable migrations and
 uses bounded pools, queries and transactions. Local real PostgreSQL tests and
 a disposable native restore drill provide current baseline evidence; target
 production drills remain separate. Non-root API/web images and Compose/Helm
-definitions exist; local chart lint/render ran, while container and cluster
-startup are still unproved. The current static web edge differs from the
+definitions exist; local chart lint/render ran, while Stackplore Compose and
+chart installation remain unproved. Disposable provider fixtures have their
+separate named runtime receipts. The current static web edge differs from the
 accepted Go-built-web serving target in ADR-0001 and must be aligned before 1.0.
 The 0.2 checkpoint stores safe operator profile references and normalized
 observations, runs bounded collection/backoff and fair ordinary-history
 retention, and serves cached product reads; logs remain bounded live reads.
 Administrator source toggles require exact-version preview, one-use confirmation,
-purpose-bound recent authentication and atomic audit. Browser profile creation,
-endpoint/path/credential editing, production restricted Docker access,
-namespace-scoped Kubernetes fidelity and audit quota/cleanup policy are not
-implemented. Audit currently retains all rows. See [current observation
+purpose-bound recent authentication and atomic audit. The `0.5.0` candidate adds
+restricted mTLS Docker observation, explicit Kubernetes namespaces, independently
+published kind/scope authority, typed safe metadata, Pod UID/lifetime checks and
+guest isolation. Provider target receipts have named version bounds; the final
+local gate passed; exact publication/CI remain pending. Browser profile creation, endpoint/path/credential
+editing, guarded operations and audit quota/cleanup policy remain unfinished.
+Audit currently retains all rows. See [current observation
 boundaries](docs/observations.md) and the roadmap for remaining work; these status
 notes do not reduce the required 1.0 behavior above.
 The locally verified 0.3.0 development checkpoint adds current-configuration raw collection evidence,
 covered alert windows, source/rule/lease-fenced completion, committed replay with
 a prune watermark and isolated webhook/Matrix lanes. Its local gate and separate
-disposable/Helm proof are recorded in the evidence plan; operator receiver, browser/proxy and live
-provider proof remain separate target work. See [alert and delivery
+disposable/Helm proof are recorded in the evidence plan. Stage 4 adds recorded
+actual-browser/proxy exploration, and Stage 5 has named disposable provider
+receipts; an operator receiver, full installation and release acceptance remain
+separate target work. See [alert and delivery
 boundaries](docs/alerts-notifications.md).
 Configuration is validated before listen. Unknown names and non-canonical,
 blank or out-of-bound values fail without logging values. The current reference

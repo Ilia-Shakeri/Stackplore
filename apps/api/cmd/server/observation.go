@@ -54,12 +54,34 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 			seeds = append(seeds, seed)
 		}
 		profile := profileFor(source.Provider)
+		if source.Provider == domain.ProviderDocker && settings.DockerAccessProfile == config.DockerProfileRestrictedProxy {
+			profile = domain.SourceProfileDockerRestrictedProxy
+		}
 		profiles[source.ID] = profile
 		byID[source.ID] = provider
 		defaults = append(defaults, domain.SourceConfiguration{Source: source, ProfileID: profile, Enabled: true, Version: 1, CreatedAt: at, UpdatedAt: at})
 	}
+	for _, configuration := range defaults {
+		if configuration.Source.Provider != domain.ProviderDocker {
+			continue
+		}
+		operator, ok := repository.(interface {
+			ReconcileOperatorProfile(context.Context, domain.ProviderRef, domain.SourceProfileID) error
+		})
+		if !ok {
+			return observationRuntime{}, errObservationStart
+		}
+		if err := operator.ReconcileOperatorProfile(ctx, domain.ProviderRef{Provider: configuration.Source.Provider, SourceID: configuration.Source.ID}, configuration.ProfileID); err != nil {
+			return observationRuntime{}, errObservationStart
+		}
+	}
 	if err := repository.EnsureSourceConfigurations(ctx, defaults); err != nil {
 		return observationRuntime{}, errObservationStart
+	}
+	for _, provider := range providers {
+		if err := ensureObservationPolicy(ctx, repository, settings, provider.Source()); err != nil {
+			return observationRuntime{}, errObservationStart
+		}
 	}
 	page, err := repository.ListSourceConfigurations(ctx, domain.PageRequest{Limit: 64})
 	if err != nil || page.ValidateFor(domain.PageRequest{Limit: 64}) != nil || page.Page.HasMore || len(page.Configurations) == 0 {

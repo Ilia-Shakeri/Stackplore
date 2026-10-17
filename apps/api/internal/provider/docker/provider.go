@@ -58,11 +58,12 @@ type DockerEvent struct {
 }
 
 type ContainerLogRequest struct {
-	ContainerIDs []string
-	Start        time.Time
-	End          time.Time
-	LineLimit    int
-	ByteLimit    int
+	ContainerIDs   []string
+	ContainerNames map[string]string
+	Start          time.Time
+	End            time.Time
+	LineLimit      int
+	ByteLimit      int
 }
 
 type ContainerLogLine struct {
@@ -81,29 +82,37 @@ type ContainerStats struct {
 	NetworkWriteBytes uint64
 	RestartCount      uint64
 	SampledAt         time.Time
+	CPUUnavailable    bool
+	Status            domain.ObservationStatus
 }
 
 type Snapshot struct {
-	ObservedAt time.Time
-	EngineID   string
-	EngineName string
-	Containers []Container
-	Images     []Image
-	Networks   []Network
-	Volumes    []Volume
+	ObservedAt    time.Time
+	EngineID      string
+	EngineName    string
+	EngineVersion string
+	Containers    []Container
+	Images        []Image
+	Networks      []Network
+	Volumes       []Volume
+	Coverage      map[domain.ResourceKind]domain.ObservationStatus
 }
 
 type Container struct {
-	ID             string
-	Name           string
-	Version        string
-	ImageID        string
-	State          string
-	Health         string
-	ComposeProject string
-	ComposeService string
-	NetworkIDs     []string
-	VolumeNames    []string
+	ID                 string
+	Name               string
+	Version            string
+	ImageID            string
+	State              string
+	Health             string
+	ComposeProject     string
+	ComposeService     string
+	NetworkIDs         []string
+	VolumeNames        []string
+	DependsOn          []string
+	InspectUnavailable bool
+	Metadata           *domain.DockerResourceMetadata
+	MetadataIncomplete bool
 }
 
 type Image struct{ ID, Name string }
@@ -121,6 +130,7 @@ type normalized struct {
 	resources     []domain.ResourceSnapshot
 	health        map[domain.ResourceID]domain.HealthSnapshot
 	relationships []domain.Relationship
+	coverage      []domain.InventoryCoverage
 }
 
 func New(sourceID domain.SourceID, name string, collector Collector) (*Provider, error) {
@@ -134,6 +144,16 @@ func New(sourceID domain.SourceID, name string, collector Collector) (*Provider,
 
 func (provider *Provider) Source() domain.InfrastructureSource { return provider.source }
 
+func (provider *Provider) Close() error {
+	if provider == nil {
+		return nil
+	}
+	if closer, ok := provider.collector.(interface{ Close() error }); ok {
+		return closer.Close()
+	}
+	return nil
+}
+
 func (provider *Provider) CaptureInventory(ctx context.Context) (domain.InventoryCapture, error) {
 	if err := provider.validate(ctx, domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: provider.source.ID}); err != nil {
 		return domain.InventoryCapture{}, providerError("docker.inventory.capture", err)
@@ -145,8 +165,10 @@ func (provider *Provider) CaptureInventory(ctx context.Context) (domain.Inventor
 	capture := domain.InventoryCapture{
 		Source: domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: provider.source.ID}, Status: state.status,
 		Environments: []domain.Environment{{ID: provider.environment, SourceID: provider.source.ID, Provider: domain.ProviderDocker, Name: "Docker Engine", Status: state.status}},
-		Resources:    state.resources, Relationships: state.relationships, Complete: true,
-		Health: make([]domain.HealthSnapshot, 0, len(state.health)),
+		Resources:    state.resources, Relationships: state.relationships,
+		Complete: state.status.State == domain.AvailabilityAvailable && state.status.Completeness == domain.CompletenessComplete,
+		Coverage: state.coverage,
+		Health:   make([]domain.HealthSnapshot, 0, len(state.health)),
 	}
 	for _, resource := range state.resources {
 		capture.Health = append(capture.Health, state.health[resource.Resource.Ref.ID])
@@ -371,7 +393,7 @@ func (provider *Provider) ReadLogs(ctx context.Context, query domain.LogReadQuer
 		return domain.LogPage{}, providerError("docker.log.read", err)
 	}
 	collector, ok := provider.collector.(LogCollector)
-	observedAt := query.Range.End.Add(-time.Nanosecond).UTC().Truncate(time.Microsecond)
+	observedAt := time.Now().UTC().Truncate(time.Microsecond)
 	if !ok {
 		result := domain.LogPage{
 			Status: domain.ObservationStatus{State: domain.AvailabilityUnsupported, Completeness: domain.CompletenessComplete, ObservedAt: observedAt, ReasonCode: "docker.log.not_implemented"},
@@ -381,25 +403,41 @@ func (provider *Provider) ReadLogs(ctx context.Context, query domain.LogReadQuer
 	}
 	containerIDs := make([]string, 0, len(query.Targets))
 	requested := make(map[string]domain.ResourceID, len(query.Targets))
+	containerNames := make(map[string]string, len(query.Targets))
 	unsupported := false
 	for _, target := range query.Targets {
-		if target.Resource.Identity.Kind != "docker.container" {
+		if target.Resource.Identity.Kind != "docker.container" || target.Previous {
 			unsupported = true
 			continue
 		}
 		nativeID := string(target.Resource.Identity.NativeID())
 		containerIDs = append(containerIDs, nativeID)
 		requested[nativeID] = target.Resource.ID
+		containerNames[nativeID] = target.Container
+	}
+	if len(containerIDs) == 0 && unsupported {
+		result := domain.LogPage{Status: domain.ObservationStatus{State: domain.AvailabilityUnsupported, Completeness: domain.CompletenessComplete, ObservedAt: observedAt, ReasonCode: "docker.log.target_unsupported"}, Page: domain.PageInfo{Limit: query.LineLimit}}
+		return result, result.ValidateFor(query)
 	}
 	fingerprint := logFingerprint(query)
 	offset, err := decodeCursor(query.Cursor, fingerprint)
 	if err != nil {
 		return domain.LogPage{}, providerError("docker.log.read", err)
 	}
-	lines, err := collector.ReadContainerLogs(ctx, ContainerLogRequest{
-		ContainerIDs: containerIDs, Start: query.Range.Start, End: query.Range.End,
-		LineLimit: min(domain.MaxLogLines, offset+query.LineLimit+1), ByteLimit: query.ByteLimit,
-	})
+	request := ContainerLogRequest{
+		ContainerIDs: containerIDs, ContainerNames: containerNames, Start: query.Range.Start, End: query.Range.End,
+		LineLimit: domain.MaxLogLines, ByteLimit: query.ByteLimit,
+	}
+	var lines []ContainerLogLine
+	truncatedBatch := false
+	if bounded, ok := collector.(interface {
+		ReadContainerLogBatch(context.Context, ContainerLogRequest) (ContainerLogBatch, error)
+	}); ok {
+		batch, readErr := bounded.ReadContainerLogBatch(ctx, request)
+		lines, err, truncatedBatch = batch.Lines, readErr, batch.Truncated
+	} else {
+		lines, err = collector.ReadContainerLogs(ctx, request)
+	}
 	if err != nil {
 		return domain.LogPage{}, providerError("docker.log.read", err)
 	}
@@ -434,6 +472,9 @@ func (provider *Provider) ReadLogs(ctx context.Context, query domain.LogReadQuer
 		status.Completeness = domain.CompletenessPartial
 		status.ReasonCode = "docker.log.resource_unsupported"
 	}
+	if truncatedBatch {
+		status.Completeness, status.ReasonCode = domain.CompletenessPartial, "docker.log.collector_bound"
+	}
 	result := domain.LogPage{Status: status, Records: records, Page: page}
 	if err := result.ValidateFor(query); err != nil {
 		return domain.LogPage{}, providerError("docker.log.read", err)
@@ -444,7 +485,7 @@ func (provider *Provider) ReadLogs(ctx context.Context, query domain.LogReadQuer
 func logFingerprint(query domain.LogReadQuery) string {
 	targets := make([]string, len(query.Targets))
 	for index, target := range query.Targets {
-		targets[index] = string(target.Resource.ID) + "\x00" + target.Container
+		targets[index] = string(target.Resource.ID) + "\x00" + target.Container + "\x00" + strconv.FormatBool(target.Previous)
 	}
 	return fingerprint("logs", strings.Join(targets, ","), query.Range.Start.Format(time.RFC3339Nano), query.Range.End.Format(time.RFC3339Nano))
 }
@@ -689,11 +730,18 @@ func (provider *Provider) GetCurrentMetrics(ctx context.Context, query domain.Cu
 			continue
 		}
 		set.Status.ObservedAt = stats.SampledAt
+		if stats.Status.State != "" && stats.Status.State != domain.AvailabilityAvailable {
+			set.Status = stats.Status
+			sets = append(sets, set)
+			available.Completeness, available.ReasonCode = domain.CompletenessPartial, "docker.metric.partial"
+			continue
+		}
 		for _, name := range query.Names {
 			value, unit, supported := dockerMetricValue(stats, name)
 			if !supported {
 				set.Status.Completeness = domain.CompletenessPartial
 				set.Status.ReasonCode = "docker.metric.name_unsupported"
+				available.Completeness, available.ReasonCode = domain.CompletenessPartial, "docker.metric.partial"
 				continue
 			}
 			set.Samples = append(set.Samples, domain.MetricSample{
@@ -713,7 +761,7 @@ func (provider *Provider) GetCurrentMetrics(ctx context.Context, query domain.Cu
 func dockerMetricValue(stats ContainerStats, name domain.MetricName) (float64, domain.MetricUnit, bool) {
 	switch name {
 	case domain.MetricCPUUsageCores:
-		return stats.CPUUsageCores, domain.MetricUnitCores, true
+		return stats.CPUUsageCores, domain.MetricUnitCores, !stats.CPUUnavailable
 	case domain.MetricMemoryUsageBytes:
 		return float64(stats.MemoryUsageBytes), domain.MetricUnitBytes, true
 	case domain.MetricNetworkReceiveBytesTotal:
@@ -737,6 +785,22 @@ func (provider *Provider) observe(ctx context.Context) (normalized, error) {
 	}
 	status := domain.ObservationStatus{State: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, ObservedAt: snapshot.ObservedAt}
 	state := normalized{status: status, health: make(map[domain.ResourceID]domain.HealthSnapshot)}
+	for _, kind := range []domain.ResourceKind{"docker.engine", "docker.container", "docker.compose_project", "docker.compose_service", "docker.image", "docker.network", "docker.volume"} {
+		partitionStatus, exists := snapshot.Coverage[kind]
+		if !exists {
+			partitionStatus = status
+		}
+		if partitionStatus.Validate() != nil || !partitionStatus.ObservedAt.Equal(snapshot.ObservedAt) {
+			return normalized{}, providerError("docker.snapshot.read", ErrUnavailable)
+		}
+		state.coverage = append(state.coverage, domain.InventoryCoverage{
+			Source: domain.ProviderRef{Provider: domain.ProviderDocker, SourceID: provider.source.ID}, EnvironmentID: provider.environment,
+			Kind: kind, ScopeMode: domain.InventoryAllScopes, Status: partitionStatus,
+		})
+		if partitionStatus.State != domain.AvailabilityAvailable || partitionStatus.Completeness != domain.CompletenessComplete {
+			state.status.Completeness, state.status.ReasonCode = domain.CompletenessPartial, "docker.inventory.partial"
+		}
+	}
 	byNative := make(map[string]domain.ResourceRef)
 	add := func(kind domain.ResourceKind, scope domain.Scope, nativeID, name string, health domain.HealthState, reason domain.ReasonCode) error {
 		if len(state.resources) >= domain.MaxInventoryCaptureItems {
@@ -771,6 +835,10 @@ func (provider *Provider) observe(ctx context.Context) (normalized, error) {
 	}
 	if err := add("docker.engine", domain.Scope{Kind: domain.ScopeGlobal}, snapshot.EngineID, snapshot.EngineName, domain.HealthHealthy, "docker.engine.reachable"); err != nil {
 		return normalized{}, providerError("docker.snapshot.normalize", err)
+	}
+	engineMetadata := &domain.DockerResourceMetadata{EngineVersion: snapshot.EngineVersion, State: "unknown", Health: "unknown", Ports: []domain.DockerPortMetadata{}, Mounts: []domain.DockerMountMetadata{}, Labels: []domain.DockerLabelMetadata{}}
+	if engineMetadata.Validate() == nil {
+		state.resources[len(state.resources)-1].Metadata = &domain.ResourceMetadata{Docker: engineMetadata}
 	}
 	projects := map[string]struct{}{}
 	services := map[string]struct{}{}
@@ -818,6 +886,19 @@ func (provider *Provider) observe(ctx context.Context) (normalized, error) {
 			return normalized{}, providerError("docker.snapshot.normalize", err)
 		}
 		state.resources[len(state.resources)-1].Resource.Version = container.Version
+		if container.Metadata != nil {
+			state.resources[len(state.resources)-1].Metadata = &domain.ResourceMetadata{Docker: container.Metadata}
+		}
+		if container.MetadataIncomplete {
+			state.resources[len(state.resources)-1].Status.Completeness = domain.CompletenessPartial
+			state.resources[len(state.resources)-1].Status.ReasonCode = "docker.metadata.partial"
+			state.status.Completeness, state.status.ReasonCode = domain.CompletenessPartial, "docker.inventory.partial"
+		}
+		if container.InspectUnavailable {
+			resource := &state.resources[len(state.resources)-1]
+			resource.Status.Completeness, resource.Status.ReasonCode = domain.CompletenessPartial, "docker.inventory.inspect_incomplete"
+			state.health[resource.Resource.Ref.ID] = domain.HealthSnapshot{ResourceID: resource.Resource.Ref.ID, State: domain.HealthUnknown, Status: resource.Status}
+		}
 	}
 	if err := provider.buildRelationships(&state, byNative, snapshot); err != nil {
 		return normalized{}, providerError("docker.snapshot.normalize", err)
@@ -841,15 +922,19 @@ func (provider *Provider) buildRelationships(state *normalized, refs map[string]
 		}
 		return err
 	}
-	counter := 0
+	seen := map[string]struct{}{}
 	link := func(fromKey, toKey string, kind domain.RelationshipKind, provenance domain.RelationshipProvenance) error {
 		from, fromOK := refs[fromKey]
 		to, toOK := refs[toKey]
 		if !fromOK || !toOK {
 			return nil
 		}
-		counter++
-		return add(from, to, kind, provenance, fmt.Sprintf("evidence_docker_relation_%d", counter))
+		key := fromKey + "\x00" + toKey + "\x00" + string(kind) + "\x00" + string(provenance)
+		if _, duplicate := seen[key]; duplicate {
+			return nil
+		}
+		seen[key] = struct{}{}
+		return add(from, to, kind, provenance, "evidence_docker_relation_"+shortDigest(key))
 	}
 	for service := range mapFromServices(snapshot.Containers) {
 		project, _, _ := strings.Cut(service, "/")
@@ -875,6 +960,18 @@ func (provider *Provider) buildRelationships(state *normalized, refs map[string]
 		for _, volume := range container.VolumeNames {
 			if err := link(containerKey, "docker.volume\x00"+volume, domain.RelationshipMounts, domain.ProvenanceStorageReference); err != nil {
 				return err
+			}
+		}
+		if container.ComposeProject != "" && container.ComposeService != "" {
+			for _, dependency := range container.DependsOn {
+				if dependency == container.ComposeService {
+					continue
+				}
+				if err := link("docker.compose_service\x00service/"+container.ComposeProject+"/"+container.ComposeService,
+					"docker.compose_service\x00service/"+container.ComposeProject+"/"+dependency,
+					domain.RelationshipDependsOn, domain.ProvenanceDeclaredDependency); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -924,22 +1021,24 @@ func firstError(first, second error) error {
 }
 
 func containerHealth(container Container) (domain.HealthState, domain.ReasonCode) {
+	switch container.State {
+	case "paused", "restarting":
+		return domain.HealthDegraded, "docker.container.degraded"
+	case "exited", "dead":
+		return domain.HealthUnhealthy, "docker.container.stopped"
+	case "running":
+	default:
+		return domain.HealthUnknown, ""
+	}
 	switch container.Health {
 	case "healthy":
 		return domain.HealthHealthy, "docker.container.healthy"
 	case "unhealthy":
 		return domain.HealthUnhealthy, "docker.container.unhealthy"
+	case "starting":
+		return domain.HealthDegraded, "docker.container.health_starting"
 	}
-	switch container.State {
-	case "running":
-		return domain.HealthHealthy, "docker.container.running"
-	case "paused", "restarting":
-		return domain.HealthDegraded, "docker.container.degraded"
-	case "exited", "dead":
-		return domain.HealthUnhealthy, "docker.container.stopped"
-	default:
-		return domain.HealthUnknown, ""
-	}
+	return domain.HealthHealthy, "docker.container.running"
 }
 
 func containsKind(items []domain.ResourceKind, value domain.ResourceKind) bool {

@@ -112,6 +112,10 @@ func scanCollectionOutcome(row rowScanner) (domain.SourceCollectionOutcome, erro
 }
 
 func saveCollectionOutcome(ctx context.Context, transaction *transaction, completion domain.CaptureCompletion, status domain.ObservationStatus) error {
+	collectedAt := completion.CollectedAt
+	if collectedAt.IsZero() {
+		collectedAt = completion.Token.ObservedAt
+	}
 	metric := domain.ObservationStatus{State: domain.AvailabilityUnsupported, Completeness: domain.CompletenessComplete, ObservedAt: status.ObservedAt, ReasonCode: "source.metric_unsupported"}
 	event := domain.ObservationStatus{State: domain.AvailabilityUnsupported, Completeness: domain.CompletenessComplete, ObservedAt: status.ObservedAt, ReasonCode: "source.events_unsupported"}
 	for _, capability := range completion.Capabilities.Capabilities {
@@ -122,7 +126,7 @@ func saveCollectionOutcome(ctx context.Context, transaction *transaction, comple
 			event = capability.Status
 		}
 	}
-	_, err := transaction.transaction.Exec(ctx, `INSERT INTO source_collection_outcomes(source_id,generation,`+collectionOutcomeColumns+`,configuration_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`, string(completion.Token.Source.SourceID), completion.Token.Generation, completion.Token.ObservedAt.UnixMicro(), string(status.State), string(status.Completeness), status.ObservedAt.UnixMicro(), optionalString(string(status.ReasonCode)), string(metric.State), string(metric.Completeness), metric.ObservedAt.UnixMicro(), optionalString(string(metric.ReasonCode)), string(event.State), string(event.Completeness), event.ObservedAt.UnixMicro(), optionalString(string(event.ReasonCode)), completion.Token.ConfigurationVersion)
+	_, err := transaction.transaction.Exec(ctx, `INSERT INTO source_collection_outcomes(source_id,generation,`+collectionOutcomeColumns+`,configuration_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`, string(completion.Token.Source.SourceID), completion.Token.Generation, collectedAt.UnixMicro(), string(status.State), string(status.Completeness), status.ObservedAt.UnixMicro(), optionalString(string(status.ReasonCode)), string(metric.State), string(metric.Completeness), metric.ObservedAt.UnixMicro(), optionalString(string(metric.ReasonCode)), string(event.State), string(event.Completeness), event.ObservedAt.UnixMicro(), optionalString(string(event.ReasonCode)), completion.Token.ConfigurationVersion)
 	return err
 }
 

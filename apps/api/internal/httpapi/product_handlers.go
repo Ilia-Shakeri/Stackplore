@@ -126,17 +126,18 @@ type environmentPageResponse struct {
 }
 
 type resourceResponse struct {
-	ID            domain.ResourceID `json:"id"`
-	Provider      string            `json:"provider"`
-	SourceID      domain.SourceID   `json:"source_id"`
-	EnvironmentID string            `json:"environment_id"`
-	Kind          string            `json:"kind"`
-	ScopeKind     string            `json:"scope_kind"`
-	ScopeName     string            `json:"scope_name,omitempty"`
-	Name          string            `json:"name"`
-	Synthetic     bool              `json:"synthetic"`
-	ObservedAt    string            `json:"observed_at"`
-	Health        string            `json:"health,omitempty"`
+	Metadata      *domain.ResourceMetadata `json:"metadata,omitempty"`
+	ID            domain.ResourceID        `json:"id"`
+	Provider      string                   `json:"provider"`
+	SourceID      domain.SourceID          `json:"source_id"`
+	EnvironmentID string                   `json:"environment_id"`
+	Kind          string                   `json:"kind"`
+	ScopeKind     string                   `json:"scope_kind"`
+	ScopeName     string                   `json:"scope_name,omitempty"`
+	Name          string                   `json:"name"`
+	Synthetic     bool                     `json:"synthetic"`
+	ObservedAt    string                   `json:"observed_at"`
+	Health        string                   `json:"health,omitempty"`
 }
 
 type resourcePageResponse struct {
@@ -363,16 +364,11 @@ func (handler productHTTP) resource(w http.ResponseWriter, r *http.Request) {
 		writeResourceProblem(w, r, err)
 		return
 	}
-	health, err := provider.GetHealth(r.Context(), domain.HealthQuery{Source: providerRef(provider), Resources: []domain.ResourceRef{snapshot.Resource.Ref}})
-	if err != nil {
-		writeProviderProblem(w, r, err)
-		return
+	health := snapshot.Health
+	if health == "" {
+		health = domain.HealthUnknown
 	}
-	if len(health.Snapshots) != 1 {
-		writeProblem(w, r, unavailableProblem)
-		return
-	}
-	writeJSON(w, http.StatusOK, resourceJSON(snapshot, string(health.Snapshots[0].State)))
+	writeJSON(w, http.StatusOK, resourceJSON(snapshot, string(health)))
 }
 
 func (handler productHTTP) health(w http.ResponseWriter, r *http.Request) {
@@ -415,6 +411,9 @@ func (handler productHTTP) health(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler productHTTP) authenticate(w http.ResponseWriter, r *http.Request) bool {
+	if handler.auth.guestDemo != nil {
+		return true
+	}
 	_, ok := handler.authenticateIdentity(w, r)
 	return ok
 }
@@ -526,7 +525,8 @@ func resourceJSON(snapshot domain.ResourceSnapshot, health string) resourceRespo
 	}
 	identity := snapshot.Resource.Ref.Identity
 	return resourceResponse{
-		ID: snapshot.Resource.Ref.ID, Provider: string(identity.Provider), SourceID: identity.SourceID,
+		Metadata: snapshot.Metadata,
+		ID:       snapshot.Resource.Ref.ID, Provider: string(identity.Provider), SourceID: identity.SourceID,
 		EnvironmentID: string(identity.EnvironmentID), Kind: string(identity.Kind), ScopeKind: string(identity.Scope.Kind),
 		ScopeName: identity.Scope.Name, Name: snapshot.Resource.DisplayName, Synthetic: snapshot.Resource.Synthetic,
 		ObservedAt: authTimestamp(snapshot.Status.ObservedAt), Health: health,

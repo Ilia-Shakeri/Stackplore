@@ -30,7 +30,10 @@ func TestProfileFailureStaysSeparateFromConnectionOutage(t *testing.T) {
 
 func TestWorkerPersistsProfileFailureWithoutCallingItConnectionLoss(t *testing.T) {
 	at := time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
-	store := &captureStore{configurations: []domain.SourceConfiguration{testConfiguration(at)}}
+	configuration := testConfiguration(at)
+	configuration.Source.Provider, configuration.Source.Synthetic = domain.ProviderDocker, false
+	configuration.ProfileID = domain.SourceProfileDockerSocketDevelopment
+	store := &captureStore{configurations: []domain.SourceConfiguration{configuration}}
 	worker := testWorker(t, store, ProviderResolverFunc(func(context.Context, domain.SourceConfiguration) (LiveProvider, error) {
 		return nil, ErrProfileUnavailable
 	}), func() time.Time { return at }, nil)

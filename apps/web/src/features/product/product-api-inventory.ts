@@ -1,3 +1,4 @@
+import { isResourceMetadata } from './product-api-metadata';
 import type {
   ApiClient,
   ProductResource,
@@ -44,7 +45,7 @@ const isResource = (value: unknown): value is ProductResource =>
       'synthetic',
       'observed_at',
     ],
-    ['scope_name', 'health'],
+    ['scope_name', 'health', 'metadata'],
   ) &&
   typeof value.id === 'string' &&
   resourceIdPattern.test(value.id) &&
@@ -63,7 +64,8 @@ const isResource = (value: unknown): value is ProductResource =>
   value.name.length <= 256 &&
   typeof value.synthetic === 'boolean' &&
   isTimestamp(value.observed_at) &&
-  (value.health === undefined || isOneOf(value.health, healthStates));
+  (value.health === undefined || isOneOf(value.health, healthStates)) &&
+  (value.metadata === undefined || isResourceMetadata(value.metadata, value.provider));
 
 const parseResourcePage = (value: unknown): ProductResourcePage => {
   if (

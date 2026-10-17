@@ -106,7 +106,12 @@ func TestWorkerSavesBoundedSyntheticCaptureAndRetiresOnlyCompleteInventory(t *te
 	for _, bound := range []int{2, 1000} {
 		store := &captureStore{configurations: []domain.SourceConfiguration{testConfiguration(now)}}
 		provider := demo.MustNew()
-		worker := testWorker(t, store, ProviderResolverFunc(func(context.Context, domain.SourceConfiguration) (LiveProvider, error) { return provider, nil }), func() time.Time { return now }, func(options *WorkerOptions) { options.MaximumItems = bound })
+		worker := testWorker(t, store, ProviderResolverFunc(func(context.Context, domain.SourceConfiguration) (LiveProvider, error) { return provider, nil }), func() time.Time { return now }, func(options *WorkerOptions) {
+			options.MaximumItems = bound
+			// This is a complete-fixture assertion, not a one-second deadline test.
+			// Cold parallel package runs still must collect every bounded fact.
+			options.ReadTimeout, options.WriteTimeout = 10*time.Second, 10*time.Second
+		})
 		if err := worker.RunOnce(context.Background()); err != nil {
 			t.Fatal(err)
 		}
@@ -114,25 +119,31 @@ func TestWorkerSavesBoundedSyntheticCaptureAndRetiresOnlyCompleteInventory(t *te
 			t.Fatalf("completions=%d", len(store.completions))
 		}
 		completion := store.completions[0]
+		if completion.Token.ObservedAt != demo.ObservationTime() || completion.CollectedAt != now {
+			t.Fatal("synthetic capture confused scenario time with operational receipt time")
+		}
 		resources, health, metrics, events := 0, 0, 0, 0
 		for _, batch := range store.batch {
+			if batch.Token.ObservedAt != demo.ObservationTime() {
+				t.Fatal("in-progress synthetic write used the workstation clock")
+			}
 			resources += len(batch.Resources)
 			health += len(batch.Health)
 			metrics += len(batch.Metrics)
 			events += len(batch.Events)
 			for _, sample := range batch.Metrics {
-				if !sample.Synthetic || sample.SampledAt != demo.ObservationTime() {
-					t.Fatal("synthetic metric clock changed")
+				if !sample.Synthetic || sample.SampledAt.After(demo.ObservationTime()) || sample.SampledAt.Before(demo.ObservationTime().Add(-time.Hour)) {
+					t.Fatal("synthetic metric escaped the controlled fixture history")
 				}
 			}
 		}
-		if resources != min(bound, 6) || health != resources || metrics == 0 || events == 0 || completion.Status.ObservedAt != demo.ObservationTime() {
+		if resources != min(bound, 9) || health != resources || metrics == 0 || events == 0 || completion.Status.ObservedAt != demo.ObservationTime() {
 			t.Fatalf("capture counts=%d/%d/%d/%d status=%#v", resources, health, metrics, events, completion.Status)
 		}
 		if bound == 2 && (completion.Complete || completion.Status.Completeness != domain.CompletenessPartial || store.retired != 0) {
 			t.Fatal("bounded partial capture retired unseen inventory")
 		}
-		if bound == 1000 && (!completion.Complete || store.retired != 1) {
+		if bound == 1000 && (!completion.Complete || store.retired != 1 || metrics != 972 || events != 9) {
 			t.Fatal("complete capture did not retire unseen inventory")
 		}
 	}
@@ -166,6 +177,9 @@ func TestWorkerRecordsFailureAndBoundsBackoffThenResetsOnConfigChange(t *testing
 	for _, completion := range store.completions {
 		if completion.Complete || completion.Status.State != domain.AvailabilityPermissionDenied {
 			t.Fatalf("failed completion=%#v", completion)
+		}
+		if completion.Token.ObservedAt != demo.ObservationTime() || completion.Status.ObservedAt != demo.ObservationTime() || completion.CollectedAt.Before(completion.Token.ObservedAt) {
+			t.Fatal("failed synthetic observation invented a later scenario time")
 		}
 	}
 	store.configurations[0].Version++
@@ -230,6 +244,9 @@ func TestWorkerNeverFinishesPartialWriteAsComplete(t *testing.T) {
 	}
 	if len(store.completions) != 1 || store.completions[0].Complete || store.completions[0].Status.State != domain.AvailabilityUnavailable || store.retired != 0 {
 		t.Fatal("failed write retired old inventory or marked fresh")
+	}
+	if store.completions[0].Token.ObservedAt != demo.ObservationTime() || store.completions[0].Status.ObservedAt != demo.ObservationTime() || store.completions[0].CollectedAt != now {
+		t.Fatal("failed save lost scenario/receipt clock separation")
 	}
 }
 

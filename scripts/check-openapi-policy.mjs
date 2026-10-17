@@ -65,6 +65,27 @@ const browserSession = ['BrowserSession'];
 const sessionMutation = ['BrowserSession', 'CSRFRequestProof'];
 const highRiskMutation = ['BrowserSession', 'CSRFRequestProof', 'RecentAuthProof'];
 const preauthMutation = ['PreauthBrowserProof', 'PreauthRequestProof'];
+const guestReadPaths = new Set([
+  '/sources',
+  '/environments',
+  '/resources',
+  '/resources/{resource_id}',
+  '/resources/{resource_id}/health',
+  '/topology',
+  '/logs',
+  '/metrics/current',
+  '/metrics/history',
+  '/events',
+  '/alerts',
+  '/notifications',
+  '/streams/health',
+  '/streams/metrics',
+  '/streams/events',
+  '/streams/logs',
+  '/streams/alerts',
+]);
+const guestReadDescription =
+  'Public only in an explicitly isolated guest demonstration; normal installations require a browser session.';
 const routePolicies = new Map([
   [
     '/setup/status',
@@ -624,6 +645,16 @@ const successResponseNames = new Set([
 const allowedResponseKeys = ['content', 'description', 'headers'];
 const problemMediaType = 'application/problem+json';
 const allowedSchemaNames = [
+  'ResourceMetadata',
+  'DockerMetadataEnvelope',
+  'KubernetesMetadataEnvelope',
+  'DockerResourceMetadata',
+  'DockerPortMetadata',
+  'DockerMountMetadata',
+  'DockerLabelMetadata',
+  'KubernetesResourceMetadata',
+  'KubernetesContainerMetadata',
+  'KubernetesConditionMetadata',
   'MatrixNotificationSettingsStatus',
   'ConfiguredMatrixNotificationSettingsStatus',
   'DisabledMatrixNotificationSettingsStatus',
@@ -795,6 +826,8 @@ const allowedSchemaNames = [
   'SetupRequest',
   'SetupState',
   'SetupStatus',
+  'NormalSetupStatus',
+  'GuestDemoStatus',
   'SortDirection',
   'SourceId',
   'SourceSettingsRecord',
@@ -842,6 +875,7 @@ const forbiddenPropertyFragments = [
   'token',
 ];
 const sensitiveInputFieldAllowlist = new Set([
+  'ProductResource:metadata',
   'CreateUserRequest:password',
   'LoginRequest:password',
   'OwnPassphraseChangeRequest:new_password',
@@ -850,6 +884,18 @@ const sensitiveInputFieldAllowlist = new Set([
   'SetupRequest:password',
   'SourceUpdateRequest:confirmation_token',
   'SourceUpdatePreview:confirmation_token',
+]);
+const reviewedMetadataSchemaNames = new Set([
+  'ResourceMetadata',
+  'DockerMetadataEnvelope',
+  'KubernetesMetadataEnvelope',
+  'DockerResourceMetadata',
+  'DockerPortMetadata',
+  'DockerMountMetadata',
+  'DockerLabelMetadata',
+  'KubernetesResourceMetadata',
+  'KubernetesContainerMetadata',
+  'KubernetesConditionMetadata',
 ]);
 const schemaAssertionKeywords = new Set([
   '$ref',
@@ -982,8 +1028,12 @@ const inspectPathPolicy = (paths) => {
         }
       } else if (
         !Array.isArray(operation.security) ||
-        operation.security.length !== 1 ||
+        operation.security.length !== (method === 'get' && guestReadPaths.has(path) ? 2 : 1) ||
         !hasExactKeys(operation.security[0], policy.security) ||
+        (method === 'get' &&
+          guestReadPaths.has(path) &&
+          (!hasExactKeys(operation.security[1], []) ||
+            !operation.description.includes(guestReadDescription))) ||
         Object.values(operation.security[0]).some(
           (scopes) => !Array.isArray(scopes) || scopes.length !== 0,
         )
@@ -1021,7 +1071,10 @@ const inspectComponentPolicy = (components) => {
       continue;
     }
     for (const name of Object.keys(collection)) {
-      if (isForbiddenPropertyName(name)) {
+      if (
+        isForbiddenPropertyName(name) &&
+        !(collectionName === 'schemas' && reviewedMetadataSchemaNames.has(name))
+      ) {
         issues.push(`components.${collectionName}.${name} uses an unsafe name`);
       }
     }
@@ -1546,7 +1599,10 @@ const runPolicySelfTests = () => {
         Object.fromEntries(
           Object.entries(methods).map(([method, policy]) => {
             const operation = {
-              description: 'Bounded Phase 7 operation.',
+              description:
+                method === 'get' && guestReadPaths.has(path)
+                  ? guestReadDescription
+                  : 'Bounded Phase 7 operation.',
               operationId: policy.operationId,
               parameters: [{ $ref: '#/components/parameters/RequestId' }],
               responses: Object.fromEntries(
@@ -1558,7 +1614,10 @@ const runPolicySelfTests = () => {
               security:
                 policy.security.length === 0
                   ? []
-                  : [Object.fromEntries(policy.security.map((name) => [name, []]))],
+                  : [
+                      Object.fromEntries(policy.security.map((name) => [name, []])),
+                      ...(method === 'get' && guestReadPaths.has(path) ? [{}] : []),
+                    ],
               summary: 'Bounded operation',
             };
             if (policy.requestBody) {
@@ -1589,6 +1648,15 @@ const runPolicySelfTests = () => {
     },
     (paths) => {
       paths['/system/readiness'].get.security = [];
+    },
+    (paths) => {
+      paths['/system/readiness'].get.security.push({});
+    },
+    (paths) => {
+      paths['/sources'].get.security = [{}];
+    },
+    (paths) => {
+      paths['/sources'].get.description = 'Public without deployment isolation.';
     },
     (paths) => {
       delete paths['/auth/login'].post.requestBody;

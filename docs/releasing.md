@@ -5,10 +5,12 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. `0.x` checkpoints
 do not claim production support or publish images merely by tagging source.
 
-Current state: stages 1–3 are verified/tagged checkpoints, including exact remote
+Current state: stages 1–4 are verified/tagged checkpoints, including exact remote
 results for the unchanged 0.3.0 tag pushed on 2026-10-17. The 0.4.0 exploration
 checkpoint passed its final local, PostgreSQL, native and browser gates; exact
-publication outcomes are recorded separately. The maintainer's explicit
+publication outcomes are recorded separately. Stage 5 has scoped real provider,
+PostgreSQL lifecycle and guest browser evidence; its full changed-tree gate and
+exact publication results are recorded in the active plan. The maintainer's explicit
 test/version/commit/push request on 2026-10-17 supersedes the earlier no-push
 instruction for this task. Record commit/tag identities only after they exist.
 See [exploration](exploration.md), [observations](observations.md),
@@ -22,10 +24,11 @@ See [exploration](exploration.md), [observations](observations.md),
    regressions, native restore proof and any named stage-specific target gates.
 5. Inspect the full diff, untracked files and `git diff --check`. Exclude runtime
    data, generated builds, unknown screenshots, local secrets and tool caches.
-6. Commit one reviewed stage using Conventional Commits. Create an annotated
-   `vVERSION` tag at that commit, then push the reviewed commit and matching tag
-   under the maintainer authorization. Never force push or move a published tag.
-7. Inspect CI for that exact pushed revision.
+6. Commit one reviewed stage using Conventional Commits and push that candidate
+   under the maintainer authorization. Inspect CI for that exact revision before
+   creating the annotated `vVERSION` tag; tag the exact verified commit, then push
+   the matching tag. Never force push or move a published tag.
+7. Inspect tag CI for that exact pushed revision.
    Report failed, pending or unobserved
    remote gates honestly. CI definitions are not CI proof.
 

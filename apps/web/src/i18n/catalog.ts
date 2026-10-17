@@ -19,8 +19,14 @@ import designSystemFa from '../routes/design-system.messages.fa.json';
 import routesEn from '../routes/messages.en.json';
 import routesFa from '../routes/messages.fa.json';
 import type { Locale } from './locale';
+import demoEn from '../features/demo/demo.messages.en.json';
+import demoFa from '../features/demo/demo.messages.fa.json';
+import metadataEn from '../features/product/metadata.messages.en.json';
+import metadataFa from '../features/product/metadata.messages.fa.json';
 
 const enCatalog = {
+  ...demoEn,
+  ...metadataEn,
   ...appEn,
   ...shellEn,
   ...authEn,
@@ -45,6 +51,8 @@ export type TextMessageKey = {
 export type PluralMessageKey = Exclude<MessageKey, TextMessageKey>;
 
 const faCatalog = {
+  ...demoFa,
+  ...metadataFa,
   ...appFa,
   ...shellFa,
   ...authFa,

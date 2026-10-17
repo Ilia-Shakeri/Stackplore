@@ -4,6 +4,10 @@
 - Date: 2026-07-28
 - Owners: Project maintainers
 
+Lifecycle clarification: [ADR-0013](0013-provider-coverage-and-demo-lifecycle.md)
+distinguishes ordinary authenticated fixture persistence from isolated deployment
+resets, protected history and explicit guest observation.
+
 ## Context
 
 Stackplore needs a polished demonstration experience that exercises resources,

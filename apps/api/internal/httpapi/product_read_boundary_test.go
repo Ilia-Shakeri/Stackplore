@@ -236,6 +236,13 @@ func TestProductReadsPreserveProviderDenialAndOutage(t *testing.T) {
 			}
 			for _, path := range paths {
 				response := authenticatedProductRequest(boundaryHandler(t, provider), path)
+				if !lookup && path == "/api/v1/resources/"+id {
+					var resource resourceResponse
+					if response.Code != http.StatusOK || json.Unmarshal(response.Body.Bytes(), &resource) != nil || string(resource.ID) != id || resource.Health == "" || strings.Contains(response.Body.String(), "synthetic provider detail") {
+						t.Errorf("optional health failure lost known identity: status=%d resource=%#v", response.Code, resource)
+					}
+					continue
+				}
 				if response.Code != want || strings.Contains(response.Body.String(), "synthetic provider detail") {
 					t.Errorf("read %s (lookup %v) = %d; want %d", path, lookup, response.Code, want)
 				}

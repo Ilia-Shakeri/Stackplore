@@ -20,6 +20,55 @@ const unauthorized = () =>
   });
 
 describe('auth store', () => {
+  it('keeps explicit guest mode free from sessions and all write actions', async () => {
+    const getSession = vi.fn<AuthApi['getSession']>();
+    const login = vi.fn<AuthApi['login']>();
+    const setup = vi.fn<AuthApi['setup']>();
+    const logout = vi.fn<AuthApi['logout']>();
+    const createRecentAuthGrant = vi.fn<AuthApi['createRecentAuthGrant']>();
+    const api = createTestAuthApi({
+      getSession,
+      login,
+      setup,
+      logout,
+      createRecentAuthGrant,
+      getSetupStatus: vi.fn().mockResolvedValue({
+        state: 'guest_demo',
+        fixtureVersion: 'demo-v2',
+        scenarioStep: 0,
+        observedAt: '2026-08-16T08:00:00Z',
+      }),
+    });
+    const store = new AuthStore(api);
+    const action = vi.fn();
+    await store.ensureLoaded();
+    expect(store.getSnapshot()).toEqual({
+      status: 'guest_demo',
+      fixtureVersion: 'demo-v2',
+      scenarioStep: 0,
+      observedAt: '2026-08-16T08:00:00Z',
+    });
+    await store.recordActivity();
+    await expect(store.refreshSession()).rejects.toBeInstanceOf(AuthStateError);
+    await expect(store.runSessionAction(action)).rejects.toBeInstanceOf(AuthStateError);
+    await expect(store.runRecentAction('notification.test', '', action)).rejects.toBeInstanceOf(
+      AuthStateError,
+    );
+    await expect(store.login({ loginName: 'guest', password: '' })).rejects.toBeInstanceOf(
+      AuthStateError,
+    );
+    await expect(
+      store.setup({ loginName: 'guest', password: '', displayName: 'Guest' }),
+    ).rejects.toBeInstanceOf(AuthStateError);
+    await expect(store.logout()).rejects.toBeInstanceOf(AuthStateError);
+    expect(getSession).not.toHaveBeenCalled();
+    expect(login).not.toHaveBeenCalled();
+    expect(setup).not.toHaveBeenCalled();
+    expect(logout).not.toHaveBeenCalled();
+    expect(createRecentAuthGrant).not.toHaveBeenCalled();
+    expect(action).not.toHaveBeenCalled();
+    expect(store.getSnapshot().status).toBe('guest_demo');
+  });
   it('publishes setup state without probing a session', async () => {
     const getSession = vi.fn<AuthApi['getSession']>();
     const store = new AuthStore(

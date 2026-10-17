@@ -47,7 +47,7 @@ func TestCachedReadsUseRepositoryAndOnlyLogsResolveLiveProvider(t *testing.T) {
 	source := domain.ProviderRef{Provider: domain.ProviderDemo, SourceID: demo.SourceID}
 	query := domain.InventoryQuery{Source: source, SortField: domain.ResourceSortName, SortDirection: domain.SortAscending, Page: domain.PageRequest{Limit: 10}}
 	page, err := provider.ListResources(ctx, query)
-	if err != nil || len(page.Resources) != 6 {
+	if err != nil || len(page.Resources) != 9 {
 		t.Fatal("cached resources failed")
 	}
 	ref := page.Resources[0].Resource.Ref

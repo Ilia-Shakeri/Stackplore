@@ -7,6 +7,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runtimefiles"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/postgresmigrations"
 )
@@ -22,7 +23,11 @@ func Open(ctx context.Context, settings config.Config) (*postgres.Store, error) 
 	if ctx == nil || config.Validate(settings) != nil {
 		return nil, postgres.ErrInvalidOptions
 	}
-	dataDirectory, err := runtimefiles.PrepareDataDirectory(settings.DataDirectory)
+	directory := settings.DataDirectory
+	if settings.DemoDeployment {
+		directory = settings.DemoDataDirectory
+	}
+	dataDirectory, err := prepareProfileDirectory(directory, settings.DemoDeployment)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +35,7 @@ func Open(ctx context.Context, settings config.Config) (*postgres.Store, error) 
 	if err != nil {
 		return nil, err
 	}
-	return postgres.Open(ctx, postgres.Options{
+	store, err := postgres.Open(ctx, postgres.Options{
 		ConnectionString:          settings.DatabaseURL.Reveal(),
 		Schema:                    primarySchema,
 		MinimumConnections:        int32(settings.DatabaseMinConnections),
@@ -45,4 +50,14 @@ func Open(ctx context.Context, settings config.Config) (*postgres.Store, error) 
 		AuthDigestKey:             digestKey,
 		AuthDigestKeyID:           digestKeyID,
 	}, postgresmigrations.FS)
+	if err != nil {
+		return nil, err
+	}
+	profileContext, cancel := context.WithTimeout(ctx, settings.DatabaseMigrationTimeout)
+	defer cancel()
+	if err := store.ConfigureDeployment(profileContext, postgres.DeploymentProfile{Demo: settings.DemoDeployment, Guest: settings.GuestDemo, DataRoot: dataDirectory, FixtureVersion: demo.FixtureVersion}); err != nil {
+		_ = store.Close()
+		return nil, err
+	}
+	return store, nil
 }

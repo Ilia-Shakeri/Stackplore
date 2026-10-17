@@ -1,0 +1,54 @@
+# Optional restricted observation profile. The operator supplies certificates;
+# only this proxy receives the daemon socket. Never publish its listener.
+services:
+  api:
+    environment:
+      STACKPLORE_DOCKER_ENABLED: 'true'
+      STACKPLORE_DOCKER_ACCESS_PROFILE: docker_restricted_proxy
+      STACKPLORE_DOCKER_PROXY_ORIGIN: https://docker-proxy:8443
+      STACKPLORE_DOCKER_PROXY_CA_FILE: /run/stackplore-docker-client/ca.pem
+      STACKPLORE_DOCKER_PROXY_CERT_FILE: /run/stackplore-docker-client/client.pem
+      STACKPLORE_DOCKER_PROXY_KEY_FILE: /run/stackplore-docker-client/client-key.pem
+    volumes:
+      - type: bind
+        source: ${DOCKER_PROXY_CLIENT_DIRECTORY:?set certificate directory}
+        target: /run/stackplore-docker-client
+        read_only: true
+    networks:
+      stackplore: {}
+      docker-observation: {}
+    depends_on:
+      docker-proxy:
+        condition: service_started
+
+  docker-proxy:
+    image: haproxy:3.2-alpine@sha256:254e6370f01cd654e0744edf607c67f33777c1b6a9dc0d4b28bcba7171460122
+    user: '65532:65532'
+    group_add:
+      - ${DOCKER_SOCKET_GID:?set daemon socket group ID}
+    restart: unless-stopped
+    read_only: true
+    mem_limit: 64m
+    cpus: 0.5
+    pids_limit: 32
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    command: [haproxy, -W, -db, -f, /usr/local/etc/haproxy/haproxy.cfg]
+    volumes:
+      - type: bind
+        source: ./deploy/docker-proxy/haproxy.cfg
+        target: /usr/local/etc/haproxy/haproxy.cfg
+        read_only: true
+      - type: bind
+        source: ${DOCKER_PROXY_SERVER_DIRECTORY:?set proxy certificate directory}
+        target: /run/stackplore-docker-proxy
+        read_only: true
+      - type: bind
+        source: ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}
+        target: /var/run/docker.sock
+        read_only: true
+    networks: [docker-observation]
+
+networks:
+  docker-observation:
+    internal: true

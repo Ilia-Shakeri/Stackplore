@@ -156,6 +156,7 @@ func TestLoadLiveSourceSettingsUseStrictFlagsAndAbsolutePaths(t *testing.T) {
 	got, err := Load(getter(map[string]string{
 		dockerEnabledKey: "true", dockerSocketPathKey: dockerPath,
 		kubernetesEnabledKey: "true", kubernetesTokenFileKey: tokenPath, kubernetesCAFileKey: caPath,
+		kubernetesNamespacesKey: "default",
 	}))
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)

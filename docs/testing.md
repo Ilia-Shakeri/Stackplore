@@ -76,11 +76,56 @@ go -C apps/api test ./internal/postgres -run TestAlertHistoryHotPathQueryPlansOn
 These regressions supplement the full local gate. The final 0.3.0 local gate with
 real PostgreSQL, disposable native restart/restore and replay drill, HTTPS receiver
 checks, and Helm lint/render passed. Exact commands and outcomes are in the active
-evidence plan. Stages 4–9, live providers, browser/proxy, complete Matrix homeserver
-and target deployment proof remain separate. Under renewed authorization on
+evidence plan. Later exploration and provider receipts are recorded below;
+complete Matrix homeserver and target installation proof remain separate. Under renewed authorization on
 2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
-jobs. Older tagged results do not certify the 0.4.0 candidate; current results
+jobs. Older tagged results do not certify the 0.5.0 candidate; current results
 are recorded in the evidence plan.
+
+## Provider and isolated-demo candidate
+
+The `0.5.0` candidate has scoped Docker/Kubernetes, PostgreSQL and guest-browser
+receipts. Final complete changed-tree gate D passed with real PostgreSQL,
+36 client tests, 350 web tests and both builds. Exact publication/CI remain
+pending; do not report the early failed full gates as successful. The active
+plan records the 8.5/10 findings, fixes and final independent scoped 9/10 review.
+Stages 6–9 remain open.
+
+With a disposable real PostgreSQL URL, reproduce the narrow authority and clock
+checks after preparing the pinned tools:
+
+```powershell
+go -C apps/api test ./internal/postgres -run 'TestEnvironmentNamesRequireCurrentPartitionAuthorityBeforePagination|TestInventoryPartitions|TestOperatorAuthorityFence|TestNormalFixtureUpgrade|TestSyntheticWorkerKeepsScenarioClock' -count=1 -v
+go -C apps/api test ./internal/provider/kubernetes -run 'TestSDKMetrics|TestSDKMixedPost|TestProviderRejectsUnboundUsage|TestProviderKnownUsageDenial|TestProviderMissingUsage|TestSDKLogReadRequiresSamePodUID' -count=1 -v
+go -C apps/api test ./internal/provider/demo ./internal/observation ./internal/domain -count=1
+npm.cmd run verify
+```
+
+SQL regressions cover published environment/kind/scope authority before
+pagination, empty complete lists, denied/omitted partitions, policy narrowing,
+protected custom rules/disabled-source choices and separate synthetic/operational
+clocks. Wire tests cover stable Pod UID before/after log and metric reads, usage
+windows wholly inside Pod lifetime, independent bounds, any-usage-denial fencing
+and stale mixed results when CPU/memory is missing. These mocks do not replace
+real provider proof.
+
+The [Docker guide](docker-provider.md) gives the opt-in disposable restricted-mTLS
+Engine test and safety guards. The [Kubernetes guide](kubernetes-provider.md)
+gives isolated kind setup, missing-API and positive-usage tests, image checksums
+and exact final test-binary hash. Local proof covers named Engine/Kubernetes
+versions and separate namespace profiles; it is not a Stackplore Compose/chart
+installation or a general compatibility claim. Kubelet TLS relaxation belongs
+only to the disposable metrics fixture; the observation adapter still verifies
+the API server CA.
+
+The [guest matrix](evidence/0.5.0/browser-matrix.json) records 24 loaded route
+states in both locales across 360px light and 1280px dark profiles. The
+[runtime receipt](evidence/0.5.0/guest-runtime.json) records restart reset, fixed
+fixture clock, zero manufactured users/sessions/grants, zero deliveries and
+server-side private/write route denial. It does not claim every viewport/theme
+combination, native screen-reader execution or target installation acceptance.
+Native restore receipts and earlier focused static/web checks remain distinct
+from the final complete gate D, which passed after the latest corrections.
 
 ## Coverage and performance
 

@@ -58,3 +58,32 @@ func TestConfirmationRejectsMalformedProof(t *testing.T) {
 		}
 	}
 }
+
+func TestRestrictedDockerProfileCanBeEnabled(t *testing.T) {
+	at := time.Date(2026, 10, 17, 1, 0, 0, 0, time.UTC)
+	repository := &fakeRepository{configuration: domain.SourceConfiguration{
+		Source:    domain.InfrastructureSource{ID: "source_docker", Provider: domain.ProviderDocker, Name: "Docker"},
+		ProfileID: domain.SourceProfileDockerRestrictedProxy, Version: 1, CreatedAt: at, UpdatedAt: at,
+	}}
+	profiles := map[domain.SourceID]domain.SourceProfileID{
+		"source_demo":       domain.SourceProfileDemoFixture,
+		"source_docker":     domain.SourceProfileDockerRestrictedProxy,
+		"source_kubernetes": domain.SourceProfileKubernetesInCluster,
+	}
+	service, err := New(repository, profiles, func() time.Time { return at })
+	if err != nil {
+		t.Fatal("configured restricted Docker profile prevented source settings startup")
+	}
+	actor := auth.Principal{UserID: "usr_admin", SessionID: "sess_admin", Role: auth.RoleAdministrator, AuthRevision: 1}
+	preview, err := service.Preview(context.Background(), actor, "source_docker", 1, true)
+	if err != nil || !preview.RequestedEnabled || repository.previewCalls != 1 || !repository.command.ProfileAvailable {
+		t.Fatal("configured restricted Docker profile could not preview collection enablement")
+	}
+	repository.configuration.ProfileID = domain.SourceProfileDockerSocketDevelopment
+	if service.ProfileAvailable(repository.configuration) {
+		t.Fatal("restricted profile advertised a different socket profile")
+	}
+	if _, err := New(repository, map[domain.SourceID]domain.SourceProfileID{"source_docker": "browser_proxy"}, func() time.Time { return at }); !errors.Is(err, ErrInvalid) {
+		t.Fatal("unknown operator profile accepted")
+	}
+}

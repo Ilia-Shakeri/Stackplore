@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -37,11 +38,24 @@ func (store *Store) EnsureDemoAlerts(ctx context.Context, seed domain.DemoAlertS
 		if !ready {
 			return domain.ErrRepositoryNotFound
 		}
+		var demoProfile, guestProfile bool
+		var resetEpoch int64
+		profileErr := transaction.transaction.QueryRow(ctx, `SELECT mode='demo',guest_demo,reset_epoch FROM deployment_profile WHERE singleton=true`).Scan(&demoProfile, &guestProfile, &resetEpoch)
+		if profileErr != nil && !errors.Is(profileErr, pgx.ErrNoRows) {
+			return profileErr
+		}
 		var userID domain.UserID
+		var owner any
+		systemOwned := false
 		if err := transaction.transaction.QueryRow(ctx, `SELECT id FROM users WHERE role='administrator' AND enabled=1 AND deleted_at_us IS NULL ORDER BY created_at_us,id LIMIT 1`).Scan(&userID); errors.Is(err, pgx.ErrNoRows) {
-			return domain.ErrRepositoryNotFound
+			if !demoProfile || !guestProfile {
+				return domain.ErrRepositoryNotFound
+			}
+			systemOwned = true
 		} else if err != nil {
 			return err
+		} else {
+			owner = string(userID)
 		}
 		rule := seed.Rule
 		// An existing fixture rule is preserved, including intentional soft deletion.
@@ -50,7 +64,7 @@ func (store *Store) EnsureDemoAlerts(ctx context.Context, seed domain.DemoAlertS
 			return err
 		}
 		if !exists {
-			_, err := transaction.transaction.Exec(ctx, `INSERT INTO alert_rules(id,source_id,environment_id,resource_id,display_name,rule_kind,enabled,severity,comparison_operator,threshold_value,threshold_count,window_seconds,minimum_event_severity,evaluation_interval_seconds,pending_for_seconds,next_evaluation_at_us,created_by_user_id,updated_by_user_id,created_at_us,updated_at_us,row_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$17,$18,$19,1)`, string(rule.ID), string(rule.SourceID), optionalEnvironmentID(rule.EnvironmentID), optionalResourceID(rule.ResourceID), rule.DisplayName, string(rule.Kind), boolInteger(rule.Enabled), string(rule.Severity), optionalComparison(rule.Comparison), optionalFloat(rule.ThresholdValue), optionalCount(rule.ThresholdCount), optionalDuration(rule.Window), optionalSeverity(rule.MinimumSeverity), int64(rule.EvaluationInterval/time.Second), int64(rule.PendingFor/time.Second), seed.Mutation.Alert.UpdatedAt.UnixMicro(), string(userID), seed.Mutation.Alert.StartedAt.UnixMicro(), seed.Mutation.Alert.UpdatedAt.UnixMicro())
+			_, err := transaction.transaction.Exec(ctx, `INSERT INTO alert_rules(id,source_id,environment_id,resource_id,display_name,rule_kind,enabled,severity,comparison_operator,threshold_value,threshold_count,window_seconds,minimum_event_severity,evaluation_interval_seconds,pending_for_seconds,next_evaluation_at_us,created_by_user_id,updated_by_user_id,created_at_us,updated_at_us,row_version,system_owned) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$17,$18,$19,1,$20)`, string(rule.ID), string(rule.SourceID), optionalEnvironmentID(rule.EnvironmentID), optionalResourceID(rule.ResourceID), rule.DisplayName, string(rule.Kind), boolInteger(rule.Enabled), string(rule.Severity), optionalComparison(rule.Comparison), optionalFloat(rule.ThresholdValue), optionalCount(rule.ThresholdCount), optionalDuration(rule.Window), optionalSeverity(rule.MinimumSeverity), int64(rule.EvaluationInterval/time.Second), int64(rule.PendingFor/time.Second), seed.Mutation.Alert.UpdatedAt.UnixMicro(), owner, seed.Mutation.Alert.StartedAt.UnixMicro(), seed.Mutation.Alert.UpdatedAt.UnixMicro(), systemOwned)
 			if err != nil {
 				return err
 			}
@@ -61,7 +75,11 @@ func (store *Store) EnsureDemoAlerts(ctx context.Context, seed domain.DemoAlertS
 				return err
 			}
 		}
-		digest := sha256.Sum256([]byte(string(rule.SourceID) + "\x00" + seed.FixtureVersion))
+		seedIdentity := string(rule.SourceID) + "\x00" + seed.FixtureVersion
+		if demoProfile {
+			seedIdentity += fmt.Sprintf("\x00%d", resetEpoch)
+		}
+		digest := sha256.Sum256([]byte(seedIdentity))
 		suffix := hex.EncodeToString(digest[:16])
 		audit := domain.AuditEntry{ID: domain.AuditEntryID("audit_demo_seed_" + suffix), OccurredAt: seed.Mutation.Alert.UpdatedAt, Actor: domain.AuditActor{Kind: domain.AuditActorSystem}, Action: "alert.demo_seed", Target: domain.AuditTarget{Kind: "source.configuration", ID: string(rule.SourceID)}, Outcome: domain.AuditSuccess, RequestID: domain.RequestID("request_demo_seed_" + suffix), ReasonCode: "alert.demo_seeded"}
 		if err := (&transactionRepositories{transaction: transaction}).AppendAuditEntries(ctx, []domain.AuditEntry{audit}); err != nil {

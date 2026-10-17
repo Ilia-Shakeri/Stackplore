@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { useLocale } from '../../i18n';
+import { GuestDemoNotice } from '../../features/demo/GuestDemoNotice';
 
 export function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -30,6 +31,7 @@ export function AppShell() {
       <Sidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
       <div className="app-shell__body min-w-0">
         <TopBar />
+        <GuestDemoNotice />
         <main ref={mainRef} id="main-content" className="app-shell__main" tabIndex={-1}>
           <div className="app-shell__page-frame min-w-0">
             <Outlet />

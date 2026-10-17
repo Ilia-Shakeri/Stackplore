@@ -74,6 +74,9 @@ func (handler productHTTP) durableAlertStream(w http.ResponseWriter, r *http.Req
 			_ = writeSSE(w, 0, "stream.reset.v1", []byte(`{"reason":"lifetime"}`))
 			return
 		case <-authCheck.C:
+			if handler.auth.guestDemo != nil {
+				continue
+			}
 			readContext, cancelRead := context.WithTimeout(ctx, streamReadTimeout)
 			_, err := handler.auth.service.Authenticate(readContext, sessionToken)
 			cancelRead()

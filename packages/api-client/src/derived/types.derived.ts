@@ -82,9 +82,24 @@ export type User = {
 export type SetupState = 'required' | 'closed';
 
 /**
+ * Public sign-in choice or explicitly isolated read-only guest fixture.
+ */
+export type SetupStatus = NormalSetupStatus | GuestDemoStatus;
+
+/**
+ * Public observation metadata without a user, session, or authentication proof.
+ */
+export type GuestDemoStatus = {
+  state: 'guest_demo';
+  fixture_version: string;
+  scenario_step: number;
+  observed_at: Timestamp;
+};
+
+/**
  * Minimum public state needed to choose setup or sign-in.
  */
-export type SetupStatus = {
+export type NormalSetupStatus = {
   state: SetupState;
   bootstrap_proof_required: boolean;
 };
@@ -286,6 +301,7 @@ export type ProductResource = {
   synthetic: boolean;
   observed_at: string;
   health?: HealthState;
+  metadata?: ResourceMetadata;
 };
 
 export type ProductResourcePage = {
@@ -295,6 +311,112 @@ export type ProductResourcePage = {
   reason_code?: NamespacedCode;
   items: Array<ProductResource>;
   page: PageInfo;
+};
+
+/**
+ * Reviewed provider facts only; exactly one envelope matching the resource provider.
+ */
+export type ResourceMetadata = DockerMetadataEnvelope | KubernetesMetadataEnvelope;
+
+export type DockerMetadataEnvelope = {
+  docker: DockerResourceMetadata;
+};
+
+export type KubernetesMetadataEnvelope = {
+  kubernetes: KubernetesResourceMetadata;
+};
+
+export type DockerResourceMetadata = {
+  engine_version?: string;
+  state:
+    'created' | 'running' | 'paused' | 'restarting' | 'exited' | 'removing' | 'dead' | 'unknown';
+  image?: string;
+  health: 'healthy' | 'unhealthy' | 'starting' | 'none' | 'unknown';
+  restart_count: number;
+  started_at?: string;
+  exit_code?: number;
+  ports: Array<DockerPortMetadata>;
+  mounts: Array<DockerMountMetadata>;
+  labels: Array<DockerLabelMetadata>;
+  cpu_limit_cores?: number;
+  memory_limit_bytes?: number;
+};
+
+export type DockerPortMetadata = (
+  | {
+      host_port: number;
+      published?: true;
+    }
+  | {
+      published?: false;
+    }
+) & {
+  container_port: number;
+  host_port?: number;
+  protocol: 'tcp' | 'udp' | 'sctp';
+  published: boolean;
+};
+
+export type DockerMountMetadata = {
+  type: 'volume' | 'bind' | 'tmpfs';
+  target: string;
+  read_only: boolean;
+};
+
+export type DockerLabelMetadata = (
+  | {
+      key?: 'com.docker.compose.project' | 'com.docker.compose.service';
+      value?: string;
+    }
+  | {
+      key?: 'stackplore.io/depends-on';
+    }
+) & {
+  key: 'com.docker.compose.project' | 'com.docker.compose.service' | 'stackplore.io/depends-on';
+  value: string;
+};
+
+export type KubernetesResourceMetadata = {
+  containers: Array<KubernetesContainerMetadata>;
+  conditions: Array<KubernetesConditionMetadata>;
+};
+
+export type KubernetesContainerMetadata = {
+  name: string;
+  state: 'unknown' | 'waiting' | 'running' | 'terminated';
+  ready: boolean;
+  restart_count: number;
+  reason_code?:
+    | 'kubernetes.container.waiting'
+    | 'kubernetes.container.running'
+    | 'kubernetes.container.terminated'
+    | 'kubernetes.container.crash_loop'
+    | 'kubernetes.container.image_pull'
+    | 'kubernetes.container.config_error'
+    | 'kubernetes.container.creating'
+    | 'kubernetes.container.out_of_memory'
+    | 'kubernetes.container.completed'
+    | 'kubernetes.container.error';
+  cpu_request_cores?: number;
+  cpu_limit_cores?: number;
+  memory_request_bytes?: number;
+  memory_limit_bytes?: number;
+};
+
+export type KubernetesConditionMetadata = {
+  type:
+    | 'ready'
+    | 'containers_ready'
+    | 'initialized'
+    | 'scheduled'
+    | 'available'
+    | 'progressing'
+    | 'replica_failure'
+    | 'complete'
+    | 'failed';
+  status: 'true' | 'false' | 'unknown';
+  reason_code?:
+    'kubernetes.condition.true' | 'kubernetes.condition.false' | 'kubernetes.condition.unknown';
 };
 
 export type ProductResourceHealth = {

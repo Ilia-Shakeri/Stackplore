@@ -1,0 +1,251 @@
+{
+  "fixture": "demo-v2",
+  "routes": 6,
+  "states": 24,
+  "profiles": [
+    "360 light",
+    "1280 dark"
+  ],
+  "checks": [
+    {
+      "route": "/overview",
+      "locale": "en",
+      "viewportWidth": 360,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/resources",
+      "locale": "en",
+      "viewportWidth": 360,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/topology",
+      "locale": "en",
+      "viewportWidth": 360,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/logs",
+      "locale": "en",
+      "viewportWidth": 360,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/events",
+      "locale": "en",
+      "viewportWidth": 360,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/alerts",
+      "locale": "en",
+      "viewportWidth": 360,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/overview",
+      "locale": "fa",
+      "viewportWidth": 360,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/resources",
+      "locale": "fa",
+      "viewportWidth": 360,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/topology",
+      "locale": "fa",
+      "viewportWidth": 360,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/logs",
+      "locale": "fa",
+      "viewportWidth": 360,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/events",
+      "locale": "fa",
+      "viewportWidth": 360,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/alerts",
+      "locale": "fa",
+      "viewportWidth": 360,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 345,
+      "width": 345,
+      "loaded": true
+    },
+    {
+      "route": "/overview",
+      "locale": "fa",
+      "viewportWidth": 1280,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/resources",
+      "locale": "fa",
+      "viewportWidth": 1280,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/topology",
+      "locale": "fa",
+      "viewportWidth": 1280,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/logs",
+      "locale": "fa",
+      "viewportWidth": 1280,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/events",
+      "locale": "fa",
+      "viewportWidth": 1280,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/alerts",
+      "locale": "fa",
+      "viewportWidth": 1280,
+      "direction": "rtl",
+      "language": "fa",
+      "scrollWidth": 1280,
+      "width": 1280,
+      "loaded": true
+    },
+    {
+      "route": "/overview",
+      "locale": "en",
+      "viewportWidth": 1280,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/resources",
+      "locale": "en",
+      "viewportWidth": 1280,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/topology",
+      "locale": "en",
+      "viewportWidth": 1280,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/logs",
+      "locale": "en",
+      "viewportWidth": 1280,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/events",
+      "locale": "en",
+      "viewportWidth": 1280,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 1265,
+      "width": 1265,
+      "loaded": true
+    },
+    {
+      "route": "/alerts",
+      "locale": "en",
+      "viewportWidth": 1280,
+      "direction": "ltr",
+      "language": "en",
+      "scrollWidth": 1280,
+      "width": 1280,
+      "loaded": true
+    }
+  ]
+}

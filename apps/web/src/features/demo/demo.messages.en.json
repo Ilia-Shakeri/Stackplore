@@ -1,0 +1,12 @@
+{
+  "demo.mode.title": "Demo mode",
+  "demo.mode.guest": "Guest",
+  "demo.mode.readOnly": "Read only · synthetic data",
+  "demo.mode.description": "Explore the fixed demonstration. Infrastructure changes, account changes and outbound notifications are disabled.",
+  "demo.mode.fixture": "Fixture version",
+  "demo.mode.step": "Scenario step",
+  "demo.mode.clock": "Scenario clock",
+  "demo.step.initial": "Checkout unavailable",
+  "demo.step.recovering": "Checkout recovering",
+  "demo.step.healthy": "Services recovered"
+}

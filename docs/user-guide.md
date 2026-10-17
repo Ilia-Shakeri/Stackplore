@@ -1,8 +1,10 @@
 # Current user guide
 
-This describes the authenticated 0.4 development checkpoint. Current local/PostgreSQL proof
-is recorded in the evidence plan; live browser and target deployment evidence
-remain separate. It is not a promise that every 1.0 feature exists. See [remaining work](roadmap.md) and
+This describes the authenticated exploration checkpoint and the implemented
+0.5 provider/guest candidate. Current PostgreSQL, actual browser and disposable
+provider proof is recorded separately in the evidence plan; full installation
+and production acceptance remain later gates. Every 1.0 feature is not yet
+available. See [remaining work](roadmap.md) and
 [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
@@ -60,11 +62,15 @@ See [collection, source settings and retention](observations.md).
 Metric status can be partial when resource support or connection results differ
 within a source. Stored samples keep their own timestamps; a source-level metric
 status does not prove each resource is currently supported or freshly observed.
-Exact per-resource metric availability is still stage 5 work.
+Mixed metric support keeps a conservative source-wide status. Per-name resource
+status is not persisted; current samples older than five minutes are stale and
+retain their actual timestamps. Restricted provider facts and guest isolation
+are described in the [Docker](docker-provider.md),
+[Kubernetes](kubernetes-provider.md) and [demonstration](demo.md) guides.
 
 Viewers cannot administer users/rules/global settings or mutate infrastructure.
 The current baseline exposes no live restart/scale action. The installable PWA,
-guest demonstration deployment, broader safe profile setup, full detail
+broader safe profile setup, full detail
 tabs, and complete history/export/cleanup flows remain roadmap work.
 
 Loading, denied, unavailable and disconnected states deserve attention. Retry a

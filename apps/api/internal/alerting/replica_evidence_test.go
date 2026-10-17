@@ -52,7 +52,7 @@ func TestReplicaWindowRejectsMissingDeniedResetAndFuture(t *testing.T) {
 			case "denied":
 				reader.result.Samples[1].Status.State, reader.result.Samples[1].Status.ReasonCode = domain.AvailabilityPermissionDenied, "source.denied"
 			case "invalid_counts":
-				reader.result.Samples[1].Ready = 3
+				reader.result.Samples[1].Ready = 9_007_199_254_740_992
 			case "future":
 				reader.result.Samples[1].Status.ObservedAt = provider.at.Add(time.Second)
 			case "capped":

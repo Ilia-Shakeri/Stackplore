@@ -1,30 +1,16 @@
 package docker
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
-	"net/url"
-	"strconv"
 	"time"
+
+	"github.com/moby/moby/client"
 )
 
-const dockerEventTypeFilter = `{"type":["container","image","network","volume","daemon"]}`
-
-type engineEvent struct {
-	Type     string `json:"Type"`
-	Action   string `json:"Action"`
-	Time     int64  `json:"time"`
-	TimeNano int64  `json:"timeNano"`
-	Actor    struct {
-		ID string `json:"ID"`
-	} `json:"Actor"`
-}
-
 func (collector *EngineCollector) EngineEvents(ctx context.Context, start, end time.Time) (DockerEventBatch, error) {
-	if collector == nil || collector.client == nil || ctx == nil || ctx.Err() != nil ||
+	if collector == nil || collector.sdk == nil || ctx == nil || ctx.Err() != nil ||
 		start.Location() != time.UTC || end.Location() != time.UTC || !start.Before(end) {
 		return DockerEventBatch{}, errors.Join(ErrUnavailable, contextCause(ctx))
 	}
@@ -33,46 +19,60 @@ func (collector *EngineCollector) EngineEvents(ctx context.Context, start, end t
 		end = now
 	}
 	if !start.Before(end) {
-		return DockerEventBatch{}, nil
+		return DockerEventBatch{Truncated: true}, nil
 	}
-	values := url.Values{
-		"since":   {strconv.FormatInt(start.Unix(), 10)},
-		"until":   {strconv.FormatInt(end.Unix(), 10)},
-		"filters": {dockerEventTypeFilter},
-	}
-	data, responseTruncated, err := collector.getRaw(ctx, "/events?"+values.Encode(), int(collector.maximumResponse))
-	if err != nil {
-		return DockerEventBatch{}, err
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	batch := DockerEventBatch{Events: make([]DockerEvent, 0, min(collector.maximumItems, 256)), Truncated: responseTruncated}
+	streamContext, cancel := context.WithCancel(ctx)
+	defer cancel()
+	// Inspect the unfiltered retained ring. Filtering at the daemon can conceal
+	// overflow from other event types and incorrectly certify an earlier window.
+	stream := collector.sdk.Events(streamContext, client.EventsListOptions{Since: "0", Until: end.Format(time.RFC3339Nano)})
+	batch := DockerEventBatch{Events: make([]DockerEvent, 0, min(collector.maximumItems, 256))}
+	var earliest time.Time
+	invalidTime := false
 	for {
-		var item engineEvent
-		err := decoder.Decode(&item)
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			if responseTruncated && len(batch.Events) > 0 {
-				batch.Truncated = true
-				break
+		select {
+		case <-ctx.Done():
+			return DockerEventBatch{}, engineError(ctx, ctx.Err())
+		case err, open := <-stream.Err:
+			if !open || errors.Is(err, io.EOF) {
+				// An empty ring, a newer earliest event, and pre-1.46 omissions
+				// cannot establish complete historical coverage.
+				batch.Truncated = invalidTime || earliest.IsZero() || earliest.After(start) || collector.sdk.ClientVersion() < "1.46"
+				return batch, nil
 			}
-			return DockerEventBatch{}, ErrUnavailable
+			if errors.Is(err, errEngineResponseLimit) && len(batch.Events) > 0 {
+				batch.Truncated = true
+				return batch, nil
+			}
+			return DockerEventBatch{}, engineError(ctx, err)
+		case item := <-stream.Messages:
+			if len(batch.Events) >= collector.maximumItems {
+				batch.Truncated = true
+				return batch, nil
+			}
+			occurredAt := time.Unix(item.Time, 0)
+			if item.TimeNano > 0 {
+				occurredAt = time.Unix(0, item.TimeNano)
+			}
+			occurredAt = occurredAt.UTC().Truncate(time.Microsecond)
+			if occurredAt.Unix() <= 0 || occurredAt.After(now) {
+				invalidTime = true
+				continue
+			}
+			if earliest.IsZero() || occurredAt.Before(earliest) {
+				earliest = occurredAt
+			}
+			if occurredAt.Before(start) || !occurredAt.Before(end) {
+				continue
+			}
+			switch string(item.Type) {
+			case "container", "image", "network", "volume", "daemon":
+			default:
+				continue
+			}
+			batch.Events = append(batch.Events, DockerEvent{Type: string(item.Type), Action: string(item.Action), ActorID: item.Actor.ID, OccurredAt: occurredAt})
 		}
-		if len(batch.Events) >= collector.maximumItems {
-			batch.Truncated = true
-			break
-		}
-		occurredAt := time.Unix(item.Time, 0)
-		if item.TimeNano > 0 {
-			occurredAt = time.Unix(0, item.TimeNano)
-		}
-		batch.Events = append(batch.Events, DockerEvent{
-			Type: item.Type, Action: item.Action, ActorID: item.Actor.ID,
-			OccurredAt: occurredAt.UTC().Truncate(time.Microsecond),
-		})
 	}
-	return batch, nil
 }
 
 var _ EventCollector = (*EngineCollector)(nil)

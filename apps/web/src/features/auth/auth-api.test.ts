@@ -28,6 +28,50 @@ const wireSession = () => {
 const response = (data: unknown, status = 200) => ({ data, requestId, status });
 
 describe('auth API adapter', () => {
+  it('accepts explicit guest metadata without inventing a session', async () => {
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+      response({
+        state: 'guest_demo',
+        fixture_version: 'demo-v2',
+        scenario_step: 0,
+        observed_at: '2026-08-16T08:00:00.000001Z',
+      }),
+    );
+    await expect(
+      createAuthApi({ request: request as ApiClient['request'] }).getSetupStatus(),
+    ).resolves.toEqual({
+      state: 'guest_demo',
+      fixtureVersion: 'demo-v2',
+      scenarioStep: 0,
+      observedAt: '2026-08-16T08:00:00.000001Z',
+    });
+    expect(request).toHaveBeenCalledOnce();
+  });
+  it.each([
+    { fixture_version: '' },
+    { fixture_version: 'x'.repeat(65) },
+    { fixture_version: 'demo\u202Ev2' },
+    { scenario_step: -1 },
+    { scenario_step: 3 },
+    { scenario_step: '0' },
+    { observed_at: '2026-08-16T08:00:00.1234567Z' },
+    { observed_at: '2026-02-30T08:00:00Z' },
+    { user: {} },
+    { csrf_proof: '' },
+  ])('rejects malformed guest metadata %j', async (change) => {
+    const request = vi.fn<ApiClient['request']>().mockResolvedValue(
+      response({
+        state: 'guest_demo',
+        fixture_version: 'demo-v2',
+        scenario_step: 0,
+        observed_at: '2026-08-16T08:00:00Z',
+        ...change,
+      }),
+    );
+    await expect(
+      createAuthApi({ request: request as ApiClient['request'] }).getSetupStatus(),
+    ).rejects.toBeInstanceOf(AuthResponseError);
+  });
   it.each(['user.delete', 'source.update'] as const)(
     'binds a recent grant to %s and current session proof',
     async (purpose) => {

@@ -44,10 +44,17 @@ export interface SessionContext {
   readonly user: CurrentUser;
 }
 
-export interface SetupStatus {
-  readonly bootstrapProofRequired: boolean;
-  readonly state: 'closed' | 'required';
-}
+export type SetupStatus =
+  | {
+      readonly bootstrapProofRequired: boolean;
+      readonly state: 'closed' | 'required';
+    }
+  | {
+      readonly state: 'guest_demo';
+      readonly fixtureVersion: string;
+      readonly scenarioStep: 0 | 1 | 2;
+      readonly observedAt: string;
+    };
 
 export interface LoginInput {
   readonly loginName: string;
@@ -197,6 +204,24 @@ const parseSession = (value: unknown): SessionContext => {
 };
 
 const parseSetupStatus = (value: unknown): SetupStatus => {
+  if (isRecord(value) && value.state === 'guest_demo') {
+    if (
+      !hasExactKeys(value, ['state', 'fixture_version', 'scenario_step', 'observed_at']) ||
+      !isDisplayText(value.fixture_version) ||
+      Array.from(value.fixture_version).length > 64 ||
+      (value.scenario_step !== 0 && value.scenario_step !== 1 && value.scenario_step !== 2) ||
+      !isTimestamp(value.observed_at) ||
+      new Date(value.observed_at).toISOString().slice(0, 19) !== value.observed_at.slice(0, 19) ||
+      /\.[0-9]{7,}Z$/u.test(value.observed_at)
+    )
+      throw new AuthResponseError();
+    return {
+      state: 'guest_demo',
+      fixtureVersion: value.fixture_version,
+      scenarioStep: value.scenario_step,
+      observedAt: value.observed_at,
+    };
+  }
   if (
     !isRecord(value) ||
     !hasExactKeys(value, ['state', 'bootstrap_proof_required']) ||

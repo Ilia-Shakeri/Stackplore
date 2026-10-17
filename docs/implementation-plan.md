@@ -3,7 +3,9 @@
 Review dates: 2026-10-12–17. Target: 1.0.0. Stages 1–4 are verified development
 checkpoints through `0.4.0`. Stage 4 final local and browser gates passed; exact
 remote publication outcomes are recorded separately. Current work is Stage 5
-provider fidelity. Stages 5–9 remain open.
+provider fidelity at the locally verified `0.5.0` checkpoint. Provider/guest behavior has
+scoped real-target and browser receipts; final changed-tree gate D passed with
+scoped quality 9/10. Commit/tag/remote CI remain pending. Stages 6–9 remain open.
 [Roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) defines ordered exit gates.
 [Audit](codebase-audit.md) records coverage and defects.
 [Historical evidence](history/implementation-plan-2026-08.md) retains prior results.
@@ -107,12 +109,11 @@ Failures were repaired: entry Go operation formatting; later web test formatting
 
 ## Remaining 1.0 scope
 
-Stage 2 core source/observation/collection/history work is in the verified local
-checkpoint; its final evidence follows. Stage 3: alert window/rate/outage/event semantics,
-durable live alert/replay, Matrix and receiver proof. Stage 4: full
-paging/detail/log/topology, idle session refresh and browser journeys. Stage 5:
-vendor-client alignment, restricted production Docker, namespace/partial rights,
-provider fidelity and full multi-environment demo/guest isolation. Stage 6:
+Stages 1–4 are verified checkpoints; the detailed historical evidence follows.
+The Stage 5 candidate implements vendor clients, restricted Docker, scoped
+Kubernetes authority and the multi-environment guest demo. Its final optional-port
+clock and startup-profile fixes have scoped passing regressions; the complete
+changed-tree gate D passed; publication/CI remain open. Stage 6:
 operator audit quotas/minimum retention/reviewed cleanup, narrow operation gates
 and settings/export/cleanup. Stage 7: built-web serving alignment, real
 containers/cluster/TLS/upgrade/restore. Stage 8/9: safe PWA,
@@ -254,7 +255,8 @@ are canonical LF before final native/SQL verification. Existing unknown
 
 Scores judge this delivered stage, not whole-project completion, measured test
 coverage or production capacity. Stage 3 is a completed local development
-checkpoint. Stages 4–9 remain open; no whole-product or target-readiness claim is made.
+checkpoint. At that checkpoint Stages 4–9 were open; current later-stage results
+are recorded below. No whole-product or target-readiness claim is made.
 
 ### Executed focused proof
 
@@ -406,3 +408,105 @@ with 2,003 demonstration resources, 100 native resources, 21,003 metric facts,
 101 health-filtered resources, 0.05ms for 51 events, 0.41ms for 100 current
 metrics, 1.42ms for a 250-row retention quota and 0.10ms for 51 audit rows.
 These are fixture SQL plans, not end-to-end latency, target scale or an SLO.
+
+## Stage 5 — 0.5.0 locally verified checkpoint — 2026-10-17
+
+Implementation and scoped evidence exist; **final changed-tree gate D passed;
+publication/CI are pending**. No Stage 5 commit, tag, push or remote CI result is
+claimed here. Stage 6–9 work remains open.
+
+### Implemented scope
+
+- Official Docker Engine and Kubernetes clients remain behind provider-neutral
+  ports. Docker observation has a reviewed mTLS proxy profile; direct socket
+  access remains loopback development only. Kubernetes uses explicit namespaces
+  and optional separate cluster observation, with no Secret value/object reads.
+- Disjoint kind/scope coverage publishes authority atomically. Complete empty
+  partitions prove deletion; failed/denied/omitted partitions do not. Current
+  reads and historical evidence hide revoked authority independently of bounded
+  retirement. Operator policy changes fence cache until fresh publication.
+- Closed Docker/Kubernetes metadata exposes only reviewed state, limits,
+  conditions, ports, container mount targets and public labels. It excludes host
+  mount paths, raw SDK maps, environment values and credentials. Domain, SQL,
+  HTTP contract, strict browser guards and bilingual detail views share the bound.
+- Pod log reads check expected immutable UID before and after the name-based
+  read. Usage checks stable UID, known creation time and the full raw sample
+  window before transport rounding. Known usage denial fences the whole metric
+  port; missing usage with configured facts is stale. Separately observed
+  configuration remains visible in typed detail metadata.
+- `demo-v2` preserves the source and earlier resource identities while adding
+  nine resources across two environments, 13 evidence-backed relationships,
+  stable absolute-tick history and three deterministic test steps. The initial
+  bounded metric history contains 972 facts. Synthetic collection keeps the
+  fixed observation clock; operational receipts/backoff use wall time.
+- Ordinary fixture upgrades replace packaged derived facts while preserving
+  administrator rules, disabled-source choices, accounts and audit. Isolated
+  startup/reset uses separate marked storage and resumable cleanup. Explicit
+  guest viewing creates no account/session/grant, denies writes and private
+  routes, and cannot enable real providers or outbound delivery.
+
+See [Docker](docker-provider.md), [Kubernetes](kubernetes-provider.md),
+[Demo](demo.md) and [ADR-0013](adr/0013-provider-coverage-and-demo-lifecycle.md).
+
+### Correction loop and remaining gate
+
+| Pass | Stage score | Finding | Correction and state |
+| --- | --- | --- | --- |
+| Provider/guest review | 8/10 | Incomplete partition authority, derived reference leakage, fixture reset erasing administrator choices, and unbound Pod log/usage identity | Narrow domain/SQL/adapter/HTTP/browser fixes plus real SQL and provider regressions passed. |
+| Final independent review | 8.5/10 | Environment names retained omitted legacy authority; the complete gate exposed optional metric-port clock and retained-current-sample regressions | Environment leakage reproduced against real PostgreSQL, then corrected in both environment paging and initial-port inference. Environment and final clock fixes passed real SQL regressions; the final changed-tree gate remains pending. |
+| Startup-profile follow-up | 8.5/10 | Source-settings startup allowlist omitted the valid restricted Docker profile | A failing regression reproduced the rejection; the minimal closed-allowlist fix passed source-settings/server packages in 1.581s/6.208s. The final gate must include this later fix. |
+| Final acceptance | 9/10 | No known severe defect in the delivered Stage 5 scope after the final corrections | Final gate D and independent index/scope review passed; exact publication/CI remain pending. This is not a 1.0 or deployment-completeness score. |
+
+The environment regression first returned legacy environment A and current B
+even though A's resources were already hidden. The passing replacement checks
+legacy fallback, current/omitted/denied/unsupported partitions, authorized empty
+environments, one-row keyset pages/counts and the pending operator-policy fence.
+The before/after receipts are retained separately.
+
+### Executed scoped proof
+
+All PostgreSQL commands below used the explicit disposable
+`STACKPLORE_TEST_POSTGRES_URL`; a run without that variable is not SQL proof.
+Ignored local logs are diagnostic receipts, while the retained guest artifacts
+contain only safe fixture data. These results do not substitute for the final
+changed-tree gate.
+
+| Boundary | Executed result and receipt |
+| --- | --- |
+| Docker Engine | `TestRestrictedProxyOnRealDockerEngine` passed in 128.01s against disposable Linux Engine 29.1.3, negotiated API 1.52, Go 1.26.5. Inventory/stats/logs/events, proxy method/path denials, mTLS and ownership cleanup are covered. Marker `REAL_DOCKER_RESTRICTED_MTLS_SDK_INVENTORY_STATS_LOGS_EVENTS_AND_DENIALS_PASS`; `.tmp/stage5-real-docker-wsl-d.log`. |
+| Kubernetes | Final same Linux test binary passed missing Metrics API in 7.06s and positive Metrics API in 18.84s on disposable Kubernetes 1.37.0, kind 0.33.0, Engine 29.1.3. Scoped inventory, denial, current/previous logs, usage and configured facts crossed the adapter boundary; `.tmp/stage5-kube-final-real.log`. Hash and exact profiles are in the provider guide. The owned cluster and kubeconfig were removed, with zero owned kind containers remaining. |
+| Pod identity/metric authority | Focused UID/lifetime, fractional raw window, independent item budgets, mixed 403 and stale/known-configuration tests passed in 4.847s; `.tmp/stage5-metric-identity-final.log`. Final Kubernetes/domain package tests passed in 5.136s/0.888s; `.tmp/stage5-kube-final-uid-tests.log`. Scoped vet receipt is empty on success. |
+| PostgreSQL authority and normal upgrades | Six real SQL regressions passed in 25.201s, including partial partitions, policy outage fences, profile rotation preserving disabled sources, partial replica evidence and revoked alert history; `.tmp/stage5-review-final-pg4.log`. |
+| Synthetic and optional-port clocks | Domain/observation packages passed in 2.050s/2.013s; `.tmp/stage5-demo-clock-unit2.log`. Full synthetic capture/save/in-progress/failure plus ordinary fixture/profile preservation passed real SQL in 14.206s; `.tmp/stage5-demo-clock-pg.log`. Three final optional-port clock/retention/future-sample SQL regressions then passed in 6.295s; `.tmp/stage5-final-metric-clock-fix.log`. The metric capability clock bounds sample selection, including ports observed later than inventory. |
+| Restricted profile startup | Negative regression reproduced source-settings rejecting the restricted Docker profile. The minimal reviewed allowlist correction passed source-settings/server tests in 1.581s/6.208s; `.tmp/stage5-source-profile-regression-green.log`. |
+| Environment-name authority | New privacy/pagination test failed before the fix in `.tmp/stage5-environment-authority-before.log`. The new test and four adjacent real PostgreSQL regressions passed in 8.537s after the fix; `.tmp/stage5-environment-authority-after.log`. |
+| Guest browser | [Retained matrix](evidence/0.5.0/browser-matrix.json): six loaded routes across English/Persian and 360px light/1280px dark profiles, 24 states with document direction/language and horizontal-overflow checks. [Runtime receipt](evidence/0.5.0/guest-runtime.json): restart advanced reset epoch 1→2, preserved nine resources/972 metrics, and kept users/sessions/grants/deliveries at zero; protected audit count increased. Named private/write requests returned 403, with no authentication cookie. This is guest exploration proof, not a complete browser or assistive-technology release matrix. |
+| Native PostgreSQL | Fresh API/storage drill D recorded backup and restore completion and marker `STAGE5_SEED_ACK_SSE_REPLAY_RESTART_NATIVE_RESTORE_OWNERSHIP_PASS`; `.tmp/stage5-native-drill-d.log`. It is a disposable checkpoint receipt; the final changed-tree gate remains separate. |
+| Frontend guards and interface | Guest/auth focused suites passed 44 tests; metadata/detail suites passed 67 tests; final metadata panel passed seven tests. Receipts `.tmp/stage5-guest-focused-final.log`, `.tmp/stage5-metadata-tests2.log`, `.tmp/stage5-ui-lasttest.log`. They are overlapping focused runs and must not be summed as distinct coverage. |
+| Preliminary static gates | Verify B passed formatting, 399 local documentation links, aligned 0.5.0 metadata, notices for 72 linked modules/106 exact upstream files, 582 locale messages, 204 bounded schemas/derived drift, lint/vet and TypeScript before its PostgreSQL failures; `.tmp/stage5-final-verify-b.log`. Documentation and final code changes require another complete gate. Helm lint/render and long-release role-name isolation passed separately; `.tmp/stage5-kube-helm-final.log`. |
+
+### Failures kept separate
+
+The early full gate A failed the synthetic capture expectation after the clock
+correction; its receipt remains `.tmp/stage5-full-verify-a.log`. Full gate B
+failed `TestObservationCapturePreservesPayloadAndPortClocks` and
+`TestObservationRetentionFairQuotaKeepsNewestMetricAndCurrentHealth`; its receipt
+is `.tmp/stage5-final-verify-b.log`. Neither is a passing milestone gate, and B
+did not reach client/web tests or builds through that command chain.
+
+The first metrics-server image pull failed with registry 403 inside the owned
+kind node. Final provider proof kept the exact pinned official digest and used
+descriptor-hash-checked host import into that disposable node. Failed pull/import
+receipts remain distinct from the successful final run. No shared daemon or
+operator service configuration was changed for that workaround.
+
+Full gate C passed, including the fresh real PostgreSQL package run in 140.316s,
+but compiled before the later startup-profile fix. Final gate D reran the
+complete `npm.cmd run verify` after that fix and exited 0: server 5.960s,
+source-settings 0.754s, real PostgreSQL cached from C, 36 client tests, 350 web
+tests and both builds. Receipts `.tmp/stage5-final-verify-c.log` and
+`.tmp/stage5-final-verify-d.log` remain separate from failed A/B. The reviewed
+scope now scores 9/10; exact commit/tag publication/CI remain pending. Broader Stackplore
+Compose/Helm installation, provider-version compatibility, guarded actions,
+protected audit lifecycle, performance/accessibility/PWA and final release
+evidence remain in Stages 6–9.

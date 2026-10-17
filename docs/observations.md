@@ -1,18 +1,20 @@
 # Durable observations and source settings
 
-This describes observations in the locally verified 0.3.0 development checkpoint, building on the tagged
-0.2.0 checkpoint. [فارسی](observations.fa.md),
+This reference includes the 0.5.0 candidate provider and partition boundaries;
+the exact executed gates remain in the active plan. [فارسی](observations.fa.md),
 [architecture](architecture.md), [configuration](configuration.md) and
 [current evidence](implementation-plan.md) cover the surrounding boundaries.
 
 ## Collection and reads
 
-The operator enables the fixed Demo, loopback-development Docker socket or
-in-cluster Kubernetes profile through deployment configuration. Startup inserts
-missing source registry rows and preserves existing enabled state and versions.
+The operator enables Demo, a loopback-development Docker socket, the restricted
+Docker proxy, or explicitly namespace-scoped Kubernetes through deployment
+configuration. Startup inserts missing registry rows and preserves enablement.
+An operator profile/authority change is audited, advances the source version,
+and fences cache until fresh coverage publishes.
 The browser can toggle these registered profiles. It cannot create a profile,
-change its name, supply a host/path/URL or upload credentials. Production Docker
-and namespace-scoped Kubernetes profiles still need their roadmap work.
+change its name, supply a host/path/URL or upload credentials. See the exact
+[Docker](docker-provider.md) and [Kubernetes](kubernetes-provider.md) profiles.
 
 One worker polls the registry every second. Successful sources are collected
 every 30 seconds; failures back off from 30 seconds to five minutes. A changed
@@ -25,10 +27,12 @@ timeout and 20 seconds, followed by a ten-second aggregate persistence deadline.
 Runtime collection caps each inventory category at 1,000, metrics at 10,000,
 events at 1,000 and paging at 100 pages. Provider capture itself has a hard 10,000
 item ceiling. Truncation is partial; it never proves absence. Capture writes use
-typed batches of at most 100 records. Only complete successful inventory advances
-the generation used to hide missing resources; bounded retirement performs at
-most eight batches per cycle. Partial, denied or failed capture cannot retire
-unseen resources.
+typed batches of at most 100 records. Published kind/scope partitions have their
+own complete generation. A complete allowed kind can retire missing members
+while another kind is denied. Partial partitions cannot prove absence; denied,
+unsupported or omitted partitions hide cached identities. Retirement performs
+at most eight batches per cycle. Failed whole-source capture preserves authority
+fences and never proves deletion. See [ADR-0013](adr/0013-provider-coverage-and-demo-lifecycle.md).
 
 Inventory, detail, topology, health, replicas, metrics, history and events use
 PostgreSQL read ports. A browser read or SSE poll does not recollect the estate.
@@ -58,8 +62,14 @@ evidence rather than extending a previous success.
 Current metric status is conservative across the source when resource support
 or availability is mixed. Denied sets block that port; mixed support/outage can
 mark it stale and partial. This is not exact per-resource current-status storage;
-that fidelity remains stage 5. The default view requests three names, while
-collection requests all nine and persists 54 samples for the six-resource demo.
+per-name status is not claimed. The default view requests three names, while
+collection requests all nine. The nine-resource demonstration persists 972
+fixed facts across twelve samples per name and resource. Current facts older
+than five minutes are stale against the real read clock, or the controlled Demo
+clock. Future facts beyond the source receipt or one minute of real clock skew
+cannot shadow valid current samples. Partitioned event history exposes only
+events whose resource identity retains current authority; unscoped history is
+hidden because its former namespace cannot be proven.
 
 Keyset cursors contain signed immutable sort values and IDs, bound to the query.
 Infrastructure cursors are capped at 4,096 bytes; local account cursors retain

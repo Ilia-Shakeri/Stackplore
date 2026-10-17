@@ -27,7 +27,7 @@ type alertRuleCursorState struct {
 const alertRuleColumns = `id, source_id, environment_id, resource_id, display_name, rule_kind,
        enabled, severity, comparison_operator, threshold_value, threshold_count, window_seconds,
        minimum_event_severity, evaluation_interval_seconds, pending_for_seconds,
-       created_by_user_id, updated_by_user_id, created_at_us, updated_at_us, row_version`
+       created_by_user_id, updated_by_user_id, created_at_us, updated_at_us, row_version,system_owned`
 
 func (store *Store) ListAlertRules(ctx context.Context, request domain.PageRequest) (domain.AlertRulePage, error) {
 	if !store.available() || ctx == nil || request.Validate() != nil {
@@ -224,6 +224,7 @@ WHERE id=$3 AND row_version=$4 AND deleted_at_us IS NULL`,
 func scanAlertRuleRecord(row rowScanner) (domain.AlertRuleRecord, error) {
 	var record domain.AlertRuleRecord
 	var environmentID, resourceID, comparison, minimumSeverity sql.NullString
+	var createdBy, updatedBy sql.NullString
 	var thresholdValue sql.NullFloat64
 	var thresholdCount, windowSeconds sql.NullInt64
 	var kind, severity string
@@ -231,8 +232,8 @@ func scanAlertRuleRecord(row rowScanner) (domain.AlertRuleRecord, error) {
 	if err := row.Scan(
 		&record.Rule.ID, &record.Rule.SourceID, &environmentID, &resourceID, &record.Rule.DisplayName,
 		&kind, &enabled, &severity, &comparison, &thresholdValue, &thresholdCount, &windowSeconds,
-		&minimumSeverity, &evaluationSeconds, &pendingSeconds, &record.CreatedByUserID,
-		&record.UpdatedByUserID, &createdAtUS, &updatedAtUS, &record.Version,
+		&minimumSeverity, &evaluationSeconds, &pendingSeconds, &createdBy,
+		&updatedBy, &createdAtUS, &updatedAtUS, &record.Version, &record.SystemOwned,
 	); err != nil {
 		return domain.AlertRuleRecord{}, err
 	}
@@ -240,6 +241,7 @@ func scanAlertRuleRecord(row rowScanner) (domain.AlertRuleRecord, error) {
 		return domain.AlertRuleRecord{}, domain.ErrRepositoryUnavailable
 	}
 	record.Rule.Kind = domain.AlertRuleKind(kind)
+	record.CreatedByUserID, record.UpdatedByUserID = domain.UserID(createdBy.String), domain.UserID(updatedBy.String)
 	record.Rule.Enabled = enabled == 1
 	record.Rule.Severity = domain.Severity(severity)
 	record.Rule.EvaluationInterval = time.Duration(evaluationSeconds) * time.Second

@@ -48,7 +48,9 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.17.0 --activate
       - name: Install locked packages
-        run: corepack pnpm install --frozen-lockfile
+        run: |
+          corepack pnpm install --frozen-lockfile
+          go -C apps/api mod download
       - name: Run full gate
         run: corepack pnpm verify
       - name: Run Go concurrency gate
@@ -70,9 +72,15 @@ jobs:
       - name: Render reviewed chart profiles
         run: |
           helm template verify deploy/helm/stackplore >/dev/null
-          helm template verify deploy/helm/stackplore --set api.setup.enabled=true --set api.kubernetes.enabled=true --set ingress.enabled=true >/dev/null
+          helm template verify deploy/helm/stackplore --set api.setup.enabled=true --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --set ingress.enabled=true >/dev/null
+          helm template verify deploy/helm/stackplore --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --set api.kubernetes.clusterObservation=true >/dev/null
           helm template verify deploy/helm/stackplore --set api.webhook.enabled=true --set api.matrix.enabled=true >/dev/null
           helm template verify deploy/helm/stackplore --set podAnnotations.test=verify >/dev/null
+      - name: Verify long release names keep separate observation roles
+        run: |
+          reader_a="$(helm template stackplore-proof-with-a-long-name-shared-prefix-alpha deploy/helm/stackplore --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --show-only templates/cluster-reader.yaml | awk '/^  name:/{print $2; exit}')"
+          reader_b="$(helm template stackplore-proof-with-a-long-name-shared-prefix-beta deploy/helm/stackplore --set api.kubernetes.enabled=true --set 'api.kubernetes.namespaces[0]=default' --show-only templates/cluster-reader.yaml | awk '/^  name:/{print $2; exit}')"
+          test -n "$reader_a" && test -n "$reader_b" && test "$reader_a" != "$reader_b"
       - name: Build API image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
@@ -91,3 +99,61 @@ jobs:
           tags: stackplore-web:verify
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
+
+  docker-provider:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      STACKPLORE_TEST_DOCKER_ENGINE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 1.26.5
+          cache-dependency-path: apps/api/go.sum
+      - name: Verify restricted observation on disposable Engine
+        run: go -C apps/api test ./internal/provider/docker -run TestRestrictedProxyOnRealDockerEngine -count=1 -timeout=9m -v
+
+  kubernetes-provider:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      KUBERNETES_REQUIRED: '1'
+      STACKPLORE_TEST_KUBE_DISPOSABLE: '1'
+      STACKPLORE_TEST_KUBECONFIG: ${{ runner.temp }}/stackplore-provider-kubeconfig
+      KIND_EXPERIMENTAL_PROVIDER: docker
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 1.26.5
+          cache-dependency-path: apps/api/go.sum
+      - name: Install verified kind binary
+        run: |
+          mkdir -p "$RUNNER_TEMP/stackplore-tools"
+          curl --fail --silent --show-error --location --retry 2 --max-time 60 https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 --output "$RUNNER_TEMP/stackplore-tools/kind"
+          printf '%s  %s\n' aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d "$RUNNER_TEMP/stackplore-tools/kind" | sha256sum --check --strict -
+          chmod 0755 "$RUNNER_TEMP/stackplore-tools/kind"
+          echo "$RUNNER_TEMP/stackplore-tools" >> "$GITHUB_PATH"
+      - name: Create owned disposable Kubernetes target
+        run: |
+          cluster_name="stackplore-proof-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "STACKPLORE_TEST_KIND_NAME=$cluster_name" >> "$GITHUB_ENV"
+          kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --kubeconfig "$STACKPLORE_TEST_KUBECONFIG" --wait 180s
+          chmod 0600 "$STACKPLORE_TEST_KUBECONFIG"
+      - name: Verify namespace bounds with missing Metrics API on real Kubernetes
+        run: go -C apps/api test ./internal/provider/kubernetes -run '^TestScopedSDKOnRealKubernetes$' -count=1 -timeout=8m -v
+      - name: Install verified kubectl fixture tool
+        run: |
+          curl --fail --silent --show-error --location --retry 2 --max-time 120 https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl --output "$RUNNER_TEMP/stackplore-tools/kubectl"
+          printf '%s  %s\n' 65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8 "$RUNNER_TEMP/stackplore-tools/kubectl" | sha256sum --check --strict -
+          chmod 0755 "$RUNNER_TEMP/stackplore-tools/kubectl"
+      - name: Install pinned Metrics API on owned fixture
+        run: bash scripts/install-test-metrics-server.sh
+      - name: Verify fresh live usage with Metrics API on real Kubernetes
+        env:
+          STACKPLORE_TEST_KUBE_METRICS_PRESENT: '1'
+        run: go -C apps/api test ./internal/provider/kubernetes -run '^TestScopedSDKWithMetricsOnRealKubernetes$' -count=1 -timeout=8m -v
+      - name: Delete only the owned disposable cluster
+        if: always() && env.STACKPLORE_TEST_KIND_NAME != ''
+        run: kind delete cluster --name "$STACKPLORE_TEST_KIND_NAME"

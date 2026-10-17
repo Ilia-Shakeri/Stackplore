@@ -12,3 +12,7 @@
 *.woff binary
 *.woff2 binary
 
+# Preserve exact upstream legal bytes, including original whitespace and line endings.
+apps/api/licenses/modules/** -text -whitespace
+apps/api/licenses/modules/manifest.json text eol=lf !whitespace
+

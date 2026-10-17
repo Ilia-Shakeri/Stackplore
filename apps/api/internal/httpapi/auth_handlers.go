@@ -20,6 +20,7 @@ type authHTTP struct {
 	readiness     *Readiness
 	now           func() time.Time
 	bodyLimit     int64
+	guestDemo     *GuestDemoOptions
 }
 
 func newAuthHTTP(service authenticationBoundary, origin Origin, readiness *Readiness, now func() time.Time, maximumBody int64) authHTTP {
@@ -33,6 +34,15 @@ func newAuthHTTP(service authenticationBoundary, origin Origin, readiness *Readi
 func (handler authHTTP) setupStatus(w http.ResponseWriter, r *http.Request) {
 	if !requestHasNoBody(r) || !requestHasNoQuery(r) {
 		writeProblem(w, r, invalidRequestProblem)
+		return
+	}
+	if handler.guestDemo != nil {
+		writeJSON(w, http.StatusOK, struct {
+			State          string `json:"state"`
+			FixtureVersion string `json:"fixture_version"`
+			ScenarioStep   int    `json:"scenario_step"`
+			ObservedAt     string `json:"observed_at"`
+		}{"guest_demo", handler.guestDemo.FixtureVersion, handler.guestDemo.ScenarioStep, authTimestamp(handler.guestDemo.ObservedAt)})
 		return
 	}
 	status, err := handler.service.SetupStatus(r.Context())

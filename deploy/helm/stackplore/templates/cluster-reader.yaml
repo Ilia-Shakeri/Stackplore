@@ -1,16 +1,18 @@
 {{- if .Values.api.kubernetes.enabled }}
+{{- $root := . }}
+{{- $reader := printf "%s-reader-%s" (include "stackplore.fullname" . | trunc 46 | trimSuffix "-") (printf "%s/%s" (include "stackplore.fullname" .) .Release.Namespace | sha256sum | trunc 8) }}
+{{- range .Values.api.kubernetes.namespaces }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
-  name: {{ include "stackplore.fullname" . }}-reader
+  name: {{ $reader }}
+  namespace: {{ . | quote }}
   labels:
-    {{- include "stackplore.labels" . | nindent 4 }}
+    {{- include "stackplore.labels" $root | nindent 4 }}
 rules:
   - apiGroups: [""]
-    resources: ["namespaces", "nodes", "pods", "services", "persistentvolumeclaims"]
-    verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["events"]
+    resources: ["pods", "services", "persistentvolumeclaims", "events"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["pods/log"]
@@ -32,17 +34,51 @@ rules:
     verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $reader }}
+  namespace: {{ . | quote }}
+  labels:
+    {{- include "stackplore.labels" $root | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $reader }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "stackplore.fullname" $root }}
+    namespace: {{ $root.Release.Namespace }}
+{{- end }}
+{{- if .Values.api.kubernetes.clusterObservation }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $reader }}
+  labels:
+    {{- include "stackplore.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    resourceNames: {{ .Values.api.kubernetes.namespaces | toJson }}
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "stackplore.fullname" . }}-reader
+  name: {{ $reader }}
   labels:
     {{- include "stackplore.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "stackplore.fullname" . }}-reader
+  name: {{ $reader }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "stackplore.fullname" . }}
     namespace: {{ .Release.Namespace }}
+{{- end }}
 {{- end }}

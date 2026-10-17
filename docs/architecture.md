@@ -34,9 +34,11 @@ Startup registers missing safe source profiles in PostgreSQL and preserves
 existing enabled state and versions. Administrators can preview and toggle
 registered profiles; they cannot create profiles or supply endpoints, host
 paths or credentials. Docker direct socket access is limited to loopback
-development. The current Kubernetes collector requires an explicit cluster
-observation profile; production restricted Docker access and namespace-only/
-partial-permission fidelity remain stage 5 work.
+development. The restricted profile uses a private mutually authenticated
+HTTPS proxy and a fixed read allowlist. Kubernetes requires an explicit bounded
+namespace list; optional cluster observation adds only nodes and named namespace
+reads. Official vendor clients stay inside the adapters. See the
+[Docker](docker-provider.md) and [Kubernetes](kubernetes-provider.md) profiles.
 
 ## Repository layout
 
@@ -90,9 +92,12 @@ See [alert and delivery boundaries](alerts-notifications.md) and
 [ADR-0012](adr/0012-durable-alert-change-replay.md).
 
 Collection is bounded by source, concurrency, page, item and aggregate deadline
-limits, with cancellation and retry backoff. Complete successful inventory
-advances its capture generation; partial or failed capture cannot retire unseen
-resources. Source version changes reject old capture commits. Product inventory,
+limits, with cancellation and retry backoff. A successful inventory partition
+advances its kind/scope completion generation even when another kind is denied.
+Partial partitions cannot retire unseen resources. Denied, unsupported and
+omitted partitions cannot expose prior cached identities. Operator authority
+changes fence all cached reads until fresh coverage publishes; an outage cannot
+clear that fence. Source version changes reject old capture commits. Product inventory,
 detail, health, topology, metrics, history and events use PostgreSQL read ports;
 HTTP/SSE reads do not trigger collection. Logs remain bounded live provider
 reads. Optional ports retain separate status and observation clocks. See the
@@ -123,10 +128,10 @@ Core read ports are:
 
 Queries own hard limits, time windows, sorting, and opaque cursors bound to normalized filter state. Result validation rejects cross-source data, duplicate identities, unstable order, unrequested records, oversized payloads, invalid time ranges, and data attached to unavailable status.
 
-The Demo provider is synthetic and deterministic. It exposes six resources,
-health states, five relationships, bounded logs and event history. The default
-metric view requests three names per resource; collection requests all nine
-supported names and stores 54 fixture samples across the six resources. Provider
+The versioned Demo provider exposes nine resources across shop and operations
+environments, with declared route/dependency/monitoring evidence, bounded logs
+and events. Collection stores 972 stable metric facts: nine names, nine resources
+and twelve five-minute samples ending at the controlled scenario clock. Provider
 tail/watch capabilities are explicitly unsupported. Authenticated HTTP SSE sends
 bounded polled snapshots; it does not prove a native provider watch or durable
 provider event feed. Alert SSE is a separate PostgreSQL-backed committed change
@@ -136,7 +141,21 @@ Cached metric status is conservative at source/port level. A mix of supported,
 unsupported, denied or failed resource metric sets can produce partial metrics.
 Retained samples and an aggregate port status do not prove every resource's
 current provider availability; samples keep their own observation timestamps.
-Exact persisted per-resource metric status fidelity remains stage 5 work.
+The source-wide conservative status remains explicit; it is not a persisted
+per-name resource status. Current samples older than five minutes are stale,
+using the controlled clock for Demo. Future samples cannot shadow valid current
+facts. History retains each actual timestamp. Partitioned event history requires
+a resource identity with current authority; unscoped events are hidden because
+their former namespace cannot be proven.
+
+An explicit isolated demonstration binds a separate empty PostgreSQL database
+and private data directory to a persisted deployment mode. Restart resets only
+its derived fixture state; account/security/audit history is protected. Normal
+fixture upgrades preserve administrator rules and source enablement. Guest mode
+has no account, session, CSRF proof or fabricated user identity, allows only named
+read routes, and rejects real providers, mutations and outbound configuration.
+See [ADR-0013](adr/0013-provider-coverage-and-demo-lifecycle.md) and the
+[demonstration guide](demo.md).
 
 ## HTTP and authentication
 
@@ -195,7 +214,10 @@ Linux race tests and image builds; see [exact run evidence](implementation-plan.
 The verified unchanged 0.3.0 tag was pushed under renewed authorization on
 2026-10-17. Both exact remote code/deploy runs passed; the evidence plan links
 them and distinguishes these builds from target startup.
-Compose startup, cluster installation and live provider checks remain open.
+The 0.4.0 exploration checkpoint also passed its exact remote jobs. Stage 5 has
+separate real disposable Engine and Kubernetes observation receipts; these do
+not prove a full application installation. Compose startup, chart installation
+of the application and production acceptance remain open for their later stages.
 
 ## Security and reliability rules
 
@@ -213,11 +235,11 @@ Compose startup, cluster installation and live provider checks remain open.
 - Fixed operator profiles, persisted enabled state, collection/retry scheduling and cached observation reads are implemented in the tagged 0.2 checkpoint. Local/PostgreSQL/native and exact tagged CI results are recorded separately; target proof remains open.
 - Browser source creation, endpoint/path/credential editing, operator-reference rotation and configurable retention are not implemented.
 - Audit retains all rows. Quotas, protected cleanup and archive/export policy remain stage 6 work.
-- Production restricted Docker access and namespace-scoped Kubernetes fidelity remain stage 5 work.
+- Restricted Docker and namespace-scoped Kubernetes use official clients and bounded partition authority; the active plan records their separate live proof.
 - Covered alert evidence and durable replay are implemented in the locally verified 0.3 checkpoint; unsupported or incomplete windows stay unknown. Full local and separately named disposable/Helm proof passed; exact outcomes live in the evidence plan.
 - Webhook and Matrix are opt-in. Disposable local HTTPS proof and live operator receiver proof are separate; no live production receiver claim follows from unit or SQL tests.
 - Guarded operations are not live.
-- Real local PostgreSQL 17.11 tests and a native backup/restore drill ran on a disposable private cluster. Helm 3.17.3 lint/render ran locally. Container startup, real browser geometry, live Docker/Kubernetes and target production drills are still unproved.
-- The current separate static web edge and custom fixed HTTP collectors differ from ADR-0001 built-web serving and ADR-0002 vendor clients. Stage 5/7 must align these implementations with accepted decisions, or obtain a justified superseding decision before 1.0.
+- Real PostgreSQL, native backup/restore, browser geometry and Helm render checks have named receipts. Compose application startup, chart installation and target production acceptance remain stage 7 gates; a provider fixture does not prove those deployments.
+- The current separate static web edge differs from ADR-0001 built-web serving. Stage 7 must align the production build with that decision before 1.0. Provider clients now follow ADR-0002.
 
 See [ADR-0011](adr/0011-postgresql-primary-persistence.md), [observations](observations.md), [security](security.md), [deployment](operations/deployment.md), and [backup/restore](operations/backup-restore.md).

@@ -11,6 +11,7 @@ type SourceProfileID string
 const (
 	SourceProfileDemoFixture             SourceProfileID = "demo_fixture"
 	SourceProfileDockerSocketDevelopment SourceProfileID = "docker_socket_dev"
+	SourceProfileDockerRestrictedProxy   SourceProfileID = "docker_restricted_proxy"
 	SourceProfileKubernetesInCluster     SourceProfileID = "kubernetes_incluster"
 )
 
@@ -37,7 +38,8 @@ func (configuration SourceConfiguration) Validate() error {
 		ProviderDocker:     SourceProfileDockerSocketDevelopment,
 		ProviderKubernetes: SourceProfileKubernetesInCluster,
 	}
-	if configuration.ProfileID != expected[configuration.Source.Provider] ||
+	profileAllowed := configuration.ProfileID == expected[configuration.Source.Provider] || configuration.Source.Provider == ProviderDocker && configuration.ProfileID == SourceProfileDockerRestrictedProxy
+	if !profileAllowed ||
 		configuration.Source.Synthetic != (configuration.Source.Provider == ProviderDemo) {
 		return ErrRepositoryInvalidInput
 	}
@@ -172,12 +174,25 @@ func (batch CaptureBatch) Validate() error {
 // Complete applies only to full environment and resource inventory. Optional ports have separate capabilities.
 type CaptureCompletion struct {
 	Token        CaptureToken
+	CollectedAt  time.Time
 	Status       ObservationStatus
 	Capabilities CapabilitySet
 	Complete     bool
+	Coverage     []InventoryCoverage
 }
 
 func (completion CaptureCompletion) Validate() error {
+	if !completion.CollectedAt.IsZero() && (validateUTCTime("collection receipt time", completion.CollectedAt) != nil || !repositoryTimeSupported(completion.CollectedAt) || completion.CollectedAt.Before(completion.Token.ObservedAt)) {
+		return ErrRepositoryInvalidInput
+	}
+	if ValidateInventoryCoverage(completion.Token.Source, completion.Coverage) != nil {
+		return ErrRepositoryInvalidInput
+	}
+	for _, item := range completion.Coverage {
+		if item.Status.ObservedAt.After(completion.Token.ObservedAt) || completion.Complete && !item.Complete() {
+			return ErrRepositoryInvalidInput
+		}
+	}
 	if completion.Token.Validate() != nil || completion.Status.Validate() != nil ||
 		!repositoryTimeSupported(completion.Status.ObservedAt) || completion.Status.ObservedAt.After(completion.Token.ObservedAt) ||
 		completion.Capabilities.ValidateFor(completion.Token.Source) != nil {
