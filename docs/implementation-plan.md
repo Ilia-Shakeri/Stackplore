@@ -15,6 +15,18 @@ immutable caching only for hashed assets. A complete-router regression test
 checks HTML, SPA, JavaScript, private API isolation and marker removal. Scoped
 HTTP and web asset tests pass. The release gate remains open.
 
+Second Stage 7 run [39030046196](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39030046196)
+passed code, image/chart and both provider jobs. Its diagnostics proved Compose
+injected an unset Matrix reference as an empty value, rejected by strict config.
+Optional notification fields now stay absent unless the operator supplies them.
+PostgreSQL TLS became ready after correcting the Alpine group. Helm then reached
+the app, which rejected the group-accessible PVC root as `storage_start`.
+The chart now uses a non-root init to prepare a private child and retain the
+existing key identity, then mounts that child at the original application path.
+No runtime permission validation was relaxed. The rendered init passed a real
+Linux fixture: fresh/restart modes, stable legacy key, duplicate/no-overwrite,
+symlink, hardlink and malformed-key rejection. Exact replacement CI is pending.
+
 Published through Stage 6: `v0.6.0` is at commit
 `365dc214161bf74e0f77aaedc9d32529c1ec1cf2`. [Main CI run
 39022543132](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39022543132)

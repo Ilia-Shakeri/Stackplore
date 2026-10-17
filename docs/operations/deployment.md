@@ -22,6 +22,21 @@ The API serves the UI and API on the same origin. Browser routes fall back to th
 
 The chart does not install a database. Supply an external PostgreSQL URL using `sslmode=verify-full` in an existing Secret. For a private CA, enable `api.databaseTLS` and create its separate CA Secret. The chart mounts only the public CA certificate at `/var/run/stackplore/database-ca/ca.crt`; include that exact `sslrootcert` path in the database URL. Never mount the database's private TLS key into the application.
 
+The PVC mount root receives Kubernetes group access. A bounded init container,
+using the same application image and non-root UID 10001, prepares its private
+`private/` child with mode `0700`. The API mounts only that child at
+`/var/lib/stackplore`. The digest key remains `0600`; the application rejects
+group-readable directories and keys. `fsGroupChangePolicy: OnRootMismatch`
+avoids recursive permission expansion on ordinary remounts, and initialization
+reasserts the private modes before each start.
+
+For an older chart volume with the key at the PVC root, initialization validates
+the same owned, single-link, 32-byte regular file and moves it atomically into
+the private child. It never prints or replaces a key. A symlink, wrong owner,
+wrong size or key in both locations stops initialization; preserve the volume
+and resolve that state through trusted storage administration. Do not delete a
+key to bypass this gate, because that changes session identity.
+
 ```yaml
 apiVersion: v1
 kind: Secret

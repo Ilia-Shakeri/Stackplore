@@ -30,12 +30,66 @@ spec:
         runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: prepare-private-runtime
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              umask 077
+              root=/runtime-volume
+              private="$root/private"
+              uid="$(id -u)"
+              if [ -e "$private" ] || [ -L "$private" ]; then
+                test ! -L "$private"
+                test -d "$private"
+                test "$(stat -c %u "$private")" = "$uid"
+              else
+                mkdir -m 0700 "$private"
+              fi
+              chmod 0700 "$private"
+              legacy="$root/.stackplore.auth-key"
+              key="$private/.stackplore.auth-key"
+              check_key() {
+                test ! -L "$1"
+                test -f "$1"
+                test "$(stat -c %u:%h:%s "$1")" = "$uid:1:32"
+              }
+              if [ -e "$legacy" ] || [ -L "$legacy" ]; then
+                check_key "$legacy"
+                test ! -e "$key"
+                test ! -L "$key"
+                chmod 0600 "$legacy"
+                mv -n "$legacy" "$key"
+                test ! -e "$legacy"
+              fi
+              if [ -e "$key" ] || [ -L "$key" ]; then
+                check_key "$key"
+                chmod 0600 "$key"
+              fi
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 32Mi
+          volumeMounts:
+            - name: runtime
+              mountPath: /runtime-volume
       containers:
         - name: api
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
@@ -151,6 +205,7 @@ spec:
           volumeMounts:
             - name: runtime
               mountPath: /var/lib/stackplore
+              subPath: private
             - name: tmp
               mountPath: /tmp
             {{- if .Values.api.databaseTLS.enabled }}

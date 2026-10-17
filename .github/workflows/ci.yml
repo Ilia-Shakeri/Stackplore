@@ -69,6 +69,8 @@ jobs:
         run: docker compose --env-file deploy/compose.env.example config --quiet
       - name: Lint cluster chart
         run: helm lint deploy/helm/stackplore --strict
+      - name: Verify private runtime initialization and legacy key preservation
+        run: bash scripts/check-runtime-volume.sh
       - name: Render reviewed chart profiles
         run: |
           helm template verify deploy/helm/stackplore >/dev/null
