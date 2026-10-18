@@ -32,6 +32,7 @@ type UsersPageState =
       readonly nextCursor?: string;
       readonly refreshing: boolean;
       readonly status: 'ready';
+      readonly visiblePage: number;
     };
 
 export interface UserAdminPageProps {
@@ -60,6 +61,7 @@ const actionKey = (action: UserAction) =>
 
 const isAbort = (error: unknown) =>
   (error instanceof DOMException || error instanceof Error) && error.name === 'AbortError';
+const renderedPageSize = 50;
 
 export function UserAdminPage({ toolbar }: UserAdminPageProps) {
   const api = useUsersApi();
@@ -68,7 +70,7 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
   const { notify } = useToast();
   const router = useRouter();
   const loadGenerationRef = useRef(0);
-  const loadMoreLockRef = useRef(false);
+  const loadMoreControllerRef = useRef<AbortController | null>(null);
   const [action, setAction] = useState<UserAction | null>(null);
   const [state, setState] = useState<UsersPageState>({ status: 'loading' });
   const administrator =
@@ -92,6 +94,8 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
     async (signal?: AbortSignal) => {
       const generation = loadGenerationRef.current + 1;
       loadGenerationRef.current = generation;
+      loadMoreControllerRef.current?.abort();
+      loadMoreControllerRef.current = null;
       setState((current) =>
         current.status === 'ready'
           ? { ...current, moreError: false, refreshing: true }
@@ -99,6 +103,7 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
       );
       try {
         const page = await api.listUsers(signal === undefined ? {} : { signal });
+        if (signal?.aborted || generation !== loadGenerationRef.current) return;
         await refreshSession();
         if (signal?.aborted || generation !== loadGenerationRef.current) {
           return;
@@ -110,6 +115,7 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
           ...(page.nextCursor === undefined ? {} : { nextCursor: page.nextCursor }),
           refreshing: false,
           status: 'ready',
+          visiblePage: 0,
         });
       } catch (error) {
         if (
@@ -135,6 +141,8 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
     void loadUsers(controller.signal);
     return () => {
       controller.abort();
+      loadMoreControllerRef.current?.abort();
+      loadGenerationRef.current++;
     };
   }, [administrator, loadUsers]);
 
@@ -146,20 +154,24 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
     if (
       state.status !== 'ready' ||
       state.nextCursor === undefined ||
-      loadMoreLockRef.current ||
+      loadMoreControllerRef.current !== null ||
       state.loadingMore ||
       state.refreshing
     ) {
       return;
     }
-    loadMoreLockRef.current = true;
+    const controller = new AbortController();
+    loadMoreControllerRef.current = controller;
     const generation = loadGenerationRef.current;
+    const canceled = () => controller.signal.aborted || generation !== loadGenerationRef.current;
     const cursor = state.nextCursor;
     setState({ ...state, loadingMore: true, moreError: false });
     try {
-      const page = await api.listUsers({ cursor });
+      const page = await api.listUsers({ cursor, signal: controller.signal });
+      if (canceled()) return;
+      if (page.nextCursor === cursor) throw new Error('User page did not advance.');
       await refreshSession();
-      if (generation !== loadGenerationRef.current) {
+      if (canceled()) {
         return;
       }
       setState((current) => {
@@ -170,16 +182,22 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
         for (const user of page.items) {
           users.set(user.id, user);
         }
+        const items = [...users.values()];
         return {
-          items: [...users.values()],
+          items,
           loadingMore: false,
           moreError: false,
           ...(page.nextCursor === undefined ? {} : { nextCursor: page.nextCursor }),
           refreshing: false,
           status: 'ready',
+          visiblePage: Math.min(
+            Math.floor(current.items.length / renderedPageSize),
+            Math.max(0, Math.ceil(items.length / renderedPageSize) - 1),
+          ),
         };
       });
     } catch (error) {
+      if (canceled()) return;
       if (await refreshLostSession(error)) {
         return;
       }
@@ -187,7 +205,7 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
         current.status === 'ready' ? { ...current, loadingMore: false, moreError: true } : current,
       );
     } finally {
-      loadMoreLockRef.current = false;
+      if (loadMoreControllerRef.current === controller) loadMoreControllerRef.current = null;
     }
   };
 
@@ -209,6 +227,18 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
   };
 
   const items = state.status === 'ready' ? state.items : [];
+  const visiblePage =
+    state.status === 'ready'
+      ? Math.min(state.visiblePage, Math.max(0, Math.ceil(items.length / renderedPageSize) - 1))
+      : 0;
+  const firstVisible = visiblePage * renderedPageSize;
+  const visibleItems = items.slice(firstVisible, firstVisible + renderedPageSize);
+  const cachedNext = firstVisible + renderedPageSize < items.length;
+  const nextPage = () => {
+    if (state.status !== 'ready' || state.loadingMore || state.refreshing) return;
+    if (cachedNext) setState({ ...state, visiblePage: visiblePage + 1, moreError: false });
+    else void loadMore();
+  };
   const finalPage = state.status === 'ready' && state.nextCursor === undefined;
   const enabledAdministratorCount = items.filter(
     (user) => user.enabled && user.role === 'administrator',
@@ -284,7 +314,7 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.items.map((user) => {
+                {visibleItems.map((user) => {
                   const lastAdministrator = isLastEnabledAdministrator(user);
                   return (
                     <TableRow key={user.id}>
@@ -385,16 +415,38 @@ export function UserAdminPage({ toolbar }: UserAdminPageProps) {
               {t('users.moreError')}
             </p>
           ) : null}
-          {state.nextCursor === undefined ? null : (
+          <p role="status">
+            {t('users.pageStatus', {
+              from: firstVisible + 1,
+              to: firstVisible + visibleItems.length,
+              loaded: items.length,
+            })}
+          </p>
+          <nav className="users-page__actions" aria-label={t('users.pagination')}>
             <Button
-              className="users-list__more"
-              loading={state.loadingMore}
               variant="outline"
-              onClick={() => void loadMore()}
+              disabled={visiblePage === 0 || state.loadingMore || state.refreshing}
+              onClick={() => {
+                setState({ ...state, visiblePage: visiblePage - 1, moreError: false });
+              }}
             >
-              {t(state.loadingMore ? 'users.loadingMore' : 'users.loadMore')}
+              {t('users.previousPage')}
             </Button>
-          )}
+            <Button
+              loading={state.loadingMore}
+              disabled={state.refreshing || (!cachedNext && state.nextCursor === undefined)}
+              variant="outline"
+              onClick={nextPage}
+            >
+              {t(
+                state.loadingMore
+                  ? 'users.loadingMore'
+                  : cachedNext || state.nextCursor === undefined
+                    ? 'users.nextPage'
+                    : 'users.loadMore',
+              )}
+            </Button>
+          </nav>
         </section>
       ) : null}
 

@@ -358,7 +358,11 @@ func (worker *Worker) collectEvents(ctx context.Context, provider LiveProvider, 
 		seen[result.Page.NextCursor] = struct{}{}
 		page.Cursor = result.Page.NextCursor
 	}
-	if len(collected.events) > 0 && !status.AllowsData() {
+	if status.State == domain.AvailabilityPermissionDenied {
+		// A later page can revoke the event port after earlier pages succeeded.
+		// Keep the denial authoritative rather than publishing those facts again.
+		collected.events = nil
+	} else if len(collected.events) > 0 && !status.AllowsData() {
 		status = partialStatus(availableStatus(status.ObservedAt), "observation.partial_events")
 	}
 	setCapability(&collected.capabilities, domain.CapabilityEventHistory, status)

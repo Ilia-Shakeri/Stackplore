@@ -8,6 +8,12 @@ passed. Record the exact workflow run, source commit and verified artifacts in
 the evidence plan after execution. A failed scan, signing step or verification
 keeps publication closed.
 
+Release notes link project guides and runbooks to their immutable source
+revision, rather than a moving branch. Keep those source-bound links when
+copying notes or consuming an older archive. Current candidate acceptance is
+tracked in [1.0.2 evidence](../evidence/1.0.2/README.md); the links themselves
+do not establish successful packaging or publication.
+
 ## Maintainer sequence
 
 1. Complete the milestone's local gate with real PostgreSQL and all named browser,

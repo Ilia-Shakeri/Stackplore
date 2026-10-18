@@ -1,6 +1,51 @@
 # Stackplore active implementation evidence
 
-## Final accepted release — 2026-10-18
+## Fresh corrective audit — 1.0.2 — 2026-10-18
+
+The reviewed baseline is documentation commit `657a600`; immutable 1.0.1
+remains at `73ece4754554cca548c242768b195d21664d37b8`. The changed tree is a
+1.0.2 candidate with schema **17**, not a published release. The review score
+reopened at **8/10**. Final independent backend/interface/release-helper review
+is **9/10** with no open verified defect in that scope; whole-delivery acceptance
+remains **8/10** pending exact-source CI and signed/public proof.
+[Fresh audit](evidence/1.0.2/fresh-audit.md) records verified triggers and fixes.
+
+| Gate | Current result |
+| --- | --- |
+| Backend URL/HTTP regressions | Initial and independent apostrophe/clipping/JSON-member/embedded-scheme probes failed before fixes. Later multi-layer escaped-slash cases failed 21 leak cases with six safe controls; corrected whole package passes 1.250s, independent three-case overlay passes 1.159s and full corrected gate C passes. All four real 405 route regressions pass. |
+| Observation and PostgreSQL regressions | Later-page event denial, non-byte-collation notification/rule keysets, ledger-14/16-to-17 upgrade and actual native special-name backup/restore pass. All five related packages pass uncached with native PostgreSQL 17.11 tools; the current complete local receipt also passes. |
+| Interface regressions | Severity URL/localization, locked deleted-rule drafts, topology facts and account rendering have 65 unique focused passes across ten files. Final rule/users run passes 29 tests in three files (22.06s); scoped lint/type checks pass. Five palette checks and the scoped production-interface browser pass separately. |
+| Release-note policy | Immutable document-link helper and release/policy regressions pass; no signed 1.0.2 run is claimed. |
+| Full local gate | [Final precommit replacement C](evidence/1.0.2/local-gate.json) passes exit 0 through final web/API builds: all Go/native/core, client 40/2 files, release/policy 29, web 477/49 files, locale 725, schemas 235 and all checks/builds. Normal checksums/native tools/coverage/path/ownership policies stay enabled. B remains a real earlier-state pass; intervening nested slash-escaped URL negatives retain their failures. |
+| Local chart check | Actual strict Helm lint passes one chart (`.tmp/reaudit102-helm-lint.log`); no install/TLS-runtime result follows from lint. |
+| Production browser | [Scoped UI build](evidence/1.0.2/browser-gate.json) passes all 14 cases (`.tmp/reaudit102-browser.log`, exit 0): guest 12 plus normal English/Persian, 64 measured routes, eight palette/focus/viewport/accessibility profiles and 24 screenshots. Four named images visually reviewed; the later backend correction needs new exact-source gates. |
+| Exact-source main/tag CI | Pending reviewed source commit and exact run. |
+| Trial/signing/publication/consumer | Pending exact-source packaging, all strict scans, signatures, publication and independent archive verification. |
+
+Backend focused command passed with exit 0:
+
+`go -C apps/api test ./internal/provider/logsafe ./internal/httpapi -run 'TestMessage|Test.*AllowedMethod|TestAuthRouteMethodAllowSets|TestWriteProviderProblem|TestLogDownload' -count=1`.
+
+Private proof: `.tmp/audit-backend-20261018/affected-tests.log` and its exit
+marker (0). Earlier private overlay probes and blocked build attempts remain
+separate. No checksum, assertion, ownership rule or test threshold was weakened.
+The audit baseline's manual account-table load-more path accumulated DOM rows.
+The corrected 50-row render window passes bilingual three-page/103-account and
+final-administrator checks while retaining access to all loaded records. The
+manually requested cache may still grow until refresh/unmount.
+Historical proof below
+retains its exact version, counts, commits and outcomes.
+
+Current C web coverage is 82.91% statements, 78.68% branches, 86.71% functions
+and 84.48% lines; the standard thread pool completed 477 tests in 291.80s.
+B's earlier coverage/timing remain in the receipt's historical property.
+The web build checks 63 exact legal packages/files. Native tools were
+explicitly enabled and module checksum verification stayed normal. Failed
+lint/API/cleanup attempts are retained; local success does not establish
+exact-source hosted or signed/public release acceptance. The separate 14-case
+production-interface browser receipt retains its precommit UI snapshot scope.
+
+## Historical accepted 1.0.1 release — 2026-10-18
 
 **All nine stages are delivered; release 1.0.1 is accepted.** Architecture/code/
 release-chain review is **9/10** at immutable `v1.0.1`, source

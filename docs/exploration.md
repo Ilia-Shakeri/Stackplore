@@ -1,10 +1,10 @@
 # Exploring observations
 
-[فارسی](exploration.fa.md). This guide describes delivered 1.0.1.
-The [published receipt](evidence/1.0.1/published-release.json) and
-[evidence plan](implementation-plan.md) record accepted release checks.
-This guide alone does not prove a customer's Docker, Kubernetes, proxy or
-production installation.
+[فارسی](exploration.fa.md). This guide describes the implemented **1.0.2
+candidate**. [Fresh proof](evidence/1.0.2/README.md) keeps focused regressions
+separate from passing local/browser gates and pending exact-source hosted
+and signed/public acceptance. Historical 1.0.1 receipts retain their original scope; a guide does
+not prove a customer's installation.
 
 ## Sources and trustworthy states
 
@@ -102,6 +102,13 @@ stream and returns to a rolling window. An explicit `from`/`to` deep link opens
 paused. `tail=live` or `tail=paused` records the selected mode; `minutes` records
 the rolling window size.
 
+All seven log severities, including trace and unknown, survive reload and
+browser history. Their visible labels use the selected English/Persian locale;
+URL/API/download values remain stable. Built-in masking removes credential
+assignments, bearer/basic values, private-key blocks and complete URL userinfo,
+including usernames that carry tokens. JSON string values use the same policy.
+Treat masked logs as potentially sensitive and share only reviewed text.
+
 Search and severity apply to the **loaded lines**, and use URL parameters
 `log_q` and `severity`. Wrapping and timestamp visibility use `wrap` and
 `timestamps`. Select individual lines to copy their timestamp, severity, and
@@ -167,13 +174,24 @@ exists in later pages. Administrators may acknowledge supported real firing
 alerts, including persisted synthetic demonstration metadata. This changes alert
 state and does not authorize a provider write. A later stream refresh wins over a delayed acknowledgement or old-page
 reply. Durable replay gaps trigger a fresh read. Rule settings also paginate;
-their current server cursor is shareable as `rule_cursor`.
+their current server cursor is shareable as `rule_cursor`. A successful deletion
+of the rule currently being edited clears its draft; a failed deletion does not.
+Cancel is disabled while loading/saving so the pending result cannot reset a
+new draft opened during that operation.
 
 An explicitly isolated [guest demonstration](demo.md) has no account session,
 administration or alert acknowledgement action. Its observation stream is
 read only; synthetic provenance stays visible.
 
 ## Topology and keyboard use
+
+Every graph node presents its provider/type icon, scope and actual observed
+state; unavailable or mixed observations are not converted to healthy values.
+Long names/scopes are visually bounded while full accessible details remain
+available. The list provides the equivalent facts. Quick navigation opens from
+the header or Ctrl+K/Command+K, supports Up/Down, Enter and Escape, preserves
+the source and respects the current role; [user guide](user-guide.md#quick-navigation).
+
 
 Resource nodes and relationships have separate bounded page controls. A partial
 notice remains while either server result has more pages. A relationship whose

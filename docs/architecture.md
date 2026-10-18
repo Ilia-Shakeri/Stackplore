@@ -1,13 +1,16 @@
 # Architecture
 
-Release 1.0.1 is accepted and all nine stages are delivered at immutable source
-`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
-review is 9/10. Exact main/tag CI, signed publication and independent public
-verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
-SBOM attestations passed. The public Windows archive matches the actual
-recovery-tested trial. The different public database archive was independently
-loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
-Customer production and air-gapped installation remain separate operator work.
+The current working target is **1.0.2**, a corrective candidate after a fresh
+whole-repository audit of the 1.0.1 delivery. The review reopened quality at
+**8/10**. Confirmed defects and an accepted navigation gap have corrections and
+focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
+hosted, signed publication and independent public-consumer gates remain pending.
+[Fresh review and current proof](evidence/1.0.2/README.md).
+
+The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
+retain their original results and scope. Those checks do not certify this new
+candidate. Customer production and air-gapped installation require separate
+operator evidence.
 
 ## System shape
 
@@ -55,6 +58,17 @@ deploy/                       application image, Compose, and cluster assets
 docs/                         decisions, security, development, operations
 ```
 
+## Fresh corrective boundaries
+
+Schema 17 adds canonical byte-order notification/rule indexes; their keyset
+seek predicates and sort order share that collation. Later-page native event
+permission denial closes the collection result instead of retaining earlier data. Provider
+log/event text shares credential-userinfo masking, and native database tools
+preserve literal database identity through one URI decode and escaped libpq
+selection. The interface adds fixed role-aware keyboard navigation and presents
+localized severities and observed node facts. See the scoped
+[fresh audit](evidence/1.0.2/fresh-audit.md) for proof and pending acceptance.
+
 ## Backend boundaries
 
 The backend follows inward dependencies:
@@ -72,10 +86,11 @@ Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and
 `pg_restore` clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](../deploy/postgres-image.json) pins the upstream base
-and reviewed `stackplore-postgres:1.0.1` derivative. It rebuilds unchanged
+and reviewed `stackplore-postgres:1.0.2` derivative. It rebuilds unchanged
 official gosu 1.19 with Go 1.26.9 while retaining the PostgreSQL engine and
 entrypoint. Actual helper/engine/root-drop behavior, complete scans, bound SPDX
-and independent archive SQL startup passed on the exact reviewed source. The release must include the database Docker-save archive
+and independent archive SQL startup passed for historical 1.0.1; the current
+1.0.2 candidate requires its own exact-source gates. The release must include the database Docker-save archive
 and signed SBOM. Existing 17.x minor-update guidance follows upstream and requires
 operator maintenance and validated backup/restore; no specific 17.6-to-17.11
 runtime experiment is claimed. Startup:
@@ -241,8 +256,8 @@ addition to native executables, the application image, source dependencies and
 history. It requires exact base/derivative and engine/helper metadata, root-drop
 probes, a complete image vulnerability scan and an SPDX package inventory bound
 to that identity. Compose/CI first build owned patched database fixtures; Helm
-continues to use external PostgreSQL under the server/client policy. These exact
-main/tag/trial/public/archive gates passed with separate recorded proof. A scan of the application image alone does not prove the database image.
+continues to use external PostgreSQL under the server/client policy. The historical 1.0.1
+main/tag/trial/public/archive gates passed; 1.0.2 requires fresh recorded proof. A scan of the application image alone does not prove the database image.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
 Linux race tests and image builds; see [exact run evidence](implementation-plan.md).

@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { isLegalMaterialName } from './legal-file-name.mjs';
+import { releaseNotes } from './release-notes.mjs';
 import {
   checkDatabaseImageMetadata,
   checkDatabasePin,
@@ -18,6 +19,26 @@ import {
 } from './release-scan.mjs';
 
 const script = path.join(import.meta.dirname, 'release.mjs');
+
+test('published notes pin repository document links to the exact source revision', () => {
+  const revision = 'a'.repeat(40);
+  const changelog =
+    '# Changes\n\n## [1.2.3] - date\n\n[Receipt](docs/evidence/1.2.3/README.md#scope) and [Runbook](./docs/operations/release.md). [External](https://example.org/page)\n\n## [1.2.2] - old\nEarlier text';
+  const notes = releaseNotes(changelog, '1.2.3', 'example/project', revision);
+  assert.ok(
+    notes.includes(
+      `](https://github.com/example/project/blob/${revision}/docs/evidence/1.2.3/README.md#scope)`,
+    ),
+  );
+  assert.ok(
+    notes.includes(
+      `](https://github.com/example/project/blob/${revision}/docs/operations/release.md)`,
+    ),
+  );
+  assert.ok(notes.includes('](https://example.org/page)'));
+  assert.ok(!notes.includes('Earlier text'));
+  assert.throws(() => releaseNotes(changelog, '1.2.4', 'example/project', revision), /missing/);
+});
 
 test('legal inventory retains notices and excludes similarly named source files', () => {
   for (const name of ['LICENSE', 'LICENCE', 'COPYING', 'NOTICE.txt', 'OFL.txt', 'LICENSE-MIT']) {

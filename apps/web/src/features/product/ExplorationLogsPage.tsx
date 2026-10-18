@@ -15,6 +15,7 @@ import {
 } from './exploration-ui';
 import { TimeRangeControl, useExplorationTime } from './exploration-time';
 import { useCursorPage } from './use-cursor-page';
+import { severityLabel } from './severity-labels';
 import './exploration.css';
 
 const resourcePattern = /^r1_[A-Za-z0-9_-]{43}$/u;
@@ -283,7 +284,9 @@ export function ProductLogsPage() {
           >
             <option value="">{t('explore.filter.all')}</option>
             {severities.map((value) => (
-              <option key={value}>{value}</option>
+              <option key={value} value={value}>
+                {severityLabel(value, t)}
+              </option>
             ))}
           </select>
         </label>
@@ -390,7 +393,7 @@ export function ProductLogsPage() {
                             }}
                           />
                           <span className={`severity-chip severity-chip--${record.severity}`}>
-                            {record.severity}
+                            {severityLabel(record.severity, t)}
                           </span>
                         </label>
                         {timestamps ? (

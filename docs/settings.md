@@ -16,6 +16,17 @@ Guest demonstrations cannot call application settings or write routes. They can
 use **Settings → Preferences**, which changes only the local browser display.
 No account, server mutation or infrastructure call is needed for preferences.
 
+## Account table windows
+
+Only administrators can open **Settings → Users**. The table renders at most
+50 accounts in one window. Previous/next controls retain access to every loaded
+account; a new API page is fetched only at the end of the loaded cache. Refresh
+or a successful account action resets the visible window. Loaded counts do not
+claim a total installation size. Final-administrator safeguards consider the
+full loaded cache and whether the final server page is known, and the server
+still enforces them atomically. Manually requested cache entries remain until
+refresh/unmount, so the render window is not a total-cache memory bound.
+
 ## Local display preferences
 
 Language is English or Persian; theme is light, dark or system. Calendar,

@@ -1,6 +1,6 @@
 import { ApiProblemError } from '@stackplore/api-client';
 import { createMemoryHistory } from '@tanstack/react-router';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -41,6 +41,237 @@ const userRow = async (name: string) => {
 };
 
 describe('user administration flow', () => {
+  it('counts administrators across the loaded cache rather than just the visible window', async () => {
+    const secondAdministrator = {
+      ...administrator,
+      id: 'usr_admin_second',
+      displayName: 'Second administrator',
+      loginName: 'secondadmin',
+    };
+    const first = [
+      administrator,
+      ...Array.from({ length: 49 }, (_, index) => ({
+        ...viewer,
+        id: `usr_visible_${String(index)}`,
+        displayName: `Visible ${String(index)}`,
+        loginName: `visible${String(index)}`,
+      })),
+    ];
+    const listUsers = vi
+      .fn()
+      .mockResolvedValueOnce({ items: first, nextCursor: 'users_next' })
+      .mockResolvedValueOnce({ items: [secondAdministrator] });
+    const user = userEvent.setup();
+    const { container } = renderUsers(createTestUsersApi({ listUsers }));
+    await waitFor(() => {
+      expect(container.querySelectorAll('tbody tr')).toHaveLength(50);
+    });
+    await user.click(screen.getByRole('button', { name: 'Load more users' }));
+    await screen.findByText('Second administrator');
+    await user.click(screen.getByRole('button', { name: 'Previous users' }));
+    const row = within(screen.getByRole('table')).getByText('Operations').closest('tr');
+    if (row === null) throw new Error('Administrator row missing.');
+    expect(
+      within(row).getByRole<HTMLButtonElement>('button', { name: 'Delete Operations' }).disabled,
+    ).toBe(false);
+    expect(screen.queryByText('Last enabled administrator')).toBeNull();
+  });
+
+  it('returns to the first visible page after a successful account action', async () => {
+    const first = [
+      administrator,
+      ...Array.from({ length: 49 }, (_, index) => ({
+        ...viewer,
+        id: `usr_visible_${String(index)}`,
+        displayName: `Visible ${String(index)}`,
+        loginName: `visible${String(index)}`,
+      })),
+    ];
+    const last = {
+      ...viewer,
+      id: 'usr_last_viewer',
+      displayName: 'Last observer',
+      loginName: 'lastobserver',
+    };
+    const listUsers = vi
+      .fn()
+      .mockResolvedValueOnce({ items: first, nextCursor: 'users_next' })
+      .mockResolvedValueOnce({ items: [last] })
+      .mockResolvedValueOnce({ items: first, nextCursor: 'users_next' });
+    const revokeUserSessions = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const { container } = renderUsers(createTestUsersApi({ listUsers, revokeUserSessions }));
+    await waitFor(() => {
+      expect(container.querySelectorAll('tbody tr')).toHaveLength(50);
+    });
+    await user.click(screen.getByRole('button', { name: 'Load more users' }));
+    const row = await userRow('Last observer');
+    await user.click(row.getByRole('button', { name: 'Revoke sessions for Last observer' }));
+    await user.type(screen.getByLabelText(/Your current password/u), 'admin-password');
+    await user.click(screen.getByRole('button', { name: 'Revoke all sessions' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    await waitFor(() => {
+      expect(container.querySelectorAll('tbody tr')).toHaveLength(50);
+    });
+    expect(within(screen.getByRole('table')).getByText('Operations')).not.toBeNull();
+    expect(screen.queryByText('Last observer')).toBeNull();
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Previous users' }).disabled).toBe(
+      true,
+    );
+    expect(revokeUserSessions).toHaveBeenCalledWith(last, 'admin-password');
+    expect(listUsers).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps the current window after a failed next request and retries from the same cursor', async () => {
+    const last = {
+      ...viewer,
+      id: 'usr_last_viewer',
+      displayName: 'Last observer',
+      loginName: 'lastobserver',
+    };
+    const listUsers = vi
+      .fn()
+      .mockResolvedValueOnce({ items: [administrator, viewer], nextCursor: 'users_next' })
+      .mockRejectedValueOnce(new Error('Unavailable.'))
+      .mockResolvedValueOnce({ items: [last] });
+    const user = userEvent.setup();
+    const { container } = renderUsers(createTestUsersApi({ listUsers }));
+    await screen.findByText('Observer');
+    await user.click(screen.getByRole('button', { name: 'Load more users' }));
+    await screen.findByText('More users could not be loaded. The current rows remain unchanged.');
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(2);
+    expect(screen.getByText('Observer')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Load more users' }));
+    await screen.findByText('Last observer');
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(3);
+    expect(
+      screen.queryByText('More users could not be loaded. The current rows remain unchanged.'),
+    ).toBeNull();
+    expect(listUsers).toHaveBeenNthCalledWith(3, expect.objectContaining({ cursor: 'users_next' }));
+  });
+
+  it('aborts an old next-page read and ignores its late authorization failure after refresh', async () => {
+    let failOld!: (error: Error) => void;
+    let oldSignal: AbortSignal | undefined;
+    const fresh = { ...viewer, id: 'usr_fresh', displayName: 'Fresh list', loginName: 'freshlist' };
+    const listUsers = vi
+      .fn()
+      .mockResolvedValueOnce({ items: [administrator, viewer], nextCursor: 'users_next' })
+      .mockImplementationOnce((options: { signal?: AbortSignal }) => {
+        oldSignal = options.signal;
+        return new Promise((_, reject) => {
+          failOld = reject;
+        });
+      })
+      .mockResolvedValueOnce({ items: [fresh] });
+    const user = userEvent.setup();
+    renderUsers(createTestUsersApi({ listUsers }));
+    await screen.findByText('Observer');
+    await user.click(screen.getByRole('button', { name: 'Load more users' }));
+    await user.click(screen.getByRole('button', { name: 'Refresh users' }));
+    await screen.findByText('Fresh list');
+    expect(oldSignal?.aborted).toBe(true);
+    await act(async () => {
+      failOld(
+        new ApiProblemError({
+          code: 'unauthenticated',
+          status: 401,
+          title: 'Sign in required',
+          type: 'urn:stackplore:problem:unauthenticated',
+          request_id: 'request_old_users_page',
+        }),
+      );
+      await Promise.resolve();
+    });
+    expect(screen.getByText('Fresh list')).not.toBeNull();
+    expect(
+      screen.queryByText('More users could not be loaded. The current rows remain unchanged.'),
+    ).toBeNull();
+  });
+  it.each(['en', 'fa'] as const)(
+    'renders 103 accounts through bounded pages with complete access in %s',
+    async (locale) => {
+      localStorage.setItem('stackplore.locale', locale);
+      const users = [
+        administrator,
+        ...Array.from({ length: 102 }, (_, index) => ({
+          ...viewer,
+          id: `usr_viewer_${String(index + 1)}`,
+          loginName: `observer${String(index + 1)}`,
+          displayName: `Observer ${String(index + 1).padStart(3, '0')}`,
+        })),
+      ];
+      const listUsers = vi.fn().mockImplementation((options: { cursor?: string } = {}) => {
+        const start =
+          options.cursor === 'users_page_3' ? 100 : options.cursor === 'users_page_2' ? 50 : 0;
+        return Promise.resolve({
+          items: users.slice(start, start + 50),
+          ...(start < 100 ? { nextCursor: start === 0 ? 'users_page_2' : 'users_page_3' } : {}),
+        });
+      });
+      const user = userEvent.setup();
+      const { container } = renderUsers(createTestUsersApi({ listUsers }));
+      const rowCount = () => container.querySelectorAll('.users-table tbody tr').length;
+      const loadLabel = locale === 'en' ? 'Load more users' : 'بارگذاری کاربران بیشتر';
+      const nextLabel = locale === 'en' ? 'Next users' : 'کاربران بعدی';
+      const previousLabel = locale === 'en' ? 'Previous users' : 'کاربران قبلی';
+      const safetyLabel = locale === 'en' ? 'Last enabled administrator' : 'آخرین مدیر فعال';
+      await waitFor(() => {
+        expect(rowCount()).toBe(50);
+      });
+      expect(screen.queryByText(safetyLabel)).toBeNull();
+      await user.click(screen.getByRole('button', { name: loadLabel }));
+      await screen.findByText('Observer 050');
+      expect(rowCount()).toBe(50);
+      expect(within(screen.getByRole('table')).queryByText('Operations')).toBeNull();
+      await user.click(screen.getByRole('button', { name: loadLabel }));
+      await screen.findByText('Observer 102');
+      expect(rowCount()).toBe(3);
+      expect(listUsers).toHaveBeenCalledTimes(3);
+      expect(screen.getByRole<HTMLButtonElement>('button', { name: nextLabel }).disabled).toBe(
+        true,
+      );
+      await user.click(screen.getByRole('button', { name: previousLabel }));
+      expect(rowCount()).toBe(50);
+      expect(screen.getByText('Observer 050')).not.toBeNull();
+      await user.click(screen.getByRole('button', { name: previousLabel }));
+      expect(rowCount()).toBe(50);
+      expect(within(screen.getByRole('table')).getByText('Operations')).not.toBeNull();
+      expect(screen.getByText(safetyLabel)).not.toBeNull();
+      const adminRow = within(screen.getByRole('table')).getByText('Operations').closest('tr');
+      if (adminRow === null) throw new Error('Administrator row missing.');
+      expect(
+        within(adminRow).getByRole<HTMLButtonElement>('button', {
+          name:
+            locale === 'en'
+              ? 'Cannot delete Operations, the last enabled administrator'
+              : 'حذف Operations ممکن نیست؛ آخرین مدیر فعال است',
+        }).disabled,
+      ).toBe(true);
+      await user.click(screen.getByRole('button', { name: nextLabel }));
+      await user.click(screen.getByRole('button', { name: nextLabel }));
+      expect(screen.getByText('Observer 102')).not.toBeNull();
+      expect(rowCount()).toBe(3);
+      expect(listUsers).toHaveBeenCalledTimes(3);
+      await user.click(
+        screen.getByRole('button', {
+          name: locale === 'en' ? 'Refresh users' : 'تازه‌سازی کاربران',
+        }),
+      );
+      await waitFor(() => {
+        expect(rowCount()).toBe(50);
+      });
+      expect(within(screen.getByRole('table')).getByText('Operations')).not.toBeNull();
+      expect(screen.queryByText('Observer 102')).toBeNull();
+      expect(screen.queryByText(safetyLabel)).toBeNull();
+      expect(listUsers).toHaveBeenCalledTimes(4);
+      expect(screen.getByRole<HTMLButtonElement>('button', { name: previousLabel }).disabled).toBe(
+        true,
+      );
+    },
+  );
   it('does not fetch users for a viewer route', async () => {
     const listUsers = vi.fn().mockResolvedValue(finalPage);
     renderUsers(createTestUsersApi({ listUsers }), 'viewer');

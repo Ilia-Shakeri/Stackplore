@@ -1,10 +1,10 @@
 # Durable observations and source settings
 
-This reference describes the delivered 1.0.1 provider and partition boundaries.
-All nine stages are delivered; public release acceptance passed in the
-[published receipt](evidence/1.0.1/published-release.json). [فارسی](observations.fa.md),
-[architecture](architecture.md), [configuration](configuration.md) and
-[current evidence](implementation-plan.md) retain exact scope and customer limits.
+This reference describes the implemented **1.0.2 candidate** boundaries.
+Focused corrections are in the [fresh audit](evidence/1.0.2/fresh-audit.md);
+full exact-source acceptance remains pending. Historical 1.0.1 proof keeps its
+original scope. [فارسی](observations.fa.md), [architecture](architecture.md)
+and [current evidence](implementation-plan.md) retain proof limits.
 
 ## Collection and reads
 
@@ -116,6 +116,19 @@ absent from current operator configuration can be disabled but cannot be
 enabled. Viewers cannot read or change the administrator registry. If a write
 response is lost, reload actual state and obtain a new preview; do not replay
 the old confirmation automatically.
+
+## Event paging authority and canonical ordering
+
+Every page remains subject to current provider authority. If a later native
+event page becomes permission-denied, that status overrides
+earlier successful pages and their accumulated native events are discarded.
+The collector cannot turn a denial into an available partial result.
+
+Notification and alert-rule keysets compare opaque identifiers with canonical
+byte ordering in both SQL seek predicates and ordering. This remains true when
+the database's default text collation differs. Migration 17 adds the matching
+indexes; earlier migration bytes and query-bound cursor authorization remain
+unchanged. [Upgrade procedure](operations/upgrade-rollback.md).
 
 ## Retention and protected audit
 

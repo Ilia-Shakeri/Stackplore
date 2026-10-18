@@ -6,13 +6,12 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** Released and accepted `v1.0.1` at `73ece4754554cca548c242768b195d21664d37b8`. All nine stages are delivered; architecture/code review is **9/10**. Exact main/tag CI, signed publication, independent public verification and actual Windows/database archive checks passed. [Published receipt](docs/evidence/1.0.1/published-release.json).
+> **Status:** Working target **1.0.2** after a fresh whole-repository audit. Review reopened at **8/10**. Confirmed fixes and the required navigation palette are implemented; the complete local and fresh production-browser gates pass; exact-source CI, signing and independent public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
 
-All 39 public files, 30 checksum entries, all 31 provenance subjects and seven
-SBOM attestations were verified. The public Windows archive matches the
-recovery-tested trial; the different public database archive was independently
-loaded and executed. Earlier 0.9.0 is superseded for its unsafe database default;
-immutable 1.0.0 remains withheld and failed intermediate trials remain history.
+Immutable [1.0.1](docs/evidence/1.0.1/published-release.json) keeps its historical
+39-file public verification and actual archive results. Those receipts do not
+certify this changed candidate. The 0.9.0 database default remains superseded,
+immutable 1.0.0 remains withheld and failed attempts retain their outcomes.
 
 ## Implemented
 
@@ -24,6 +23,7 @@ immutable 1.0.0 remains withheld and failed intermediate trials remain history.
 - Persistent safe source references and normalized observations; product inventory, health, topology, metrics and events use PostgreSQL reads, while logs remain bounded live reads. Collection has concurrency limits, cancellation and retry backoff; fair bounded retention excludes protected audit history. See [observations and source settings](docs/observations.md).
 - Versioned OpenAPI contract, generated browser types, strict runtime response parsing, safe problems, request bounds, rate limits, proxy trust, liveness, readiness, and guarded process metrics
 - Paginated overview, resources, detail, topology, logs, events and alert journeys with URL filters, truthful partial states, keyboard alternatives and English/Persian RTL. See [exploration](docs/exploration.md).
+- Fixed-route quick navigation from the header or Ctrl+K/Command+K, with translated search, role-aware destinations, source preservation and focus return. Fresh corrections preserve all log severity links, translate severity labels, reset a deleted rule's draft and show actual node icon/scope/state.
 - Administrator source enable/disable with exact target/version, impact preview, expiring one-use confirmation, purpose-bound recent authentication and atomic audit; profiles and credentials remain operator supplied
 - Covered evidence for all eight declared alert predicates, administrator rule management, persistent synthetic demo episodes, durable alert change replay and linked in-app notifications. Opt-in guarded webhook and Matrix lanes have safe status, recent-auth test delivery, stable retry payloads, fenced leases and terminal audit. See [semantics and limits](docs/alerts-notifications.md).
 - One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and actual TLS-backed chart installation.
@@ -31,10 +31,11 @@ immutable 1.0.0 remains withheld and failed intermediate trials remain history.
 
 ## Release verification
 
-All release gates passed: exact main/tag CI, strict scans, signed publication,
-independent public verification and actual archive recovery/runtime checks.
-The accepted public set contains 39 files, 30 checksums, all 31 provenance
-subjects and seven SBOM attestations. [Evidence](docs/evidence/1.0.1/README.md).
+The 1.0.2 candidate must pass the full local and browser gates, exact-source
+main/tag CI, strict scans, signed publication and independent public/archive
+checks before acceptance. Expected packaging remains 39 files, 30 checksums,
+31 provenance subjects and seven SBOM attestations; current execution results
+belong to [1.0.2 evidence](docs/evidence/1.0.2/README.md).
 
 Customer production rollout is an operator deployment decision. Its credentials,
 provider permissions, receiver reachability, backup destination and capacity
@@ -61,13 +62,12 @@ reused unchanged for development. See [configuration](docs/configuration.md).
 
 ## Deployment
 
-The corrective tree defines `stackplore-postgres:1.0.1` from a digest-pinned
+The corrective tree defines `stackplore-postgres:1.0.2` from a digest-pinned
 PostgreSQL 17.11 base in [`deploy/postgres-image.json`](deploy/postgres-image.json).
 It rebuilds unchanged `gosu` 1.19 with Go 1.26.9 while retaining the upstream
 database engine and entrypoint. Compose/CI must build the owned patched image;
-the signed trial includes its Docker-save archive and signed SBOM. Actual
-derivative build/runtime/scan, signed publication and independent public archive
-consumption passed. Helm continues to use
+the signed trial includes its Docker-save archive and signed SBOM. The corresponding 1.0.1 image passed actual build/runtime/scan and independent
+public consumption. The 1.0.2 image requires its own exact-source proof. Helm continues to use
 operator-owned external PostgreSQL. Do not use the superseded 0.9.0 database
 default. Existing installations need the reviewed
 [patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline),

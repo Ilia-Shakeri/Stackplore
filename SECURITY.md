@@ -2,17 +2,21 @@
 
 ## Project status
 
-The maintained release line is **1.0.x**. A patch becomes accepted only after
-its exact tag checks, strict scans, signed publication and independent public
-consumer verification pass. Current immutable `v1.0.1` points to
-`73ece4754554cca548c242768b195d21664d37b8`. Architecture/code review is 9/10:
-exact main CI, signed trial, independent trial verification and actual
-Windows/database archive recovery passed. All six tag CI jobs, stable publication
-and independent public verification passed; all nine stages are accepted.
-[Published receipt](docs/evidence/1.0.1/published-release.json).
-Report the exact version and full source commit.
+The maintained release line is **1.0.x**. Working target **1.0.2** is a
+corrective candidate after a fresh full audit; review reopened at **8/10**.
+Provider URL-userinfo masking, later-page event authority, canonical feed
+ordering and literal native database selection have corrections. Focused
+regressions, the complete local gate and fresh production browser pass.
+Exact-source CI, signing and independent public verification remain pending.
+[Current evidence](docs/evidence/1.0.2/README.md).
 
-The derivative retains PostgreSQL 17.11 and the upstream entrypoint, rebuilding
+Immutable `v1.0.1` remains at
+`73ece4754554cca548c242768b195d21664d37b8` with its original
+[published receipt](docs/evidence/1.0.1/published-release.json). Its historical
+passing gates do not certify the changed candidate or erase these fresh
+findings. Report the exact version and full source commit.
+
+The historical 1.0.1 derivative retains PostgreSQL 17.11 and the upstream entrypoint, rebuilding
 unchanged official gosu 1.19 using Go 1.26.9. Exact full-image scans, bound SPDX,
 engine/helper/root-drop probes and actual loaded archive SQL startup passed
 without suppressions; [consumer receipt](docs/evidence/1.0.1/consumer-trial.json).

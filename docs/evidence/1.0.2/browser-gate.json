@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "version": "1.0.2",
+  "scope": "Production interface in disposable loopback PostgreSQL; precommit UI snapshot. Later escaped-URL provider masking correction does not change this interface. Exact committed backend and browser gates remain independently required in hosted jobs.",
+  "command": "node scripts/browser-gate.mjs",
+  "observed_at_utc": "2026-10-18T13:09:02.0916651Z",
+  "exit_code": 0,
+  "transcript_sha256": "777affce132f3a56ad5867b434c16dc1afd63d99302e9fe75d0084983d0d5c34",
+  "browser": "Chrome 155.0.8059.80",
+  "modes": [
+    {
+      "mode": "guest",
+      "passed": 12,
+      "duration_ms": 103104.24799999999,
+      "sanitized_report_sha256": "7aa70a5ec884b110acd0f96efdb2742cbc74f542cbb4a9c92aa4676149a2479a"
+    },
+    {
+      "mode": "normal-en",
+      "passed": 1,
+      "duration_ms": 7201.5,
+      "sanitized_report_sha256": "9f89a025292667dd6d21d3acb9d39d2ac2ef64fc72035d5e3150b3e8c9d9d73c"
+    },
+    {
+      "mode": "normal-fa",
+      "passed": 1,
+      "duration_ms": 6764.91,
+      "sanitized_report_sha256": "c85377a927a9a6e447d301263779d1ce9fc35f1136dd30332f368eb2ab9f572d"
+    }
+  ],
+  "total_tests": 14,
+  "measured_routes": 64,
+  "locale_width_theme_profiles": 8,
+  "command_palette_profiles": 8,
+  "checks": [
+    "English and Persian",
+    "360px and1280px",
+    "light and dark",
+    "WCAG2.2AA automated checks",
+    "keyboard and focus return",
+    "route and viewport bounds",
+    "reduced motion",
+    "offline shell and private-cache exclusion",
+    "service worker update",
+    "installability",
+    "concurrent reads",
+    "normal setup, recent authentication, role boundaries, history and logout"
+  ],
+  "screenshots": 24,
+  "visual_review": [
+    "command-palette-en-360-light.png",
+    "topology-en-360-light.png",
+    "command-palette-fa-360-dark.png",
+    "topology-en-1280-light.png"
+  ],
+  "visual_review_result": "No visible defect in the four inspected images; all eight profiles passed automated assertions",
+  "limits": "Synthetic fixture and workstation browser; does not establish customer deployment or unsupported native-platform execution."
+}

@@ -1,17 +1,16 @@
 # نصب و راه‌اندازی
 
-تگ ۱٫۰٫۱ روی `73ece4754554cca548c242768b195d21664d37b8`،‏ CI دقیق اصلی و تگ،
-اسکن کامل تصویر، بستهٔ آزمایشی امضاشده و اجرای مستقل آرشیو ویندوز و پایگاه را
-گذراند. انتشار پایدار و پذیرش مستقل فایل‌های عمومی هم گذشت؛
-[رسید انتشار](../evidence/1.0.1/published-release.json). فرمان‌های زیر مسیر
-ساخت از منبع و نصب از آرشیو بررسی‌شده را می‌گویند؛ نصب بدون شبکه یا rollout
-مشتری را ثابت نمی‌کنند. پیش از انتخاب بسته، [رسید پذیرش کنونی](../evidence/1.0.1/README.md)
-را بخوان. هنگام تغییر، volume پایگاه و کلید runtime موجود را نگه دار.
+هدف منبع فعلی **نامزد ۱٫۰٫۲** است. گیت کامل نصب همان منبع، بستهٔ امضاشده و
+عمومی و پذیرش نهایی هنوز در [شواهد کنونی](../evidence/1.0.2/README.md) در
+انتظار است. رسید [۱٫۰٫۱](../evidence/1.0.1/published-release.json) با منبع و
+محدودهٔ تاریخی خود می‌ماند. فرمان‌ها مسیر ساخت از منبع و آرشیو بررسی‌شده را
+می‌گویند؛ نصب بدون شبکه یا rollout مشتری را ثابت نمی‌کنند. volume پایگاه و
+کلید runtime موجود را نگه دار.
 
 ## اجرای محلی با Compose
 
 Compose **دو تصویر** می‌سازد: برنامهٔ Go غیر root با فایل‌های وب درون آن، و
-تصویر مشتق PostgreSQL برای Linux amd64 با نام `stackplore-postgres:1.0.1` از
+تصویر مشتق PostgreSQL برای Linux amd64 با نام `stackplore-postgres:1.0.2` از
 `deploy/Dockerfile.postgres`. درگاه برنامه فقط روی `127.0.0.1` باز است.
 PostgreSQL و کلید runtime در volumeهای نام‌دار می‌مانند. readiness تنها پس از
 آماده‌شدن API و پایگاه داده موفق می‌شود.
@@ -50,14 +49,15 @@ checksum و همهٔ ۳۱ موضوع provenance داشته باشد؛ این ش�
 فرمان‌های آرشیو در نصب بدون شبکه اجرا نشده‌اند؛ رسید CI ساخت از منبع و restart
 در Compose، این مسیر را ثابت نمی‌کند.
 
-برای نسخهٔ ۱٫۰٫۱، هر دو آرشیو فشردهٔ Docker-save بررسی‌شده را بار کن:
+پس از انتشار و بررسی مستقل ۱٫۰٫۲، هر دو آرشیو فشردهٔ همان نسخه را بار کن؛
+نام نامزد زیر، وجود بستهٔ عمومی را ثابت نمی‌کند:
 
 ```sh
-docker image load --input stackplore_1.0.1_image.tar.gz
-docker image load --input stackplore_1.0.1_postgres_image.tar.gz
+docker image load --input stackplore_1.0.2_image.tar.gz
+docker image load --input stackplore_1.0.2_postgres_image.tar.gz
 ```
 
-تگ‌های بارشده باید `stackplore-api:1.0.1` و `stackplore-postgres:1.0.1` باشند؛
+تگ‌های بارشده باید `stackplore-api:1.0.2` و `stackplore-postgres:1.0.2` باشند؛
 هویت تصویرها را با `image-id.txt` و `database-image.json` بررسی‌شده بسنج.
 سرویس API در Compose پایه، build دارد و تگ تصویر انتشار ندارد. فایل
 `compose.release.yaml` را کنار منبع همان نسخه بساز تا تصویر بارشده صریح انتخاب شود:
@@ -65,9 +65,9 @@ docker image load --input stackplore_1.0.1_postgres_image.tar.gz
 ```yaml
 services:
   api:
-    image: stackplore-api:1.0.1
+    image: stackplore-api:1.0.2
   postgres:
-    image: stackplore-postgres:1.0.1
+    image: stackplore-postgres:1.0.2
 ```
 
 مراحل `.env` خصوصی و proof راه‌اندازی پایگاه خالی را طبق بالا انجام بده؛ سپس

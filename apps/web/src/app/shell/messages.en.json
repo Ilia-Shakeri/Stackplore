@@ -1,6 +1,13 @@
 {
   "shell.brand.overview": "Stackplore overview",
   "shell.breadcrumb.label": "Breadcrumb",
+  "shell.command.open": "Open command palette",
+  "shell.command.title": "Go to a page",
+  "shell.command.description": "Find a page, then use the arrow keys and Enter to open it. Shortcut: Ctrl or Command + K.",
+  "shell.command.search": "Find a page",
+  "shell.command.results": "Pages",
+  "shell.command.empty": "No matching page.",
+  "shell.command.close": "Close command palette",
   "shell.locale.label": "Language",
   "shell.locale.option.en": "English",
   "shell.locale.option.fa": "فارسی",

@@ -63,6 +63,82 @@ const relationships: ProductRelationship[] = [
 ];
 
 describe('topology graph', () => {
+  it('reports mixed observed container states without inventing a state for missing metadata', () => {
+    const mixed: ProductResource = {
+      ...required(resources[0]),
+      provider: 'kubernetes',
+      kind: 'kubernetes.pod',
+      synthetic: false,
+      metadata: {
+        kubernetes: {
+          conditions: [],
+          containers: [
+            { name: 'web', state: 'running', ready: true, restart_count: 0 },
+            { name: 'worker', state: 'waiting', ready: false, restart_count: 1 },
+          ],
+        },
+      },
+    };
+    const { container } = render(
+      <LocaleProvider defaultLocale="en">
+        <TopologyGraph relationships={[]} resources={[mixed, required(resources[1])]} />
+      </LocaleProvider>,
+    );
+    const nodes = container.querySelectorAll('.topology-node');
+    expect(nodes[0]?.querySelector('.topology-node__state')?.textContent).toContain(
+      'Mixed container states',
+    );
+    expect(nodes[1]?.querySelector('.topology-node__state')?.textContent).toBe('Degraded');
+    expect(container.querySelectorAll('.topology-node__provider')).toHaveLength(2);
+    expect(screen.getByRole('region', { name: 'Nodes' }).textContent).toContain(
+      'Mixed container states',
+    );
+  });
+  it.each(['en', 'fa'] as const)(
+    'shows provider icon, bounded scope and actual state in %s nodes',
+    (locale) => {
+      const resource: ProductResource = {
+        ...required(resources[0]),
+        provider: 'docker',
+        kind: 'docker.container',
+        synthetic: false,
+        name: 'خدمت فروشگاه '.repeat(12).trim(),
+        scope_name: 'namespace-long-'.repeat(20),
+        metadata: {
+          docker: {
+            state: 'running',
+            health: 'healthy',
+            restart_count: 0,
+            ports: [],
+            mounts: [],
+            labels: [],
+          },
+        },
+      };
+      const { container } = render(
+        <LocaleProvider defaultLocale={locale}>
+          <TopologyGraph relationships={[]} resources={[resource]} />
+        </LocaleProvider>,
+      );
+      const node = container.querySelector('.topology-node');
+      expect(node?.querySelector('.topology-node__provider')?.getAttribute('aria-hidden')).toBe(
+        'true',
+      );
+      expect(node?.querySelector('.topology-node__scope')?.textContent).toContain('project:');
+      expect(node?.querySelector('.topology-node__scope')?.getAttribute('direction')).toBe('ltr');
+      expect(node?.querySelector('.topology-node__scope')?.getAttribute('clip-path')).toMatch(
+        /^url\(#/u,
+      );
+      expect(node?.querySelector('.topology-node__state')?.textContent).toContain(
+        locale === 'en' ? 'Running' : 'در حال اجرا',
+      );
+      expect(node?.querySelector('title')?.textContent).toContain(resource.name);
+      expect(node?.querySelector('title')?.textContent).toContain(resource.scope_name);
+      const list = screen.getByRole('region', { name: locale === 'en' ? 'Nodes' : 'گره‌ها' });
+      expect(within(list).getByRole('link', { name: resource.name })).not.toBeNull();
+      expect(list.textContent).toContain(locale === 'en' ? 'Running' : 'در حال اجرا');
+    },
+  );
   beforeEach(() => {
     window.history.replaceState(null, '', '/topology');
   });

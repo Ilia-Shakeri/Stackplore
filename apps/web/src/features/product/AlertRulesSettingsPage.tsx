@@ -156,6 +156,10 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
       await api.deleteAlertRule(rule.id, rule.version);
       if (generation !== loadGeneration.current) return;
       setRules((current) => current.filter((item) => item.id !== rule.id));
+      if (editing?.id === rule.id) {
+        setEditing(null);
+        setDraft(emptyDraft());
+      }
       setDeleteIntent(null);
       setState('ready');
     } catch {
@@ -397,6 +401,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
               <button
                 className="ui-button ui-button--secondary ui-focus-ring"
                 type="button"
+                disabled={state === 'saving' || state === 'loading'}
                 onClick={() => {
                   setEditing(null);
                   setDraft(emptyDraft());

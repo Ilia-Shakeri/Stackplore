@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.0.2] - 2026-10-18
+
+### Fresh audit corrections
+
+- Removes complete credential userinfo from provider log/event URLs, including
+  nested structured text, and publishes exact Allow headers on four existing routes.
+- Keeps a later-page event permission denial authoritative and discards partial
+  unauthorized event evidence. Notification/rule keysets use byte ordering under
+  every database collation; migration 17 adds the matching indexes.
+- Preserves literal PostgreSQL database names through native backup/restore,
+  including percent signs and libpq-looking names, without double decoding or
+  interpreting names as connection options.
+- Preserves trace/unknown log URL filters and localizes severity labels. Deleting
+  the rule being edited clears its stale draft; topology nodes show their type
+  icon, scope and observed state with bounded text and accessible details.
+- Adds the required keyboard-accessible navigation palette with English/Persian
+  copy, role-aware fixed routes, source preservation and focus return. Release
+  notes link documents to their immutable source revision.
+
+### Verification state
+
+- Fresh regression probes failed before correction and passed their focused
+  checks afterward. Full local, production-browser, exact-source hosted and
+  signed public release gates remain to be recorded; this is a candidate.
+- Earlier 1.0.1 receipts retain their original source and scope. The new audit
+  reopens completion at 8/10 until all corrective gates and review pass.
+
 ## [1.0.1] - 2026-10-18
 
 ### Security correction

@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const version = process.env.SP_BROWSER_VERSION ?? '1.0.1';
+const version = process.env.SP_BROWSER_VERSION ?? '1.0.2';
 const evidence = resolve('../../docs/evidence', version);
 const responseFailures = new WeakMap<Page, { component: string; status: number }[]>();
 function observeResponses(page: Page) {
@@ -164,12 +164,56 @@ for (const locale of ['en', 'fa']) {
             });
           }
         }
+        await page
+          .getByRole('button', {
+            name: locale === 'fa' ? 'بازکردن پالت فرمان' : 'Open command palette',
+          })
+          .click();
+        const palette = page.getByRole('dialog', {
+          name: locale === 'fa' ? 'رفتن به صفحه' : 'Go to a page',
+        });
+        await expect(palette.getByRole('combobox')).toBeFocused();
+        const paletteFindings = await palette.evaluate(async (element) => {
+          const result = await window.axe.run(element, {
+            runOnly: {
+              type: 'tag',
+              values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+            },
+          });
+          return result.violations.map(({ id }) => id);
+        });
+        expect(paletteFindings).toEqual([]);
+        expect(
+          await palette.evaluate((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left >= -1 && rect.right <= innerWidth + 1;
+          }),
+        ).toBe(true);
+        await page.screenshot({
+          path: `${evidence}/screenshots/command-palette-${locale}-${String(width)}-${theme}.png`,
+          fullPage: true,
+        });
+        await palette.getByRole('combobox').fill('/about');
+        await palette.getByRole('combobox').press('Enter');
+        await expect(page).toHaveURL(/\/about(?:\?|$)/u);
+        await expect(page.getByRole('main')).toBeFocused();
+        await page.keyboard.press('Control+k');
+        await expect(palette).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('main')).toBeFocused();
         expect(errors).toEqual([]);
         await receipt(`${locale}-${String(width)}-${theme}`, {
           scope: 'Loopback disposable synthetic guest fixture; local observations only.',
           version,
           chromium: browser.version(),
           measurements,
+          commandPalette: {
+            keyboard: true,
+            accessibility: true,
+            viewport: true,
+            fixedNavigation: true,
+            focusReturn: true,
+          },
           httpFailures: responseFailures.get(page) ?? [],
         });
       });

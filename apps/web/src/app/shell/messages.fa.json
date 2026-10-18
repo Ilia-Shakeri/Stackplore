@@ -1,6 +1,13 @@
 {
   "shell.brand.overview": "نمای کلی Stackplore",
   "shell.breadcrumb.label": "مسیر راهنما",
+  "shell.command.open": "بازکردن پالت فرمان",
+  "shell.command.title": "رفتن به صفحه",
+  "shell.command.description": "صفحه را پیدا کنید؛ با کلیدهای جهت و Enter آن را باز کنید. میان‌بر: Ctrl یا Command + K.",
+  "shell.command.search": "پیداکردن صفحه",
+  "shell.command.results": "صفحه‌ها",
+  "shell.command.empty": "صفحه‌ای پیدا نشد.",
+  "shell.command.close": "بستن پالت فرمان",
   "shell.locale.label": "زبان",
   "shell.locale.option.en": "English",
   "shell.locale.option.fa": "فارسی",

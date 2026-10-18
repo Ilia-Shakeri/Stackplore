@@ -191,8 +191,8 @@ func parseConnection(value string) (toolConnection, error) {
 		return toolConnection{}, ErrInvalidOptions
 	}
 	password, _ := parsed.User.Password()
-	database, err := url.PathUnescape(strings.TrimPrefix(parsed.Path, "/"))
-	if err != nil || database == "" {
+	database := strings.TrimPrefix(parsed.Path, "/")
+	if database == "" {
 		return toolConnection{}, ErrInvalidOptions
 	}
 	return toolConnection{
@@ -202,7 +202,10 @@ func parseConnection(value string) (toolConnection, error) {
 }
 
 func (connection toolConnection) args() []string {
-	result := []string{"--host", connection.host, "--username", connection.user, "--dbname", connection.database, "--no-password"}
+	// Native clients interpret a raw name containing '=' as connection options.
+	// Quote one libpq value so the already-decoded name remains literal.
+	database := strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(connection.database)
+	result := []string{"--host", connection.host, "--username", connection.user, "--dbname", "dbname='" + database + "'", "--no-password"}
 	if connection.port != "" {
 		result = append(result, "--port", connection.port)
 	}

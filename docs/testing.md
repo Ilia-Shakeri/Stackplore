@@ -8,16 +8,19 @@ release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
 
-Release 1.0.1 is accepted and all nine stages are delivered at immutable source
-`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
-review is 9/10. Exact main/tag CI, signed publication and independent public
-verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
-SBOM attestations passed. The public Windows archive matches the actual
-recovery-tested trial. The different public database archive was independently
-loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
-Customer production and air-gapped installation remain separate operator work.
+The current working target is **1.0.2**, a corrective candidate after a fresh
+whole-repository audit of the 1.0.1 delivery. The review reopened quality at
+**8/10**. Confirmed defects and an accepted navigation gap have corrections and
+focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
+hosted, signed publication and independent public-consumer gates remain pending.
+[Fresh review and current proof](evidence/1.0.2/README.md).
 
-Full local D passed 28 release/policy, 40 client and 453 web tests with real
+The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
+retain their original results and scope. Those checks do not certify this new
+candidate. Customer production and air-gapped installation require separate
+operator evidence.
+
+Historical 1.0.1 evidence only: Full local D passed 28 release/policy, 40 client and 453 web tests with real
 PostgreSQL 17.11; fresh browser B passed all 14 cases. Web coverage is 81.61%
 statements, 77.8% branches, 85.48% functions and 83.11% lines. The final eight
 public vulnerability reports each have zero HIGH/CRITICAL findings; full-history
@@ -28,6 +31,15 @@ identity, PostgreSQL 17.11, gosu 1.19/Go 1.26.9, UID/GID 70 root-drop,
 read-only/network-none/non-root SQL, license and owned cleanup passed.
 Historical failed candidates remain failed; project checks do not prove a
 customer rollout or a full air-gapped installation.
+
+Current correction coverage includes generated-marker URL/userinfo and clipped
+text, real HTTP 405 Allow sets, later-page event denial, actual non-byte database
+collation, ledger 14/16-to-17 upgrades and native percent/equals/quote/backslash
+database names. Interface regressions cover all seven log-severity deep links,
+English/Persian labels, deleted-rule drafts, node facts and role-aware keyboard
+navigation. Focused checks do not replace the full gate or fresh production
+browser; exact commands and failed attempts are in the
+[fresh audit](evidence/1.0.2/fresh-audit.md).
 
 | Boundary                                   | Required check                                              | Proof limitation                                                                        |
 | ------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -56,7 +68,7 @@ Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
 defines the approved digest. Corrective proof needs real database execution,
 readiness/ledger checks and native backup/empty-target restore, plus exact
 database base/derivative and engine/helper metadata, root-drop behavior, full
-image scan and matching SPDX inventory. The reviewed `stackplore-postgres:1.0.1`
+image scan and matching SPDX inventory. The reviewed `stackplore-postgres:1.0.2`
 rebuilds unchanged official gosu 1.19 with Go 1.26.9 on the same pinned upstream
 17.11 base, retaining its engine and entrypoint. Build owned patched fixtures
 before Compose/CI tests; Helm remains external-PostgreSQL based. Require actual
@@ -131,7 +143,7 @@ checks, and Helm lint/render passed. Exact commands and outcomes are in the acti
 evidence plan. Later exploration and provider receipts are recorded below;
 complete Matrix homeserver and target installation proof remain separate. Under renewed authorization on
 2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
-jobs. Older tagged results do not certify the 1.0.1 candidate; current results
+jobs. Older tagged results do not certify the 1.0.2 candidate; current results
 are recorded in the evidence plan.
 
 ## Historical provider and isolated-demo checkpoint
@@ -233,8 +245,12 @@ npm.cmd run check:web-notices
 Read saved `EXPLAIN (ANALYZE, BUFFERS)` work, index names, row counts and timing
 conditions before making a performance claim. Warm fixture latency does not
 certify hardware-independent throughput. Migration 15 adds the mounted profile;
-migration 16 adds the source alert feed's matching keyset index. Tests must prove
-their forward path without changing any earlier migration bytes.
+migration 16 adds the source alert feed's matching keyset index. Migration 17
+adds notification/rule byte-collation indexes; real non-byte-collation and
+ledger-14/16-to-17 checks must preserve data and canonical paging without
+changing earlier migration bytes. Native special-name backup/restore requires
+the explicitly enabled disposable native-tool fixture; no customer database
+may be used for those tests.
 
 Log download tests cover fixed filters across pages, additive redaction/export
 policy, 10-second/1-MiB/1,000-output/10,000-scan/100-page limits, malformed or

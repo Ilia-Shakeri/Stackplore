@@ -75,6 +75,27 @@ function renderProductRoute(path: string) {
 }
 
 describe('source-bound product routes', () => {
+  it.each(['trace', 'unknown'])('keeps log severity %s in links and history', async (severity) => {
+    const user = userEvent.setup();
+    const { history } = renderProductRoute('/logs?source=source_docker&tail=paused');
+    const field = await screen.findByRole<HTMLSelectElement>('combobox', { name: 'Severity' });
+    await user.selectOptions(field, severity);
+    await waitFor(() => {
+      expect(new URLSearchParams(history.location.search).get('severity')).toBe(severity);
+    });
+    act(() => {
+      history.push('/logs?source=source_docker&tail=paused&severity=warning');
+    });
+    await waitFor(() => {
+      expect(field.value).toBe('warning');
+    });
+    act(() => {
+      history.back();
+    });
+    await waitFor(() => {
+      expect(field.value).toBe(severity);
+    });
+  });
   it('preserves batched tail and time parameters in the real route history', async () => {
     const user = userEvent.setup();
     const { history } = renderProductRoute(`/logs?source=source_docker&resource_id=${dockerId}`);

@@ -1,20 +1,23 @@
 # Stackplore completion roadmap
 
-Review date: 2026-10-18. Target: 1.0.1; accepted product scope remains 1.0. This is the delivery order for work after
+Review date: 2026-10-18. Target: 1.0.2; accepted product scope remains 1.0. This is the delivery order for work after
 the repository-wide review. Existing foundations are reused; the old numbered
 phase ledger is historical. [Implementation evidence](implementation-plan.md)
 records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Release 1.0.1 is accepted and all nine stages are delivered at immutable source
-`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
-review is 9/10. Exact main/tag CI, signed publication and independent public
-verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
-SBOM attestations passed. The public Windows archive matches the actual
-recovery-tested trial. The different public database archive was independently
-loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
-Customer production and air-gapped installation remain separate operator work.
+The current working target is **1.0.2**, a corrective candidate after a fresh
+whole-repository audit of the 1.0.1 delivery. The review reopened quality at
+**8/10**. Confirmed defects and an accepted navigation gap have corrections and
+focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
+hosted, signed publication and independent public-consumer gates remain pending.
+[Fresh review and current proof](evidence/1.0.2/README.md).
+
+The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
+retain their original results and scope. Those checks do not certify this new
+candidate. Customer production and air-gapped installation require separate
+operator evidence.
 
 Stages 1–8 retain their dated history; the 0.9.0 prerelease is superseded for
 the unsafe database default. Immutable 1.0.0 remains withheld. The failed
@@ -225,13 +228,13 @@ Exit: all preceding stages plus browser/accessibility/performance/security and
 deployment gates; reviewed release artifacts; no unresolved severe defects or
 unimplemented 1.0 requirement hidden behind a completion claim.
 
-## Stage 9 — Final independent review and corrective 1.0.1
+## Stage 9 — Fresh audit and corrective 1.0.2
 
-Status: delivered and released as accepted 1.0.1, architecture/code review
-**9/10**. Exact main/tag CI, complete strict scans, signed trial/publication,
-independent 39-file/30-checksum/all-31-provenance/seven-SBOM public checks and
-actual Windows/database archive acceptance passed.
-[Published receipt](evidence/1.0.1/published-release.json).
+Status: reopened corrective candidate at **8/10**. The historical 1.0.1
+release retains its published proof. The fresh review fixes confirmed data,
+security, native-tool and interface defects plus the accepted navigation gap;
+the complete local and fresh production-browser gates pass; exact-source CI,
+signed publication and independent consumer gates remain pending. [Current evidence](evidence/1.0.2/README.md).
 
 Repeat the whole-repository architecture/security/correctness/operations review.
 Score architecture and implementation separately from product completion and

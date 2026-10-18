@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strconv"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -14,7 +15,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func TestReleaseUpgradeFromMigration14PreservesDataAndImmutableLedger(t *testing.T) {
+func TestReleaseUpgradeFromShippedPrefixesPreservesDataAndImmutableLedger(t *testing.T) {
+	for _, previousVersion := range []int{14, 16} {
+		t.Run(strconv.Itoa(previousVersion), func(t *testing.T) {
+			testReleaseUpgradePreservesDataAndImmutableLedger(t, previousVersion)
+		})
+	}
+}
+
+func testReleaseUpgradePreservesDataAndImmutableLedger(t *testing.T, previousVersion int) {
 	connectionString := os.Getenv(integrationDatabaseURLKey)
 	if connectionString == "" {
 		t.Skip("real PostgreSQL URL is not configured")
@@ -39,11 +48,11 @@ func TestReleaseUpgradeFromMigration14PreservesDataAndImmutableLedger(t *testing
 	})
 
 	all, err := loadMigrations(postgresmigrations.FS)
-	if err != nil || len(all) != 16 {
-		t.Fatal("upgrade fixture requires the exact 16-migration release manifest")
+	if err != nil || len(all) != 17 {
+		t.Fatal("upgrade fixture requires the exact 17-migration release manifest")
 	}
 	previousFiles := fstest.MapFS{}
-	for _, migration := range all[:14] {
+	for _, migration := range all[:previousVersion] {
 		previousFiles[migration.filename] = &fstest.MapFile{Data: []byte(migration.contents)}
 	}
 	options := validTestOptions()
@@ -51,7 +60,7 @@ func TestReleaseUpgradeFromMigration14PreservesDataAndImmutableLedger(t *testing
 	options.Schema = schema
 	previous, err := Open(ctx, options, previousFiles)
 	if err != nil {
-		t.Fatal("initialize exact migration 14 release prefix")
+		t.Fatal("initialize exact shipped migration prefix")
 	}
 	t.Cleanup(func() { _ = previous.Close() })
 	at := time.Now().UTC().Truncate(time.Microsecond)
@@ -88,8 +97,8 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 	}
 	ledgerBefore := readSnapshot(previous, "schema_migrations")
 	var previousCount int
-	if err := previous.pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations`).Scan(&previousCount); err != nil || previousCount != 14 {
-		t.Fatal("fixture did not start at migration 14")
+	if err := previous.pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations`).Scan(&previousCount); err != nil || previousCount != previousVersion {
+		t.Fatal("fixture did not start at the exact shipped migration prefix")
 	}
 	if err := previous.Close(); err != nil {
 		t.Fatal("close previous process ownership")
@@ -97,7 +106,7 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 
 	upgraded, err := Open(ctx, options, postgresmigrations.FS)
 	if err != nil {
-		t.Fatal("forward upgrade from migration 14 to 16 failed")
+		t.Fatal("forward upgrade from shipped migration prefix to 17 failed")
 	}
 	t.Cleanup(func() { _ = upgraded.Close() })
 	if err := upgraded.Health(ctx); err != nil {
@@ -109,7 +118,7 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 		}
 	}
 	var prefixAfter string
-	if err := upgraded.pool.QueryRow(ctx, `SELECT COALESCE(jsonb_agg(to_jsonb(item) ORDER BY to_jsonb(item)::text),'[]'::jsonb)::text FROM schema_migrations AS item WHERE version<=14`).Scan(&prefixAfter); err != nil || prefixAfter != ledgerBefore {
+	if err := upgraded.pool.QueryRow(ctx, `SELECT COALESCE(jsonb_agg(to_jsonb(item) ORDER BY to_jsonb(item)::text),'[]'::jsonb)::text FROM schema_migrations AS item WHERE version<=$1`, previousVersion).Scan(&prefixAfter); err != nil || prefixAfter != ledgerBefore {
 		t.Fatal("forward upgrade changed a prior ledger filename, checksum or application timestamp")
 	}
 	applied, err := readAppliedMigrations(ctx, upgraded.pool, len(all)+1)
@@ -119,6 +128,11 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 	var indexValid bool
 	if err := upgraded.pool.QueryRow(ctx, `SELECT index.indisvalid AND index.indisready FROM pg_index AS index JOIN pg_class AS definition ON definition.oid=index.indexrelid JOIN pg_namespace AS namespace ON namespace.oid=definition.relnamespace WHERE namespace.nspname=$1 AND definition.relname='alerts_source_order_idx'`, schema).Scan(&indexValid); err != nil || !indexValid {
 		t.Fatal("migration 16 did not create the valid alert feed index")
+	}
+	for _, index := range []string{"notifications_time_idx", "alert_rules_updated_order_idx"} {
+		if err := upgraded.pool.QueryRow(ctx, `SELECT index.indisvalid AND index.indisready AND pg_get_indexdef(index.indexrelid) LIKE '%COLLATE "C"%' FROM pg_index AS index JOIN pg_class AS definition ON definition.oid=index.indexrelid JOIN pg_namespace AS namespace ON namespace.oid=definition.relnamespace WHERE namespace.nspname=$1 AND definition.relname=$2`, schema, index).Scan(&indexValid); err != nil || !indexValid {
+			t.Fatal("migration 17 did not create the valid canonical feed index")
+		}
 	}
 	source := domain.ProviderRef{Provider: domain.ProviderKubernetes, SourceID: configuration.Source.ID}
 	if err := upgraded.ReconcileOperatorProfile(ctx, source, domain.SourceProfileKubernetesKubeconfig); err != nil {

@@ -3,6 +3,7 @@ package postgresops
 import (
 	"context"
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -41,6 +42,27 @@ func TestConnectionKeepsPasswordOutOfArguments(t *testing.T) {
 	if !slices.Contains(connection.environment(), "PGPASSWORD="+secret) ||
 		!slices.Contains(connection.environment(), "PGSSLMODE=verify-full") {
 		t.Fatal("child environment lacks exact protected connection settings")
+	}
+}
+
+func TestConnectionPreservesDatabaseNameWithoutDoubleDecoding(t *testing.T) {
+	for _, name := range []string{"archive%25", "archive%name", "archive=primary", `archive='\primary`} {
+		t.Run(name, func(t *testing.T) {
+			connectionURL := url.URL{Scheme: "postgresql", User: url.User("operator"), Host: "127.0.0.1:5432", Path: "/" + name, RawQuery: "sslmode=disable"}
+			if _, err := config.Load(mapGetter{"STACKPLORE_DATABASE_URL": connectionURL.String()}); err != nil {
+				t.Fatal("valid percent-bearing database name was rejected by configuration")
+			}
+			connection, err := parseConnection(connectionURL.String())
+			if err != nil || connection.database != name {
+				t.Fatal("native operation changed the configured database name")
+			}
+			arguments := connection.args()
+			index := slices.Index(arguments, "--dbname")
+			literal := strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(name)
+			if index < 0 || index+1 >= len(arguments) || arguments[index+1] != "dbname='"+literal+"'" {
+				t.Fatal("native client could expand the database name as connection options")
+			}
+		})
 	}
 }
 

@@ -1,10 +1,10 @@
 # Security Model
 
-Status: released and accepted 1.0.1; all nine stages are delivered. Exact local,
-hosted and independently verified public-artifact results are recorded in the
-[active plan](implementation-plan.md) and [published receipt](evidence/1.0.1/published-release.json).
-The Go service serves embedded UI and API on one origin. Customer deployment
-and external integration results retain their own evidence boundaries.
+Status: 1.0.2 corrective candidate after the fresh audit; review reopened at
+8/10. The complete local and fresh production-browser gates pass; exact-source
+hosted, signed/public-consumer and final review gates remain pending in the [active plan](implementation-plan.md) and
+[current evidence](evidence/1.0.2/README.md). Historical 1.0.1 proof retains its
+original scope.
 
 ## Assets
 
@@ -182,6 +182,23 @@ The production service worker caches exactly four public offline-shell files:
 provider/log data, health probes or metrics. Offline navigation uses the public
 offline page. A waiting update activates/reloads only after the user's action.
 
+## Fresh corrective security boundaries
+
+Provider text masking removes complete credential URL userinfo before log
+transport or Kubernetes event summary persistence, including usernames used as
+tokens and nested JSON string values. Clipped text must fail closed when a URL
+authority may be incomplete. Redaction is defense in depth; review existing
+retained observations separately before sharing or exporting them. New masking
+does not rewrite historical event rows or prove all arbitrary text harmless.
+
+A later native event page's permission-denied result overrides
+earlier success and drops accumulated native events. Canonical byte-collation
+keysets prevent database-default ordering from disagreeing with cursor checks.
+Native storage commands preserve literal database identity, so percent sequences
+or equals characters cannot select a different target through double decoding
+or libpq option interpretation. These corrections retain ownership, empty-target,
+deadline, secret-handling and audit boundaries. [Proof](evidence/1.0.2/fresh-audit.md).
+
 ## Logs, metrics, and retained data
 
 Logs are potentially sensitive even after provider fields are filtered. Bound line bytes, page bytes, time windows, stream buffers, and retention. Treat log search as exact user input, not an expression language. Escape display output and isolate technical text in RTL.
@@ -245,12 +262,12 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 
 ## Acceptance and residual boundaries
 
-Tagged `v1.0.1` at `73ece4754554cca548c242768b195d21664d37b8` passed the full
+Historical tagged `v1.0.1` at `73ece4754554cca548c242768b195d21664d37b8` passed the full
 local gate, exact main/tag CI, strict signed-trial scans, independent trial
 verification and actual Windows/database archive recovery. Architecture/code
 review is 9/10; [consumer receipt](evidence/1.0.1/consumer-trial.json).
 Final stable publication and independent public verification also passed;
-all nine stages are delivered and accepted in the
+that historical delivery was accepted in the
 [published receipt](evidence/1.0.1/published-release.json). Older checkpoints, a local
 dependency scan or a workflow definition alone cannot establish those results.
 

@@ -1,5 +1,13 @@
 # Development
 
+Working target: **1.0.2 candidate**, schema **17**. Focused audit regressions
+are recorded in [current evidence](evidence/1.0.2/README.md). The complete local
+gate C and scoped production-interface browser pass; exact-source CI and
+signed/public acceptance remain pending. Preserve normal
+checksum verification, all test thresholds and failed-run receipts. Native
+special-name database tests require disposable database-creation rights and
+`STACKPLORE_TEST_NATIVE_POSTGRES_TOOLS=true`; never point them at customer data.
+
 ## Toolchain
 
 - Node.js `24.18.0` from `.node-version`
@@ -21,7 +29,7 @@ Bootstrap checks the pinned tools and installs the locked workspace. It does not
 ## Local PostgreSQL
 
 The corrective Compose profile builds two Linux images: the application from
-`deploy/Dockerfile.api` and `stackplore-postgres:1.0.1` from
+`deploy/Dockerfile.api` and `stackplore-postgres:1.0.2` from
 `deploy/Dockerfile.postgres`. The [database policy](../deploy/postgres-image.json)
 pins the upstream PostgreSQL 17.11 base and unchanged gosu 1.19 source, rebuilt
 with Go 1.26.9. The upstream database entrypoint initializes as needed before
@@ -32,7 +40,7 @@ the Compose override and `--no-build --pull never` commands in
 [deployment](operations/deployment.md#install-from-verified-release-archives).
 Helm still uses operator-owned external PostgreSQL, not a chart-managed copy.
 
-Exact-source derivative build/runtime/scans, main/tag CI, signed trial and
+Historical 1.0.1 exact-source derivative build/runtime/scans, main/tag CI, signed trial and
 independent Windows/database archive checks passed at
 `73ece4754554cca548c242768b195d21664d37b8`. Stable publication and independent
 public verification passed; [published receipt](evidence/1.0.1/published-release.json).

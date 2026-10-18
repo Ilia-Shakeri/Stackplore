@@ -7,11 +7,22 @@ independent design. Third-party bundles and local caches are excluded. The
 review began at `08028f4` with a substantial uncommitted implementation; those
 files were preserved and reviewed as part of the candidate baseline.
 
+## Fresh audit of the delivered baseline
+
+The 2026-10-18 review restarted from `657a600`, the 1.0.1 documentation
+delivery. The current target is **1.0.2** and quality reopens at **8/10**.
+Confirmed security/correctness gaps and the accepted keyboard-navigation gap
+have scoped fixes and focused regressions. The complete local and fresh production-browser gates pass; exact-source
+hosted, signed/public-consumer and final independent acceptance remain pending.
+The [fresh audit](evidence/1.0.2/fresh-audit.md) records triggers, consequences,
+corrections, proof levels and remaining scale limits. Schema is now 17.
+
+## Historical accepted 1.0.1 review
+
 Initial quality was 5/10. Final architecture/code review is **9/10** at
 `73ece4754554cca548c242768b195d21664d37b8`, immutable `v1.0.1`.
-All nine stages are delivered and release acceptance is complete. No unresolved
-severe implementation defect or missing accepted 1.0 feature remains in this
-review scope. Review scores are judgments, not measured coverage.
+That review accepted the nine stages within its then-recorded scope. The fresh
+audit above supersedes its no-open-defect conclusion for the changed candidate. Review scores are judgments, not measured coverage.
 
 Full local D passed 28 release/policy, 40 client and 453 web tests; fresh browser
 B passed 14 cases. All six exact main/tag CI jobs, strict signed trial and public

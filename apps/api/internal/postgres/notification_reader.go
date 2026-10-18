@@ -40,12 +40,12 @@ func (store *Store) ListNotifications(ctx context.Context, request domain.PageRe
 	const columns = `SELECT id, source_id, alert_id, resource_id, notification_kind,
        severity, summary_code, created_at_us, synthetic
 FROM notifications`
-	statement := columns + ` ORDER BY created_at_us DESC, id ASC LIMIT $1`
+	statement := columns + ` ORDER BY created_at_us DESC, id COLLATE "C" ASC LIMIT $1`
 	arguments := []any{request.Limit + 1}
 	if cursor != nil {
 		statement = columns + `
-WHERE created_at_us < $1 OR (created_at_us = $1 AND id > $2)
-ORDER BY created_at_us DESC, id ASC LIMIT $3`
+WHERE created_at_us < $1 OR (created_at_us = $1 AND id COLLATE "C" > $2 COLLATE "C")
+ORDER BY created_at_us DESC, id COLLATE "C" ASC LIMIT $3`
 		arguments = []any{cursor.CreatedAtUS, cursor.ID, request.Limit + 1}
 	}
 	rows, err := store.pool.Query(queryContext, statement, arguments...)

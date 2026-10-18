@@ -3,6 +3,7 @@ import { createReadStream } from 'node:fs';
 import { lstat, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import process from 'node:process';
+import { releaseNotes } from './release-notes.mjs';
 import { setTimeout as delay } from 'node:timers/promises';
 import {
   checkDatabaseImageMetadata,
@@ -237,10 +238,7 @@ if (command === 'check-ci') {
   checkDatabaseSbomIdentity(databaseSbom, database, databaseScan);
   const verified = await awaitVerification();
   const changelog = await readFile('CHANGELOG.md', 'utf8');
-  const start = changelog.indexOf(`## [${version}]`);
-  if (start < 0) throw new Error('Release notes missing.');
-  const next = changelog.indexOf('\n## [', start + 1);
-  const notes = changelog.slice(start, next < 0 ? undefined : next).trim();
+  const notes = releaseNotes(changelog, version, repository, revision);
   // Existing releases are never replaced, and partial uploads stay drafts for review.
   const releases = await request('releases?per_page=100');
   if (releases.some((release) => release.tag_name === refName))
@@ -252,7 +250,7 @@ if (command === 'check-ci') {
       tag_name: refName,
       target_commitish: revision,
       name: `Stackplore ${version}`,
-      body: `${notes}\n\nSource: ${revision}\nExact tag checks: ${verified.html_url}\n\nVerify SHA256SUMS and signed provenance before use; see docs/operations/release.md.`,
+      body: `${notes}\n\nSource: ${revision}\nExact tag checks: ${verified.html_url}\n\nVerify SHA256SUMS and signed provenance before use; see [release verification](https://github.com/${repository}/blob/${revision}/docs/operations/release.md).`,
       draft: true,
       prerelease: version.startsWith('0.') || version.includes('-'),
     }),

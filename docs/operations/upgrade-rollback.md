@@ -11,6 +11,23 @@ build; it is not an automatic 0.1.0 upgrade. Do not edit ledger digests. Use a
 new verified target or a separately reviewed data migration if retaining that
 development database is required.
 
+## 1.0.1 to corrective 1.0.2
+
+The current candidate advances ledger **16 to 17**. Migration 17 adds matching
+byte-collation indexes for notification and alert-rule keysets; query seek and
+ordering now agree under non-byte database defaults. Existing identifiers,
+authorization and the first sixteen migration bytes remain unchanged. Real
+PostgreSQL checks cover both ledger-14 and ledger-16 forward upgrades, source
+data retention and canonical paging. Full exact-source acceptance remains in
+[current evidence](../evidence/1.0.2/README.md).
+
+Take and verify a native backup before the controlled single-owner upgrade.
+Budget startup/index work on a restored representative copy. A 1.0.2 storage
+command requires its exact 17-entry ledger; restore a 1.0.1 archive with the
+matching 1.0.1 tool, verify it, stop that runtime, then upgrade the restored copy.
+Do not run an older binary on ledger 17 or edit historical ledger checksums.
+Rollback needs the separately verified pre-upgrade backup.
+
 ## 0.1.0 to 0.2.0
 
 The first six released migration bytes are unchanged. The new runtime adds

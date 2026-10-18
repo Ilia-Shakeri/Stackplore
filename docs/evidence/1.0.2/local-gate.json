@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "version": "1.0.2",
+  "scope": "Precommit working-tree local gate; exact immutable source verification remains a separate hosted gate",
+  "baseline_revision": "657a600f0ebaee7f8a5f72dd6393e07cd80f94e3",
+  "observed_at_utc": "2026-10-18T13:19:42.9182569Z",
+  "command": "npm.cmd run verify",
+  "exit_code": 0,
+  "transcript_sha256": "2de5e8b1bb80b71bec05e25ccbbc62ad19341b40df9c2effbf501cb9870891e1",
+  "environment": {
+    "os": "Windows",
+    "node": "24.18.0",
+    "go": "1.26.9",
+    "postgres": "17.11",
+    "native_tools_enabled": true,
+    "module_checksum_verification": "normal",
+    "temporary_path": "canonical native Windows absolute path",
+    "go_cache": "valid accepted cache; focused SQL and native negative/positive proof retained separately",
+    "web_pool": "default threads; no assertion or coverage change"
+  },
+  "checks": {
+    "format": "passed",
+    "documentation_links": 851,
+    "locale_messages": 725,
+    "bounded_contract_schemas": 235,
+    "contract_drift": "passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "runtime_image_policy": "passed",
+    "go_linked_modules": 72,
+    "go_exact_legal_files": 106,
+    "web_legal_packages": 63,
+    "web_exact_legal_files": 63,
+    "release_policy_tests": 29,
+    "go_tests": "all packages passed; real owned PostgreSQL and native tools enabled",
+    "domain_statement_coverage": 80.6,
+    "alerting_statement_coverage": 82.6,
+    "client_tests": 40,
+    "client_files": 2,
+    "web_tests": 477,
+    "web_files": 49,
+    "web_coverage": {
+      "statements": 82.91,
+      "branches": 78.68,
+      "functions": 86.71,
+      "lines": 84.48
+    },
+    "production_build": "web assets embedded and Go build passed",
+    "helm_strict_lint": "one chart passed"
+  },
+  "retained_failed_attempts": [
+    "Intermediate API attempt used a noncanonical Windows temporary path, compiled changing redaction source and hit a slow-checkpoint fixture cleanup deadline.",
+    "Initial full verify stopped on eighteen lint findings; all corrected without changing lint rules.",
+    "Private negative probes, interrupted cold builds, worker startup timeout and fixture assertion mismatch remain failed receipts."
+  ],
+  "limits": "This receipt does not establish browser, exact-source hosted jobs, container installs, signing, publication, other native platforms or customer production.",
+  "earlier_passing_state": {
+    "attempt": "b",
+    "exit_code": 0,
+    "transcript_sha256": "d74e4066b012270b10f29d798b1810a3745f5f6dc44e89af60a59819e65397c0",
+    "web_coverage": {
+      "statements": 82.99,
+      "branches": 78.99,
+      "functions": 87.02,
+      "lines": 84.54
+    },
+    "scope": "Passed earlier tree before the independently reproduced serialized-URL residual; retained without relabeling"
+  },
+  "attempt": "c",
+  "final_redaction_proof": {
+    "new_serialized_separator_cases": 27,
+    "before_leak_failures": 21,
+    "safe_controls": 6,
+    "package_top_level_tests": 11,
+    "package_cases": 72,
+    "package": "passed",
+    "independent_cases": 3,
+    "independent": "passed",
+    "processing_bounds": "unchanged"
+  }
+}

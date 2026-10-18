@@ -1,11 +1,10 @@
 # Current user guide
 
-This describes delivered 1.0.1. All nine stages and public release acceptance
-passed; [published receipt](evidence/1.0.1/published-release.json).
-Exact PostgreSQL, browser, provider, installation and artifact results remain
-in the [evidence plan](implementation-plan.md). Customer production and offline
-installation require separate operator checks. See [roadmap](roadmap.md) and
-[راهنمای فارسی](user-guide.fa.md).
+This describes the implemented **1.0.2 candidate**. Its focused corrections
+are recorded in the [fresh audit](evidence/1.0.2/fresh-audit.md); the complete local and fresh production-browser gates pass. Exact-source
+hosted and signed/public-consumer acceptance remain pending. Historical [1.0.1 proof](evidence/1.0.1/published-release.json) retains
+its original scope. Customer production and offline installation need separate
+operator checks. [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
    installation exposed beyond loopback needs a short-lived setup proof from
@@ -49,6 +48,29 @@ installation require separate operator checks. See [roadmap](roadmap.md) and
    administrators may preview/confirm its changes, masked configuration export
    or bounded eligible-history cleanup. See [settings](settings.md). Sign out
    through the account menu.
+
+## Quick navigation
+
+Use the header's navigation button or **Ctrl+K** (**Command+K** on macOS) to
+open quick navigation. Search by the translated page name or its fixed path;
+use Up/Down and Enter to choose, or Escape to close. Viewer/guest choices omit
+administrator destinations. The selected infrastructure source follows the
+navigation. Closing returns focus to the prior control; choosing a page moves
+focus to its main content. An existing modal keeps its own keyboard interaction.
+
+Log severity labels are translated, while their shareable URL/API values stay
+stable, including trace and unknown. Graph nodes show their provider/type icon,
+scope and actual observed state; the accessible list offers equivalent facts.
+Deleting the rule being edited clears that draft only after successful deletion.
+Cancel remains unavailable while the editor is loading or saving, so a late
+deletion reply cannot erase a new draft opened during that request.
+
+The account table renders at most 50 rows at once. Previous/next controls visit
+every loaded account; a fresh server page is requested only at the end of that
+cache. Refresh or a successful account action returns to the first window.
+The displayed count means loaded accounts, not the installation total. The
+manually requested cache can grow until refresh/unmount; windowing is not a
+fixed limit on how many accounts may exist or be inspected.
 
 ## Administrator source changes
 

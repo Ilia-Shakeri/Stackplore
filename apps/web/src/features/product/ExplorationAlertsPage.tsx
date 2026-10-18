@@ -13,6 +13,7 @@ import {
 } from './exploration-ui';
 import { explorationItemLimit } from './use-cursor-page';
 import { alertStateLabel, alertSummary } from './alert-labels';
+import { severityLabel } from './severity-labels';
 const sourceOptions = (sourceId?: string) => (sourceId === undefined ? {} : { sourceId });
 export function ProductAlertsPage() {
   const api = useProductApi();
@@ -183,7 +184,7 @@ export function ProductAlertsPage() {
                 <article id={`alert-${alert.id}`} key={alert.id}>
                   <div>
                     <span className={`severity-chip severity-chip--${alert.severity}`}>
-                      {alert.severity}
+                      {severityLabel(alert.severity, t)}
                     </span>
                     <span className={`alert-state alert-state--${alert.state}`}>
                       {alertStateLabel(alert.state, t)}

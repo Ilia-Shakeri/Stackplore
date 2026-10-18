@@ -21,7 +21,7 @@
 .topology-edge--inferred {
   stroke-dasharray: 7 5;
 }
-.topology-highlight-active .topology-node:not(.topology-muted) rect {
+.topology-highlight-active .topology-node:not(.topology-muted) > rect {
   stroke-width: 4;
 }
 .topology-highlight-active .topology-edge:not(.topology-muted) {
@@ -45,7 +45,7 @@
 .topology-legend .topology-legend__inferred::before {
   border-block-start-style: dashed;
 }
-.topology-node--selected rect {
+.topology-node--selected > rect {
   stroke-width: 4;
 }
 .topology-limit {

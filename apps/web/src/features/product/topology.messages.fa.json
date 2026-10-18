@@ -24,6 +24,7 @@
   "topology.graphLimit": "نمودار {shown} گره از {count} گره منطبق را نشان می‌دهد. همه گره‌های بارگیری‌شده در فهرست هستند.",
   "topology.nodeList": "فهرست دسترس‌پذیر گره‌ها و رابطه‌ها",
   "topology.nodes": "گره‌ها",
+  "topology.mixedState": "وضعیت‌های متفاوت کانتینرها",
   "topology.edges": "رابطه‌ها",
   "topology.isolated": "در نمای بارگیری‌شده رابطه‌ای ندارد",
   "topology.selectedDetail": "منبع انتخاب‌شده",

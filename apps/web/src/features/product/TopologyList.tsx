@@ -2,7 +2,7 @@ import type { ProductRelationship, ProductResource } from '@stackplore/api-clien
 import { useState } from 'react';
 import { useLocale } from '../../i18n';
 import { topologyListPageSize, topologyResourceHref } from './topology-model';
-import { evidence, relationshipKeys } from './topology-presentation';
+import { evidence, relationshipKeys, topologyResourceState } from './topology-presentation';
 
 export function TopologyList({
   resources,
@@ -32,6 +32,9 @@ export function TopologyList({
                 {resource.provider} · {resource.kind} · {resource.scope_name ?? resource.scope_kind}
               </bdi>
               <span>{t(`product.health.${resource.health ?? 'unknown'}`)}</span>
+              {topologyResourceState(resource, t) === undefined ? null : (
+                <span>{topologyResourceState(resource, t)}</span>
+              )}
               {connectedIds.has(resource.id) ? null : <span>{t('topology.isolated')}</span>}
             </li>
           ))}

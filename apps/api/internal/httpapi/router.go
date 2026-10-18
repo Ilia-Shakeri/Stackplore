@@ -298,8 +298,8 @@ func allowedAPIMethods(path string) string {
 	path = strings.TrimPrefix(path, "/api/v1")
 	switch path {
 	case "/setup/status", "/auth/session", "/system/readiness", "/sources", "/environments", "/resources",
-		"/topology", "/logs", "/metrics/current", "/metrics/history", "/health/history", "/events", "/streams/health", "/streams/metrics",
-		"/streams/events", "/streams/logs", "/streams/alerts", "/audit", "/notifications", "/settings/notifications":
+		"/topology", "/logs", "/logs/download", "/metrics/current", "/metrics/history", "/health/history", "/events", "/streams/health", "/streams/metrics",
+		"/streams/events", "/streams/logs", "/streams/alerts", "/audit", "/notifications", "/settings/notifications", "/settings/sources":
 		return http.MethodGet
 	case "/alerts":
 		return http.MethodGet
@@ -321,6 +321,15 @@ func allowedAPIMethods(path string) string {
 		return http.MethodPatch
 	case "/users":
 		return http.MethodGet + ", " + http.MethodPost
+	}
+	if strings.HasPrefix(path, "/settings/sources/") {
+		parts := strings.Split(strings.TrimPrefix(path, "/settings/sources/"), "/")
+		if len(parts) == 1 && parts[0] != "" {
+			return http.MethodPatch
+		}
+		if len(parts) == 2 && parts[0] != "" && parts[1] == "preview" {
+			return http.MethodPost
+		}
 	}
 	alertParts := strings.Split(strings.TrimPrefix(path, "/alerts/"), "/")
 	if strings.HasPrefix(path, "/operations/") && len(strings.Split(strings.TrimPrefix(path, "/operations/"), "/")) == 1 {

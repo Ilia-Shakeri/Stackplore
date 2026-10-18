@@ -1,7 +1,13 @@
 # Stackplore delivery plan
 
-Target: **1.0.1 — released and accepted**. **All nine stages are delivered.
-Architecture/code review is 9/10.**
+Target: **1.0.2 — corrective candidate**. Stage 9 delivery acceptance remains
+**8/10** pending hosted/signed/public proof; final scoped code review is **9/10**.
+Confirmed fixes and focused checks are recorded in the
+[fresh review](docs/evidence/1.0.2/fresh-audit.md). The complete local and fresh production-browser gates pass; exact-source CI,
+signing, public verification and final review remain pending.
+No new source commit or tag is recorded yet. Current schema ledger is **17**.
+
+## Historical accepted 1.0.1 delivery
 
 Immutable `v1.0.1` points to `73ece4754554cca548c242768b195d21664d37b8`.
 Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
@@ -30,7 +36,7 @@ their honest outcomes. Customer/offline/cross-built limits remain separate.
 | 6 | 0.6.0 | Complete: narrowly guarded restart/scale, durable intent/result audit, settings, preferences, quota/archive-bound audit retention and bounded cleanup. |
 | 7 | 0.7.0 | Complete: one non-root embedded application, actual Compose setup/restart, Helm installation against external TLS PostgreSQL and bilingual operator runbooks. |
 | 8 | 0.9.0 | Functionally complete: PWA, redacted logs, health history, filters, measured interface/performance and signed publication passed their recorded checks. Superseded because its database default is unsafe and database-image scanning was absent. |
-| 9 | 1.0.1 | Delivered and accepted at 9/10: exact main/tag CI, signed publication, all independent public checks and actual Windows/database archive acceptance passed. |
+| 9 | 1.0.2 | Reopened corrective candidate; 1.0.1 historical delivery remains recorded, while the fresh audit and new exact-source gates must close before current acceptance. |
 
 The correction loop returned to **9/10** after full local D (28 release/policy,
 40 client and 453 web tests), fresh browser B (14 cases), exact six-job main CI,
@@ -40,10 +46,10 @@ unchanged gosu 1.19 with Go 1.26.9. Exact full-image/SPDX and engine/helper/root
 proof passed without suppressions. The [requirement matrix](docs/evidence/0.9.0/requirements.md)
 maps the accepted 1.0 scope to implementation and proof limits.
 
-All release gates are closed: exact-tag CI, signed publication, independent
+For the historical 1.0.1 source, all release gates closed: exact-tag CI, signed publication, independent
 public identity/checksum/provenance/SBOM checks and actual public archive
-acceptance passed. No accepted code feature or severe implementation defect
-remains open in this review scope. Interrupted public transfers remain
+acceptance passed. That earlier review did not detect the newly verified defects and navigation gap;
+[1.0.2](docs/evidence/1.0.2/README.md) tracks their corrective acceptance. Interrupted public transfers remain
 transport failures; bounded range resume retained normal certificate checks,
 API sizes/digests and signed-manifest verification.
 

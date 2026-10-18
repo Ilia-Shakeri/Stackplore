@@ -1,7 +1,8 @@
 import type { ProductRelationship, ProductResource } from '@stackplore/api-client';
+import { Boxes, Container, Network } from '@stackplore/ui/icons';
 import { useId, useMemo, type PointerEvent as ReactPointerEvent } from 'react';
 import { useLocale } from '../../i18n';
-import { evidence, relationshipKeys } from './topology-presentation';
+import { evidence, relationshipKeys, topologyResourceState } from './topology-presentation';
 import {
   topologyEdgePath,
   topologyNodeHeight,
@@ -115,6 +116,16 @@ export function TopologyCanvas({
           {graphResources.map((resource) => {
             const point = layout.points.get(resource.id);
             if (point === undefined) return null;
+            const Icon =
+              resource.provider === 'docker'
+                ? Container
+                : resource.provider === 'kubernetes'
+                  ? Network
+                  : Boxes;
+            const scope = `${resource.scope_kind}: ${resource.scope_name ?? '—'}`;
+            const state = topologyResourceState(resource, t);
+            const status = `${t(`product.health.${resource.health ?? 'unknown'}`)}${state === undefined ? '' : ` · ${state}`}`;
+            const clipId = `${markerId}-${resource.id}`;
             return (
               <a
                 aria-label={resource.name}
@@ -127,6 +138,15 @@ export function TopologyCanvas({
                 <g
                   className={`topology-node topology-node--${resource.health ?? 'unknown'}${selected === resource.id ? ' topology-node--selected' : ''}${highlights !== null && !highlights.has(resource.id) ? ' topology-muted' : ''}`}
                 >
+                  <title>{`${resource.name} · ${resource.provider} · ${resource.kind} · ${scope} · ${status}`}</title>
+                  <defs>
+                    <clipPath id={`${clipId}-name`}>
+                      <rect x={point.x - 52} y={point.y - 39} width="128" height="20" />
+                    </clipPath>
+                    <clipPath id={clipId}>
+                      <rect x={point.x - 76} y={point.y - 18} width="152" height="58" />
+                    </clipPath>
+                  </defs>
                   <rect
                     height={topologyNodeHeight}
                     rx="10"
@@ -134,25 +154,53 @@ export function TopologyCanvas({
                     x={point.x - topologyNodeWidth / 2}
                     y={point.y - topologyNodeHeight / 2}
                   />
-                  <text textAnchor="middle" x={point.x} y={point.y - 19} direction="ltr">
+                  <Icon
+                    aria-hidden="true"
+                    focusable="false"
+                    className="topology-node__provider"
+                    x={point.x - 76}
+                    y={point.y - 36}
+                    width="14"
+                    height="14"
+                    color="var(--sp-text-muted)"
+                  />
+                  <text
+                    textAnchor="middle"
+                    x={point.x + 12}
+                    y={point.y - 24}
+                    direction="ltr"
+                    clipPath={`url(#${clipId}-name)`}
+                  >
                     {shortLabel(resource.name)}
                   </text>
                   <text
                     className="topology-node__kind"
                     textAnchor="middle"
                     x={point.x}
-                    y={point.y + 1}
+                    y={point.y - 7}
                     direction="ltr"
+                    clipPath={`url(#${clipId})`}
                   >
                     {shortLabel(`${resource.provider} · ${resource.kind}`)}
                   </text>
                   <text
-                    className="topology-node__kind"
+                    className="topology-node__kind topology-node__scope"
                     textAnchor="middle"
                     x={point.x}
-                    y={point.y + 23}
+                    y={point.y + 11}
+                    direction="ltr"
+                    clipPath={`url(#${clipId})`}
                   >
-                    {t(`product.health.${resource.health ?? 'unknown'}`)}
+                    {shortLabel(scope)}
+                  </text>
+                  <text
+                    className="topology-node__kind topology-node__state"
+                    textAnchor="middle"
+                    x={point.x}
+                    y={point.y + 30}
+                    clipPath={`url(#${clipId})`}
+                  >
+                    {status}
                   </text>
                 </g>
               </a>

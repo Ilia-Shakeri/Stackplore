@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { productViewSearch, validViewParameter } from './product-view-search';
 
 describe('shared exploration query policy', () => {
+  it.each(['trace', 'unknown'])('preserves the supported log severity %s', (severity) => {
+    expect(validViewParameter('severity', severity)).toBe(true);
+    expect(productViewSearch({ severity })).toEqual({ severity });
+    expect(validViewParameter('severity', `${severity}_invalid`)).toBe(false);
+  });
   it('accepts fixed safe filters and canonicalizes parsed booleans and numbers', () => {
     expect(
       productViewSearch({

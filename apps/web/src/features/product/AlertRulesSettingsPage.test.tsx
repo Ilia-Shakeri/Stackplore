@@ -70,6 +70,67 @@ function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
 }
 
 describe('alert rule settings', () => {
+  it('keeps the editor locked until its pending deletion finishes', async () => {
+    let finish!: () => void;
+    const deleteAlertRule = vi.fn<ProductApi['deleteAlertRule']>().mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ deleteAlertRule })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+    const cancel = screen.getByRole<HTMLButtonElement>('button', { name: 'Cancel' });
+    expect(cancel.disabled).toBe(true);
+    await user.click(cancel);
+    expect(screen.getByRole('heading', { name: 'Edit rule' })).not.toBeNull();
+    expect(screen.getByLabelText<HTMLInputElement>('Rule name').value).toBe('Provider lost');
+    act(() => {
+      finish();
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Edit rule' })).toBeNull();
+    });
+    expect(screen.getByLabelText<HTMLInputElement>('Rule name').value).toBe('');
+    expect(screen.getByRole('heading', { name: 'Create rule' })).not.toBeNull();
+  });
+  it('clears an editor only after its rule was deleted successfully', async () => {
+    const deleteAlertRule = vi
+      .fn<ProductApi['deleteAlertRule']>()
+      .mockRejectedValueOnce(new Error('Delete failed.'))
+      .mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ deleteAlertRule })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Edit' }));
+    expect(screen.getByRole('heading', { name: 'Edit rule' })).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+    await screen.findByRole('button', { name: 'Reload rules' });
+    expect(screen.getByRole('heading', { name: 'Edit rule' })).not.toBeNull();
+    expect(screen.getByLabelText<HTMLInputElement>('Rule name').value).toBe('Provider lost');
+    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Edit rule' })).toBeNull();
+    });
+    expect(screen.getByLabelText<HTMLInputElement>('Rule name').value).toBe('');
+    expect(screen.getByRole('heading', { name: 'Create rule' })).not.toBeNull();
+    expect(deleteAlertRule).toHaveBeenNthCalledWith(2, rule.id, rule.version);
+  });
   afterEach(() => {
     window.history.replaceState(null, '', '/');
   });

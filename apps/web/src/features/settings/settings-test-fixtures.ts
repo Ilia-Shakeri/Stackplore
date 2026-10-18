@@ -9,7 +9,7 @@ import type {
 export const settingsFixture: ApplicationSettings = {
   version: 1,
   updated_at: '2026-08-16T08:00:00Z',
-  application_version: '1.0.1',
+  application_version: '1.0.2',
   values: {
     metric_retention_hours: 168,
     health_retention_hours: 720,
@@ -76,7 +76,7 @@ export const cleanupResultFixture: CleanupResult = {
   policy_version: 1,
 };
 export const exportFixture: ConfigurationExport = {
-  application_version: '1.0.1',
+  application_version: '1.0.2',
   settings: settingsFixture.values,
   sources: [
     {

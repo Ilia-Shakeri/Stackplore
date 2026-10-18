@@ -2,17 +2,16 @@
 
 - **Product:** Stackplore
 - **Tagline:** Explore every service in your stack.
-- **Target release:** 1.0.1
+- **Target release:** 1.0.2
 - **Specification status:** Accepted for implementation
-- **Implementation status:** All nine stages delivered; 1.0.1 released and
-  accepted at immutable `v1.0.1`, source
-  `73ece4754554cca548c242768b195d21664d37b8`. Architecture/code review is 9/10.
-  Exact main/tag CI, signed publication, independent public verification and
-  actual Windows/database archive checks passed; [published receipt](docs/evidence/1.0.1/published-release.json).
-  The accepted 1.0 product scope is unchanged; the
-  [requirement matrix](docs/evidence/0.9.0/requirements.md) maps implementation
-  and proof limits. Immutable 1.0.0 remains withheld, 0.9.0 is superseded for the
-  unsafe database default, and failed intermediate receipts remain history.
+- **Implementation status:** Corrective candidate after a fresh full audit of
+  the delivered 1.0.1 baseline. Review reopened at 8/10. Confirmed defects and
+  the accepted navigation gap have corrections and focused regressions; the complete
+  local and fresh production-browser gates pass. Exact-source hosted, signed
+  release and independent public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
+  The unchanged 1.0 product scope remains authoritative. The immutable 1.0.1
+  [published receipt](docs/evidence/1.0.1/published-release.json) retains its
+  original source and proof limits; it does not certify the new candidate.
 
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
 Deferred features are explicitly listed in section 14. Delivery order and
@@ -829,7 +828,7 @@ The current runtime uses only PostgreSQL for the API, account recovery and
 native backup/restore. Server and native `psql`, `pg_dump` and `pg_restore`
 clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](deploy/postgres-image.json) pins the upstream base and
-defines the reviewed `stackplore-postgres:1.0.1` derivative. Unchanged official
+defines the reviewed `stackplore-postgres:1.0.2` derivative. Unchanged official
 gosu 1.19 is rebuilt from pinned source with Go 1.26.9; the PostgreSQL engine and
 entrypoint are retained. Exact-source trial and independent archive checks
 proved the actual build, engine/helper versions, root-drop and non-root SQL startup. Release gates require exact
@@ -986,7 +985,7 @@ Stackplore 1.0 is complete only when:
 - English and Persian documentation describe only real behavior;
 - screenshots come from the final running demo;
 - no production TODO remains;
-- version is `1.0.1`;
+- version is `1.0.2`;
 - release artifacts have checksums and a software bill of materials;
 - the separately deployed database image has matching engine/digest metadata,
   helper/root-drop probes, a complete vulnerability scan and an SPDX inventory

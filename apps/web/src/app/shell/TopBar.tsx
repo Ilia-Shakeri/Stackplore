@@ -3,6 +3,7 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type SyntheticEvent } from 'react';
 
 import { Breadcrumbs } from './Breadcrumbs';
+import { CommandPalette } from './CommandPalette';
 import { LocaleControl } from './LocaleControl';
 import { MobileNav } from './MobileNav';
 import { ThemeControl } from './ThemeControl';
@@ -56,6 +57,7 @@ export function TopBar() {
         </button>
       </form>
       <div className="app-topbar__actions">
+        <CommandPalette />
         <Link
           className="app-topbar__notification ui-focus-ring"
           to="/notifications"

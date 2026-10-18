@@ -16,6 +16,7 @@ import {
   type ProductLoadState as LoadState,
 } from './exploration-ui';
 import { alertSummary } from './alert-labels';
+import { severityLabel } from './severity-labels';
 export function ProductNotificationsPage() {
   const api = useProductApi();
   const { formatDate, t } = useLocale();
@@ -43,7 +44,7 @@ export function ProductNotificationsPage() {
               <article key={notification.id}>
                 <div>
                   <span className={`severity-chip severity-chip--${notification.severity}`}>
-                    {notification.severity}
+                    {severityLabel(notification.severity, t)}
                   </span>
                   <time dateTime={notification.created_at}>
                     {formatDate(Date.parse(notification.created_at), {

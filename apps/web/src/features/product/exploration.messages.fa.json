@@ -42,6 +42,8 @@
   "explore.logs.timestamps": "نمایش زمان",
   "explore.logs.search": "جست‌وجو در سطرهای بارگیری‌شده",
   "explore.logs.severity": "شدت",
+  "explore.logs.severity.trace": "ردیابی",
+  "explore.logs.severity.unknown": "نامشخص",
   "explore.logs.select": "انتخاب سطر گزارش",
   "explore.logs.copy": "کپی سطرهای انتخاب‌شده",
   "explore.logs.copied": "سطرهای انتخاب‌شده کپی شد.",

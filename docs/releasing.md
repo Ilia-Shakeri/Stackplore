@@ -5,16 +5,19 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. A version number
 does not establish a passing release or customer installation.
 
-Release 1.0.1 is accepted and all nine stages are delivered at immutable source
-`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
-review is 9/10. Exact main/tag CI, signed publication and independent public
-verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
-SBOM attestations passed. The public Windows archive matches the actual
-recovery-tested trial. The different public database archive was independently
-loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
-Customer production and air-gapped installation remain separate operator work.
+The current working target is **1.0.2**, a corrective candidate after a fresh
+whole-repository audit of the 1.0.1 delivery. The review reopened quality at
+**8/10**. Confirmed defects and an accepted navigation gap have corrections and
+focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
+hosted, signed publication and independent public-consumer gates remain pending.
+[Fresh review and current proof](evidence/1.0.2/README.md).
 
-Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
+The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
+retain their original results and scope. Those checks do not certify this new
+candidate. Customer production and air-gapped installation require separate
+operator evidence.
+
+Historical 1.0.1 evidence only: Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
 Trial `39122125492` and release `39123016084` succeeded; stable public release
 `416416913` was published at `2026-10-18T11:43:54Z`. Failed upstream-only and
 report-format candidates, withheld 1.0.0 and superseded 0.9.0 remain history.
@@ -50,7 +53,7 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
 The canonical [PostgreSQL image policy](../deploy/postgres-image.json) is a
-separate release boundary. The reviewed runtime `stackplore-postgres:1.0.1`
+separate release boundary. The reviewed runtime `stackplore-postgres:1.0.2`
 uses the same digest-pinned upstream PostgreSQL 17.11 base and rebuilds unchanged
 official gosu 1.19 with Go 1.26.9. Engine and entrypoint are retained. Actual
 build, helper/engine versions and root-drop behavior must be checked, followed
@@ -78,7 +81,7 @@ git push origin vVERSION
 Use the task's existing branch or a focused `main/` branch. Never force push,
 rewrite historical release tags, or stage all local files without review.
 
-## Final 1.0 scope and corrective 1.0.1 gate
+## Final 1.0 scope and corrective 1.0.2 gate
 
 Every specification requirement needs code, tests, current accurate documents
 and direct evidence. Include browser/a11y/RTL/theme/performance, real provider,
@@ -90,8 +93,9 @@ independent review. Screenshots must come from the running final demo. Workflow
 definitions and local scanner receipts do not replace exact-tag package, image
 scan, signing and consumer-verification evidence. Do not label a 0.x development
 checkpoint or the withheld 1.0.0 tag as a completed corrective release. Current
-review is 9/10 after actual PostgreSQL, browser, hosted-deployment, strict scans
-and archive recovery checks; final publication acceptance is additional.
+review reopened at 8/10 for the fresh findings. Raise it only after corrections,
+full PostgreSQL/browser gates, exact hosted proof and independent review; final
+signed/public archive acceptance remains separately required.
 
 ## Platform and acceptance scope
 

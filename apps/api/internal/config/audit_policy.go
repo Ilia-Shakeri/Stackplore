@@ -11,7 +11,7 @@ const (
 	auditRetentionDaysKey          = prefix + "AUDIT_RETENTION_DAYS"
 	auditQuotaRowsKey              = prefix + "AUDIT_QUOTA_ROWS"
 	auditArchiveVerifiedThroughKey = prefix + "AUDIT_ARCHIVE_VERIFIED_THROUGH"
-	ApplicationVersion             = "1.0.1"
+	ApplicationVersion             = "1.0.2"
 )
 
 var auditPolicyKeys = []string{auditRetentionDaysKey, auditQuotaRowsKey, auditArchiveVerifiedThroughKey}

@@ -42,6 +42,8 @@
   "explore.logs.timestamps": "Show timestamps",
   "explore.logs.search": "Search loaded lines",
   "explore.logs.severity": "Severity",
+  "explore.logs.severity.trace": "Trace",
+  "explore.logs.severity.unknown": "Unknown",
   "explore.logs.select": "Select log line",
   "explore.logs.copy": "Copy selected lines",
   "explore.logs.copied": "Selected lines copied.",

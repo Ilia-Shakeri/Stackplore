@@ -1,18 +1,18 @@
 # Deployment
 
-Tagged 1.0.1 at `73ece4754554cca548c242768b195d21664d37b8` passed exact main/tag
-CI, full image scans, the signed trial and independent Windows/database archive
-runtime checks. Stable publication and independent public-asset acceptance
-also passed; [published receipt](../evidence/1.0.1/published-release.json). The commands below describe source-build and verified-archive
-paths; they do not establish an air-gapped installation or a customer rollout. Check the
-[current acceptance receipt](../evidence/1.0.1/README.md) before choosing release
-artifacts. Preserve existing database and runtime-key volumes during changes.
+Current source target: **1.0.2 candidate**. Full exact-source deployment,
+signed/public archive and final acceptance remain pending in
+[current evidence](../evidence/1.0.2/README.md). Historical
+[1.0.1 proof](../evidence/1.0.1/published-release.json) retains its original
+source and scope. The commands below describe source-build and verified-archive
+paths; they do not establish an air-gapped installation or customer rollout.
+Preserve existing database and runtime-key volumes during changes.
 
 ## Local Compose
 
 Compose builds **two images**: the non-root Go application with the production
 web bundle embedded, and the Linux amd64 PostgreSQL derivative
-`stackplore-postgres:1.0.1` from `deploy/Dockerfile.postgres`. The application
+`stackplore-postgres:1.0.2` from `deploy/Dockerfile.postgres`. The application
 binds to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes,
 and reports ready only after the API and database are ready.
 
@@ -49,15 +49,16 @@ accepted version for the source/Compose files and both Linux amd64 images.
 The archive commands have not been executed as an air-gapped installation;
 source-build Compose/restart CI receipts do not establish that path.
 
-For version 1.0.1, load both verified compressed Docker-save archives:
+After 1.0.2 is published and independently verified, load both matching
+compressed Docker-save archives (these candidate names do not imply availability):
 
 ```sh
-docker image load --input stackplore_1.0.1_image.tar.gz
-docker image load --input stackplore_1.0.1_postgres_image.tar.gz
+docker image load --input stackplore_1.0.2_image.tar.gz
+docker image load --input stackplore_1.0.2_postgres_image.tar.gz
 ```
 
-Confirm the loaded tags are `stackplore-api:1.0.1` and
-`stackplore-postgres:1.0.1`, and compare their image identities with the verified
+Confirm the loaded tags are `stackplore-api:1.0.2` and
+`stackplore-postgres:1.0.2`, and compare their image identities with the verified
 `image-id.txt` and `database-image.json`. The base Compose API service has a
 build definition without a release image tag. Create `compose.release.yaml`
 alongside the matching source to select the loaded release images explicitly:
@@ -65,9 +66,9 @@ alongside the matching source to select the loaded release images explicitly:
 ```yaml
 services:
   api:
-    image: stackplore-api:1.0.1
+    image: stackplore-api:1.0.2
   postgres:
-    image: stackplore-postgres:1.0.1
+    image: stackplore-postgres:1.0.2
 ```
 
 Complete the private `.env` and fresh-database setup-proof steps above, then

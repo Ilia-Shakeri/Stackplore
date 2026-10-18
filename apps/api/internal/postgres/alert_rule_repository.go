@@ -41,12 +41,12 @@ func (store *Store) ListAlertRules(ctx context.Context, request domain.PageReque
 	defer cancel()
 	statement := `SELECT ` + alertRuleColumns + ` FROM alert_rules
 WHERE deleted_at_us IS NULL
-ORDER BY updated_at_us DESC, id ASC LIMIT $1`
+ORDER BY updated_at_us DESC, id COLLATE "C" ASC LIMIT $1`
 	arguments := []any{request.Limit + 1}
 	if cursor != nil {
 		statement = `SELECT ` + alertRuleColumns + ` FROM alert_rules
-WHERE deleted_at_us IS NULL AND (updated_at_us < $1 OR (updated_at_us = $1 AND id > $2))
-ORDER BY updated_at_us DESC, id ASC LIMIT $3`
+WHERE deleted_at_us IS NULL AND (updated_at_us < $1 OR (updated_at_us = $1 AND id COLLATE "C" > $2 COLLATE "C"))
+ORDER BY updated_at_us DESC, id COLLATE "C" ASC LIMIT $3`
 		arguments = []any{cursor.UpdatedAtUS, cursor.ID, request.Limit + 1}
 	}
 	rows, err := store.pool.Query(queryContext, statement, arguments...)

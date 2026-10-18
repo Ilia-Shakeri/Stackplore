@@ -4,23 +4,17 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-Immutable `v1.0.1` identifies `73ece4754554cca548c242768b195d21664d37b8`.
-All nine stages are delivered; architecture/code review is 9/10. Full local D,
-fresh browser B, exact six-job main/tag CI, signed trial/publication and
-independent verification of all 39 public files, 30 checksums, all 31 provenance
-subjects and seven SBOM attestations passed. The public Windows archive matches
-the actual recovery-tested trial; the different public database archive passed
-independent identity, engine/helper/root-drop, read-only non-root SQL and owned
-cleanup checks. [Published receipt](docs/evidence/1.0.1/published-release.json).
+The current working target is **1.0.2**, a corrective candidate after a fresh
+whole-repository audit of the 1.0.1 delivery. The review reopened quality at
+**8/10**. Confirmed defects and an accepted navigation gap have corrections and
+focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
+hosted, signed publication and independent public-consumer gates remain pending.
+[Fresh review and current proof](docs/evidence/1.0.2/README.md).
 
-Release `39123016084`, package `117662309169` and publish `117666236715`
-succeeded; stable release `416416913` was published at
-`2026-10-18T11:43:54Z`. The unsafe 0.9.0 default is superseded; immutable 1.0.0
-remains withheld. Failed `a252718` and `f046d523` trials retain their real
-passing subchecks and failed outcomes. No unresolved severe implementation
-defect or missing accepted 1.0 feature remains in this review scope.
-Customer production, offline installation and cross-built platform limits
-remain explicit in the [release evidence](docs/evidence/1.0.1/README.md).
+The immutable 1.0.1 source and its [published receipt](docs/evidence/1.0.1/published-release.json)
+retain their original results and scope. Those checks do not certify this new
+candidate. Customer production and air-gapped installation require separate
+operator evidence.
 
 ## Delivery contract
 
@@ -42,7 +36,7 @@ The old phase stop/maintainer-commit procedure is historical; use the active pla
 - One modular Go service, with transport/jobs -> use cases/services -> domain ports <- provider/PostgreSQL adapters. Domain imports no HTTP, SQL driver, provider or frontend packages.
 - PostgreSQL is the only supported persistence layer. Use bounded context-aware calls/pools/transactions, ownership before migration, advisory serialized immutable migrations, UTC microseconds, parameters and real SQL tests.
 - Require PostgreSQL server/native clients 17.11 or a later 17.x patch. The canonical database image is in `deploy/postgres-image.json`; prove its exact base/derivative and engine/helper identity, full image scan and bound SPDX alongside application/native/source/history scans.
-- Build the reviewed `stackplore-postgres:1.0.1` derivative from the pinned upstream base with unchanged official gosu 1.19 rebuilt using Go 1.26.9. Prove engine/helper versions, root-drop behavior, full-image scan and bound SPDX; package its Docker-save archive and signed SBOM. Compose/CI use owned patched fixtures; Helm retains external PostgreSQL. No image finding may be suppressed or ignored to pass acceptance.
+- Build the reviewed `stackplore-postgres:1.0.2` derivative from the pinned upstream base with unchanged official gosu 1.19 rebuilt using Go 1.26.9. Prove engine/helper versions, root-drop behavior, full-image scan and bound SPDX; package its Docker-save archive and signed SBOM. Compose/CI use owned patched fixtures; Helm retains external PostgreSQL. No image finding may be suppressed or ignored to pass acceptance.
 - Keep single-runtime ownership; do not claim horizontal safety from PostgreSQL alone.
 - Use provider-neutral identities, explicit capability/completeness states, typed safe metadata, evidence and confidence. Display names are not identity keys.
 - Bound requests, pagination, history, streams, queues, retries and retention. Protect audit lifecycle separately.

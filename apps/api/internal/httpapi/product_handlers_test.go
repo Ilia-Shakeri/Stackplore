@@ -279,6 +279,24 @@ func TestProductRoutesPublishExactAllowedMethod(t *testing.T) {
 	}
 }
 
+func TestDownloadAndSourceSettingsRoutesPublishExactAllowedMethod(t *testing.T) {
+	handler, _, _ := makeHandler(t, nil)
+	for _, test := range []struct {
+		path  string
+		allow string
+	}{
+		{"/api/v1/logs/download", http.MethodGet},
+		{"/api/v1/settings/sources", http.MethodGet},
+		{"/api/v1/settings/sources/source_test", http.MethodPatch},
+		{"/api/v1/settings/sources/source_test/preview", http.MethodPost},
+	} {
+		response := serve(handler, makeRequest(http.MethodOptions, test.path, "198.51.100.10:4000"))
+		if response.Code != http.StatusMethodNotAllowed || response.Header().Get("Allow") != test.allow {
+			t.Errorf("%s response = (%d, %q); want (405, %q)", test.path, response.Code, response.Header().Get("Allow"), test.allow)
+		}
+	}
+}
+
 func TestWriteProviderProblemMapsSafeCodes(t *testing.T) {
 	tests := []struct {
 		code domain.ProviderErrorCode

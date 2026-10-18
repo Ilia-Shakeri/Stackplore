@@ -24,6 +24,21 @@ Backup syncs the archive before no-overwrite publication and syncs the parent
 directory on supported platforms; Windows cannot supply that directory-sync
 guarantee. This is not a cluster-wide PostgreSQL server backup.
 
+## Literal database names
+
+Use a valid PostgreSQL URL and percent-encode its database path exactly once.
+The storage tool preserves the decoded database name literally through native
+`psql`, `pg_dump` and `pg_restore` calls. Percent, equals, quote and backslash
+characters in a database name do not become another decoded name or connection
+options. Do not pre-decode the path, hand-build extra tool connection options,
+or use a different target as a workaround. Passwords remain outside command
+arguments. The 1.0.2 regression uses unique owned databases and actual native
+backup/empty-target restore; it is not a customer restore receipt.
+
+This build expects ledger **17**. Restore an older archive using its matching
+storage release, verify that target, then perform the controlled forward upgrade.
+Historical 1.0.1 receipts continue to describe ledger 16.
+
 ## Safety contract
 
 - Backup may run while the API is live. It uses PostgreSQL custom archive

@@ -24,6 +24,7 @@
   "topology.graphLimit": "Graph shows {shown} of {count} matching nodes. All loaded nodes remain in the list.",
   "topology.nodeList": "Accessible nodes and relationships",
   "topology.nodes": "Nodes",
+  "topology.mixedState": "Mixed container states",
   "topology.edges": "Relationships",
   "topology.isolated": "No relationship in the loaded view",
   "topology.selectedDetail": "Selected resource",
