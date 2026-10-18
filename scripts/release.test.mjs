@@ -44,6 +44,8 @@ const fixture = async (context) => {
   const root = await mkdtemp(path.join(tmpdir(), 'stackplore-release-test-'));
   context.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, 'package.json'), '{"version":"1.2.3"}');
+  await mkdir(path.join(root, 'deploy'));
+  await writeFile(path.join(root, 'deploy/postgres-image.json'), JSON.stringify(databasePin));
   const directory = path.join(root, 'stackplore-release');
   await mkdir(directory);
   const run = (command, extra = {}, hook) =>
@@ -114,6 +116,9 @@ test('metadata records exact source and supported build targets without credenti
   assert.equal(metadata.revision, '1'.repeat(40));
   assert.equal(metadata.version, '1.2.3');
   assert.equal(metadata.targets.length, 5);
+  assert.equal(metadata.images.length, 2);
+  assert.equal(metadata.images[1].archive, 'stackplore_1.2.3_postgres_image.tar.gz');
+  assert.equal(metadata.images[1].image, databasePin.runtime_image);
   assert.doesNotMatch(raw, /fixture-value-never-recorded/);
 });
 
@@ -232,19 +237,24 @@ const databasePin = {
   server_version_num: 170011,
   platform: 'linux/amd64',
   minimum_native_tools: '17.11',
+  runtime_image: 'stackplore-postgres:1.2.3',
+  gosu_version: '1.19',
+  gosu_source_commit: 'd'.repeat(40),
+  gosu_source_sha256: 'f'.repeat(64),
+  gosu_build_go: '1.26.9',
 };
 const databaseInventory = {
   spdxVersion: 'SPDX-2.3',
   SPDXID: 'SPDXRef-DOCUMENT',
-  name: databasePin.image,
+  name: databasePin.runtime_image,
   packages: [
     {
-      name: databasePin.image,
+      name: databasePin.runtime_image,
       SPDXID: 'SPDXRef-ContainerImage-fixture',
       primaryPackagePurpose: 'CONTAINER',
       annotations: [
-        { comment: `ImageID: sha256:${'b'.repeat(64)}` },
-        { comment: `Reference: ${databasePin.image}` },
+        { comment: `ImageID: sha256:${'e'.repeat(64)}` },
+        { comment: `Reference: ${databasePin.runtime_image}` },
       ],
     },
     {
@@ -264,6 +274,18 @@ const databaseInventory = {
         },
       ],
     },
+    {
+      name: 'usr/local/bin/gosu',
+      SPDXID: 'SPDXRef-Application-gosu',
+      primaryPackagePurpose: 'APPLICATION',
+      annotations: [{ comment: 'Type: gobinary' }],
+    },
+    {
+      name: 'stdlib',
+      SPDXID: 'SPDXRef-Package-stdlib',
+      versionInfo: 'v1.26.9',
+      externalRefs: [{ referenceType: 'purl', referenceLocator: 'pkg:golang/stdlib@v1.26.9' }],
+    },
   ],
   relationships: [
     {
@@ -281,6 +303,16 @@ const databaseInventory = {
       relatedSpdxElement: 'SPDXRef-Package-fixture',
       relationshipType: 'CONTAINS',
     },
+    {
+      spdxElementId: 'SPDXRef-ContainerImage-fixture',
+      relatedSpdxElement: 'SPDXRef-Application-gosu',
+      relationshipType: 'CONTAINS',
+    },
+    {
+      spdxElementId: 'SPDXRef-Application-gosu',
+      relatedSpdxElement: 'SPDXRef-Package-stdlib',
+      relationshipType: 'DEPENDS_ON',
+    },
   ],
 };
 const databaseInspection = [
@@ -296,21 +328,37 @@ const databaseIndex = {
     { digest: `sha256:${'c'.repeat(64)}`, platform: { os: 'linux', architecture: 'amd64' } },
   ],
 };
-const databaseMetadata = () =>
-  createDatabaseImageMetadata(
-    databasePin,
-    databaseInspection,
-    databaseIndex,
-    'postgres (PostgreSQL) 17.11\n',
-  );
+const databaseRuntimeInspection = [
+  {
+    Os: 'linux',
+    Architecture: 'amd64',
+    Id: `sha256:${'e'.repeat(64)}`,
+    RepoTags: [databasePin.runtime_image],
+  },
+];
+const databaseMetadata = ({
+  inspection = databaseInspection,
+  index = databaseIndex,
+  runtime = databaseRuntimeInspection,
+  probe = 'postgres (PostgreSQL) 17.11\n',
+  gosuProbe = '1.19 (go1.26.9 on linux/amd64; gc)\n',
+} = {}) => createDatabaseImageMetadata(databasePin, inspection, index, runtime, probe, gosuProbe);
 const databaseReport = () => ({
-  ArtifactName: databasePin.image,
-  Metadata: { ImageID: databaseInspection[0].Id, OS: { Family: 'alpine', Name: '3.23.6' } },
+  ArtifactName: databasePin.runtime_image,
+  Metadata: { ImageID: databaseRuntimeInspection[0].Id, OS: { Family: 'alpine', Name: '3.23.6' } },
   Results: [
     {
       Class: 'os-pkgs',
       Type: 'alpine',
       Packages: [{ Identifier: { PURL: 'pkg:apk/alpine/busybox@1.37.0-r30?arch=x86_64' } }],
+    },
+    {
+      Class: 'lang-pkgs',
+      Type: 'gobinary',
+      Target: 'usr/local/bin/gosu',
+      Packages: [
+        { Name: 'stdlib', Version: 'v1.26.9', Identifier: { PURL: 'pkg:golang/stdlib@v1.26.9' } },
+      ],
     },
   ],
 });
@@ -369,18 +417,17 @@ test('database pin binds the official version, digest, platform and native tool 
 
 test('database receipt binds the pulled upstream index, platform and actual compiled engine version', () => {
   const metadata = databaseMetadata();
-  assert.equal(metadata.image, databasePin.image);
-  assert.equal(metadata.platform_manifest_digest, databaseIndex.manifests[0].digest);
-  assert.equal(metadata.config_digest, databaseInspection[0].Id);
+  assert.equal(metadata.image, databasePin.runtime_image);
+  assert.equal(metadata.upstream_image, databasePin.image);
+  assert.equal(metadata.upstream_platform_manifest_digest, databaseIndex.manifests[0].digest);
+  assert.equal(metadata.upstream_config_digest, databaseInspection[0].Id);
+  assert.equal(metadata.config_digest, databaseRuntimeInspection[0].Id);
   for (const probe of [
     'postgres (PostgreSQL) 17.6',
     'psql (PostgreSQL) 17.11',
     'postgres (PostgreSQL) 17.11\nextra',
   ]) {
-    assert.throws(
-      () => createDatabaseImageMetadata(databasePin, databaseInspection, databaseIndex, probe),
-      /approved engine version/,
-    );
+    assert.throws(() => databaseMetadata({ probe }), /approved engine version/);
   }
   for (const change of [
     { Os: 'windows' },
@@ -389,26 +436,11 @@ test('database receipt binds the pulled upstream index, platform and actual comp
     { RepoDigests: [`postgres@sha256:${'d'.repeat(64)}`] },
   ]) {
     assert.throws(
-      () =>
-        createDatabaseImageMetadata(
-          databasePin,
-          [{ ...databaseInspection[0], ...change }],
-          databaseIndex,
-          'postgres (PostgreSQL) 17.11',
-        ),
+      () => databaseMetadata({ inspection: [{ ...databaseInspection[0], ...change }] }),
       /pinned upstream image/,
     );
   }
-  assert.throws(
-    () =>
-      createDatabaseImageMetadata(
-        databasePin,
-        databaseInspection,
-        { manifests: [] },
-        'postgres (PostgreSQL) 17.11',
-      ),
-    /pinned upstream image/,
-  );
+  assert.throws(() => databaseMetadata({ index: { manifests: [] } }), /pinned upstream image/);
   for (const change of [
     { network: 'default' },
     { read_only: false },
@@ -438,6 +470,68 @@ test('database receipt binds the pulled upstream index, platform and actual comp
     },
   ])
     assert.throws(() => checkDatabaseScanIdentity(report, metadata), /probed image configuration/);
+});
+
+test('database derivative requires the approved gosu source, compiler and actual binary inventory', () => {
+  for (const gosuProbe of [
+    '1.19 (go1.24.6 on linux/amd64; gc)',
+    '1.18 (go1.26.9 on linux/amd64; gc)',
+    '1.19 (go1.26.9 on linux/arm64; gc)',
+  ]) {
+    assert.throws(() => databaseMetadata({ gosuProbe }), /approved engine version/);
+  }
+  for (const runtime of [
+    databaseInspection,
+    [{ ...databaseRuntimeInspection[0], RepoTags: ['unrelated:latest'] }],
+    [{ ...databaseRuntimeInspection[0], Architecture: 'arm64' }],
+  ]) {
+    assert.throws(() => databaseMetadata({ runtime }), /built derivative image/);
+  }
+  for (const alter of [
+    (metadata) => {
+      metadata.gosu_probe.go_version = '1.24.6';
+    },
+    (metadata) => {
+      metadata.gosu_probe.network = 'default';
+    },
+    (metadata) => {
+      metadata.build_inputs.gosu_source_commit = '0'.repeat(40);
+    },
+    (metadata) => {
+      metadata.build_inputs.gosu_source_sha256 = '0'.repeat(64);
+    },
+    (metadata) => {
+      metadata.config_digest = metadata.upstream_config_digest;
+    },
+  ]) {
+    const metadata = databaseMetadata();
+    alter(metadata);
+    assert.throws(
+      () => checkDatabaseImageMetadata(metadata, databasePin),
+      /approved engine version/,
+    );
+  }
+  for (const alter of [
+    (report) => {
+      report.Results.pop();
+    },
+    (report) => {
+      report.Results[1].Packages = [];
+    },
+    (report) => {
+      report.Results[1].Packages[0].Version = 'v1.24.6';
+    },
+    (report) => {
+      report.Results[1].Packages[0].Identifier.PURL = 'pkg:golang/stdlib@v1.24.6';
+    },
+  ]) {
+    const report = databaseReport();
+    alter(report);
+    assert.throws(
+      () => checkDatabaseScanIdentity(report, databaseMetadata()),
+      /approved Go standard library/,
+    );
+  }
 });
 
 test('database SPDX binds the container root, config digest, document and OS package graph', () => {
@@ -512,6 +606,7 @@ test('database SPDX traverses transitive OS dependencies and terminates dependen
     });
     report.Results[0].Packages.push({ Identifier: { PURL: purl } });
   }
+  const dependencyStart = sbom.relationships.length;
   sbom.relationships.push(
     {
       spdxElementId: 'SPDXRef-Package-fixture',
@@ -530,7 +625,7 @@ test('database SPDX traverses transitive OS dependencies and terminates dependen
     },
   );
   assert.doesNotThrow(() => checkDatabaseSbomIdentity(sbom, databaseMetadata(), report));
-  sbom.relationships.splice(3, 1);
+  sbom.relationships.splice(dependencyStart, 1);
   assert.throws(
     () => checkDatabaseSbomIdentity(sbom, databaseMetadata(), report),
     /package inventory/,
@@ -549,6 +644,8 @@ const completeReleaseFixture = async (context) => {
     'database-image-scan.json',
     'database.spdx.json',
     'database-image.json',
+    'stackplore_1.2.3_postgres_image.tar.gz',
+    'postgres-image-sbom.sigstore.json',
     'secret-scan.json',
     'image-id.txt',
     'source.spdx.json',
@@ -566,11 +663,12 @@ const completeReleaseFixture = async (context) => {
       ],
     ),
   ];
-  assert.equal(expected.length, 37);
+  assert.equal(expected.length, 39);
+  assert.equal(expected.filter((name) => name.endsWith('-sbom.sigstore.json')).length, 7);
+  assert.equal(expected.filter((name) => !name.endsWith('.sigstore.json')).length, 31);
   await Promise.all(
     expected.map((name) => writeFile(path.join(data.directory, name), 'fixture payload')),
   );
-  await mkdir(path.join(data.root, 'deploy'));
   await writeFile(path.join(data.root, 'deploy/postgres-image.json'), JSON.stringify(databasePin));
   await writeFile(
     path.join(data.directory, 'database-image.json'),
@@ -612,7 +710,7 @@ const completeReleaseFixture = async (context) => {
   return { ...data, expected };
 };
 
-test('publication accepts exactly 37 assets with all database receipts covered by checksums', async (context) => {
+test('publication accepts exactly 39 assets with all database receipts and archive covered by checksums', async (context) => {
   const { root, run, hook, expected } = await completeReleaseFixture(context);
   const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
   assert.equal(result.status, 0, result.stderr);
@@ -621,6 +719,8 @@ test('publication accepts exactly 37 assets with all database receipts covered b
     .split('\n')
     .map((line) => JSON.parse(line));
   assert.deepEqual(uploaded.sort(), expected.sort());
+  const manifest = await readFile(path.join(root, 'stackplore-release/SHA256SUMS'), 'utf8');
+  assert.equal(manifest.trim().split('\n').length, 30);
 });
 
 test('publication rejects missing, tampered or mismatched database evidence before upload', async (context) => {
@@ -628,6 +728,8 @@ test('publication rejects missing, tampered or mismatched database evidence befo
     'database-image-scan.json',
     'database.spdx.json',
     'database-image.json',
+    'stackplore_1.2.3_postgres_image.tar.gz',
+    'postgres-image-sbom.sigstore.json',
   ]) {
     const { directory, run, hook } = await completeReleaseFixture(context);
     await rm(path.join(directory, filename));
@@ -661,6 +763,13 @@ test('publication rejects unrelated or disconnected database SPDX after checksum
     (sbom) => {
       sbom.packages[2].externalRefs[0].referenceLocator = 'pkg:apk/alpine/busybox@1.0';
     },
+    (sbom) => {
+      sbom.packages.splice(3);
+      sbom.relationships.splice(3);
+    },
+    (sbom) => {
+      sbom.packages[4].externalRefs[0].referenceLocator = 'pkg:golang/stdlib@v1.24.6';
+    },
   ]) {
     const { root, directory, run, hook } = await completeReleaseFixture(context);
     const sbom = globalThis.structuredClone(databaseInventory);
@@ -670,6 +779,27 @@ test('publication rejects unrelated or disconnected database SPDX after checksum
     const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Database SPDX/);
+    await assert.rejects(readFile(path.join(root, 'uploads.jsonl')), { code: 'ENOENT' });
+  }
+});
+
+test('publication rejects freshly checksummed wrong gosu compiler or build-source metadata', async (context) => {
+  for (const alter of [
+    (metadata) => {
+      metadata.gosu_probe.output = '1.19 (go1.24.6 on linux/amd64; gc)';
+    },
+    (metadata) => {
+      metadata.build_inputs.gosu_source_commit = '0'.repeat(40);
+    },
+  ]) {
+    const { root, directory, run, hook } = await completeReleaseFixture(context);
+    const metadata = databaseMetadata();
+    alter(metadata);
+    await writeFile(path.join(directory, 'database-image.json'), JSON.stringify(metadata));
+    assert.equal(run('checksums').status, 0);
+    const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /approved engine version/);
     await assert.rejects(readFile(path.join(root, 'uploads.jsonl')), { code: 'ENOENT' });
   }
 });

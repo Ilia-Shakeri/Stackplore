@@ -2,19 +2,19 @@
   "schema_version": 1,
   "version": "1.0.1",
   "date": "2026-10-18",
-  "scope": "Corrective final working tree, including database SPDX graph/identity regressions; exact hosted main/tag and artifact results remain separate.",
+  "scope": "Final derivative-image correction working tree; complete local C after all runtime/helper/metadata/fixture code writes. Exact hosted image build/scan and signed archive proof remain separate.",
   "command": "npm.cmd run verify",
   "exit_code": 0,
-  "log_sha256": "1f5c96026be381ec6c94dca8ae649624ea7ff082364d4f437558b50b6cf73d1f",
+  "log_sha256": "0c6672994b7101d921f2d64749754ad03c25d5ec12503e85de8addad0ae475f6",
   "node": "24.18.0",
   "pnpm": "11.17.0",
   "go": "1.26.9",
   "postgresql": "17.11",
-  "postgresql_tests": "Owned real PostgreSQL17.11 was ready throughout both complete gates. Attempt A executed changed full-server SQL cases uncached (8.265s); unchanged repository/HTTP coverage used valid Go cache. Attempt B included final24 release/policy tests. Hosted SQL/race and archive recovery require separate fresh receipts.",
+  "postgresql_tests": "Real owned PostgreSQL17.11 remained ready for full C; unchanged backend SQL used valid Go cache. Earlier A changed server cases passed uncached(8.265s), and exact a252718 hosted six-job CI/race passed. New derivative image requires separate exact hosted runtime and archive recovery proof.",
   "client_tests": 40,
   "web_tests": 453,
   "web_test_files": 47,
-  "release_tests": 24,
+  "release_tests": 27,
   "locale_messages": 715,
   "bounded_openapi_schemas": 235,
   "backend_core_statement_coverage": {
@@ -42,5 +42,12 @@
     "release_tests": 21,
     "log_sha256": "4eda3a57084f7c7553c421931970680f29898eec287d7efd6addb5d5b73fcac9",
     "scope": "Before final SPDX identity/graph corrections"
+  },
+  "prior_success_b": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "release_tests": 24,
+    "log_sha256": "1f5c96026be381ec6c94dca8ae649624ea7ff082364d4f437558b50b6cf73d1f",
+    "scope": "Before full derivative database/helper correction"
   }
 }

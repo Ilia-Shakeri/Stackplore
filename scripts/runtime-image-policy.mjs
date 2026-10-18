@@ -1,5 +1,7 @@
 export const POSTGRES_IMAGE_POLICY_PATH = 'deploy/postgres-image.json';
 export const MINIMUM_POSTGRES_VERSION = '17.11';
+export const GOSU_BUILD_IMAGE =
+  'golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade';
 
 const policyKeys = [
   'schema_version',
@@ -8,6 +10,11 @@ const policyKeys = [
   'server_version_num',
   'platform',
   'minimum_native_tools',
+  'runtime_image',
+  'gosu_version',
+  'gosu_source_commit',
+  'gosu_source_sha256',
+  'gosu_build_go',
 ];
 
 const fail = (message) => {
@@ -47,5 +54,21 @@ export function validatePostgresImagePolicy(policy) {
   if (policy.minimum_native_tools !== MINIMUM_POSTGRES_VERSION) {
     fail(`minimum_native_tools must be ${MINIMUM_POSTGRES_VERSION}`);
   }
+  if (
+    typeof policy.runtime_image !== 'string' ||
+    !/^stackplore-postgres:(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/u.test(
+      policy.runtime_image,
+    )
+  )
+    fail('runtime_image must be a versioned Stackplore PostgreSQL image');
+  if (policy.gosu_version !== '1.19' || policy.gosu_build_go !== '1.26.9')
+    fail('gosu must be version 1.19 rebuilt with Go 1.26.9');
+  if (
+    typeof policy.gosu_source_commit !== 'string' ||
+    !/^[a-f0-9]{40}$/u.test(policy.gosu_source_commit) ||
+    typeof policy.gosu_source_sha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/u.test(policy.gosu_source_sha256)
+  )
+    fail('gosu source must include an exact commit and SHA-256 archive digest');
   return policy;
 }

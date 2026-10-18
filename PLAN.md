@@ -16,6 +16,16 @@ The published 0.9.0 prerelease also has the unsafe database default and is
 superseded. [Corrective 1.0.1 acceptance](docs/evidence/1.0.1/README.md) now governs
 delivery; the [1.0.0 receipt](docs/evidence/1.0.0/README.md) preserves history.
 
+Pushed corrective source `a252718efffbdbb03c8f4552c25e998f481c77bb` is also
+rejected, with no 1.0.1 tag or acceptance. Its complete local gate B
+(24 release/policy, 40 client and 453 web tests) and all 14 browser cases passed.
+Exact main CI `39119787227` passed all six jobs.
+[Trial 39119787671](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787671)
+passed the exact upstream pull/PostgreSQL 17.11 engine probe, then failed the
+strict image scan. Fresh local reproduction found one CRITICAL and 24 HIGH
+findings in gosu's Go 1.24.6 library; all remain blocking, without suppressions.
+[Failed receipt](docs/evidence/1.0.1/failed-database-image.json).
+
 | Stage | Version | Delivered outcome |
 | --- | --- | --- |
 | 1 | 0.1.0 | Complete: safe ownership/migrations, final administrator, bounded calls, invalid-input handling, masking, source selection and reproducible baseline. |
@@ -29,9 +39,13 @@ delivery; the [1.0.0 receipt](docs/evidence/1.0.0/README.md) preserves history.
 | 9 | 1.0.1 | Functionality implemented. The immutable 1.0.0 checkpoint passed its recorded local/browser/main/tag/trial/recovery checks but was withheld. Corrective runtime, deployment, full scan and final artifact acceptance are pending. |
 
 The current correction-loop score is **8/10**. Earlier scoped 9/10 reviews
-predate the database-image gap. The corrective tree pins PostgreSQL 17.11 using
-the canonical [database policy](deploy/postgres-image.json) and adds engine,
-OS-package and SPDX gates; configured gates are not observed proof. Return to
+predate the database-image gap. The further corrective tree defines
+`stackplore-postgres:1.0.1` from the same digest-pinned PostgreSQL 17.11 base,
+rebuilding unchanged official gosu 1.19 with Go 1.26.9 while retaining the engine
+and entrypoint. The canonical [database policy](deploy/postgres-image.json)
+records source/digest pins. Actual derivative build, engine/helper/root-drop,
+full-image scan and bound SPDX proof are pending; configured gates are not
+observed proof. Return to
 9/10 only after the exact corrective real-PostgreSQL, browser, hosted deployment
 and strict scan gates pass. The [requirement matrix](docs/evidence/0.9.0/requirements.md)
 maps accepted areas to source, tests, guides and proof limits. Scores remain
@@ -39,10 +53,12 @@ review judgments, separate from measured coverage and runtime evidence.
 
 Remaining gates include real PostgreSQL 17.11 and native backup/empty-target
 restore proof, the full changed-tree local/browser matrix, all six hosted CI jobs,
-database engine/digest and OS/SPDX scans, the signed trial and actual Windows
+derivative database engine/helper/digest and root-drop probes, full image/SPDX
+scans, the signed trial and actual Windows
 1.0.1 recovery. Then tag the checked corrective source, publish, and independently
-verify all public assets and exact identity. The new expected counts are 37
-assets, 29 checksums, 15 provenance subjects and six archive/image SBOM
+verify all public assets and exact identity, including the database Docker-save
+archive and seventh SBOM. Expected counts are 39
+assets, 30 checksums, all 31 provenance subjects and seven native/application/database SBOM
 attestations; none is yet a 1.0.1 receipt. No accepted feature is deferred into
 these acceptance gates.
 
@@ -50,7 +66,8 @@ Customer production acceptance remains an operator task. Credentials, provider
 rights, ingress/TLS, receiver reachability, backups and capacity require the
 customer environment's own checks. A published release does not certify that
 installation. Runtime evidence covers Windows amd64, Linux amd64 and the Linux
-amd64 image with PostgreSQL 17; other native outputs are cross-built only.
+amd64 application and database images with PostgreSQL 17; other native outputs
+are cross-built only.
 
 - [Completion roadmap](docs/roadmap.md) ([فارسی](docs/roadmap.fa.md)) records scope and exit gates.
 - [Active evidence](docs/implementation-plan.md) retains exact commands, outcomes, failures and corrections.

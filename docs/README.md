@@ -7,7 +7,14 @@ The working documentation describes corrective 1.0.1, with all nine stages
 functionally implemented and a current whole-release score of 8/10. Real
 corrective runtime, deployment, scan and final artifact acceptance remain
 pending in the [current receipt](evidence/1.0.1/README.md) and
-[review](evidence/1.0.1/final-review.md). Immutable 1.0.0 passed its recorded
+[review](evidence/1.0.1/final-review.md). Pushed candidate
+`a252718efffbdbb03c8f4552c25e998f481c77bb` passed local B and 14 browser cases
+but was rejected when trial `39119787671` failed the full database-image scan:
+one CRITICAL and 24 HIGH gosu findings remain blocking. The intended
+`stackplore-postgres:1.0.1` derivative rebuilds unchanged gosu 1.19 with Go
+1.26.9 from the pinned PostgreSQL 17.11 base; its actual build, runtime and scan
+proof is pending. No 1.0.1 tag or acceptance is established.
+Immutable 1.0.0 passed its recorded
 checks but publication was canceled; the release API confirmed no release.
 The earlier published 0.9.0 prerelease has the unsafe database default and is
 superseded. Historical successes retain their scope. Project acceptance does
@@ -31,7 +38,7 @@ not deploy or certify a customer's production installation.
 | Application settings, data cleanup and browser preferences | [Settings](settings.md), [تنظیمات](settings.fa.md) |
 | Alert evidence, durable streams and outbound delivery | [Alerts and notifications](alerts-notifications.md), [هشدار و اعلان](alerts-notifications.fa.md) |
 | Proof levels and test gates | [Testing](testing.md) |
-| Current corrective acceptance | [1.0.1 pending gates](evidence/1.0.1/README.md), [corrective review](evidence/1.0.1/final-review.md) |
+| Current corrective acceptance | [1.0.1 pending gates](evidence/1.0.1/README.md), [corrective review](evidence/1.0.1/final-review.md), [rejected image receipt](evidence/1.0.1/failed-database-image.json) |
 | Historical checkpoint receipts | [0.4 evidence](evidence/0.4.0/README.md), [0.5 evidence](evidence/0.5.0/README.md), [superseded 0.9 evidence](evidence/0.9.0/README.md), [withheld 1.0.0](evidence/1.0.0/README.md), [canceled publication](evidence/1.0.0/publication-withheld.json) |
 | Approved PostgreSQL server/client baseline | [Database image policy](../deploy/postgres-image.json), [patch-upgrade guidance](operations/upgrade-rollback.md#postgresql-17-patch-baseline), [راهنمای ارتقای وصله](operations/upgrade-rollback.fa.md) |
 | Install and first administrator | [Deployment](operations/deployment.md), [نصب](operations/deployment.fa.md), [Setup/recovery](operations/account-recovery.md), [راه‌اندازی/بازیابی](operations/account-recovery.fa.md) |

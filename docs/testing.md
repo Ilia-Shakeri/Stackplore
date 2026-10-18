@@ -21,6 +21,18 @@ The published 0.9.0 prerelease has the unsafe default and is superseded.
 Historical receipts below describe their own revisions. Project acceptance and
 a customer's production deployment are separate; these tests do not deploy it.
 
+Pushed candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B
+with 24 release/policy, 40 client and 453 web tests, plus all 14 actual browser
+cases. It remains **rejected and untagged** because trial `39119787671` failed
+its strict database-image scan after passing the exact upstream pull and
+compiled PostgreSQL 17.11 probe. The hosted job did not retain its scan JSON.
+A fresh Windows Trivy 0.76.0 reproduction found one CRITICAL and 24 HIGH
+findings, all in gosu's Go 1.24.6 library; 45 Alpine 3.24.2 OS packages had no
+blocking findings. Preserve both the successful local/browser receipts and the
+[failed image receipt](evidence/1.0.1/failed-database-image.json). No finding is
+suppressed. A new derivative-tree full gate C and runtime/scan/recovery proof
+remain pending; earlier passes do not establish the new image.
+
 | Boundary                                   | Required check                                              | Proof limitation                                                                        |
 | ------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | Domain/auth/provider/service/HTTP          | `npm.cmd run test:api`                                      | Most provider tests use fixtures.                                                       |
@@ -30,7 +42,7 @@ a customer's production deployment are separate; these tests do not deploy it.
 | English/Persian key parity                 | `npm.cmd run check:locales`                                 | Natural language quality needs review.                                                  |
 | Documents/version metadata                 | `npm.cmd run check:docs`, `npm.cmd run check:version`       | Link/file checks do not certify factual accuracy.                                       |
 | PostgreSQL SQL/migrations/auth concurrency | Test URL plus `npm.cmd run test:api`                        | Must run against a disposable real server.                                              |
-| PostgreSQL image identity and scan | Exact engine/image metadata, OS vulnerability report and SPDX inventory | Application-image scans and manifest pins do not prove the separate database image. |
+| PostgreSQL derivative identity and scan | Exact base/derivative and engine/helper metadata, root-drop probe, full image scan, bound SPDX and Docker-save/SBOM proof | Application-image scans, engine-only probes and clean OS results do not prove the complete database image. |
 | Native archive/restore                     | `cmd/storage` on separate fresh databases                   | Successful archive listing alone is not a restore.                                      |
 | Compose/model/images                       | Compose config, build, start, probes and restart            | Definitions or image build alone do not prove startup.                                  |
 | Helm/cluster                               | Lint, render, install, probes, RBAC and TLS                 | Rendering alone does not prove a pod runs.                                              |
@@ -47,7 +59,13 @@ Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
 17.11 or a later 17.x patch. The [canonical image policy](../deploy/postgres-image.json)
 defines the approved digest. Corrective proof needs real database execution,
 readiness/ledger checks and native backup/empty-target restore, plus exact
-database engine/digest metadata, OS scan and matching SPDX package inventory.
+database base/derivative and engine/helper metadata, root-drop behavior, full
+image scan and matching SPDX inventory. The intended `stackplore-postgres:1.0.1`
+rebuilds unchanged official gosu 1.19 with Go 1.26.9 on the same pinned upstream
+17.11 base, retaining its engine and entrypoint. Build owned patched fixtures
+before Compose/CI tests; Helm remains external-PostgreSQL based. Require actual
+postgres 17.11, gosu 1.19/Go 1.26.9 and root-to-database-user probes. All image
+findings remain blocking, including those inherited from the base.
 Retain observed tool/engine versions and identity in each receipt. The
 [existing-installation minor-update guidance](operations/upgrade-rollback.md#postgresql-17-patch-baseline)
 follows upstream; operators validate their own backup/restore and maintenance.

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "version": "1.0.1",
+  "date": "2026-10-18",
+  "scope": "Independent unchanged gosu source cross-built to Linux amd64 and actually executed/scanned; not the complete Docker database runtime",
+  "source": {
+    "version": "1.19",
+    "commit": "6456aaa0f3c854d199d0f037f068eb97515b7513",
+    "tar_sha256": "33d7537d588ea49458b9509bcf4554bdf5ceacc66da71e5caa1058ea3b689c3b"
+  },
+  "go": "1.26.9",
+  "CGO_ENABLED": 0,
+  "binary_sha256": "b0984e507405c96bc0f5c61e3cc3398679b26422e46609fcba247c884692a3a2",
+  "runtime_output": "1.19 (go1.26.9 on linux/amd64; gc)",
+  "scanner": "Trivy0.76.0 Linux amd64 rootfs",
+  "vulnerability_database_updated_at": "2026-10-18T07:12:07.771859408Z",
+  "analyzed_go_executables": 1,
+  "blocking_high_critical": 0,
+  "report_sha256": "633db7a0320d52dc21a86d924f8a90317cdedc8cd3350bc2171c5ffb662ee723",
+  "empty_windows_rootfs_attempt": "Exit0 analyzed0Go executables; rejected as missing coverage",
+  "full_derivative_image": "Pending exact hosted build, root-drop, engine, full-image scan/SPDX and signed archive proof"
+}

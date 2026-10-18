@@ -6,11 +6,13 @@ import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 import {
   checkRuntimeImages,
+  POSTGRES_DOCKERFILE_PATH,
   RUNTIME_IMAGE_REFERENCE_COUNTS,
   validateRuntimeImageReferences,
 } from './check-runtime-images.mjs';
 import {
   POSTGRES_IMAGE_POLICY_PATH,
+  GOSU_BUILD_IMAGE,
   validatePostgresImagePolicy,
 } from './runtime-image-policy.mjs';
 
@@ -21,18 +23,35 @@ const policy = (version = '17.11') => ({
   server_version_num: 170_000 + Number(version.split('.')[1]),
   platform: 'linux/amd64',
   minimum_native_tools: '17.11',
+  runtime_image: 'stackplore-postgres:1.0.1',
+  gosu_version: '1.19',
+  gosu_source_commit: 'c'.repeat(40),
+  gosu_source_sha256: 'd'.repeat(64),
+  gosu_build_go: '1.26.9',
 });
 
-const sources = (pin) =>
-  Object.fromEntries(
+const dockerfile = (pin) => `FROM ${GOSU_BUILD_IMAGE} AS gosu-build
+ADD --checksum=sha256:${pin.gosu_source_sha256} https://codeload.github.com/tianon/gosu/tar.gz/${pin.gosu_source_commit} /tmp/gosu.tar.gz
+RUN test "$(go env GOVERSION)" = 'go${pin.gosu_build_go}' && \\
+    grep -qx 'const Version = "${pin.gosu_version}"' version.go && \\
+    CGO_ENABLED=0 go build -trimpath -buildvcs=false -o /out/gosu .
+FROM ${pin.image}
+COPY --from=gosu-build --chmod=0755 /out/gosu /usr/local/bin/gosu
+COPY --from=gosu-build /out/licenses/ /usr/share/licenses/stackplore-postgres/
+`;
+
+const sources = (pin) => ({
+  ...Object.fromEntries(
     Object.entries(RUNTIME_IMAGE_REFERENCE_COUNTS).map(([file, count]) => [
       file,
       Array.from(
         { length: count },
-        (_, index) => `  service${index}:\n    image: ${pin.image}\n`,
+        (_, index) => `  service${index}:\n    image: ${pin.runtime_image}\n`,
       ).join(''),
     ]),
-  );
+  ),
+  [POSTGRES_DOCKERFILE_PATH]: dockerfile(pin),
+});
 
 test('PostgreSQL policy accepts 17.11 and later minor versions unchanged', () => {
   for (const version of ['17.11', '17.12', '17.100']) {
@@ -64,6 +83,13 @@ test('PostgreSQL policy rejects wrong fields, numeric version, image, platform, 
     { platform: 'linux/arm64' },
     { minimum_native_tools: '17.6' },
     { minimum_native_tools: '18.0' },
+    { runtime_image: 'postgres:17.11-alpine' },
+    { runtime_image: 'stackplore-postgres:latest' },
+    { runtime_image: 'stackplore-postgres:01.0.1' },
+    { gosu_version: '1.18' },
+    { gosu_source_commit: 'c'.repeat(39) },
+    { gosu_source_sha256: 'd'.repeat(63) },
+    { gosu_build_go: '1.24.6' },
     { unknown_field: true },
   ]) {
     assert.throws(() => validatePostgresImagePolicy({ ...pin, ...patch }), /policy failed/u);
@@ -80,8 +106,10 @@ test('runtime references accept the exact fixed counts and quoted scalar forms',
   const pin = policy();
   const files = sources(pin);
   files['compose.yaml'] =
-    `services:\n  postgres:\n    image: '${pin.image}' # pinned\n  app:\n    image: example/app:1\n`;
-  files['.github/workflows/release.yml'] = `    "image": "${pin.image}" # pinned\n`;
+    `services:\n  postgres:\n    image: '${pin.runtime_image}' # pinned\n  app:\n    image: example/app:1\n`;
+  files['.github/workflows/release.yml'] = `    "image": "${pin.runtime_image}" # pinned\n`;
+  files['.github/workflows/ci.yml'] =
+    `env:\n  STACKPLORE_TEST_POSTGRES_IMAGE: ${pin.runtime_image}\npod:\n  image: ${pin.runtime_image}\n`;
   assert.equal(validateRuntimeImageReferences(pin, files), pin);
 });
 
@@ -93,9 +121,9 @@ test('every fixed runtime source rejects missing references, extra references, a
     assert.throws(() => validateRuntimeImageReferences(pin, absent), /source missing/u);
     for (const replacement of [
       '',
-      `# image: ${pin.image}\n`,
+      `# image: ${pin.runtime_image}\n`,
       sources(pin)[file].replace(/image: /u, '# image: '),
-      `${sources(pin)[file]}image: ${pin.image}\n`,
+      `${sources(pin)[file]}image: ${pin.runtime_image}\n`,
     ]) {
       assert.throws(
         () => validateRuntimeImageReferences(pin, { ...sources(pin), [file]: replacement }),
@@ -107,11 +135,45 @@ test('every fixed runtime source rejects missing references, extra references, a
       policy('17.6').image,
       `postgres:17.11-alpine@sha256:${'b'.repeat(64)}`,
       `docker.io/library/${pin.image}`,
+      'stackplore-postgres:1.0.0',
     ]) {
       const drift = sources(pin);
-      drift[file] = drift[file].replace(pin.image, image);
+      drift[file] = drift[file].replace(pin.runtime_image, image);
       assert.throws(() => validateRuntimeImageReferences(pin, drift), /image drift/u);
     }
+  }
+});
+
+test('runtime Dockerfile rejects unpinned, missing, or drifted base and helper build inputs', () => {
+  const pin = policy();
+  const original = sources(pin);
+  const missing = { ...original };
+  delete missing[POSTGRES_DOCKERFILE_PATH];
+  assert.throws(() => validateRuntimeImageReferences(pin, missing), /source missing/u);
+  for (const content of [
+    dockerfile(pin).replace(pin.image, 'postgres:17.11-alpine'),
+    dockerfile(pin).replace(GOSU_BUILD_IMAGE, 'golang:1.24.6-alpine'),
+    dockerfile(pin).replace(pin.gosu_source_commit, 'e'.repeat(40)),
+    dockerfile(pin).replace(pin.gosu_source_sha256, 'f'.repeat(64)),
+    dockerfile(pin).replace('go1.26.9', 'go1.24.6'),
+    dockerfile(pin).replace('const Version = "1.19"', 'const Version = "1.18"'),
+    dockerfile(pin).replace('CGO_ENABLED=0', 'CGO_ENABLED=1'),
+    dockerfile(pin).replace('/usr/local/bin/gosu', '/usr/local/bin/other'),
+    dockerfile(pin).replace('/usr/share/licenses/stackplore-postgres/', '/discard/'),
+    dockerfile(pin).replace(
+      'COPY --from=gosu-build /out/licenses/',
+      '# COPY --from=gosu-build /out/licenses/',
+    ),
+    `# syntax=docker/dockerfile:latest\n${dockerfile(pin)}`,
+    `${dockerfile(pin)}FROM ${pin.image}\n`,
+    `${dockerfile(pin)}ENTRYPOINT ["sh"]\n`,
+    `${dockerfile(pin)}USER 70\n`,
+  ]) {
+    assert.throws(
+      () =>
+        validateRuntimeImageReferences(pin, { ...original, [POSTGRES_DOCKERFILE_PATH]: content }),
+      /Dockerfile build-input drift/u,
+    );
   }
 });
 

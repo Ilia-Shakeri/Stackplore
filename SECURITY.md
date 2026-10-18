@@ -9,8 +9,22 @@ consumer verification pass in the [release evidence](docs/evidence/1.0.1/README.
 Unpublished candidates do not establish support. Report the exact version and
 full source commit.
 
-The supported runtime matrix includes Windows amd64, Linux amd64, the Linux
-amd64 image and PostgreSQL 17. The minimum server patch is 17.11; later 17.x
+Pushed corrective candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` is
+rejected and untagged. Trial `39119787671` passed its PostgreSQL 17.11 engine
+probe but failed the strict database-image scan. Fresh local reproduction found
+one CRITICAL and 24 HIGH findings in gosu's Go 1.24.6 library; all remain
+blocking, with no suppression or base-image exception. The
+[failed receipt](docs/evidence/1.0.1/failed-database-image.json) records actual
+coverage and limits. Current review score remains 8/10.
+
+The correction defines `stackplore-postgres:1.0.1` from the same digest-pinned
+PostgreSQL 17.11 base with unchanged official gosu 1.19 rebuilt using Go 1.26.9.
+Engine/entrypoint retention, helper/root-drop probes, complete image scan,
+bound SPDX, Docker-save archive and signed database SBOM still require actual
+proof. A patched engine version alone does not establish a safe image.
+
+The supported runtime matrix includes Windows amd64 and Linux amd64 native
+tools, Linux amd64 application/database images and PostgreSQL 17. The minimum server patch is 17.11; later 17.x
 patches are supported. The same minimum applies to native `psql`, `pg_dump` and
 `pg_restore` clients. Linux arm64 and macOS archives are cross-built
 outputs until separately executed. Browser evidence records the exact Chromium

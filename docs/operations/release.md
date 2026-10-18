@@ -37,22 +37,24 @@ are required after a published tag, make a new version and tag.
 
 ## Assets and scope
 
-The checked asset set contains exactly 37 files. Five native archives and the
-application image archive retain six separate archive SBOM attestations. The
-database adds three reports; its upstream image is pulled by digest, never
-repacked or published as a Stackplore database archive.
+The checked asset set contains exactly 39 files. Five native archives and two
+image archives retain seven separate archive SBOM attestations. `SHA256SUMS`
+contains 30 payload entries; signed provenance covers those payloads plus the
+manifest. The PostgreSQL runtime is a derivative of its pinned upstream image,
+with the same engine and a rebuilt `gosu` helper.
 
 | Asset | Contents and limit |
 | --- | --- |
 | `stackplore_VERSION_OS_ARCH.tar.gz` | Server with embedded UI, storage and operator tools, license/notices. Builds for Linux amd64/arm64, Windows amd64 and macOS amd64/arm64. Cross-compilation is not native execution evidence for every platform. |
 | `stackplore_VERSION_image.tar.gz` | Docker-save archive of the non-root Linux amd64 application image. No registry is implicitly published. |
+| `stackplore_VERSION_postgres_image.tar.gz` | Docker-save archive of `stackplore-postgres:VERSION` for Linux amd64. It retains the pinned PostgreSQL engine and replaces `gosu` 1.19 with the same pinned source built using Go 1.26.9; helper, dependency and Go license materials are included. This is a Stackplore runtime derivative. |
 | `stackplore-VERSION.tgz` | Helm chart; external PostgreSQL and runtime secrets remain operator inputs. |
 | `stackplore_VERSION_source.tar.gz` | Exact tracked source from the commit, including docs, lockfiles and deployment profiles. |
 | `*.spdx.json` | SPDX JSON inventory for each native archive and image; `source.spdx.json` includes source dependency metadata, including the web lockfile. Binary analysis alone cannot inventory bundled web dependencies completely. |
 | `dependency-scan.json`, `image-scan.json`, `*.scan.json`, `secret-scan.json` | Passed source dependency/image/native-binary vulnerability and Git history secret scan receipts. Findings can change with the vulnerability database. |
-| `database-image-scan.json`, `database.spdx.json` | HIGH/CRITICAL vulnerability scan and Alpine package SPDX inventory of the exact pinned upstream PostgreSQL Linux amd64 image. The OS scanner may not detect its compiled PostgreSQL engine; the separate runtime probe checks that engine. |
-| `database-image.json` | Approved upstream reference/index digest, resolved Linux amd64 platform manifest digest, Docker configuration digest and exact `postgres --version` output. This is a builder verification receipt, not an upstream origin attestation. |
-| `release.json`, `image-id.txt` | Exact commit, ref, run, build targets/tool versions and local image configuration digest. The image ID is not an OCI registry manifest digest. |
+| `database-image-scan.json`, `database.spdx.json` | HIGH/CRITICAL vulnerability scan and SPDX inventory of the built PostgreSQL runtime, including Alpine packages and `gosu` Go dependencies. The OS scanner may not detect the compiled PostgreSQL engine; a separate runtime probe checks that engine. |
+| `database-image.json` | Upstream reference/index/platform/configuration digests, actual runtime image/configuration digest, pinned helper source/compiler build inputs, and isolated `postgres --version` and `gosu --version` results. This is a builder verification receipt, not an upstream origin attestation. |
+| `release.json`, `image-id.txt` | Exact commit, ref, run, five native build targets, both image archive identities/platforms, tool versions and local application image configuration digest. Image IDs are not OCI registry manifest digests. |
 | `native-smoke.json` | Sanitized receipt from executing the extracted Linux amd64 archive with separate disposable PostgreSQL databases: embedded UI, health/readiness, guest reads and denied private routes, first administrator/session, exact version, disabled operation gates and graceful shutdown. Storage/operator invocation checks cover missing-argument rejection; backup/restore remains a separate recovery gate. |
 | `SHA256SUMS` | Hashes of payloads, SBOMs, metadata and passed scan receipts. |
 | `provenance.sigstore.json`, `*-sbom.sigstore.json` | Signed provenance covering all pre-signing assets, including `SHA256SUMS`, plus separate archive SBOM attestations. Bundles do not hash themselves; their signatures establish integrity. |
@@ -66,19 +68,34 @@ redacts matches. Its checked-in ignore list contains only exact historical
 commit/path/rule/line fingerprints from synthetic credential-redaction tests;
 new findings still fail. Do not add a blanket test-directory exclusion.
 
-The canonical database pin is `deploy/postgres-image.json`. Packaging pulls its
-exact approved reference for Linux amd64, verifies the pulled image's upstream
-digest and platform, and runs only `postgres --version` with no network, a
-read-only filesystem, user `70:70`, all capabilities dropped and
-`no-new-privileges`. The compiled engine version must exactly match the policy
-(currently `17.11`). Both its Alpine OS result and Alpine package URLs must be
-present; an empty successful scan is rejected. The scan must identify the same
-image configuration as the runtime probe. The SPDX document must describe its matching container
-root, record that image's configuration digest, and link its Alpine OS and package
-inventory to the exact package URLs in the vulnerability report. All three database reports are covered
-by `SHA256SUMS` and signed build provenance. There is no extra database archive
-SBOM attestation and no claim that build provenance establishes upstream image
-origin. Publication rechecks the database reports and policy after transfer.
+The canonical database policy is `deploy/postgres-image.json`. Packaging verifies
+the pinned upstream Linux amd64 image, then builds `deploy/Dockerfile.postgres`
+with its checked source and compiler pins. It probes the resulting runtime with
+only `postgres --version` and `gosu --version`: no network, a read-only filesystem,
+user `70:70`, all capabilities dropped and `no-new-privileges`. The engine must
+report exactly `17.11`; `gosu` must report `1.19` built using Go `1.26.9` for
+Linux amd64. Trivy must separately inventory that Go standard library in the
+actual `gosu` executable. Its Alpine OS result, Alpine package URLs and Go helper
+inventory must all be present; empty successful scans are rejected.
+
+The scan and SPDX must identify the runtime configuration that was probed. The
+SPDX document must describe that container root, record its configuration digest,
+and link its Alpine and `gosu` application package graphs to the exact package
+URLs in the vulnerability report. All three database reports and the runtime
+archive are covered by checksums and signed build provenance. The database
+archive has its own `postgres-image-sbom.sigstore.json` attestation. Build
+provenance establishes the derivative build, not upstream image origin.
+Publication rechecks the reports and policy after transfer. Native archive smoke
+uses an owned disposable fixture started from this already scanned runtime, then
+removes that fixture before signing.
+
+If the package gate fails, `stackplore-database-diagnostics-COMMIT` retains only
+the available `database-image.json`, `database-image-scan.json` and
+`database.spdx.json` for seven days. These are failure diagnostics, outside the
+39 release assets and unsigned. Missing
+reports are allowed in this diagnostic upload; the failed gate still blocks
+release publication. No inspection files, probe files, environment or staging
+directory are uploaded.
 
 The native tar metadata is normalized to the source commit time. Tool downloads,
 the vulnerability database, container package repositories and the hosted runner
@@ -120,11 +137,14 @@ To verify the SBOM attestation for that Linux archive, also download
 `linux-amd64-sbom.sigstore.json` and run the same identity/source checks with
 `--bundle linux-amd64-sbom.sigstore.json` and
 `--predicate-type https://spdx.dev/Document/v2.3`. Choose the matching bundle for
-other native targets or the image archive. Verify the matching `.spdx.json` using
+other native targets or either image archive. Use `postgres-image-sbom.sigstore.json`
+and `database.spdx.json` for the PostgreSQL runtime archive. Verify the matching `.spdx.json` using
 the provenance bundle or its entry in the signed checksum manifest.
 
 Only after verification, extract native tools or load the image with
-`gzip -dc stackplore_VERSION_image.tar.gz | docker load`. Configure and deploy
+`gzip -dc stackplore_VERSION_image.tar.gz | docker load`. Verify and load the
+PostgreSQL runtime archive separately with
+`gzip -dc stackplore_VERSION_postgres_image.tar.gz | docker load`. Configure and deploy
 through the [deployment runbook](deployment.md), then repeat readiness and
 application-specific checks. Artifact verification establishes origin/integrity;
 it does not establish target-host suitability or production health.

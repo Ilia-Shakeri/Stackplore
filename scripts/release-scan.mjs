@@ -2,7 +2,7 @@ import { lstat, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { validatePostgresImagePolicy } from './runtime-image-policy.mjs';
+import { GOSU_BUILD_IMAGE, validatePostgresImagePolicy } from './runtime-image-policy.mjs';
 
 export function checkReleaseScan(
   report,
@@ -65,7 +65,36 @@ export function checkDatabasePin(pin) {
   return validatePostgresImagePolicy(pin);
 }
 
-export function createDatabaseImageMetadata(pin, inspection, index, probe) {
+const databaseBuildInputs = (pin) => ({
+  dockerfile: 'deploy/Dockerfile.postgres',
+  gosu_version: pin.gosu_version,
+  gosu_source_commit: pin.gosu_source_commit,
+  gosu_source_sha256: pin.gosu_source_sha256,
+  gosu_build_go: pin.gosu_build_go,
+  gosu_build_image: GOSU_BUILD_IMAGE,
+});
+
+const isolatedProbe = (entrypoint, output, version) => ({
+  entrypoint,
+  arguments: ['--version'],
+  user: '70:70',
+  network: 'none',
+  read_only: true,
+  cap_drop: ['ALL'],
+  no_new_privileges: true,
+  exit_code: 0,
+  output: output.trim(),
+  version,
+});
+
+export function createDatabaseImageMetadata(
+  pin,
+  inspection,
+  index,
+  runtimeInspection,
+  probe,
+  gosuProbe,
+) {
   checkDatabasePin(pin);
   const image = Array.isArray(inspection) && inspection.length === 1 ? inspection[0] : undefined;
   const manifests = index?.manifests?.filter(
@@ -88,24 +117,32 @@ export function createDatabaseImageMetadata(pin, inspection, index, probe) {
     !digestPattern.test(manifests[0]?.digest ?? '')
   )
     throw new Error('Database inspection does not match the pinned upstream image and platform.');
+  const runtime =
+    Array.isArray(runtimeInspection) && runtimeInspection.length === 1
+      ? runtimeInspection[0]
+      : undefined;
+  if (
+    runtime?.Os !== 'linux' ||
+    runtime?.Architecture !== 'amd64' ||
+    !digestPattern.test(runtime?.Id ?? '') ||
+    runtime.Id === image.Id ||
+    !runtime.RepoTags?.includes(pin.runtime_image)
+  )
+    throw new Error('Database runtime inspection does not identify the built derivative image.');
   const metadata = {
     schema_version: 1,
-    image: pin.image,
+    image: pin.runtime_image,
+    upstream_image: pin.image,
     upstream_index_digest: upstreamDigest,
+    upstream_platform_manifest_digest: manifests[0].digest,
+    upstream_config_digest: image.Id,
     platform: pin.platform,
-    platform_manifest_digest: manifests[0].digest,
-    config_digest: image.Id,
-    runtime_probe: {
-      entrypoint: 'postgres',
-      arguments: ['--version'],
-      user: '70:70',
-      network: 'none',
-      read_only: true,
-      cap_drop: ['ALL'],
-      no_new_privileges: true,
-      exit_code: 0,
-      output: probe.trim(),
-      version: pin.version,
+    config_digest: runtime.Id,
+    build_inputs: databaseBuildInputs(pin),
+    runtime_probe: isolatedProbe('postgres', probe, pin.version),
+    gosu_probe: {
+      ...isolatedProbe('gosu', gosuProbe, pin.gosu_version),
+      go_version: pin.gosu_build_go,
     },
   };
   checkDatabaseImageMetadata(metadata, pin);
@@ -115,23 +152,39 @@ export function createDatabaseImageMetadata(pin, inspection, index, probe) {
 export function checkDatabaseImageMetadata(metadata, pin) {
   checkDatabasePin(pin);
   const probe = metadata?.runtime_probe;
+  const gosu = metadata?.gosu_probe;
+  const expectedBuildInputs = databaseBuildInputs(pin);
+  const isIsolated = (value, entrypoint) =>
+    value?.entrypoint === entrypoint &&
+    JSON.stringify(value.arguments) === '["--version"]' &&
+    value.user === '70:70' &&
+    value.network === 'none' &&
+    value.read_only === true &&
+    JSON.stringify(value.cap_drop) === '["ALL"]' &&
+    value.no_new_privileges === true &&
+    value.exit_code === 0;
   if (
     metadata?.schema_version !== 1 ||
-    metadata.image !== pin.image ||
+    metadata.image !== pin.runtime_image ||
+    metadata.upstream_image !== pin.image ||
     metadata.upstream_index_digest !== pin.image.split('@')[1] ||
     metadata.platform !== pin.platform ||
-    !digestPattern.test(metadata.platform_manifest_digest ?? '') ||
+    !digestPattern.test(metadata.upstream_platform_manifest_digest ?? '') ||
+    !digestPattern.test(metadata.upstream_config_digest ?? '') ||
     !digestPattern.test(metadata.config_digest ?? '') ||
-    probe?.entrypoint !== 'postgres' ||
-    JSON.stringify(probe.arguments) !== '["--version"]' ||
-    probe.user !== '70:70' ||
-    probe.network !== 'none' ||
-    probe.read_only !== true ||
-    JSON.stringify(probe.cap_drop) !== '["ALL"]' ||
-    probe.no_new_privileges !== true ||
-    probe.exit_code !== 0 ||
+    metadata.config_digest === metadata.upstream_config_digest ||
+    !metadata.build_inputs ||
+    Object.keys(metadata.build_inputs).length !== Object.keys(expectedBuildInputs).length ||
+    Object.entries(expectedBuildInputs).some(
+      ([key, value]) => metadata.build_inputs[key] !== value,
+    ) ||
+    !isIsolated(probe, 'postgres') ||
     probe.version !== pin.version ||
-    probe.output !== `postgres (PostgreSQL) ${pin.version}`
+    probe.output !== `postgres (PostgreSQL) ${pin.version}` ||
+    !isIsolated(gosu, 'gosu') ||
+    gosu.version !== pin.gosu_version ||
+    gosu.go_version !== pin.gosu_build_go ||
+    gosu.output !== `${pin.gosu_version} (go${pin.gosu_build_go} on linux/amd64; gc)`
   )
     throw new Error(
       'Database runtime metadata does not prove the approved engine version and image.',
@@ -145,6 +198,25 @@ export function checkDatabaseScanIdentity(report, metadata) {
     report.Metadata.OS?.Family !== 'alpine'
   )
     throw new Error('Database scan does not identify the probed image configuration.');
+  const gosu = report.Results?.filter(
+    (entry) =>
+      entry.Class === 'lang-pkgs' &&
+      entry.Type === 'gobinary' &&
+      String(entry.Target)
+        .replaceAll('\\', '/')
+        .replace(/ \(gobinary\)$/u, '')
+        .split('/')
+        .at(-1) === 'gosu',
+  );
+  const standardLibraries = gosu?.[0]?.Packages?.filter((entry) => entry.Name === 'stdlib');
+  if (
+    gosu?.length !== 1 ||
+    standardLibraries?.length !== 1 ||
+    standardLibraries[0].Version !== `v${metadata.build_inputs.gosu_build_go}` ||
+    standardLibraries[0].Identifier?.PURL !==
+      `pkg:golang/stdlib@v${metadata.build_inputs.gosu_build_go}`
+  )
+    throw new Error('Database scan does not inventory gosu with the approved Go standard library.');
 }
 
 export function checkDatabaseSbomIdentity(sbom, metadata, report) {
@@ -160,6 +232,9 @@ export function checkDatabaseSbomIdentity(sbom, metadata, report) {
   const describes = relationships.filter(
     (entry) => entry.spdxElementId === sbom?.SPDXID && entry.relationshipType === 'DESCRIBES',
   );
+  const normalizedReference = metadata.image.includes('@')
+    ? metadata.image.replace(/:[^:/@]+@/u, '@')
+    : metadata.image;
   if (
     sbom?.spdxVersion !== 'SPDX-2.3' ||
     sbom.SPDXID !== 'SPDXRef-DOCUMENT' ||
@@ -171,7 +246,9 @@ export function checkDatabaseSbomIdentity(sbom, metadata, report) {
     comments.filter((comment) => comment.startsWith('ImageID: ')).length !== 1 ||
     !comments.includes(`ImageID: ${metadata.config_digest}`) ||
     comments.filter((comment) => comment.startsWith('Reference: ')).length !== 1 ||
-    !comments.includes(`Reference: ${metadata.image}`) ||
+    ![metadata.image, normalizedReference].some((reference) =>
+      comments.includes(`Reference: ${reference}`),
+    ) ||
     describes.length !== 1 ||
     describes[0].relatedSpdxElement !== root.SPDXID
   )
@@ -215,17 +292,20 @@ export function checkDatabaseSbomIdentity(sbom, metadata, report) {
     children.push(entry.relatedSpdxElement);
     dependencies.set(entry.spdxElementId, children);
   }
-  const visited = new Set([system.SPDXID]);
-  const pending = [system.SPDXID];
-  for (let index = 0; index < pending.length; index++) {
-    for (const id of dependencies.get(pending[index]) ?? []) {
-      if (!visited.has(id)) {
-        visited.add(id);
-        pending.push(id);
+  const reachableIds = (start) => {
+    const visited = new Set([start]);
+    const pending = [start];
+    for (let index = 0; index < pending.length; index++) {
+      for (const id of dependencies.get(pending[index]) ?? []) {
+        if (!visited.has(id)) {
+          visited.add(id);
+          pending.push(id);
+        }
       }
     }
-  }
-  const containedIds = pending.slice(1);
+    return pending.slice(1);
+  };
+  const containedIds = reachableIds(system.SPDXID);
   const containedPurls = containedIds.flatMap((id) => alpinePurls(packageById.get(id)));
   const scannedPackages = report.Results.filter(
     (entry) => entry.Class === 'os-pkgs' && entry.Type === 'alpine',
@@ -248,6 +328,45 @@ export function checkDatabaseSbomIdentity(sbom, metadata, report) {
     throw new Error(
       'Database SPDX package inventory does not match the analyzed operating-system packages.',
     );
+
+  const gosuReport = report.Results.find(
+    (entry) =>
+      entry.Class === 'lang-pkgs' &&
+      entry.Type === 'gobinary' &&
+      String(entry.Target)
+        .replaceAll('\\', '/')
+        .replace(/ \(gobinary\)$/u, '')
+        .split('/')
+        .at(-1) === 'gosu',
+  );
+  const applications = packages.filter(
+    (entry) => entry.primaryPackagePurpose === 'APPLICATION' && entry.name === gosuReport?.Target,
+  );
+  const application = applications[0];
+  const goPurls = (entry) =>
+    (Array.isArray(entry?.externalRefs) ? entry.externalRefs : [])
+      .filter(
+        (reference) =>
+          reference.referenceType === 'purl' &&
+          typeof reference.referenceLocator === 'string' &&
+          /^pkg:golang\/.+@/u.test(reference.referenceLocator),
+      )
+      .map((reference) => reference.referenceLocator);
+  const gosuPurls = gosuReport?.Packages?.map((entry) => entry.Identifier?.PURL);
+  if (
+    applications.length !== 1 ||
+    !contains(root.SPDXID, application.SPDXID) ||
+    !application.annotations?.some((entry) => entry.comment === 'Type: gobinary') ||
+    !Array.isArray(gosuPurls) ||
+    gosuPurls.length === 0 ||
+    gosuPurls.some((purl) => typeof purl !== 'string' || !/^pkg:golang\/.+@/u.test(purl)) ||
+    !sameSet(
+      reachableIds(application.SPDXID).flatMap((id) => goPurls(packageById.get(id))),
+      gosuPurls,
+    ) ||
+    !sameSet(packages.flatMap(goPurls), gosuPurls)
+  )
+    throw new Error('Database SPDX gosu inventory does not match the analyzed Go packages.');
 }
 
 async function readText(path, maximum) {
@@ -266,8 +385,24 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const pin = checkDatabasePin(await readReport(process.argv[3], 4096));
     process.stdout.write(`${pin.image}\n`);
   } else if (process.argv[2] === 'database-metadata') {
-    const [pinPath, inspectionPath, indexPath, probePath, outputPath] = process.argv.slice(3);
-    if (!pinPath || !inspectionPath || !indexPath || !probePath || !outputPath)
+    const [
+      pinPath,
+      inspectionPath,
+      indexPath,
+      runtimeInspectionPath,
+      probePath,
+      gosuProbePath,
+      outputPath,
+    ] = process.argv.slice(3);
+    if (
+      !pinPath ||
+      !inspectionPath ||
+      !indexPath ||
+      !runtimeInspectionPath ||
+      !probePath ||
+      !gosuProbePath ||
+      !outputPath
+    )
       throw new Error(
         'Expected database pin, inspection, upstream index, version probe and output paths.',
       );
@@ -275,9 +410,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       await readReport(pinPath, 4096),
       await readReport(inspectionPath, 1024 * 1024),
       await readReport(indexPath, 1024 * 1024),
+      await readReport(runtimeInspectionPath, 1024 * 1024),
       await readText(probePath, 4096),
+      await readText(gosuProbePath, 4096),
     );
     await writeFile(outputPath, `${JSON.stringify(metadata, null, 2)}\n`);
+  } else if (process.argv[2] === 'database-runtime-reference') {
+    const pin = checkDatabasePin(await readReport(process.argv[3], 4096));
+    process.stdout.write(`${pin.runtime_image}\n`);
   } else {
     const [kind, reportPath, sbomPath, extra = ''] = process.argv.slice(2);
     if (

@@ -18,6 +18,14 @@
   remain distinct gates in the [active evidence plan](docs/implementation-plan.md)
   and [1.0 receipt](docs/evidence/1.0.1/README.md).
 
+Corrective source `a252718efffbdbb03c8f4552c25e998f481c77bb` is pushed but
+rejected and untagged. Its local gate and all 14 browser cases passed; trial
+`39119787671` passed the upstream PostgreSQL 17.11 engine probe, then failed
+the strict image scan. Fresh analysis found one CRITICAL and 24 HIGH findings
+in gosu's Go 1.24.6 standard library; all remain blocking without exceptions.
+The [failed receipt](docs/evidence/1.0.1/failed-database-image.json) is preserved.
+The derivative-image correction described below still needs actual proof.
+
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
 Deferred features are explicitly listed in section 14. Delivery order and
 current stage status live in [PLAN.md](PLAN.md) and the [evidence plan](docs/implementation-plan.md). Engineering rules live in
@@ -832,10 +840,16 @@ proxy.
 The current runtime uses only PostgreSQL for the API, account recovery and
 native backup/restore. Server and native `psql`, `pg_dump` and `pg_restore`
 clients require 17.11 or a later patch within major 17. The canonical
-[database image policy](deploy/postgres-image.json) pins the approved digest;
-release gates require engine/digest proof, a database OS vulnerability scan and
-a matching SPDX package inventory in addition to application/native/source/
-history scans. Configured gates are not runtime or scan proof. Existing 17.x
+[database image policy](deploy/postgres-image.json) pins the upstream base and
+defines the intended `stackplore-postgres:1.0.1` derivative. Unchanged official
+gosu 1.19 is rebuilt from pinned source with Go 1.26.9; the PostgreSQL engine and
+entrypoint are retained. Actual derivative build, engine/helper versions and
+root-to-database-user transition still need proof. Release gates require exact
+base/derivative identity, a complete image vulnerability scan and bound SPDX
+inventory in addition to application/native/source/history scans. All findings
+remain blocking; no base exception or suppression is permitted. Compose/CI must
+build owned patched database fixtures first; Helm retains external PostgreSQL
+under the server/client policy. Configured gates are not runtime or scan proof. Existing 17.x
 minor-update guidance follows upstream and requires operator-validated backup,
 restore and maintenance; no specific 17.6-to-17.11 runtime experiment is claimed.
 The runtime checks process ownership before immutable migrations and
@@ -985,7 +999,8 @@ Stackplore 1.0 is complete only when:
 - version is `1.0.1`;
 - release artifacts have checksums and a software bill of materials;
 - the separately deployed database image has matching engine/digest metadata,
-  an OS vulnerability scan and an SPDX package inventory bound to that identity;
+  helper/root-drop probes, a complete vulnerability scan and an SPDX inventory
+  bound to that identity, plus its Docker-save archive and signed SBOM;
 - the user authorizes final tag and release publication, and the exact tagged
   source and published artifacts pass their release gates.
 

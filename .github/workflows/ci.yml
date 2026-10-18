@@ -17,23 +17,9 @@ jobs:
   code:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
-    services:
-      postgres:
-        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
-        env:
-          POSTGRES_DB: stackplore_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d stackplore_test"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 12
     env:
       CI: "true"
-      STACKPLORE_TEST_POSTGRES_URL: postgresql://postgres:postgres@127.0.0.1:5432/stackplore_test?sslmode=disable
+      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:1.0.1
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -51,6 +37,8 @@ jobs:
         run: |
           corepack pnpm install --frozen-lockfile
           go -C apps/api mod download
+      - name: Build patched database and start owned PostgreSQL fixture
+        run: bash scripts/start-test-postgres.sh start code
       - name: Run full gate
         run: corepack pnpm verify
       - name: Run Go concurrency gate
@@ -60,8 +48,6 @@ jobs:
       - name: Install pinned browser runtime
         run: corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
       - name: Verify production browser and offline shell in disposable PostgreSQL
-        env:
-          SP_BROWSER_ADMIN_URL: ${{ env.STACKPLORE_TEST_POSTGRES_URL }}
         run: node scripts/browser-gate.mjs
       - name: Retain sanitized browser evidence
         if: always()
@@ -76,6 +62,9 @@ jobs:
             docs/evidence/*/screenshots/*.png
           if-no-files-found: error
           retention-days: 14
+      - name: Stop only the owned PostgreSQL fixture
+        if: always()
+        run: bash scripts/start-test-postgres.sh stop code
 
   deploy:
     runs-on: ubuntu-24.04
@@ -203,6 +192,8 @@ jobs:
           cluster_name="stackplore-install-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "STACKPLORE_INSTALL_KIND_NAME=$cluster_name" >> "$GITHUB_ENV"
           kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --wait 180s
+          docker build --file deploy/Dockerfile.postgres --tag stackplore-postgres:1.0.1 .
+          kind load docker-image stackplore-postgres:1.0.1 --name "$cluster_name"
           docker build --file deploy/Dockerfile.api --tag stackplore-api:verify .
           kind load docker-image stackplore-api:verify --name "$cluster_name"
       - name: Prepare external PostgreSQL with verified TLS
@@ -241,7 +232,8 @@ jobs:
                   fsGroup: 70
                 containers:
                   - name: postgres
-                    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+                    image: stackplore-postgres:1.0.1
+                    imagePullPolicy: Never
                     args: ["postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/tls/tls.crt", "-c", "ssl_key_file=/tls/tls.key"]
                     env:
                       - name: POSTGRES_DB

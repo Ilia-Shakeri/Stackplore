@@ -4,8 +4,14 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-The active target is corrective `1.0.1`; its exact source and acceptance receipts
-remain to be recorded in the [current release evidence](docs/evidence/1.0.1/README.md).
+The active target remains untagged corrective `1.0.1`. Pushed candidate
+`a252718efffbdbb03c8f4552c25e998f481c77bb` is rejected: local gate B and all 14
+browser cases passed, but trial `39119787671` failed the strict database-image
+scan after its PostgreSQL 17.11 engine probe passed. Fresh analysis found one
+CRITICAL and 24 HIGH gosu Go-library findings; all remain blocking. Keep the
+[failed receipt](docs/evidence/1.0.1/failed-database-image.json). A new derivative
+candidate and its exact acceptance proof remain pending in the
+[current release evidence](docs/evidence/1.0.1/README.md).
 All nine stages are functionally implemented: secure local accounts, PostgreSQL observations, covered
 alerts and durable delivery, full exploration, scoped provider fidelity, guarded
 actions, unified installation and safe PWA behavior. Current review score is
@@ -40,7 +46,8 @@ The old phase stop/maintainer-commit procedure is historical; use the active pla
 
 - One modular Go service, with transport/jobs -> use cases/services -> domain ports <- provider/PostgreSQL adapters. Domain imports no HTTP, SQL driver, provider or frontend packages.
 - PostgreSQL is the only supported persistence layer. Use bounded context-aware calls/pools/transactions, ownership before migration, advisory serialized immutable migrations, UTC microseconds, parameters and real SQL tests.
-- Require PostgreSQL server/native clients 17.11 or a later 17.x patch. The canonical database image is in `deploy/postgres-image.json`; prove its exact engine/digest, OS vulnerability scan and SPDX inventory alongside application/native/source/history scans.
+- Require PostgreSQL server/native clients 17.11 or a later 17.x patch. The canonical database image is in `deploy/postgres-image.json`; prove its exact base/derivative and engine/helper identity, full image scan and bound SPDX alongside application/native/source/history scans.
+- Build the intended `stackplore-postgres:1.0.1` derivative from the pinned upstream base with unchanged official gosu 1.19 rebuilt using Go 1.26.9. Prove engine/helper versions, root-drop behavior, full-image scan and bound SPDX; package its Docker-save archive and signed SBOM. Compose/CI use owned patched fixtures; Helm retains external PostgreSQL. No image finding may be suppressed or ignored to pass acceptance.
 - Keep single-runtime ownership; do not claim horizontal safety from PostgreSQL alone.
 - Use provider-neutral identities, explicit capability/completeness states, typed safe metadata, evidence and confidence. Display names are not identity keys.
 - Bound requests, pagination, history, streams, queues, retries and retention. Protect audit lifecycle separately.

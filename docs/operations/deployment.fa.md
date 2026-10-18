@@ -1,10 +1,26 @@
 # نصب و راه‌اندازی
 
+پذیرش تصویرهای اصلاحی ۱٫۰٫۱ هنوز باز است. فرمان‌های زیر مسیر ساخت از منبع و
+نصب از آرشیو بررسی‌شده را می‌گویند؛ مدرک گذر تصویر مشتق کنونی از گیت اجرا،
+اسکن یا انتشار نیستند. پیش از انتخاب بسته، [رسید پذیرش کنونی](../evidence/1.0.1/README.md)
+را بخوان. هنگام تغییر، volume پایگاه و کلید runtime موجود را نگه دار.
+
 ## اجرای محلی با Compose
 
-Compose یک سرویس Go غیر root می‌سازد و فایل‌های وب را داخل همان برنامه می‌گذارد.
-درگاه فقط روی `127.0.0.1` باز است. PostgreSQL و کلید runtime در volumeهای نام‌دار
-می‌مانند. readiness تنها پس از آماده‌شدن API و پایگاه داده موفق می‌شود.
+Compose **دو تصویر** می‌سازد: برنامهٔ Go غیر root با فایل‌های وب درون آن، و
+تصویر مشتق PostgreSQL برای Linux amd64 با نام `stackplore-postgres:1.0.1` از
+`deploy/Dockerfile.postgres`. درگاه برنامه فقط روی `127.0.0.1` باز است.
+PostgreSQL و کلید runtime در volumeهای نام‌دار می‌مانند. readiness تنها پس از
+آماده‌شدن API و پایگاه داده موفق می‌شود.
+
+[سیاست پایگاه](../../deploy/postgres-image.json)، پایهٔ PostgreSQL 17.11 و منبع
+دست‌نخوردهٔ gosu 1.19 را ثابت می‌کند؛ ابزار با Go 1.26.9 بازساخته می‌شود.
+entrypoint بالادستی پایگاه حفظ می‌شود: آماده‌سازی می‌تواند با root شروع شود و
+سپس gosu دسترسی را به کاربر پایگاه پایین می‌آورد. برنامهٔ Go غیر root می‌ماند.
+ساخت از منبع، تصویر پایهٔ ثابت، منبع ابزار با checksum ثابت و وابستگی‌های قفل‌شده
+را می‌گیرد؛ شبکه لازم است، مگر ورودی‌ها پیش‌تر در cache ساختِ بررسی‌شده باشند.
+برای نصب آفلاین، هر دو آرشیو انتشار بررسی‌شدهٔ زیر را به کار ببر. تصویر
+بالادستیِ تنها که رد شده است را جایگزین نکن.
 
 1. `deploy/compose.env.example` را به `.env` کپی کن.
 2. هر دو جای‌نگهدار گذرواژه را عوض کن. گذرواژه در
@@ -22,10 +38,65 @@ UI و API از یک origin می‌آیند. مسیرهای مرورگر `index.h
 گمشده با پسوند، مسیر API و مسیر health به UI نمی‌افتد. PostgreSQL بی‌TLS فقط در
 شبکه خصوصی محلی است؛ این آزمایش جای نصب production یا ingress عمومی نیست.
 
+### نصب از آرشیو انتشار بررسی‌شده
+
+این مسیر فقط پس از گذر امضا، checksum، هویت منبع و هفت گواهی SBOM نسخهٔ دقیق
+در [بررسی بسته](release.fa.md) به کار می‌رود. بسته باید ۳۹ فایل، ۳۰ ورودی
+checksum و همهٔ ۳۱ موضوع provenance داشته باشد؛ این شمار، مدرک انتشار نیست.
+منبع/فایل Compose و هر دو تصویر Linux amd64 باید از همان نسخهٔ پذیرفته‌شده باشند.
+فرمان‌های آرشیو در نصب بدون شبکه اجرا نشده‌اند؛ رسید CI ساخت از منبع و restart
+در Compose، این مسیر را ثابت نمی‌کند.
+
+برای نسخهٔ ۱٫۰٫۱، هر دو آرشیو فشردهٔ Docker-save بررسی‌شده را بار کن:
+
+```sh
+docker image load --input stackplore_1.0.1_image.tar.gz
+docker image load --input stackplore_1.0.1_postgres_image.tar.gz
+```
+
+تگ‌های بارشده باید `stackplore-api:1.0.1` و `stackplore-postgres:1.0.1` باشند؛
+هویت تصویرها را با `image-id.txt` و `database-image.json` بررسی‌شده بسنج.
+سرویس API در Compose پایه، build دارد و تگ تصویر انتشار ندارد. فایل
+`compose.release.yaml` را کنار منبع همان نسخه بساز تا تصویر بارشده صریح انتخاب شود:
+
+```yaml
+services:
+  api:
+    image: stackplore-api:1.0.1
+  postgres:
+    image: stackplore-postgres:1.0.1
+```
+
+مراحل `.env` خصوصی و proof راه‌اندازی پایگاه خالی را طبق بالا انجام بده؛ سپس
+به‌جای فرمان شروع با ساخت از منبع، اجرا کن:
+
+```sh
+docker compose -f compose.yaml -f compose.release.yaml config --quiet
+docker compose -f compose.yaml -f compose.release.yaml up --no-build --pull never -d
+docker compose -f compose.yaml -f compose.release.yaml ps
+```
+
+نبود تصویر باید شروع را متوقف کند؛ در این مسیر تصویر جایگزین نساز یا نگیر.
+پس از ساخت مدیر نخست، دو مقدار proof را از shell پاک کن و فقط API را دوباره بساز:
+
+```sh
+docker compose -f compose.yaml -f compose.release.yaml up --no-build --pull never -d --force-recreate api
+```
+
+برای شروع‌های بعدی، همین override و گزینه‌های `--no-build --pull never` را
+نگه دار. با `docker compose -f compose.yaml -f compose.release.yaml down` و بدون
+`--volumes` متوقف کن. این فرمان‌ها همان volumeها را حفظ می‌کنند؛ restore پایگاه
+یا مجوز جابه‌جایی production مشتری نیستند. مرجع رسمی Docker،
+[گزینه‌های Compose](https://docs.docker.com/reference/cli/docker/compose/up/) و
+[بارکردن تصویر فشرده](https://docs.docker.com/reference/cli/docker/image/load/) را شرح می‌دهد.
+
 ## چارت Kubernetes
 
-چارت پایگاه داده نصب نمی‌کند. URL PostgreSQL بیرونی را با
-`sslmode=verify-full` در Secret موجود بگذار. برای CA خصوصی،
+چارت پایگاه داده نصب یا مدیریت نمی‌کند. URL PostgreSQL بیرونیِ متعلق به اپراتور
+با نسخهٔ 17.11 یا وصلهٔ جدیدتر از شاخهٔ 17.x را با `sslmode=verify-full` در
+Secret موجود بگذار؛ ابزار نگهداری بومی هم همین حداقل را دارد. ساخت پایگاه
+آزمایشی اصلاح‌شده در CI، آن را به پایگاه تحت مدیریت چارت بدل نمی‌کند و خدمت
+اپراتور را ثابت نمی‌کند. برای CA خصوصی،
 `api.databaseTLS.enabled` را روشن کن و Secret جداگانهٔ CA بساز. چارت فقط گواهی
 عمومی CA را در `/var/run/stackplore/database-ca/ca.crt` mount می‌کند؛ همین مسیر
 را با `sslrootcert` در URL بگذار. کلید خصوصی TLS پایگاه را به برنامه mount نکن.
@@ -46,6 +117,13 @@ UI و API از یک origin می‌آیند. مسیرهای مرورگر `index.h
 رازها را در سامانهٔ مدیریت راز نگه
 دار و image repo، تگ تغییرناپذیر، origin عمومی، دامنه ingress و storage class را
 در فایل خصوصی values تنظیم کن.
+
+برای پایگاه خالی، دو کلید کوتاه‌عمر تعیین‌شده در `api.setup.proofSecretKey` و
+`api.setup.expirySecretKey` را به Secret موجودِ اپراتور بیفزا و برای نخستین
+rollout،‏ `api.setup.enabled=true` بگذار. طبق [راه‌اندازی نخست](account-recovery.md)
+آن‌ها را بساز، proof را در `/setup` وارد کن و پس از پایان، بلوک setup را خاموش
+و دو کلید را از Secret پاک کن. پایگاه آماده‌شده به این مقدارها نیاز ندارد.
+proof را در values، آرگومان فرمان یا manifest عمومی نگذار.
 
 ```sh
 helm upgrade --install stackplore deploy/helm/stackplore \
@@ -72,18 +150,21 @@ Compose هر دو منبع زنده را خاموش نگه می‌دارد. ات
 
 ## مدرک و بررسی
 
-تست handler مسیر فایل و SPA را می‌سنجد، نه image یا نصب را. CI سرویس Compose را
+تست handler مسیر فایل و SPA را می‌سنجد، نه image یا نصب را. CI هر دو تصویر Compose را
 می‌سازد، روی PostgreSQL تازه اجرا می‌کند، readiness و UI و مسیرهای SPA را
 می‌سنجد، API را restart می‌کند و ماندن migration ledger را بررسی می‌کند. CI
-چارت را lint و render می‌کند؛ این کار نصب cluster را ثابت نمی‌کند.
+چارت در CI گیت نصب واقعی روی kind با PostgreSQL خارجی و TLS هم دارد؛ نتیجهٔ
+هر اجرای دقیق باید در رسید باشد. lint و render به‌تنهایی نصب را ثابت نمی‌کنند؛
+مسیر و گواهی ingress مشتری نیز به بررسی همان محیط نیاز دارند.
 
 ```sh
 docker compose --env-file deploy/compose.env.example config --quiet
 helm lint deploy/helm/stackplore --strict
 ```
 
-ساخت تصویر و scan آسیب‌پذیری پیش از تولید آرشیو Docker-save انتشار لازم است؛
-این گردش‌کار registry منتشر نمی‌کند.
+ساخت واقعی هر دو تصویر برنامه و پایگاه، اسکن کامل سخت‌گیرانه، SPDX هم‌بسته،
+probe موتور/ابزار/افت دسترسی و آرشیوهای Docker-save امضاشده لازم است. اسکن
+ابزار تنها، شاهد کل تصویر نیست. این گردش‌کار registry منتشر نمی‌کند.
 
 بازیابی backup، upgrade و rollback روی پایگاه هدف باید جداگانه تمرین و ثبت شوند.
 جزئیات [backup و restore](backup-restore.md) و

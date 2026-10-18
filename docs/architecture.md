@@ -9,6 +9,14 @@ not prove this tree. Immutable 1.0.0 is withheld after its publication was
 canceled; the published 0.9.0 prerelease has the unsafe database default and is
 superseded. See the [withheld receipt](evidence/1.0.0/publication-withheld.json).
 
+Pushed 1.0.1 candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` is also
+rejected and untagged. Its local B/14-browser checks passed, but actual trial
+`39119787671` failed the strict database-image scan after the upstream engine
+probe passed. Fresh reproduction found one CRITICAL and 24 HIGH findings in
+gosu's Go 1.24.6 library; all remain blocking without exceptions.
+[Failed receipt](evidence/1.0.1/failed-database-image.json). A new derivative tree
+and its fresh gates are pending.
+
 ## System shape
 
 Stackplore uses one Go application serving the embedded same-origin web bundle and API, PostgreSQL, and provider adapters. An optional ingress may provide public TLS. The browser never receives provider credentials and never calls infrastructure endpoints directly.
@@ -71,8 +79,12 @@ Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages
 
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and
 `pg_restore` clients require 17.11 or a later patch within major 17. The canonical
-[database image policy](../deploy/postgres-image.json) pins the approved image
-digest. Existing 17.x minor-update guidance follows upstream and requires
+[database image policy](../deploy/postgres-image.json) pins the upstream base
+and intended `stackplore-postgres:1.0.1` derivative. It rebuilds unchanged
+official gosu 1.19 with Go 1.26.9 while retaining the PostgreSQL engine and
+entrypoint. Actual helper/engine/root-drop behavior, full-image scan and bound
+SPDX still need proof. The release must include the database Docker-save archive
+and signed SBOM. Existing 17.x minor-update guidance follows upstream and requires
 operator maintenance and validated backup/restore; no specific 17.6-to-17.11
 runtime experiment is claimed. Startup:
 
@@ -232,10 +244,12 @@ The two provider jobs exercise both read and explicitly enabled guarded writer
 fixtures. Exact run receipts establish which revision passed. Helm requests use
 a Service port-forward; customer ingress-controller HTTPS remains separate.
 
-Release verification covers the separately deployed PostgreSQL image in
+Release verification must cover the separately deployed PostgreSQL derivative in
 addition to native executables, the application image, source dependencies and
-history. It requires exact engine/digest metadata, a database OS vulnerability
-scan and an SPDX package inventory bound to that identity. These configured
+history. It requires exact base/derivative and engine/helper metadata, root-drop
+probes, a complete image vulnerability scan and an SPDX package inventory bound
+to that identity. Compose/CI first build owned patched database fixtures; Helm
+continues to use external PostgreSQL under the server/client policy. These configured
 gates remain pending until observed on the corrective source; a scan of the
 application image does not establish database-image safety.
 

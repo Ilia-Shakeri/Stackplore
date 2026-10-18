@@ -10,3 +10,6 @@ data
 *.log
 code_dumper.py
 full_Stackplore_project_code.txt
+artifacts
+.env
+.env.*

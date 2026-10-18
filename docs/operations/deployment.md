@@ -1,8 +1,27 @@
 # Deployment
 
+Corrective 1.0.1 image acceptance is still pending. The commands below describe
+the source-build and verified-archive paths; they do not claim that the current
+derivative image has passed its full runtime/scan/release gates. Check the
+[current acceptance receipt](../evidence/1.0.1/README.md) before choosing release
+artifacts. Preserve existing database and runtime-key volumes during changes.
+
 ## Local Compose
 
-Compose builds one non-root Go service with the production web bundle embedded. It binds to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes, and reports ready only after the API and database are ready.
+Compose builds **two images**: the non-root Go application with the production
+web bundle embedded, and the Linux amd64 PostgreSQL derivative
+`stackplore-postgres:1.0.1` from `deploy/Dockerfile.postgres`. The application
+binds to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes,
+and reports ready only after the API and database are ready.
+
+The [database policy](../../deploy/postgres-image.json) pins the PostgreSQL 17.11
+upstream base and unchanged gosu 1.19 source rebuilt with Go 1.26.9. The database
+keeps the upstream entrypoint: initialization may start as root before gosu drops
+to the database user. The Go application remains non-root. Source builds fetch
+pinned base images, checksum-pinned helper source and locked dependencies; they
+need network access unless the required inputs are already available in a
+reviewed build cache. For an offline installation, use both verified release
+archives as described below. Do not substitute the rejected upstream-only image.
 
 1. Copy `deploy/compose.env.example` to `.env`.
 2. Replace both password placeholders. URL-encode the password inside `STACKPLORE_COMPOSE_DATABASE_URL`.
@@ -18,9 +37,71 @@ Compose builds one non-root Go service with the production web bundle embedded. 
 
 The API serves the UI and API on the same origin. Browser routes fall back to the embedded `index.html`; missing files with an extension, API routes, and health routes remain 404/health responses. The Compose database has no transport TLS only because it stays on the private local bridge. This profile is not proof of a production database or public ingress.
 
+### Install from verified release archives
+
+Use this path only after the exact release's signatures, checksums, source
+identity and seven SBOM attestations pass [artifact verification](release.md).
+The expected package has 39 assets, 30 checksum entries and all 31 provenance
+subjects; those are required counts, not proof of publication. Select the same
+accepted version for the source/Compose files and both Linux amd64 images.
+The archive commands have not been executed as an air-gapped installation;
+source-build Compose/restart CI receipts do not establish that path.
+
+For version 1.0.1, load both verified compressed Docker-save archives:
+
+```sh
+docker image load --input stackplore_1.0.1_image.tar.gz
+docker image load --input stackplore_1.0.1_postgres_image.tar.gz
+```
+
+Confirm the loaded tags are `stackplore-api:1.0.1` and
+`stackplore-postgres:1.0.1`, and compare their image identities with the verified
+`image-id.txt` and `database-image.json`. The base Compose API service has a
+build definition without a release image tag. Create `compose.release.yaml`
+alongside the matching source to select the loaded release images explicitly:
+
+```yaml
+services:
+  api:
+    image: stackplore-api:1.0.1
+  postgres:
+    image: stackplore-postgres:1.0.1
+```
+
+Complete the private `.env` and fresh-database setup-proof steps above, then
+replace the source-build start command with:
+
+```sh
+docker compose -f compose.yaml -f compose.release.yaml config --quiet
+docker compose -f compose.yaml -f compose.release.yaml up --no-build --pull never -d
+docker compose -f compose.yaml -f compose.release.yaml ps
+```
+
+Missing images must fail; do not rebuild or pull substitutes during this path.
+After first-administrator setup, remove both proof values from the shell and
+recreate only the API with:
+
+```sh
+docker compose -f compose.yaml -f compose.release.yaml up --no-build --pull never -d --force-recreate api
+```
+
+Keep the override and the `--no-build --pull never` options for later starts.
+Stop with `docker compose -f compose.yaml -f compose.release.yaml down` without
+`--volumes`. These commands preserve the same named volumes; they do not perform
+a database restore or authorize a customer production cutover. Docker documents
+the [Compose options](https://docs.docker.com/reference/cli/docker/compose/up/)
+and [compressed image loading](https://docs.docker.com/reference/cli/docker/image/load/).
+
 ## Cluster chart
 
-The chart does not install a database. Supply an external PostgreSQL URL using `sslmode=verify-full` in an existing Secret. For a private CA, enable `api.databaseTLS` and create its separate CA Secret. The chart mounts only the public CA certificate at `/var/run/stackplore/database-ca/ca.crt`; include that exact `sslrootcert` path in the database URL. Never mount the database's private TLS key into the application.
+The chart does not install or manage a database. Supply an operator-owned
+external PostgreSQL 17.11 or later 17.x URL using `sslmode=verify-full` in an
+existing Secret; native maintenance clients have the same minimum. A patched
+database fixture built by CI does not become a chart-managed database or prove
+the operator's service. For a private CA, enable `api.databaseTLS.enabled` and create
+its separate CA Secret. The chart mounts only the public CA certificate at
+`/var/run/stackplore/database-ca/ca.crt`; include that exact `sslrootcert` path in
+the database URL. Never mount the database's private TLS key into the application.
 
 The PVC mount root receives Kubernetes group access. A bounded init container,
 using the same application image and non-root UID 10001, prepares its private
@@ -103,6 +184,6 @@ Do not mount a host socket into this wildcard-bound Compose deployment.
 - PostgreSQL integration tests with `STACKPLORE_TEST_POSTGRES_URL`
 - `docker compose --env-file deploy/compose.env.example config --quiet`
 - `helm lint deploy/helm/stackplore --strict`
-- Image build and vulnerability scan before producing the Docker-save release archive
+- Actual application/database image builds and complete strict scans, bound SPDX, engine/helper/root-drop probes and signed Docker-save archives; a standalone helper scan is not full-image proof
 - Backup, empty-database restore, and rollback rehearsal against the target PostgreSQL service
 - Browser smoke checks in English, Persian RTL, keyboard-only use, and narrow/mobile widths

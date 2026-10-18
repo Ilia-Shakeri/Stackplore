@@ -21,10 +21,16 @@ and actual Windows recovery passed, but publication run `39117205810` was
 canceled after discovering the vulnerable database default and omitted
 database-image scan. The release API confirmed no 1.0.0 GitHub release;
 [withheld receipt](evidence/1.0.0/publication-withheld.json).
-Stage 9 now targets corrective `1.0.1`. Current whole-release score is **8/10**;
-real PostgreSQL 17.11/native restore, browser, hosted deployment and strict scan
-proof remain pending, followed by exact tag/publication and public consumer
-acceptance in the [current receipt](evidence/1.0.1/README.md).
+Stage 9 targets corrective `1.0.1`; current whole-release score is **8/10**.
+Pushed `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B and all
+14 browser cases, but trial `39119787671` failed the strict database-image scan
+after its upstream PostgreSQL 17.11 engine probe passed. Fresh reproduction found
+one CRITICAL and 24 HIGH gosu Go-library findings; all remain blocking, without
+exceptions. The candidate is rejected and untagged; preserve its
+[failed receipt](evidence/1.0.1/failed-database-image.json). The derivative-image
+replacement needs fresh actual build/runtime, PostgreSQL/native restore,
+browser scope, hosted deployment and scan proof, then exact tag/publication and
+consumer acceptance in the [current receipt](evidence/1.0.1/README.md).
 [Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
@@ -233,12 +239,18 @@ unimplemented 1.0 requirement hidden behind a completion claim.
 ## Stage 9 — Final independent review and corrective 1.0.1
 
 Status: corrective 1.0.1 candidate, current score **8/10**. The canonical
-[database policy](../deploy/postgres-image.json) pins PostgreSQL 17.11; the same
-minimum applies to native clients within 17.x. Engine/digest proof, database
-OS scan and SPDX inventory join the application/native/source/history gates.
+[database policy](../deploy/postgres-image.json) defines the intended
+`stackplore-postgres:1.0.1` derivative from the same pinned PostgreSQL 17.11 base,
+rebuilding unchanged official gosu 1.19 with Go 1.26.9 and retaining the upstream
+engine/entrypoint. The minimum native client remains 17.11 within 17.x. Actual
+derivative build, engine/helper versions, root-drop behavior, full-image scan
+and bound SPDX join application/native/source/history gates. Compose/CI build
+owned patched fixtures; Helm retains external PostgreSQL. Include the database
+Docker-save archive and seventh signed SBOM; expected counts are 39 assets,
+30 checksums, all 31 provenance subjects and seven SBOM attestations, pending.
 Configured gates are not execution proof. Return to 9/10 only after the actual
 corrective real-PostgreSQL/native-restore, browser, hosted-deployment and strict
-scan gates pass. Exact tag, signed publication and independent public artifact
+scan gates pass without suppressing inherited findings. Exact tag, signed publication and independent public artifact
 acceptance remain separate required gates.
 
 Repeat the whole-repository architecture/security/correctness/operations review.

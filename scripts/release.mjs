@@ -8,6 +8,7 @@ import {
   checkDatabaseImageMetadata,
   checkDatabaseScanIdentity,
   checkDatabaseSbomIdentity,
+  checkDatabasePin,
   checkReleaseScan,
 } from './release-scan.mjs';
 
@@ -114,6 +115,9 @@ const readDatabaseDocument = async (name, maximum) => {
 if (command === 'check-ci') {
   await awaitVerification();
 } else if (command === 'metadata') {
+  const database = checkDatabasePin(
+    JSON.parse(await readFile('deploy/postgres-image.json', 'utf8')),
+  );
   await writeFile(
     join(releaseDirectory, 'release.json'),
     `${JSON.stringify(
@@ -126,6 +130,18 @@ if (command === 'check-ci') {
         run: `${process.env.GITHUB_SERVER_URL}/${repository}/actions/runs/${process.env.GITHUB_RUN_ID}`,
         targets: ['linux/amd64', 'linux/arm64', 'windows/amd64', 'darwin/amd64', 'darwin/arm64'],
         imagePlatform: 'linux/amd64',
+        images: [
+          {
+            image: `stackplore-api:${version}`,
+            platform: 'linux/amd64',
+            archive: `stackplore_${version}_image.tar.gz`,
+          },
+          {
+            image: database.runtime_image,
+            platform: database.platform,
+            archive: `stackplore_${version}_postgres_image.tar.gz`,
+          },
+        ],
         tools: {
           node: '24.18.0',
           pnpm: '11.17.0',
@@ -163,6 +179,8 @@ if (command === 'check-ci') {
     'database-image-scan.json',
     'database.spdx.json',
     'database-image.json',
+    `stackplore_${version}_postgres_image.tar.gz`,
+    'postgres-image-sbom.sigstore.json',
     'secret-scan.json',
     'image-id.txt',
     'source.spdx.json',

@@ -2,7 +2,10 @@ name: stackplore
 
 services:
   postgres:
-    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    image: stackplore-postgres:1.0.1
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: stackplore

@@ -8,6 +8,14 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 
 > **Status:** Corrective `1.0.1` candidate; final acceptance is pending. All nine stages are functionally implemented. The immutable `v1.0.0` checkpoint passed its recorded checks, but publication was canceled after finding a vulnerable PostgreSQL 17.6 deployment default and a missing database-image scan. No `v1.0.0` GitHub release was published. The earlier `v0.9.0` prerelease also has the unsafe database default and is superseded. See the [current gates](docs/evidence/1.0.1/README.md) and [withheld checkpoint history](docs/evidence/1.0.0/README.md).
 
+The pushed upstream-only 1.0.1 candidate is rejected: its local gate and all 14
+browser cases passed, but [trial 39119787671](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787671)
+failed the database-image scan. Fresh analysis found one CRITICAL and 24 HIGH
+findings in `gosu`'s bundled Go library; all remain blocking.
+A derivative PostgreSQL image with rebuilt `gosu` is being prepared. Its build,
+runtime and scan results remain pending; 1.0.1 is untagged and unaccepted.
+[Failed receipt](docs/evidence/1.0.1/failed-database-image.json).
+
 ## Implemented
 
 - PostgreSQL-only server startup with bounded pooling, embedded forward migrations, advisory migration and ownership locks, readiness checks, and native `pg_dump`/`pg_restore` operations
@@ -26,8 +34,8 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 ## Still required for 1.0.1 acceptance
 
 - Exact corrective-tree full local, browser, PostgreSQL 17.11 and hosted provider/deployment gates, including native backup/empty-target restore
-- Database engine/digest proof, database OS scan and SPDX inventory, plus native/application/source/history scans and independent signed-artifact verification
-- Matching `v1.0.1` tag, signed publication and public artifact acceptance; expected counts are 37 assets, 29 checksum entries, 15 provenance subjects and six archive/image SBOM attestations, still unverified
+- Derivative database engine/helper/digest and root-drop proof, complete database-image scan and bound SPDX, plus native/application/source/history scans and independent signed-artifact verification
+- Matching `v1.0.1` tag, signed publication and public artifact acceptance; expected counts are 39 assets, 30 checksum entries, all 31 provenance subjects and seven native/application/database SBOM attestations, still unverified
 
 The current review score is **8/10** until the corrective runtime, deployment
 and scan gates actually pass. Earlier successful checks remain historical
@@ -58,9 +66,13 @@ reused unchanged for development. See [configuration](docs/configuration.md).
 
 ## Deployment
 
-The corrective tree pins PostgreSQL 17.11 by digest in
-[`deploy/postgres-image.json`](deploy/postgres-image.json). Its actual runtime
-and scan receipts remain pending. Do not use the superseded 0.9.0 database
+The corrective tree defines `stackplore-postgres:1.0.1` from a digest-pinned
+PostgreSQL 17.11 base in [`deploy/postgres-image.json`](deploy/postgres-image.json).
+It rebuilds unchanged `gosu` 1.19 with Go 1.26.9 while retaining the upstream
+database engine and entrypoint. Compose/CI must build the owned patched image;
+the release will include its Docker-save archive and signed SBOM. Actual
+derivative build/runtime/scan receipts remain pending. Helm continues to use
+operator-owned external PostgreSQL. Do not use the superseded 0.9.0 database
 default. Existing installations need the reviewed
 [patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline),
 a validated backup and operator maintenance before changing the database image.

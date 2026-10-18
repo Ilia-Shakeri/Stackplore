@@ -8,6 +8,21 @@ PostgreSQL 17.6 default in Compose and CI, while release scans covered the
 application image but omitted the separately deployed database image. Current
 whole-release score is **8/10**. Earlier scoped 9/10 reviews predate this gap.
 
+Corrective source `a252718efffbdbb03c8f4552c25e998f481c77bb` was pushed but is
+now a **rejected, untagged candidate**. Full local gate B passed with 24
+release/policy, 40 client and 453 web tests against PostgreSQL 17.11; all 14
+actual browser cases also passed. Main CI
+[39119787227](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787227)
+passed all six jobs on that exact source. Artifact trial
+[39119787671](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787671),
+package job `117652865830`, pulled the exact upstream PostgreSQL 17.11 image and
+passed the compiled engine probe, then **failed the strict database-image scan**.
+The hosted job did not retain its JSON. Fresh local Windows Trivy 0.76.0 analysis
+reproduced 25 blocking findings: one CRITICAL and 24 HIGH, all in
+`/usr/local/bin/gosu`'s Go 1.24.6 standard library. The 45 Alpine 3.24.2 OS packages
+had no blocking findings. All full-image findings remain blocking, with no
+suppression or exception. [Failed receipt](evidence/1.0.1/failed-database-image.json).
+
 Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
 All six jobs in main CI `39116327391` and tag CI `39117205748` passed. Signed
 trial `39116335008`, its 26 checksum entries, 12 provenance subjects, six
@@ -21,25 +36,41 @@ that result and the unchanged tag identity.
 It is a withheld checkpoint, and its tag will not move. The published `v0.9.0`
 prerelease has the same unsafe database default and is superseded.
 
-The corrective working tree uses the canonical
-[database policy](../deploy/postgres-image.json):
+The further corrective tree uses the canonical
+[database policy](../deploy/postgres-image.json) to define
+`stackplore-postgres:1.0.1`, derived from the same upstream base:
 `postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
-The server and native-client minimum is 17.11 within major 17. Database release
-gates now require exact engine/digest proof, OS vulnerability scanning and an
-SPDX inventory. Their definition is not an execution receipt. The three added
-database assets bring expected publication totals to **37 assets, 29 checksum
-entries, 30 provenance subjects and six archive/image SBOM attestations**;
-these counts are pending verification for 1.0.1.
+It rebuilds unchanged official gosu 1.19 source commit
+`6456aaa0f3c854d199d0f037f068eb97515b7513`, archive SHA-256
+`33d7537d588ea49458b9509bcf4554bdf5ceacc66da71e5caa1058ea3b689c3b`, with Go
+1.26.9 while retaining the PostgreSQL engine and entrypoint. The server and
+native-client minimum remains 17.11 within major 17. Actual derivative build,
+PostgreSQL/gosu/Go probes, root-drop behavior and full-image scan are pending.
+Compose/CI must first build owned patched database fixtures; Helm retains its
+external database policy. No source change establishes an observed pass.
+
+The pinned unchanged gosu 1.19 source was independently cross-built on Windows
+for Linux amd64 with Go 1.26.9 and actually executed under Linux with matching
+version output. Linux Trivy rootfs covered one real Go executable and reported
+zero HIGH/CRITICAL findings using its existing 2026-10-16 database. Earlier
+Windows output exited zero but analyzed zero executables and was rejected as
+empty coverage. This is scoped helper evidence, not fresh full-image scanning,
+database startup/root-drop, signed artifacts or final acceptance.
+
+Release gates require derivative/base identity, full image vulnerability
+scanning and bound SPDX, plus the database Docker-save archive and seventh SBOM
+attestation. Expected totals are **39 assets, 30 checksum entries, all 31
+provenance subjects and seven SBOM attestations**, pending actual verification.
 
 | Corrective gate | Current result |
 | --- | --- |
-| Real PostgreSQL and native restore | Pending corrective-source checks against owned PostgreSQL 17.11 plus native backup/empty-target restore. Existing 17.x minor-update guidance follows upstream and requires operator validation; no specific 17.6-to-17.11 runtime proof is claimed. |
-| Full changed-tree local gate | Pending complete `npm.cmd run verify` with the real disposable PostgreSQL target. |
-| Corrective browser matrix | Pending actual production-browser English/Persian, RTL/LTR, responsive, keyboard, reduced-motion and PWA cases. |
-| Exact hosted CI | Pending all six corrective-source jobs, including Compose, Helm/TLS and real providers. |
-| Signed trial and scan coverage | Pending native/application/source/history scans plus database engine/digest, OS scan and SPDX; independent signature/identity checks are required. |
+| Real PostgreSQL and native restore | Rejected-source local gate B passed on real PostgreSQL 17.11. New derivative probes, root-drop/startup/readiness, ledger checks and native backup/empty-target restore remain pending. Existing-installation minor-update guidance requires operator validation; no specific 17.6-to-17.11 runtime claim is made. |
+| Full changed-tree local gate | Rejected-source B passed: 24 release/policy, 40 client and 453 web tests. Complete derivative-tree gate C is pending; [prior receipt](evidence/1.0.1/local-gates.json). |
+| Corrective browser matrix | Rejected source passed all 14 cases; [receipt](evidence/1.0.1/browser-runtime.json). Fresh derivative-source scope remains to be recorded. |
+| Exact hosted CI | Rejected-source `39119787227` passed all six jobs. Complete new derivative-source six-job result is pending. |
+| Signed trial and scan coverage | Upstream engine probe passed but trial `39119787671` failed the strict image scan. All 25 gosu findings remain blocking. New derivative/base identity, helper/engine/root-drop probes, complete image/SPDX and other strict scans/signing are pending. |
 | Windows 1.0.1 recovery | Pending execution of the exact verified corrective archive against owned databases. |
-| Exact tag and publication | Pending immutable `v1.0.1`, matching tag CI, signed release and independent public-asset verification. No corrective source/run identity is invented. |
+| Exact tag and publication | No `v1.0.1` tag or accepted release. Pending new checked derivative source, exact tag CI, signed release and independent verification of 39 assets/30 checksums/all 31 provenance subjects/seven SBOM attestations. |
 
 Return to 9/10 only after the actual corrective real-PostgreSQL, browser,
 hosted-deployment and strict scan gates pass. Signed/public artifact acceptance
@@ -840,13 +871,27 @@ Compose/Helm installation, provider-version compatibility, guarded actions,
 protected audit lifecycle, performance/accessibility/PWA and final release
 evidence remain in Stages 6–9.
 
-### Corrective1.0.1 local checkpoint — 2026-10-18
+### Rejected upstream-only 1.0.1 local checkpoint — 2026-10-18
 
 Both full local gates passed on real owned PostgreSQL17.11. Final B includes
 24 release/policy regressions,40 client and453 web tests; format, lint, types,
 715 locale messages,235 bounded schemas, legal notices and both builds passed.
 All14 actual production-browser cases passed, with16 new public screenshots.
 Helm lint/render passed. Database image pull/remote scan timed out locally
-before analysis; these failures remain separate. Exact hosted main/tag CI,
-database runtime/scans and signed native/public artifact recovery are pending.
+before analysis; these failures remain separate. At that point exact hosted
+main/tag CI, database runtime/scans and signed recovery were pending. The later
+strict hosted scan failure and derivative correction are recorded in the current
+section above; this passing local checkpoint does not establish that replacement.
 [Local receipt](evidence/1.0.1/local-gates.json), [browser receipt](evidence/1.0.1/browser-runtime.json).
+
+### Final derivative-image local checkpoint — 2026-10-18
+
+Full local C passed after all helper, image-policy, release-identity and owned
+fixture code changes: 27 release/policy tests,40 client tests,453 web tests,
+format, lint, types, locale/contracts, notices and both builds. A fresh actual
+production browser B also passed all14 cases and replaced16 public screenshots.
+The exact complete database image still requires hosted build/probe/scan proof.
+The independently rebuilt helper passed real Linux execution and one-executable
+analysis with the fresh2026-10-18 vulnerability database;
+[receipt](evidence/1.0.1/helper-rebuild.json). Empty Windows executable analysis
+was rejected. Build contexts now exclude unrelated artifacts and env files.

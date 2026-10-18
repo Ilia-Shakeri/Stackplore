@@ -16,15 +16,20 @@ test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 epoch="$(git show -s --format=%ct HEAD)"
 export SOURCE_DATE_EPOCH="$epoch"
 
-database_image="$(node scripts/release-scan.mjs database-reference deploy/postgres-image.json)"
-timeout 180s docker pull --platform linux/amd64 "$database_image"
-timeout 60s docker image inspect "$database_image" > "$stage_dir/database-inspect.json"
-timeout 60s docker buildx imagetools inspect --raw "$database_image" > "$stage_dir/database-index.json"
+database_upstream="$(node scripts/release-scan.mjs database-reference deploy/postgres-image.json)"
+database_image="$(node scripts/release-scan.mjs database-runtime-reference deploy/postgres-image.json)"
+timeout 180s docker pull --platform linux/amd64 "$database_upstream"
+timeout 60s docker image inspect "$database_upstream" > "$stage_dir/database-upstream-inspect.json"
+timeout 60s docker buildx imagetools inspect --raw "$database_upstream" > "$stage_dir/database-index.json"
+timeout 600s docker build --platform linux/amd64 --file deploy/Dockerfile.postgres --build-arg "SOURCE_DATE_EPOCH=$epoch" --label "org.opencontainers.image.revision=$GITHUB_SHA" --label "org.opencontainers.image.version=$version" --tag "$database_image" .
+timeout 60s docker image inspect "$database_image" > "$stage_dir/database-runtime-inspect.json"
 timeout 30s docker run --rm --platform linux/amd64 --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user 70:70 --entrypoint postgres "$database_image" --version > "$stage_dir/database-version.txt"
-node scripts/release-scan.mjs database-metadata deploy/postgres-image.json "$stage_dir/database-inspect.json" "$stage_dir/database-index.json" "$stage_dir/database-version.txt" "$release_dir/database-image.json"
+timeout 30s docker run --rm --platform linux/amd64 --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user 70:70 --entrypoint gosu "$database_image" --version > "$stage_dir/gosu-version.txt"
+node scripts/release-scan.mjs database-metadata deploy/postgres-image.json "$stage_dir/database-upstream-inspect.json" "$stage_dir/database-index.json" "$stage_dir/database-runtime-inspect.json" "$stage_dir/database-version.txt" "$stage_dir/gosu-version.txt" "$release_dir/database-image.json"
 trivy image --platform linux/amd64 --timeout 5m --scanners vuln --ignorefile /dev/null --ignore-unfixed=false --severity HIGH,CRITICAL --exit-code 1 --format json --output "$release_dir/database-image-scan.json" "$database_image"
 trivy image --platform linux/amd64 --timeout 5m --scanners vuln --ignorefile /dev/null --ignore-unfixed=false --format spdx-json --output "$release_dir/database.spdx.json" "$database_image"
 node scripts/release-scan.mjs database "$release_dir/database-image-scan.json" "$release_dir/database.spdx.json" "$release_dir/database-image.json"
+docker save "$database_image" | gzip -n > "$release_dir/stackplore_${version}_postgres_image.tar.gz"
 
 corepack pnpm run check:version
 corepack pnpm run build:web

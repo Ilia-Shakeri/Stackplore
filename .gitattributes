@@ -19,3 +19,5 @@ apps/api/licenses/modules/manifest.json text eol=lf !whitespace
 apps/web/public/licenses/packages/** -text -whitespace
 apps/web/public/licenses/packages/manifest.json text eol=lf !whitespace
 apps/web/licenses/upstream/** -text -whitespace
+
+deploy/licenses/** -text -whitespace

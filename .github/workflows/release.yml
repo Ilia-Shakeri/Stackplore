@@ -21,22 +21,9 @@ jobs:
       actions: read
       id-token: write
       attestations: write
-    services:
-      postgres:
-        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d postgres"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 12
     env:
       CI: 'true'
+      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:1.0.1
       TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
       TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1
     steps:
@@ -75,11 +62,24 @@ jobs:
           bash scripts/release-tools.sh
       - name: Verify pinned database engine and scan database packages; build release payloads
         run: bash scripts/release-build.sh
+      - name: Retain database diagnostics after a failed package gate
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: stackplore-database-diagnostics-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/stackplore-release/database-image.json
+            ${{ runner.temp }}/stackplore-release/database-image-scan.json
+            ${{ runner.temp }}/stackplore-release/database.spdx.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Start owned PostgreSQL fixture from the scanned runtime image
+        run: bash scripts/start-test-postgres.sh start release
       - name: Execute extracted Linux amd64 archive against disposable PostgreSQL
-        env:
-          SP_RELEASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable
-          SP_RELEASE_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
         run: node scripts/release-smoke.mjs
+      - name: Stop owned PostgreSQL release fixture
+        if: always()
+        run: bash scripts/start-test-postgres.sh stop release
       - name: Reject dependency vulnerabilities and leaked secrets
         run: |
           trivy fs --scanners vuln --include-dev-deps --severity HIGH,CRITICAL --exit-code 1 --skip-dirs node_modules --skip-dirs .git --format json --output "$STACKPLORE_RELEASE_DIR/dependency-scan.json" .
@@ -132,8 +132,15 @@ jobs:
         id: image
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_*_image.tar.gz
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_image.tar.gz
           sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_image.spdx.json
+          create-storage-record: false
+      - name: Sign PostgreSQL runtime archive SBOM
+        id: postgres-image
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.STACKPLORE_RELEASE_DIR }}/stackplore_${{ steps.version.outputs.value }}_postgres_image.tar.gz
+          sbom-path: ${{ env.STACKPLORE_RELEASE_DIR }}/database.spdx.json
           create-storage-record: false
       - name: Retain signed bundles beside payloads
         env:
@@ -144,6 +151,7 @@ jobs:
           DARWIN_AMD64_BUNDLE: ${{ steps.darwin-amd64.outputs.bundle-path }}
           DARWIN_ARM64_BUNDLE: ${{ steps.darwin-arm64.outputs.bundle-path }}
           IMAGE_BUNDLE: ${{ steps.image.outputs.bundle-path }}
+          POSTGRES_IMAGE_BUNDLE: ${{ steps.postgres-image.outputs.bundle-path }}
         run: |
           cp "$PROVENANCE_BUNDLE" "$STACKPLORE_RELEASE_DIR/provenance.sigstore.json"
           cp "$LINUX_AMD64_BUNDLE" "$STACKPLORE_RELEASE_DIR/linux-amd64-sbom.sigstore.json"
@@ -152,6 +160,7 @@ jobs:
           cp "$DARWIN_AMD64_BUNDLE" "$STACKPLORE_RELEASE_DIR/darwin-amd64-sbom.sigstore.json"
           cp "$DARWIN_ARM64_BUNDLE" "$STACKPLORE_RELEASE_DIR/darwin-arm64-sbom.sigstore.json"
           cp "$IMAGE_BUNDLE" "$STACKPLORE_RELEASE_DIR/image-sbom.sigstore.json"
+          cp "$POSTGRES_IMAGE_BUNDLE" "$STACKPLORE_RELEASE_DIR/postgres-image-sbom.sigstore.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: stackplore-release-${{ github.sha }}

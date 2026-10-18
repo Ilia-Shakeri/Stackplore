@@ -12,9 +12,19 @@ All nine stages are now functionally implemented; final corrective acceptance
 is blocked by the open gates in [the roadmap](roadmap.md).
 
 Current code: corrective `1.0.1` candidate, with whole-release score **8/10**.
-Fresh real PostgreSQL 17.11/native restore, browser, hosted-deployment and strict
-database/native/application/source/history scans remain pending. No 1.0.1
-commit/run identity or passing result is inferred from a check's definition.
+Pushed candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B
+(24 release/policy, 40 client, 453 web tests) and all 14 actual browser cases,
+but is rejected and untagged. Trial `39119787671`, job `117652865830`, passed
+the exact upstream pull/PostgreSQL 17.11 probe and then failed the strict image
+scan. Fresh Windows Trivy 0.76.0 reproduced one CRITICAL and 24 HIGH findings in
+gosu's Go 1.24.6 library; all remain blocking. Clean findings for the 45 Alpine
+3.24.2 OS packages did not make the complete image pass. The hosted job did not
+retain its JSON; the [failed receipt](evidence/1.0.1/failed-database-image.json)
+keeps the local reproduction separate from the passing local/browser receipts.
+
+The new derivative-tree real PostgreSQL/native restore, browser scope, hosted
+deployment and strict database/native/application/source/history scans remain
+pending. No new passing result is inferred from a check's definition.
 The [requirement matrix](evidence/0.9.0/requirements.md) maps the unchanged 1.0
 product scope to implementation, tests, documents and proof boundaries.
 
@@ -32,9 +42,13 @@ atomic source-creation audit, source-wide event clock validation, a Persian
 severity label, incomplete legal packaging and vulnerable pinned dependencies.
 Those earlier scoped architecture/implementation reviews reached 9/10 before
 the database-image finding. They do not override the current 8/10 whole-release
-score. The corrective policy pins PostgreSQL 17.11 and adds exact database
-engine/digest, OS vulnerability scan and SPDX identity proof; real execution
-is still required before those fixes can support reassessment.
+score. The further correction defines `stackplore-postgres:1.0.1` from the same
+pinned PostgreSQL 17.11 base, rebuilding unchanged official gosu 1.19 with Go
+1.26.9 while retaining the upstream engine and entrypoint. Actual build,
+engine/helper/root-drop probes, full vulnerability scan and bound SPDX are
+required; no inherited finding is ignored or suppressed. Database Docker-save
+and seventh signed SBOM publication are also pending. Source work does not
+establish successful reassessment.
 
 The [corrective review](evidence/1.0.1/final-review.md) rechecks the accepted scope.
 Earlier fixes to stale documents and sensitive auth-test failure output retain

@@ -60,6 +60,32 @@ whitespace cleanup. Upstream trailing spaces and blank lines are intentional
 copies. The generated manifest keeps the repository's normal text checks;
 its SHA-256 entries identify the exact legal file bytes.
 
+## PostgreSQL database image
+
+The separate `stackplore-postgres` Linux amd64 image derives from the official
+PostgreSQL 17.11 Alpine image fixed in [database policy](deploy/postgres-image.json).
+It preserves that engine and entrypoint and rebuilds the unchanged `gosu` 1.19
+source with Go 1.26.9 to replace its vulnerable older standard library.
+
+The [PostgreSQL COPYRIGHT](deploy/licenses/postgresql/COPYRIGHT) is an exact copy
+from [REL_17_11](https://github.com/postgres/postgres/blob/REL_17_11/COPYRIGHT),
+SHA-256 `3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd`.
+The image keeps it under `/usr/share/licenses/stackplore-postgres/postgresql/`.
+Its neighboring license directories preserve the exact gosu Apache-2.0 license,
+Go distribution LICENSE/PATENTS, and the LICENSE/NOTICE/PATENTS materials present
+in the pinned `github.com/moby/sys/user@v0.1.0` and `golang.org/x/sys@v0.1.0`
+modules. These are separate from the application's linked-module inventory.
+The [Dockerfile](deploy/Dockerfile.postgres) records the precise copy operations;
+source commit and tar checksum are fixed by the database policy.
+
+`database.spdx.json` inventories the complete shipped database image, including
+its inherited Alpine packages and rebuilt Go helper. The database archive has
+its own signed SBOM, distinct from the application image and native archives.
+OS package licenses and source references retain their upstream terms; consult
+the inventory and the corresponding [Alpine package sources](https://gitlab.alpinelinux.org/alpine/aports)
+for the exact installed versions. This document is not a replacement license
+for inherited packages or a claim that the application Go manifest covers them.
+
 ## Frontend production package inventory
 
 The [frontend manifest](apps/web/public/licenses/packages/manifest.json) records

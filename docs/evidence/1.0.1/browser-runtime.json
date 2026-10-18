@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Corrective working-tree 1.0.1 production bundle and Go1.26.9 Windows amd64 server on disposable PostgreSQL17.11; exact tagged artifact and hosted deployment proof remain separate.",
+  "scope": "Final derivative-deployment working tree: unchanged1.0.1 application production bundle and Go1.26.9 Windows amd64 server on real disposable PostgreSQL17.11; actual Docker image, hosted source and signed archive proof remain separate.",
   "status": "passed",
   "tests": 14,
   "guest_tests": 12,
@@ -21,7 +21,7 @@
   ],
   "browser": "Chrome 155.0.8059.80",
   "go": "1.26.9",
-  "server_sha256": "c4a84caf5e674a032ebe8f488f8dba36cc71477bed6db5a797813cef0a61b2d6",
+  "server_sha256": "374ff0c4c4dbc719e7bfaf9e4659753773c108b098922c188489e07ce77b8957",
   "checks": [
     "Loaded inventory, graph, metric chart, logs, events, alerts, notifications and search states",
     "Automated WCAG2.2AA rules, overflow, reduced motion and actual public screenshots",
@@ -47,7 +47,7 @@
     },
     {
       "file": "screenshots/overview-en-360-light.png",
-      "sha256": "147102b2ae4ca4d4cd731dbadf2051d157204515e2ee6858fbc326fee831ae28"
+      "sha256": "2477cbab2f290b1824aa3d1dedd8cc18072ea63f9871279ea81ed360774f765f"
     },
     {
       "file": "screenshots/overview-fa-1280-dark.png",
@@ -55,15 +55,15 @@
     },
     {
       "file": "screenshots/overview-fa-1280-light.png",
-      "sha256": "04c8786811eb4d62af155ea3d67cc4497474728cf2d5cce5c6ae921f90d94989"
+      "sha256": "317d6926a31a65c5adc1de4b1735a755a49d128b18d7e14b04bae5c256f6315a"
     },
     {
       "file": "screenshots/overview-fa-360-dark.png",
-      "sha256": "1b345ded9aeed3d593243a4db1c85ed1dd3d2e82c30846f61b63723093061724"
+      "sha256": "a8b86a9ea7a3460f996450d532215d9e7f51f36cb247389bc1e27d2111ee08ae"
     },
     {
       "file": "screenshots/overview-fa-360-light.png",
-      "sha256": "7a2d093ef3a0a058e1927fb89bc62fcbc3895bd56cae40baec8279a5a6b3c169"
+      "sha256": "5b64fa5a3217abbca6d42ad2dd75ababe7b8317147748f09aefc6eb155568db7"
     },
     {
       "file": "screenshots/topology-en-1280-dark.png",
@@ -108,7 +108,7 @@
       "unexpected": 0,
       "skipped": 0,
       "flaky": 0,
-      "sha256": "467bd860261114e2af36697e1c3db9c1ee165b14ef55e6092572b98043b9e845"
+      "sha256": "d11252ab49f72bd67766a89a72d93e2da56dfe77e2f0106b1519829a3362ffd6"
     },
     {
       "case": "browser-results-normal-en.json",
@@ -116,7 +116,7 @@
       "unexpected": 0,
       "skipped": 0,
       "flaky": 0,
-      "sha256": "ee842dc2bc69fcd3591da68add0f696ed5ca7f9279136591a5e862d631bf6ba4"
+      "sha256": "a51dfbb8c9a92ad1f4f4315ae70ec114838eaf8617022031412c795ccfaa673d"
     },
     {
       "case": "browser-results-normal-fa.json",
@@ -124,7 +124,7 @@
       "unexpected": 0,
       "skipped": 0,
       "flaky": 0,
-      "sha256": "2c2fd330d44f0a468877a1f14a4eac8cb609da1665cf660f2563a8bceca53649"
+      "sha256": "3802b0feb13340d4b3a66439aa3f2ac26d5c419bf5fa3a0c460c3a06ee840b79"
     }
   ]
 }

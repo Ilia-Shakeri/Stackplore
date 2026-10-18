@@ -4,12 +4,19 @@
 
 ### Security correction
 
-- Replaces the vulnerable PostgreSQL 17.6 Compose and fixture defaults with the
-  maintained 17.11 Alpine image, pinned by immutable upstream digest.
+- Defines the corrective PostgreSQL 17.11 derivative `stackplore-postgres:1.0.1`
+  from the same immutable upstream Alpine digest. The first upstream-only
+  candidate was rejected after its actual strict scan found one CRITICAL and
+  24 HIGH gosu standard-library findings; none is suppressed or ignored.
+- Rebuilds unchanged official gosu 1.19 source with Go 1.26.9, retaining the
+  upstream PostgreSQL engine and entrypoint. Actual derivative build,
+  helper/engine/root-drop probes and complete image scan are still pending.
 - One canonical database policy checks Compose and hosted fixtures for drift.
-  Release packaging now verifies the compiled database engine, scans the exact
-  runtime operating-system packages and includes the database SPDX inventory,
-  scan and image identity in the signed checksum/provenance set.
+  Release packaging requires the engine/helper probes, full database image scan
+  and bound SPDX, plus the database Docker-save archive and seventh SBOM.
+  Expected counts are 39 assets, 30 checksums, all 31 provenance subjects and
+  seven SBOM attestations; these are pending proof. Compose/CI build owned
+  patched fixtures; Helm continues to use external PostgreSQL.
 - Server and native maintenance tools require PostgreSQL 17.11 or later within
   major 17. Upgrade guidance distinguishes upstream minor-version advice from
   the application schema and the tested backup/restore path.
@@ -18,6 +25,12 @@
 
 - Corrective candidate. Exact local, browser, PostgreSQL, provider, deployment,
   artifact and recovery results belong to the [1.0.1 receipt](docs/evidence/1.0.1/README.md).
+- Pushed `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B and all
+  14 browser cases, then trial `39119787671` failed the strict database-image
+  scan after the exact pull/engine probe passed. It is rejected and untagged;
+  [failed receipt](docs/evidence/1.0.1/failed-database-image.json). Current review
+  score remains 8/10; new derivative-tree full gate/runtime/scan/recovery/artifact
+  evidence is required.
 - The immutable `v1.0.0` checkpoint remains available as source history. Its
   publication was canceled after the database gap was found; no 1.0.0 release
   assets were published. The 0.9.0 prerelease also has the old database default.

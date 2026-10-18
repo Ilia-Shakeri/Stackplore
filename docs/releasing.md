@@ -11,6 +11,15 @@ browser, hosted-deployment and strict scan proof remains pending, followed by
 tag/publication and independent public-asset acceptance. Track results in the
 [active plan](implementation-plan.md) and [1.0.1 checklist](evidence/1.0.1/README.md).
 
+The pushed upstream-only candidate `a252718efffbdbb03c8f4552c25e998f481c77bb`
+is rejected and untagged. Local B (24 release/policy, 40 client, 453 web tests)
+and all 14 browser cases passed. Trial `39119787671`, job `117652865830`, passed
+the exact upstream pull/compiled PostgreSQL 17.11 probe but failed the strict
+database-image scan. Fresh local Trivy 0.76.0 reproduced one CRITICAL and 24 HIGH
+gosu Go-library findings; all remain blocking. The hosted job did not retain
+its JSON; the [failed receipt](evidence/1.0.1/failed-database-image.json) records
+the local reproduction and scope. No exception or suppression may bypass it.
+
 Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
 Its six-job main/tag CI, signed trial, consumer verification and actual Windows
 recovery passed within their original scope. Publication run `39117205810` was
@@ -52,13 +61,21 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
 The canonical [PostgreSQL image policy](../deploy/postgres-image.json) is a
-separate release boundary. Require actual engine/digest metadata in
-`database-image.json`, an OS vulnerability scan in `database-image-scan.json`
-and the package inventory in `database.spdx.json`, with identity binding between
-all three. Application-image scanning does not cover the database image.
-The three added assets bring the expected totals to 37 public assets, 29 checksum
-entries, 15 provenance subjects and six archive/image SBOM attestations. These
-remain unverified counts until the exact corrective trial/publication is checked.
+separate release boundary. The intended runtime `stackplore-postgres:1.0.1`
+uses the same digest-pinned upstream PostgreSQL 17.11 base and rebuilds unchanged
+official gosu 1.19 with Go 1.26.9. Engine and entrypoint are retained. Actual
+build, helper/engine versions and root-drop behavior must be checked, followed
+by a full image scan with all base findings still blocking. Compose/CI build
+owned patched fixtures; Helm retains its external database policy.
+
+Require actual base/derivative and engine/helper metadata in `database-image.json`,
+the full scan in `database-image-scan.json` and inventory in `database.spdx.json`,
+with identity binding between them. Publish the actual database Docker-save
+archive and its seventh signed SBOM. Application-image scanning does not cover
+the database image. Expected totals are **39 public assets, 30 checksum entries,
+all 31 provenance subjects and seven SBOM attestations**: five native archives,
+the application image and the database image. Counts and successful derivative
+execution remain unverified until the exact new trial/publication is checked.
 
 After milestone checks, exact-commit CI and review, create the matching
 annotated tag. Never reuse an old checkpoint's tag command for a new version:
@@ -76,7 +93,8 @@ rewrite historical release tags, or stage all local files without review.
 Every specification requirement needs code, tests, current accurate documents
 and direct evidence. Include browser/a11y/RTL/theme/performance, real provider,
 Compose/Helm/cluster/TLS, PostgreSQL 17.11/native backup/restore, operator minor-update
-guidance, security/dependency/application-image/database-image scans,
+guidance, derivative engine/helper/root-drop probes,
+security/dependency/application-image/full-database-image scans,
 SBOM, signed artifact provenance, checksums, supported-version policy and final
 independent review. Screenshots must come from the running final demo. Workflow
 definitions and local scanner receipts do not replace exact-tag package, image
@@ -88,7 +106,7 @@ hosted-deployment and strict scans pass; final publication acceptance is additio
 ## Platform and acceptance scope
 
 The native runtime validation targets are Windows amd64 and Linux amd64; the
-container target is Linux amd64. Require the release's matching startup,
+application and database image targets are Linux amd64. Require the release's matching startup,
 readiness, authentication/read and storage probes before asserting support for
 that artifact. The macOS amd64/arm64 and Linux arm64 archives are additional
 cross-compiled outputs with no native-runtime compatibility claim until tested.

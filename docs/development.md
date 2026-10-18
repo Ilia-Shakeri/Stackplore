@@ -20,6 +20,26 @@ Bootstrap checks the pinned tools and installs the locked workspace. It does not
 
 ## Local PostgreSQL
 
+The corrective Compose profile builds two Linux images: the application from
+`deploy/Dockerfile.api` and `stackplore-postgres:1.0.1` from
+`deploy/Dockerfile.postgres`. The [database policy](../deploy/postgres-image.json)
+pins the upstream PostgreSQL 17.11 base and unchanged gosu 1.19 source, rebuilt
+with Go 1.26.9. The upstream database entrypoint initializes as needed before
+gosu drops to the database user. The application remains non-root. Building
+from source fetches pinned images/source and locked modules; an offline operator
+must instead verify/load both release archives and select their exact tags with
+the Compose override and `--no-build --pull never` commands in
+[deployment](operations/deployment.md#install-from-verified-release-archives).
+Helm still uses operator-owned external PostgreSQL, not a chart-managed copy.
+
+The complete derivative-image build/runtime/scan and signed artifact gates
+remain open in [corrective acceptance](evidence/1.0.1/README.md). The
+[standalone helper receipt](evidence/1.0.1/helper-rebuild.json) proves actual Linux
+amd64 gosu 1.19/Go 1.26.9 execution and one analyzed Go executable with zero
+HIGH/CRITICAL findings using the 2026-10-18 vulnerability database. An earlier
+zero-executable Windows scan was rejected despite exit zero. Neither output is
+complete image/startup/root-drop or release acceptance proof.
+
 Use the patched server and client baseline above even for disposable fixtures.
 The upstream [PostgreSQL 17 security list](https://www.postgresql.org/support/security/17/)
 covers both components. The [patch-upgrade procedure](operations/upgrade-rollback.md#postgresql-17-patch-baseline)
@@ -160,7 +180,7 @@ The policy accepts only reviewed routes, methods, response codes, security requi
 ## Deployment checks
 
 Local handler tests verify embedded asset routing. The CI Compose job builds and
-starts the exact image, checks fresh PostgreSQL readiness, setup, UI assets and
+starts both exact application and patched database images, checks fresh PostgreSQL readiness, setup, UI assets and
 SPA routes, then restarts the API and verifies the migration ledger and session
 persist. The separate Helm job installs the chart into an owned kind cluster
 against external PostgreSQL with TLS verification. It checks the ingress route
