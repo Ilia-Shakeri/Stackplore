@@ -1,8 +1,13 @@
 # Architecture
 
-Status: final 1.0.0 candidate following the tagged 0.9.0 checkpoint.
-Exact local, remote, browser and
-release-artifact proof is recorded in the [active evidence plan](implementation-plan.md).
+Status: corrective 1.0.1 candidate; all nine stages are functionally implemented.
+Current whole-release review score is 8/10 until actual corrective PostgreSQL,
+browser, hosted-deployment and strict scan gates pass. Exact results belong in
+the [active evidence plan](implementation-plan.md) and
+[corrective acceptance](evidence/1.0.1/README.md). Earlier successful receipts do
+not prove this tree. Immutable 1.0.0 is withheld after its publication was
+canceled; the published 0.9.0 prerelease has the unsafe database default and is
+superseded. See the [withheld receipt](evidence/1.0.0/publication-withheld.json).
 
 ## System shape
 
@@ -64,7 +69,12 @@ Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages
 
 ## Persistence
 
-PostgreSQL is the primary store. Startup:
+PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and
+`pg_restore` clients require 17.11 or a later patch within major 17. The canonical
+[database image policy](../deploy/postgres-image.json) pins the approved image
+digest. Existing 17.x minor-update guidance follows upstream and requires
+operator maintenance and validated backup/restore; no specific 17.6-to-17.11
+runtime experiment is claimed. Startup:
 
 1. validates a canonical connection URL and bounded pool settings;
 2. opens a pool with query and connection deadlines;
@@ -221,6 +231,13 @@ with external TLS PostgreSQL, restricted Docker and namespace-scoped Kubernetes.
 The two provider jobs exercise both read and explicitly enabled guarded writer
 fixtures. Exact run receipts establish which revision passed. Helm requests use
 a Service port-forward; customer ingress-controller HTTPS remains separate.
+
+Release verification covers the separately deployed PostgreSQL image in
+addition to native executables, the application image, source dependencies and
+history. It requires exact engine/digest metadata, a database OS vulnerability
+scan and an SPDX package inventory bound to that identity. These configured
+gates remain pending until observed on the corrective source; a scan of the
+application image does not establish database-image safety.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
 Linux race tests and image builds; see [exact run evidence](implementation-plan.md).

@@ -1,5 +1,12 @@
 # Final architecture and implementation review
 
+> Rejected publication checkpoint. A subsequent deployment-dependency review
+> found the PostgreSQL 17.6 default and missing database-image scan. Infrastructure
+> quality returned to 8/10; the earlier 9/10 judgment below was incomplete.
+> Release run 39117205810 was canceled, and no 1.0.0 release assets were published.
+> The immutable source tag and passing tests remain historical evidence.
+> See the [1.0.1 correction review](../1.0.1/final-review.md).
+
 Review date: 2026-10-18. Scope: first-party source, contracts, schema history,
 configuration, jobs, provider adapters, interface/client packages, release and
 installation workflows, tests and active English/Persian documents. Earlier

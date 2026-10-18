@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "image": "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "version": "17.11",
+  "server_version_num": 170011,
+  "platform": "linux/amd64",
+  "minimum_native_tools": "17.11"
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "version": "1.0.1",
+  "attempts": [
+    {
+      "scope": "Local WSL remote image analysis",
+      "result": "failed",
+      "exit_code": 1,
+      "cause": "Docker Hub discovery endpoint connection timed out before image analysis",
+      "analyzed": false
+    },
+    {
+      "scope": "Local WSL Docker exact-image pull and runtime probe",
+      "result": "failed",
+      "exit_code": 124,
+      "cause": "Bounded 180-second image pull timed out before runtime probe",
+      "runtime_proven": false
+    }
+  ],
+  "fallback": "Exact hosted image pull, version probe, OS scan and SPDX identity must pass before acceptance",
+  "runtime_policy": "deploy/postgres-image.json"
+}

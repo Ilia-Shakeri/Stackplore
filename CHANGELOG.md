@@ -1,6 +1,32 @@
 # Changelog
 
+## [1.0.1] - 2026-10-18
+
+### Security correction
+
+- Replaces the vulnerable PostgreSQL 17.6 Compose and fixture defaults with the
+  maintained 17.11 Alpine image, pinned by immutable upstream digest.
+- One canonical database policy checks Compose and hosted fixtures for drift.
+  Release packaging now verifies the compiled database engine, scans the exact
+  runtime operating-system packages and includes the database SPDX inventory,
+  scan and image identity in the signed checksum/provenance set.
+- Server and native maintenance tools require PostgreSQL 17.11 or later within
+  major 17. Upgrade guidance distinguishes upstream minor-version advice from
+  the application schema and the tested backup/restore path.
+
+### Acceptance
+
+- Corrective candidate. Exact local, browser, PostgreSQL, provider, deployment,
+  artifact and recovery results belong to the [1.0.1 receipt](docs/evidence/1.0.1/README.md).
+- The immutable `v1.0.0` checkpoint remains available as source history. Its
+  publication was canceled after the database gap was found; no 1.0.0 release
+  assets were published. The 0.9.0 prerelease also has the old database default.
+  Use the corrected release once its acceptance receipt is complete.
+
 ## [1.0.0] - 2026-10-18
+
+> Withheld checkpoint: publication canceled after finding the vulnerable database
+> default and missing database-image scan. Superseded by the 1.0.1 correction.
 
 ### Release scope
 

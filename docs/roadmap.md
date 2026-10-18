@@ -1,20 +1,31 @@
 # Stackplore completion roadmap
 
-Review date: 2026-10-12. Target: 1.0.0. This is the delivery order for work after
+Review date: 2026-10-18. Target: 1.0.1; accepted product scope remains 1.0. This is the delivery order for work after
 the repository-wide review. Existing foundations are reused; the old numbered
 phase ledger is historical. [Implementation evidence](implementation-plan.md)
 records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-18): stages 1–7 are published checkpoints; Stage 8 is
+Current status (2026-10-18): all nine stages are functionally implemented;
+corrective release acceptance is pending. Stages 1–7 are published checkpoints; Stage 8 is
 tagged at `v0.9.0` on `20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`. Its exact
 main CI, 14-case browser gate, signed artifact trial, consumer provenance/SBOM
 verification and Windows archive recovery passed. Exact tag CI/publication and
-independent public-asset verification also passed; Stage 8 is complete.
-Stage 9 is the final `1.0.0` candidate, with updated review,
-security policy and documents; final checks and publication remain open in
-[1.0 acceptance](evidence/1.0.0/README.md). [Exploration](exploration.md)
+independent public-asset verification also passed. That historical 0.9.0
+prerelease has the unsafe PostgreSQL 17.6 default and is superseded.
+
+Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
+Its exact six-job main/tag CI, signed trial, independent artifact verification
+and actual Windows recovery passed, but publication run `39117205810` was
+canceled after discovering the vulnerable database default and omitted
+database-image scan. The release API confirmed no 1.0.0 GitHub release;
+[withheld receipt](evidence/1.0.0/publication-withheld.json).
+Stage 9 now targets corrective `1.0.1`. Current whole-release score is **8/10**;
+real PostgreSQL 17.11/native restore, browser, hosted deployment and strict scan
+proof remain pending, followed by exact tag/publication and public consumer
+acceptance in the [current receipt](evidence/1.0.1/README.md).
+[Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
 
@@ -27,7 +38,8 @@ create the matching annotated `vVERSION` tag. Keep existing contributor work and
 secrets out of accidental edits. The maintainer's explicit
 2026-10-17 test/version/commit/push request supersedes the earlier task no-push
 restriction. Push only reviewed, tested milestones without rewriting history,
-and inspect the exact remote revision's CI. No 1.0 tag is made before all final evidence exists.
+and inspect the exact remote revision's CI. Tag the corrective source only after
+its required pre-tag evidence passes; preserve the withheld `v1.0.0` tag intact.
 
 Prerelease stages are development checkpoints, with limitations stated in the
 changelog and README. No production support promise follows from a 0.x tag.
@@ -196,13 +208,15 @@ certificate and real HTTPS edge need their own deployment acceptance probes.
 
 ## Stage 8 — Accessibility, performance and release candidate — 0.9.0
 
-Status: complete and published `v0.9.0`; Go 1.26.9 full local gate, exact main/tag CI, 14-case
+Status: functionally complete and historically published `v0.9.0`; Go 1.26.9 full local gate, exact main/tag CI, 14-case
 production browser gate, signed artifact trial, consumer verification and
 Windows archive recovery passed, followed by signed publication and independent
 verification of all 34 public assets. The public Windows archive matches the
 runtime-tested trial exactly; [receipt](evidence/0.9.0/published-release.json).
 The correction loop and sanitized browser, performance, native restore and
 security receipts are in [0.9.0 evidence](evidence/0.9.0/README.md).
+Its database default is unsafe and its scans omitted the database image. The
+prerelease is superseded; its passing receipts do not establish corrective acceptance.
 
 Complete safe PWA shell/offline/update behavior without private API caching.
 Measure SQL/API concurrency, inventory, graph, charts, logs and bundles; bound
@@ -216,10 +230,16 @@ Exit: all preceding stages plus browser/accessibility/performance/security and
 deployment gates; reviewed release artifacts; no unresolved severe defects or
 unimplemented 1.0 requirement hidden behind a completion claim.
 
-## Stage 9 — Final independent review and 1.0.0
+## Stage 9 — Final independent review and corrective 1.0.1
 
-Status: final 1.0.0 candidate after the correction loop; open until exact final
-verification, consumer artifact acceptance and signed publication pass.
+Status: corrective 1.0.1 candidate, current score **8/10**. The canonical
+[database policy](../deploy/postgres-image.json) pins PostgreSQL 17.11; the same
+minimum applies to native clients within 17.x. Engine/digest proof, database
+OS scan and SPDX inventory join the application/native/source/history gates.
+Configured gates are not execution proof. Return to 9/10 only after the actual
+corrective real-PostgreSQL/native-restore, browser, hosted-deployment and strict
+scan gates pass. Exact tag, signed publication and independent public artifact
+acceptance remain separate required gates.
 
 Repeat the whole-repository architecture/security/correctness/operations review.
 Score architecture and implementation separately from product completion and

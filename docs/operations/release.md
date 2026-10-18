@@ -37,6 +37,11 @@ are required after a published tag, make a new version and tag.
 
 ## Assets and scope
 
+The checked asset set contains exactly 37 files. Five native archives and the
+application image archive retain six separate archive SBOM attestations. The
+database adds three reports; its upstream image is pulled by digest, never
+repacked or published as a Stackplore database archive.
+
 | Asset | Contents and limit |
 | --- | --- |
 | `stackplore_VERSION_OS_ARCH.tar.gz` | Server with embedded UI, storage and operator tools, license/notices. Builds for Linux amd64/arm64, Windows amd64 and macOS amd64/arm64. Cross-compilation is not native execution evidence for every platform. |
@@ -45,6 +50,8 @@ are required after a published tag, make a new version and tag.
 | `stackplore_VERSION_source.tar.gz` | Exact tracked source from the commit, including docs, lockfiles and deployment profiles. |
 | `*.spdx.json` | SPDX JSON inventory for each native archive and image; `source.spdx.json` includes source dependency metadata, including the web lockfile. Binary analysis alone cannot inventory bundled web dependencies completely. |
 | `dependency-scan.json`, `image-scan.json`, `*.scan.json`, `secret-scan.json` | Passed source dependency/image/native-binary vulnerability and Git history secret scan receipts. Findings can change with the vulnerability database. |
+| `database-image-scan.json`, `database.spdx.json` | HIGH/CRITICAL vulnerability scan and Alpine package SPDX inventory of the exact pinned upstream PostgreSQL Linux amd64 image. The OS scanner may not detect its compiled PostgreSQL engine; the separate runtime probe checks that engine. |
+| `database-image.json` | Approved upstream reference/index digest, resolved Linux amd64 platform manifest digest, Docker configuration digest and exact `postgres --version` output. This is a builder verification receipt, not an upstream origin attestation. |
 | `release.json`, `image-id.txt` | Exact commit, ref, run, build targets/tool versions and local image configuration digest. The image ID is not an OCI registry manifest digest. |
 | `native-smoke.json` | Sanitized receipt from executing the extracted Linux amd64 archive with separate disposable PostgreSQL databases: embedded UI, health/readiness, guest reads and denied private routes, first administrator/session, exact version, disabled operation gates and graceful shutdown. Storage/operator invocation checks cover missing-argument rejection; backup/restore remains a separate recovery gate. |
 | `SHA256SUMS` | Hashes of payloads, SBOMs, metadata and passed scan receipts. |
@@ -58,6 +65,20 @@ exception or `ignore-unfixed`. Gitleaks scans full checked-out Git history and
 redacts matches. Its checked-in ignore list contains only exact historical
 commit/path/rule/line fingerprints from synthetic credential-redaction tests;
 new findings still fail. Do not add a blanket test-directory exclusion.
+
+The canonical database pin is `deploy/postgres-image.json`. Packaging pulls its
+exact approved reference for Linux amd64, verifies the pulled image's upstream
+digest and platform, and runs only `postgres --version` with no network, a
+read-only filesystem, user `70:70`, all capabilities dropped and
+`no-new-privileges`. The compiled engine version must exactly match the policy
+(currently `17.11`). Both its Alpine OS result and Alpine package URLs must be
+present; an empty successful scan is rejected. The scan must identify the same
+image configuration as the runtime probe. The SPDX document must describe its matching container
+root, record that image's configuration digest, and link its Alpine OS and package
+inventory to the exact package URLs in the vulnerability report. All three database reports are covered
+by `SHA256SUMS` and signed build provenance. There is no extra database archive
+SBOM attestation and no claim that build provenance establishes upstream image
+origin. Publication rechecks the database reports and policy after transfer.
 
 The native tar metadata is normalized to the source commit time. Tool downloads,
 the vulnerability database, container package repositories and the hosted runner

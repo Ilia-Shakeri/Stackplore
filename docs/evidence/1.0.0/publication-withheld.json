@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "version": "1.0.0",
+  "date": "2026-10-18",
+  "revision": "a424d9f4c9f23d25960b93482b3096a6d05d0e1f",
+  "tag": "v1.0.0",
+  "main_ci": {
+    "id": 39116327391,
+    "conclusion": "success",
+    "jobs": 6
+  },
+  "tag_ci": {
+    "id": 39117205748,
+    "conclusion": "success",
+    "jobs": 6
+  },
+  "publication": {
+    "id": 39117205810,
+    "conclusion": "cancelled",
+    "release_exists": false,
+    "assets_published": 0
+  },
+  "reason": "PostgreSQL 17.6 deployment default has known upstream vulnerabilities; database runtime image was outside release scan scope.",
+  "review_score": 8,
+  "correction": "1.0.1",
+  "immutable_tag_preserved": true,
+  "passing_test_receipts_preserved": true
+}

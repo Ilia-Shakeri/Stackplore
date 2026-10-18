@@ -8,8 +8,16 @@ release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
 
-Current code is the 0.9.0 candidate. Final local/remote results, tags and artifact
-verification count only when recorded in the [active plan](implementation-plan.md).
+Current code is corrective 1.0.1, with all nine stages functionally implemented
+and a whole-release review score of 8/10. Corrective full local/browser, real
+PostgreSQL/native restore, hosted-deployment and strict scan results remain
+pending until recorded in the [active plan](implementation-plan.md) and
+[acceptance checklist](evidence/1.0.1/README.md). A running check has no passing
+result yet. Immutable 1.0.0 passed its recorded main/tag/trial/recovery checks,
+but its publication was canceled after finding the vulnerable database default
+and missing database-image scan; the release API confirmed no release.
+The published 0.9.0 prerelease has the unsafe default and is superseded.
+[Withheld receipt](evidence/1.0.0/publication-withheld.json).
 Historical receipts below describe their own revisions. Project acceptance and
 a customer's production deployment are separate; these tests do not deploy it.
 
@@ -22,6 +30,7 @@ a customer's production deployment are separate; these tests do not deploy it.
 | English/Persian key parity                 | `npm.cmd run check:locales`                                 | Natural language quality needs review.                                                  |
 | Documents/version metadata                 | `npm.cmd run check:docs`, `npm.cmd run check:version`       | Link/file checks do not certify factual accuracy.                                       |
 | PostgreSQL SQL/migrations/auth concurrency | Test URL plus `npm.cmd run test:api`                        | Must run against a disposable real server.                                              |
+| PostgreSQL image identity and scan | Exact engine/image metadata, OS vulnerability report and SPDX inventory | Application-image scans and manifest pins do not prove the separate database image. |
 | Native archive/restore                     | `cmd/storage` on separate fresh databases                   | Successful archive listing alone is not a restore.                                      |
 | Compose/model/images                       | Compose config, build, start, probes and restart            | Definitions or image build alone do not prove startup.                                  |
 | Helm/cluster                               | Lint, render, install, probes, RBAC and TLS                 | Rendering alone does not prove a pod runs.                                              |
@@ -33,6 +42,17 @@ a customer's production deployment are separate; these tests do not deploy it.
 The test role needs schema creation and the permissions used by concurrency
 regressions. Use a disposable database with no user data. Tests create unique
 schemas and remove only their own fixtures. Never reuse a live application URL.
+
+Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
+17.11 or a later 17.x patch. The [canonical image policy](../deploy/postgres-image.json)
+defines the approved digest. Corrective proof needs real database execution,
+readiness/ledger checks and native backup/empty-target restore, plus exact
+database engine/digest metadata, OS scan and matching SPDX package inventory.
+Retain observed tool/engine versions and identity in each receipt. The
+[existing-installation minor-update guidance](operations/upgrade-rollback.md#postgresql-17-patch-baseline)
+follows upstream; operators validate their own backup/restore and maintenance.
+No specific 17.6-to-17.11 runtime experiment is claimed or substituted for that
+deployment-specific work.
 
 ```powershell
 $env:STACKPLORE_TEST_POSTGRES_URL = 'postgresql://test-role@127.0.0.1:5432/stackplore_test?sslmode=disable'
@@ -97,7 +117,7 @@ checks, and Helm lint/render passed. Exact commands and outcomes are in the acti
 evidence plan. Later exploration and provider receipts are recorded below;
 complete Matrix homeserver and target installation proof remain separate. Under renewed authorization on
 2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
-jobs. Older tagged results do not certify the 0.9.0 candidate; current results
+jobs. Older tagged results do not certify the 1.0.1 candidate; current results
 are recorded in the evidence plan.
 
 ## Historical provider and isolated-demo checkpoint

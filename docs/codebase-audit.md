@@ -1,4 +1,4 @@
-# Repository review — 2026-10-12–17
+# Repository review — 2026-10-12–18
 
 Scope: all first-party backend, frontend, interface/client packages, contracts,
 migrations, deployment, workflows, scripts, configuration, tests, and documents.
@@ -7,27 +7,42 @@ independent design. Third-party bundles and local caches are excluded. The
 review began at `08028f4` with a substantial uncommitted implementation; those
 files were preserved and reviewed as part of the candidate baseline.
 
-Initial quality: 5/10. This is a review score, not measured coverage. Version 1.0
-completion is blocked by the unfinished stages in [the roadmap](roadmap.md).
+Initial quality was 5/10. This is a review judgment, not measured coverage.
+All nine stages are now functionally implemented; final corrective acceptance
+is blocked by the open gates in [the roadmap](roadmap.md).
 
-Current code: final `1.0.0` candidate after tagged Stage 8 `v0.9.0`.
-Its exact main CI and signed artifact trial passed, including Compose, Helm,
-all native/image scans and consumer verification. The [requirement matrix](evidence/0.9.0/requirements.md)
-maps the 1.0 scope to implementation, tests, documents and proof boundaries.
-Historical pending statements below describe their dated checkpoints.
+Current code: corrective `1.0.1` candidate, with whole-release score **8/10**.
+Fresh real PostgreSQL 17.11/native restore, browser, hosted-deployment and strict
+database/native/application/source/history scans remain pending. No 1.0.1
+commit/run identity or passing result is inferred from a check's definition.
+The [requirement matrix](evidence/0.9.0/requirements.md) maps the unchanged 1.0
+product scope to implementation, tests, documents and proof boundaries.
+
+Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
+Its exact six-job main/tag CI, signed trial/consumer verification and actual
+Windows recovery passed. Late review found the vulnerable PostgreSQL 17.6
+deployment/CI default and omitted database-image scan. Publication run
+`39117205810` was canceled; the release API confirmed no 1.0.0 GitHub release.
+[Withheld receipt](evidence/1.0.0/publication-withheld.json). The earlier published
+0.9.0 prerelease has the unsafe database default and is superseded. Preserve
+historical successes and failed attempts at their original scope.
 
 The final candidate review found and fixed deep keyset index usage, missing
 atomic source-creation audit, source-wide event clock validation, a Persian
 severity label, incomplete legal packaging and vulnerable pinned dependencies.
-Independent architecture and implementation scores are 9/10 after those
-corrections. Release completion still depends on final changed-tree gates,
-actual artifact scans/signature verification and exact 1.0 publication.
+Those earlier scoped architecture/implementation reviews reached 9/10 before
+the database-image finding. They do not override the current 8/10 whole-release
+score. The corrective policy pins PostgreSQL 17.11 and adds exact database
+engine/digest, OS vulnerability scan and SPDX identity proof; real execution
+is still required before those fixes can support reassessment.
 
-The [final review](evidence/1.0.0/final-review.md) rechecks the accepted scope and
-corrects stale project/security/development/contribution statements and sensitive
-auth test failure output. It retains assertions and runtime guards. Corrected
-architecture/code/document review is 9/10; exact final acceptance is recorded in
-the [1.0 receipt](evidence/1.0.0/README.md).
+The [corrective review](evidence/1.0.1/final-review.md) rechecks the accepted scope.
+Earlier fixes to stale documents and sensitive auth-test failure output retain
+assertions and runtime guards. Return to 9/10 only after actual corrective
+real-PostgreSQL, browser, hosted-deployment and strict scans pass; exact tag,
+signed publication and public consumer acceptance are further gates in the
+[1.0.1 receipt](evidence/1.0.1/README.md). Historical pending statements below
+describe their dated checkpoints and do not define current acceptance.
 
 ## Verified defects at review entry
 

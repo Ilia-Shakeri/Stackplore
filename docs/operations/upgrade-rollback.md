@@ -73,13 +73,44 @@ prepares a private PVC child and atomically moves a validated legacy root key
 without overwriting it. Ambiguous duplicate keys or unsafe files fail closed;
 do not delete a key to get past this check. See [deployment](deployment.md).
 
+## PostgreSQL 17 patch baseline
+
+Stackplore 1.0.x requires PostgreSQL **17.11 or a later 17.x patch** for the
+server and native clients (`psql`, `pg_dump`, `pg_restore`). Version 17.6 is below
+the supported security baseline. Review the upstream
+[PostgreSQL 17 security list](https://www.postgresql.org/support/security/17/);
+server-only updates leave client fixes unapplied.
+
+The upstream [17.11 release notes](https://www.postgresql.org/docs/17/release-17-11.html)
+do not require dump/restore for an existing 17.x cluster. This does not remove
+these operator gates:
+
+1. Validate a fresh native backup and a restore to a separate empty target with
+   patched clients, following [backup/restore](backup-restore.md).
+2. Plan maintenance, stop the API, and review intervening upstream release notes.
+   Check `output_plugin_libraries`, affected `pgcrypto` data cleanup, and
+   `btree_gist`/`ltree` reindex requirements where applicable. Stackplore does not
+   create or use those optional extensions or custom logical decoding plugins;
+   inspect operator-added components separately. Review scripted `COPY FROM
+   STDIN` data terminators with the patched `psql`.
+3. Update the approved server image and native clients, preserving the existing
+   database volume. Record their exact versions and image digest. Never remove
+   the volume to make an update pass.
+4. Check database readiness, ledger integrity, login, representative reads and
+   retained data after restart. Keep the validated backup for recovery; do not
+   resume service with the vulnerable 17.6 server or clients.
+
+Application migration tests do not prove a 17.6-to-17.11 server update. Require a
+separate disposable patch-upgrade rehearsal and record its exact receipt in the
+[active plan](../implementation-plan.md) before claiming that path verified.
+
 ## Before an upgrade
 
 1. Read the exact target changelog and migration/contract changes.
 2. Verify the tagged source, signed checksum manifest, artifact identity and
    provenance using [release verification](release.md) ([فارسی](release.fa.md)).
    A workflow definition or an unobserved signing run is not a verified artifact.
-3. Record current release, database major version, deployment settings and
+3. Record current release, database server/client patch versions, deployment settings and
    private runtime-key custody without copying secret values into reports.
 4. Run PostgreSQL-native backup, validate its checksum, and restore to an empty
    disposable target using [backup/restore](backup-restore.md).

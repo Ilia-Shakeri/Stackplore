@@ -5,11 +5,21 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. A version number
 does not establish a passing release or customer installation.
 
-Current code is the final 1.0.0 candidate following the tagged 0.9.0 checkpoint.
-Exact checkpoint receipts remain in the [evidence plan](implementation-plan.md); the candidate's final
-changed-tree, browser, native, scan and release-artifact gates are
-recorded there separately. Do not promote an older passing run to proof of the
-candidate. Record commit/tag identities only after they exist.
+Current code is corrective 1.0.1; all nine stages are functionally implemented,
+but the current whole-release score is 8/10. Exact corrective real-PostgreSQL,
+browser, hosted-deployment and strict scan proof remains pending, followed by
+tag/publication and independent public-asset acceptance. Track results in the
+[active plan](implementation-plan.md) and [1.0.1 checklist](evidence/1.0.1/README.md).
+
+Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
+Its six-job main/tag CI, signed trial, consumer verification and actual Windows
+recovery passed within their original scope. Publication run `39117205810` was
+canceled after finding the PostgreSQL 17.6 default and absent database-image
+scan; the release API confirmed no 1.0.0 GitHub release. The earlier published
+0.9.0 prerelease has the unsafe database default and is superseded.
+[Withheld receipt](evidence/1.0.0/publication-withheld.json). Preserve the tag and
+historical receipts. Do not promote an old passing run to corrective proof or
+record new commit/tag identities before they exist.
 
 The [artifact procedure](operations/release.md) ([فارسی](operations/release.fa.md))
 defines the implemented tag/dispatch workflow, strict scans, SBOMs, checksums,
@@ -21,8 +31,12 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    [evidence](implementation-plan.md). Preserve unrelated work.
 2. Finish the stage's tests, contract output, both locales and affected docs.
 3. Set all release metadata and write the exact dated changelog with known gaps.
-4. Run bootstrap, full gate with a disposable real PostgreSQL URL, relevant
-   regressions, native restore proof and any named stage-specific target gates.
+4. Run bootstrap, full gate with a disposable real PostgreSQL 17.11 URL, relevant
+   regressions, native backup/empty-target restore and the named target gates.
+   The server and native clients require 17.11 or a later 17.x patch. Follow
+   [upstream-based minor-update guidance](operations/upgrade-rollback.md#postgresql-17-patch-baseline)
+   for existing installations; their operator must validate backup/restore and
+   maintenance. No specific 17.6-to-17.11 runtime experiment is claimed.
 5. Inspect the full diff, untracked files and `git diff --check`. Exclude runtime
    data, generated builds, unknown screenshots, local secrets and tool caches.
 6. Commit one reviewed stage using Conventional Commits and push that candidate
@@ -37,6 +51,15 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    and SBOMs. Record the run, digest and result. Publication waits for all required
    exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
+The canonical [PostgreSQL image policy](../deploy/postgres-image.json) is a
+separate release boundary. Require actual engine/digest metadata in
+`database-image.json`, an OS vulnerability scan in `database-image-scan.json`
+and the package inventory in `database.spdx.json`, with identity binding between
+all three. Application-image scanning does not cover the database image.
+The three added assets bring the expected totals to 37 public assets, 29 checksum
+entries, 15 provenance subjects and six archive/image SBOM attestations. These
+remain unverified counts until the exact corrective trial/publication is checked.
+
 After milestone checks, exact-commit CI and review, create the matching
 annotated tag. Never reuse an old checkpoint's tag command for a new version:
 
@@ -48,16 +71,19 @@ git push origin vVERSION
 Use the task's existing branch or a focused `main/` branch. Never force push,
 rewrite historical release tags, or stage all local files without review.
 
-## Final 1.0 gate
+## Final 1.0 scope and corrective 1.0.1 gate
 
 Every specification requirement needs code, tests, current accurate documents
 and direct evidence. Include browser/a11y/RTL/theme/performance, real provider,
-Compose/Helm/cluster/TLS, backup/restore/upgrade, security/dependency/image scans,
+Compose/Helm/cluster/TLS, PostgreSQL 17.11/native backup/restore, operator minor-update
+guidance, security/dependency/application-image/database-image scans,
 SBOM, signed artifact provenance, checksums, supported-version policy and final
 independent review. Screenshots must come from the running final demo. Workflow
 definitions and local scanner receipts do not replace exact-tag package, image
 scan, signing and consumer-verification evidence. Do not label a 0.x development
-checkpoint as a completed 1.0 release.
+checkpoint or the withheld 1.0.0 tag as a completed corrective release. Return
+the review score to 9/10 only after actual corrective PostgreSQL, browser,
+hosted-deployment and strict scans pass; final publication acceptance is additional.
 
 ## Platform and acceptance scope
 

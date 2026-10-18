@@ -1,21 +1,25 @@
 # Contributing to Stackplore
 
-Thank you for helping improve Stackplore. The project is being delivered in versioned stages, and focused changes are easier to review, verify, and maintain.
+Stackplore ships versioned releases. Focused changes are easier to review,
+verify and maintain.
 
 ## Before you begin
 
 1. Read [PROJECT_GUIDE.md](PROJECT_GUIDE.md), [SPEC.md](SPEC.md), and [PLAN.md](PLAN.md).
 2. Check existing issues and pull requests for related work.
-3. Confirm which roadmap stage is active and keep the proposal within that phase.
+3. Check the accepted specification and current maintenance scope before proposing work.
 4. Open an issue before substantial work so scope and design can be agreed upon.
 5. Use the private process in [SECURITY.md](SECURITY.md) for vulnerabilities.
 
-The repository has an active PostgreSQL-backed read-only product baseline. See [the current roadmap](docs/roadmap.md), [audit](docs/codebase-audit.md) and [evidence plan](docs/implementation-plan.md). Planned and unproven work must remain labeled.
+The product uses PostgreSQL, read-only observation by default and narrowly
+guarded opt-in actions. See the [roadmap](docs/roadmap.md), [audit](docs/codebase-audit.md)
+and [release evidence](docs/evidence/1.0.0/README.md). Planned or unproven work
+must remain labeled. Do not infer customer deployment health from release checks.
 
 ## Scope and design
 
 - Keep each pull request focused on one coherent concern.
-- Do not include work assigned to a later phase.
+- Keep deferred features outside the accepted release scope unless a specification change is approved.
 - Preserve the documented security, provider, and portability boundaries.
 - Prefer explicit, testable behavior over hidden conventions.
 - Update relevant documentation when behavior or public contracts change.
@@ -58,7 +62,9 @@ Do not mix generated build output, local configuration, editor state, or runtime
 - Keep English and Persian user-facing content equivalent in meaning.
 - Verify internal links and examples in documentation changes.
 
-Use the checked-in formatter, lint and strict type rules with the pinned commands in [development](docs/development.md). Run the full gate before completing a stage.
+Use the checked-in formatter, lint and strict type rules with the pinned commands
+in [development](docs/development.md). Run the full gate and all affected real
+environment checks before a release change is called complete.
 
 ## Commits
 

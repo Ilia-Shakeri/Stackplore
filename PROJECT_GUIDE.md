@@ -4,16 +4,22 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-The current code is the 1.0.0 final candidate. Earlier checkpoints implement
-secure local accounts, PostgreSQL observations, covered alerts and durable
-delivery, full exploration, scoped provider fidelity, guarded actions, unified
-installation and safe PWA behavior. Stage 8's 0.9.0 tag identifies
-`20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`; its exact main CI and signed artifact
-trial passed. Its exact tag CI, publication and independent public artifact
-verification also passed. Final 1.0 gates are recorded separately in the
-[evidence plan](docs/implementation-plan.md). No customer deployment follows
-from a tag. [Audit](docs/codebase-audit.md) and [roadmap](docs/roadmap.md) govern
-current delivery state.
+The active target is corrective `1.0.1`; its exact source and acceptance receipts
+remain to be recorded in the [current release evidence](docs/evidence/1.0.1/README.md).
+All nine stages are functionally implemented: secure local accounts, PostgreSQL observations, covered
+alerts and durable delivery, full exploration, scoped provider fidelity, guarded
+actions, unified installation and safe PWA behavior. Current review score is
+8/10 until real corrective PostgreSQL/browser/hosted-deployment and scan gates pass.
+
+Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
+Its exact main/tag CI, signed trial and Windows consumer recovery passed, but its
+release run was canceled after discovering the vulnerable PostgreSQL 17.6
+default and omitted database-image scan. The release API confirmed no 1.0.0
+GitHub release. The earlier published 0.9.0 prerelease has the same unsafe
+database default and is superseded. Keep those receipts and tags intact; they
+do not prove the corrective tree. See [checkpoint history](docs/evidence/1.0.0/README.md).
+No customer deployment follows from a tag. The [audit](docs/codebase-audit.md)
+and [roadmap](docs/roadmap.md) govern delivery scope and review history.
 
 ## Delivery contract
 
@@ -23,12 +29,10 @@ current delivery state.
 4. Use pinned tools; run focused regressions, then the full gate and named real-environment checks.
 5. Review the complete diff and untracked files for secrets, runtime artifacts, wrong line endings and unrelated work.
 6. Record accurate commands, failures and fixes. Score the current work, list remaining defects and repeat corrections until the quality bar is justified. Keep product completeness distinct.
-7. Set one consistent stage version, update CHANGELOG, commit and annotate the
-   exact version tag only after the milestone gate passes. The maintainer's
-   explicit 2026-10-17 request authorizes testing, versioning, commits and pushes
-   for every remaining stage and supersedes the earlier no-push task rule.
-   Inspect exact main/tag checks and signed artifacts. Never rewrite release
-   history or claim an unobserved remote result.
+7. Keep version metadata and CHANGELOG consistent. Follow the maintainer's
+   delivery authorization for commits and pushes; tag only the checked source.
+   Inspect exact main/tag checks and independently verify signed artifacts.
+   Never rewrite published release history or claim an unobserved result.
 
 The old phase stop/maintainer-commit procedure is historical; use the active plan and current instructions. Tools may be prepared locally in ignored directories; do not change unrelated system installations.
 
@@ -36,6 +40,7 @@ The old phase stop/maintainer-commit procedure is historical; use the active pla
 
 - One modular Go service, with transport/jobs -> use cases/services -> domain ports <- provider/PostgreSQL adapters. Domain imports no HTTP, SQL driver, provider or frontend packages.
 - PostgreSQL is the only supported persistence layer. Use bounded context-aware calls/pools/transactions, ownership before migration, advisory serialized immutable migrations, UTC microseconds, parameters and real SQL tests.
+- Require PostgreSQL server/native clients 17.11 or a later 17.x patch. The canonical database image is in `deploy/postgres-image.json`; prove its exact engine/digest, OS vulnerability scan and SPDX inventory alongside application/native/source/history scans.
 - Keep single-runtime ownership; do not claim horizontal safety from PostgreSQL alone.
 - Use provider-neutral identities, explicit capability/completeness states, typed safe metadata, evidence and confidence. Display names are not identity keys.
 - Bound requests, pagination, history, streams, queues, retries and retention. Protect audit lifecycle separately.

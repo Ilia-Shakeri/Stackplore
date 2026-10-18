@@ -4,6 +4,12 @@ import { lstat, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import process from 'node:process';
 import { setTimeout as delay } from 'node:timers/promises';
+import {
+  checkDatabaseImageMetadata,
+  checkDatabaseScanIdentity,
+  checkDatabaseSbomIdentity,
+  checkReleaseScan,
+} from './release-scan.mjs';
 
 const command = process.argv[2];
 const repository = process.env.GITHUB_REPOSITORY;
@@ -97,6 +103,14 @@ const files = async () => {
   return names;
 };
 
+const readDatabaseDocument = async (name, maximum) => {
+  const path = join(releaseDirectory, name);
+  const info = await lstat(path);
+  if (!info.isFile() || info.isSymbolicLink() || info.size > maximum)
+    throw new Error('Database release document is not a bounded regular file.');
+  return JSON.parse(await readFile(path, 'utf8'));
+};
+
 if (command === 'check-ci') {
   await awaitVerification();
 } else if (command === 'metadata') {
@@ -146,6 +160,9 @@ if (command === 'check-ci') {
     'native-smoke.json',
     'dependency-scan.json',
     'image-scan.json',
+    'database-image-scan.json',
+    'database.spdx.json',
+    'database-image.json',
     'secret-scan.json',
     'image-id.txt',
     'source.spdx.json',
@@ -190,6 +207,16 @@ if (command === 'check-ci') {
     checksums.delete(name);
   }
   if (checksums.size !== 0) throw new Error('Release manifest has unexpected entries.');
+  const database = await readDatabaseDocument('database-image.json', 16 * 1024);
+  const databaseScan = await readDatabaseDocument('database-image-scan.json', 32 * 1024 * 1024);
+  const databaseSbom = await readDatabaseDocument('database.spdx.json', 16 * 1024 * 1024);
+  checkDatabaseImageMetadata(
+    database,
+    JSON.parse(await readFile('deploy/postgres-image.json', 'utf8')),
+  );
+  checkReleaseScan(databaseScan, databaseSbom, { database: true });
+  checkDatabaseScanIdentity(databaseScan, database);
+  checkDatabaseSbomIdentity(databaseSbom, database, databaseScan);
   const verified = await awaitVerification();
   const changelog = await readFile('CHANGELOG.md', 'utf8');
   const start = changelog.indexOf(`## [${version}]`);

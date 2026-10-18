@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const version = process.env.SP_BROWSER_VERSION ?? '1.0.0';
+const version = process.env.SP_BROWSER_VERSION ?? '1.0.1';
 const evidence = resolve('../../docs/evidence', version);
 const responseFailures = new WeakMap<Page, { component: string; status: number }[]>();
 function observeResponses(page: Page) {

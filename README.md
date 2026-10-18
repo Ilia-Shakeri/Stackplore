@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** Final `1.0.0` candidate. The `v0.9.0` checkpoint passed exact main CI, all 14 production-browser cases, signed artifact trial, consumer verification and Windows archive recovery. Its tag checks and final 1.0 verification/publication are recorded in the [evidence plan](docs/implementation-plan.md). See [1.0 acceptance](docs/evidence/1.0.0/README.md) for current gates and support scope.
+> **Status:** Corrective `1.0.1` candidate; final acceptance is pending. All nine stages are functionally implemented. The immutable `v1.0.0` checkpoint passed its recorded checks, but publication was canceled after finding a vulnerable PostgreSQL 17.6 deployment default and a missing database-image scan. No `v1.0.0` GitHub release was published. The earlier `v0.9.0` prerelease also has the unsafe database default and is superseded. See the [current gates](docs/evidence/1.0.1/README.md) and [withheld checkpoint history](docs/evidence/1.0.0/README.md).
 
 ## Implemented
 
@@ -23,11 +23,15 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 - One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and actual TLS-backed chart installation.
 - Public-only PWA offline shell and explicit updates, bounded streamed redacted log downloads, URL event filters, health history, metric trends, coalesced live inventory/topology, and operator-mounted Kubernetes token-file or certificate profiles. See [exploration](docs/exploration.md) and [Kubernetes profiles](docs/kubernetes-provider.md).
 
-## Still required for 1.0
+## Still required for 1.0.1 acceptance
 
-- Exact `1.0.0` full local, browser, PostgreSQL, provider and deployment gates
-- Final artifact builds/scans, checksum and signed provenance/SBOM consumer verification
-- Matching `v1.0.0` tag and publication with final evidence reconciliation
+- Exact corrective-tree full local, browser, PostgreSQL 17.11 and hosted provider/deployment gates, including native backup/empty-target restore
+- Database engine/digest proof, database OS scan and SPDX inventory, plus native/application/source/history scans and independent signed-artifact verification
+- Matching `v1.0.1` tag, signed publication and public artifact acceptance; expected counts are 37 assets, 29 checksum entries, 15 provenance subjects and six archive/image SBOM attestations, still unverified
+
+The current review score is **8/10** until the corrective runtime, deployment
+and scan gates actually pass. Earlier successful checks remain historical
+evidence; they do not establish corrective-release acceptance.
 
 Customer production rollout is an operator deployment decision. Its credentials,
 provider permissions, receiver reachability, backup destination and capacity
@@ -53,6 +57,13 @@ contains deployment-only names rejected by the strict Go loader and cannot be
 reused unchanged for development. See [configuration](docs/configuration.md).
 
 ## Deployment
+
+The corrective tree pins PostgreSQL 17.11 by digest in
+[`deploy/postgres-image.json`](deploy/postgres-image.json). Its actual runtime
+and scan receipts remain pending. Do not use the superseded 0.9.0 database
+default. Existing installations need the reviewed
+[patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline),
+a validated backup and operator maintenance before changing the database image.
 
 For local Compose, copy `deploy/compose.env.example` to `.env`, replace the placeholders, then run:
 

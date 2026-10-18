@@ -16,6 +16,16 @@ test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 epoch="$(git show -s --format=%ct HEAD)"
 export SOURCE_DATE_EPOCH="$epoch"
 
+database_image="$(node scripts/release-scan.mjs database-reference deploy/postgres-image.json)"
+timeout 180s docker pull --platform linux/amd64 "$database_image"
+timeout 60s docker image inspect "$database_image" > "$stage_dir/database-inspect.json"
+timeout 60s docker buildx imagetools inspect --raw "$database_image" > "$stage_dir/database-index.json"
+timeout 30s docker run --rm --platform linux/amd64 --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user 70:70 --entrypoint postgres "$database_image" --version > "$stage_dir/database-version.txt"
+node scripts/release-scan.mjs database-metadata deploy/postgres-image.json "$stage_dir/database-inspect.json" "$stage_dir/database-index.json" "$stage_dir/database-version.txt" "$release_dir/database-image.json"
+trivy image --platform linux/amd64 --timeout 5m --scanners vuln --ignorefile /dev/null --ignore-unfixed=false --severity HIGH,CRITICAL --exit-code 1 --format json --output "$release_dir/database-image-scan.json" "$database_image"
+trivy image --platform linux/amd64 --timeout 5m --scanners vuln --ignorefile /dev/null --ignore-unfixed=false --format spdx-json --output "$release_dir/database.spdx.json" "$database_image"
+node scripts/release-scan.mjs database "$release_dir/database-image-scan.json" "$release_dir/database.spdx.json" "$release_dir/database-image.json"
+
 corepack pnpm run check:version
 corepack pnpm run build:web
 node scripts/embed-web-assets.mjs

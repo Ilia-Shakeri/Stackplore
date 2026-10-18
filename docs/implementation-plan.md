@@ -1,16 +1,68 @@
 # Stackplore active implementation evidence
 
-## Current final gate — 2026-10-18
+## Current corrective gate — 2026-10-18
 
-Stage 9 is the final `1.0.0` candidate. The whole-repository requirement review
-retains architecture/code at 9/10 after the earlier independent corrections.
-The final documentation/failure-path review initially scored 8/10: stale
+The active target is **1.0.1**. All nine stages are functionally implemented;
+final acceptance remains open. Late release review found a vulnerable
+PostgreSQL 17.6 default in Compose and CI, while release scans covered the
+application image but omitted the separately deployed database image. Current
+whole-release score is **8/10**. Earlier scoped 9/10 reviews predate this gap.
+
+Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
+All six jobs in main CI `39116327391` and tag CI `39117205748` passed. Signed
+trial `39116335008`, its 26 checksum entries, 12 provenance subjects, six
+archive/image SBOM attestations and actual Windows 1.0.0 recovery also passed.
+Those receipts retain their exact scope; the database-image omission does not
+turn the observed tests into failures or establish release acceptance.
+[Publication run 39117205810](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39117205810)
+was **canceled**. The release API confirmed that `v1.0.0` has no GitHub release;
+the [withheld-publication receipt](evidence/1.0.0/publication-withheld.json) records
+that result and the unchanged tag identity.
+It is a withheld checkpoint, and its tag will not move. The published `v0.9.0`
+prerelease has the same unsafe database default and is superseded.
+
+The corrective working tree uses the canonical
+[database policy](../deploy/postgres-image.json):
+`postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
+The server and native-client minimum is 17.11 within major 17. Database release
+gates now require exact engine/digest proof, OS vulnerability scanning and an
+SPDX inventory. Their definition is not an execution receipt. The three added
+database assets bring expected publication totals to **37 assets, 29 checksum
+entries, 30 provenance subjects and six archive/image SBOM attestations**;
+these counts are pending verification for 1.0.1.
+
+| Corrective gate | Current result |
+| --- | --- |
+| Real PostgreSQL and native restore | Pending corrective-source checks against owned PostgreSQL 17.11 plus native backup/empty-target restore. Existing 17.x minor-update guidance follows upstream and requires operator validation; no specific 17.6-to-17.11 runtime proof is claimed. |
+| Full changed-tree local gate | Pending complete `npm.cmd run verify` with the real disposable PostgreSQL target. |
+| Corrective browser matrix | Pending actual production-browser English/Persian, RTL/LTR, responsive, keyboard, reduced-motion and PWA cases. |
+| Exact hosted CI | Pending all six corrective-source jobs, including Compose, Helm/TLS and real providers. |
+| Signed trial and scan coverage | Pending native/application/source/history scans plus database engine/digest, OS scan and SPDX; independent signature/identity checks are required. |
+| Windows 1.0.1 recovery | Pending execution of the exact verified corrective archive against owned databases. |
+| Exact tag and publication | Pending immutable `v1.0.1`, matching tag CI, signed release and independent public-asset verification. No corrective source/run identity is invented. |
+
+Return to 9/10 only after the actual corrective real-PostgreSQL, browser,
+hosted-deployment and strict scan gates pass. Signed/public artifact acceptance
+remains an additional release gate. Record exact commands, source, exit status,
+run identity, digests and honest failures in the
+[1.0.1 acceptance receipt](evidence/1.0.1/README.md) and
+[corrective review](evidence/1.0.1/final-review.md). Do not overwrite the historical
+[1.0.0 receipts](evidence/1.0.0/README.md) or treat a customer's rollout as proven.
+
+## Withheld 1.0.0 verification history — 2026-10-18
+
+The following records preserve the chronology before the late database-image
+finding. Current corrective status above takes precedence over their earlier
+scores and then-pending gates. The 1.0.0 whole-repository requirement review
+initially retained architecture/code at 9/10 after independent corrections.
+The documentation/failure-path review initially scored 8/10: stale
 security/project/development/contribution text and authentication test failure
 messages could misstate support or print proof-bearing objects. Corrections
 remove those values without changing assertions or runtime controls, reconcile
 all current stage/installation claims and define the actual supported matrix.
-Corrected code/doc review is 9/10; final release acceptance remains separate.
-See [final review and acceptance](evidence/1.0.0/README.md).
+The corrected code/doc review then scored 9/10 within that earlier scope;
+the later database-image finding reduced the current whole-release score to
+8/10. See [withheld checkpoint evidence](evidence/1.0.0/README.md).
 
 Stage 8 source `20f8c2e30cb2ccdfc16aa266f0b0d5647c429881` passed all six jobs in
 [exact main CI 39038430422](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39038430422).
@@ -54,15 +106,16 @@ is byte-identical to the archive used in the actual recovery drill. The first
 public transfer was interrupted; its partial receipt remains separate and every
 resumed file required its API digest before signed-manifest verification.
 [Published receipt](evidence/0.9.0/published-release.json) closes Stage 8.
-The 1.0.0 local/browser/exact-CI/artifact/recovery/tag/publication
-gates are also pending; old receipts are not promoted to proof of 1.0.
+At that earlier point the 1.0.0 local/browser/exact-CI/artifact/recovery/tag/
+publication gates were pending; later 1.0.0 results are recorded below. The 0.9.0
+receipts were never promoted to proof of 1.0. Its database default is now superseded.
 
 Final local attempt A failed two real-PostgreSQL connection gates after the host
 restart: the owned loopback test cluster was stopped. The existing workspace
 data directory and port 55473 were verified before starting that cluster; the
 separate PostgreSQL service on port 55432 was not changed. Native crash recovery
 completed and readiness then passed. The failed receipt remains
-`.tmp/stage9-final-verify-a.log` with exit 1. Replacement B reruns the complete
+`.tmp/stage9-final-verify-a.log` with exit 1. Replacement B reran the complete
 gate with the same assertions, limits and disposable test URL.
 
 Final replacement B **passed exit 0**, with the exit marker retained. All Go
@@ -81,7 +134,36 @@ explicit update acceptance/reload, all 80 bounded concurrent read envelopes and
 normal English/Persian setup/recent-auth/role/history/download/logout journeys.
 All 16 public screenshots were freshly captured. Chrome was 155.0.8059.80.
 [Sanitized final local/browser receipts](evidence/1.0.0/README.md) bind the
-observed outputs and screenshots; exact CI/artifact/recovery/tag gates remain.
+observed outputs and screenshots; at that point exact CI/artifact/recovery/tag
+gates remained, with their subsequent outcomes recorded below.
+
+Final source was committed and pushed as
+`a424d9f4c9f23d25960b93482b3096a6d05d0e1f`. [Exact main CI
+39116327391](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39116327391)
+passed all six jobs. [Signed trial 39116335008](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39116335008)
+passed packaging, Linux archive execution, all five native three-executable
+scans, image OS/server scan, source gomod/pnpm scan, full-history scan and signing.
+Source SPDX inventories 470 packages, including 393 npm and 74 Go package URLs;
+there are zero blocking findings. Independent trial verification passed all 26
+manifest entries, 12 provenance subjects and six SBOM attestations under the
+exact main workflow/ref/source and hosted-runner policy.
+
+The verified 1.0.0 Windows archive passed the full owned-database native recovery
+drill, including exact version/source, 16 migrations, nine resources, 972 metric
+samples, source version/state, durable acknowledgement/SSE/replay, restart,
+backup/empty-target restore, protected audit, revoked sessions/preauth, fresh
+login and nonzero shutdown after ownership loss. Its build metadata reports
+Go 1.26.9, Windows amd64, CGO disabled, exact source revision and
+`vcs.modified=false`. [Consumer receipt](evidence/1.0.0/consumer-trial.json).
+After all local runtime tests finished, the owned test PostgreSQL cluster was
+stopped cleanly, retaining its data and all diagnostic receipts.
+
+Annotated `v1.0.0` was pushed on that unchanged checked candidate. Exact
+[tag CI 39117205748](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39117205748)
+passed all six jobs. [Release 39117205810](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39117205810)
+was subsequently canceled after the database-image finding; the release API
+confirmed no published 1.0.0 release. No tag was moved. This checkpoint is
+withheld; corrective 1.0.1 acceptance is governed by the current section above.
 
 The following sections retain the dated Stage 8 and preceding correction
 history. The current final-gate status above takes precedence.
@@ -757,3 +839,14 @@ scope now scores 9/10; exact commit/tag publication/CI remain pending. Broader S
 Compose/Helm installation, provider-version compatibility, guarded actions,
 protected audit lifecycle, performance/accessibility/PWA and final release
 evidence remain in Stages 6–9.
+
+### Corrective1.0.1 local checkpoint — 2026-10-18
+
+Both full local gates passed on real owned PostgreSQL17.11. Final B includes
+24 release/policy regressions,40 client and453 web tests; format, lint, types,
+715 locale messages,235 bounded schemas, legal notices and both builds passed.
+All14 actual production-browser cases passed, with16 new public screenshots.
+Helm lint/render passed. Database image pull/remote scan timed out locally
+before analysis; these failures remain separate. Exact hosted main/tag CI,
+database runtime/scans and signed native/public artifact recovery are pending.
+[Local receipt](evidence/1.0.1/local-gates.json), [browser receipt](evidence/1.0.1/browser-runtime.json).

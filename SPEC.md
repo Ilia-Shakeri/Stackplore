@@ -2,17 +2,24 @@
 
 - **Product:** Stackplore
 - **Tagline:** Explore every service in your stack.
-- **Target release:** 1.0.0
+- **Target release:** 1.0.1
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Final `1.0.0` candidate after the tagged `0.9.0`
-  checkpoint. The accepted scope is mapped to code, tests, documentation and
+- **Implementation status:** All nine stages are functionally implemented;
+  corrective `1.0.1` acceptance is pending at a current review score of 8/10.
+  Immutable `v1.0.0` passed its recorded checks but publication was canceled
+  after discovery of the vulnerable PostgreSQL 17.6 default and missing
+  database-image scan. The release API confirmed no 1.0.0 GitHub release;
+  [withheld receipt](docs/evidence/1.0.0/publication-withheld.json). The published
+  `v0.9.0` prerelease has the same unsafe default and is superseded.
+  The accepted 1.0 product scope is unchanged and mapped to code, tests, documentation and
   evidence in the [requirement matrix](docs/evidence/0.9.0/requirements.md).
-  Final exact-tag verification, signed publication and consumer acceptance
+  Corrective real-PostgreSQL, browser, hosted-deployment and strict scan proof,
+  exact-tag verification, signed publication and consumer acceptance
   remain distinct gates in the [active evidence plan](docs/implementation-plan.md)
-  and [1.0 receipt](docs/evidence/1.0.0/README.md).
+  and [1.0 receipt](docs/evidence/1.0.1/README.md).
 
-This document defines the required behavior and quality bar for Stackplore 1.0.
-It describes a target, not current shipped functionality. Delivery order and
+This document defines the accepted behavior and quality bar for Stackplore 1.0.
+Deferred features are explicitly listed in section 14. Delivery order and
 current stage status live in [PLAN.md](PLAN.md) and the [evidence plan](docs/implementation-plan.md). Engineering rules live in
 [PROJECT_GUIDE.md](PROJECT_GUIDE.md).
 
@@ -822,8 +829,16 @@ raw kubeconfig content, Secret values, or complete environment dumps.
 Development uses a Vite server, Go API server, and same-origin development
 proxy.
 
-The current runtime uses PostgreSQL for the API, account recovery and native
-backup/restore. It checks process ownership before immutable migrations and
+The current runtime uses only PostgreSQL for the API, account recovery and
+native backup/restore. Server and native `psql`, `pg_dump` and `pg_restore`
+clients require 17.11 or a later patch within major 17. The canonical
+[database image policy](deploy/postgres-image.json) pins the approved digest;
+release gates require engine/digest proof, a database OS vulnerability scan and
+a matching SPDX package inventory in addition to application/native/source/
+history scans. Configured gates are not runtime or scan proof. Existing 17.x
+minor-update guidance follows upstream and requires operator-validated backup,
+restore and maintenance; no specific 17.6-to-17.11 runtime experiment is claimed.
+The runtime checks process ownership before immutable migrations and
 uses bounded pools, queries and transactions. Local real PostgreSQL tests and
 a disposable native restore drill provide current baseline evidence; target
 production drills remain separate. A non-root Go application image embeds the
@@ -967,8 +982,10 @@ Stackplore 1.0 is complete only when:
 - English and Persian documentation describe only real behavior;
 - screenshots come from the final running demo;
 - no production TODO remains;
-- version is `1.0.0`;
+- version is `1.0.1`;
 - release artifacts have checksums and a software bill of materials;
+- the separately deployed database image has matching engine/digest metadata,
+  an OS vulnerability scan and an SPDX package inventory bound to that identity;
 - the user authorizes final tag and release publication, and the exact tagged
   source and published artifacts pass their release gates.
 

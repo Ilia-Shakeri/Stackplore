@@ -1,5 +1,11 @@
 # 0.9.0 checkpoint verification
 
+> Superseded security checkpoint. Its Compose/CI PostgreSQL 17.6 default is below
+> the supported baseline, and its release scans did not cover that runtime image.
+> Do not use the old database default for a new deployment. The
+> [1.0.1 correction](../1.0.1/README.md) pins 17.11 and adds database engine, scan
+> and inventory proof. The passing historical receipts below retain their scope.
+
 Dates: 2026-10-17–18. Tagged source:
 `20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`, `v0.9.0`.
 [Exact main CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39038430422)

@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 40
     services:
       postgres:
-        image: postgres:17.6-alpine
+        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_DB: stackplore_test
           POSTGRES_USER: postgres
@@ -241,7 +241,7 @@ jobs:
                   fsGroup: 70
                 containers:
                   - name: postgres
-                    image: postgres:17.6-alpine
+                    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
                     args: ["postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/tls/tls.crt", "-c", "ssl_key_file=/tls/tls.key"]
                     env:
                       - name: POSTGRES_DB

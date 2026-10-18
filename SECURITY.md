@@ -5,16 +5,26 @@
 The current release line is **1.0.x**. Only its latest published patch is a
 maintenance target; 0.x checkpoints are historical prereleases. A version becomes
 accepted only after its exact tag checks, strict scans, signed artifacts and
-consumer verification pass in the [release evidence](docs/evidence/1.0.0/README.md).
+consumer verification pass in the [release evidence](docs/evidence/1.0.1/README.md).
 Unpublished candidates do not establish support. Report the exact version and
 full source commit.
 
-The runtime verification matrix covers Windows amd64, Linux amd64, the Linux
-amd64 image and PostgreSQL 17. Linux arm64 and macOS archives are cross-built
+The supported runtime matrix includes Windows amd64, Linux amd64, the Linux
+amd64 image and PostgreSQL 17. The minimum server patch is 17.11; later 17.x
+patches are supported. The same minimum applies to native `psql`, `pg_dump` and
+`pg_restore` clients. Linux arm64 and macOS archives are cross-built
 outputs until separately executed. Browser evidence records the exact Chromium
 version and tested English/Persian profiles; it is not a guarantee for every
 browser or assistive technology. Customer credentials, ingress/TLS, provider
 rights, backups and capacity require deployment-specific acceptance.
+
+PostgreSQL 17.6 is below the supported baseline. The upstream
+[PostgreSQL 17 security list](https://www.postgresql.org/support/security/17/)
+includes server and client fixes delivered in 17.11. Operators must update both
+and follow the [patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline)
+([فارسی](docs/operations/upgrade-rollback.fa.md)). A declared minimum or a passing
+application migration test does not prove an installed server update; that needs
+its own recorded rehearsal and deployment checks.
 
 ## Report a vulnerability privately
 

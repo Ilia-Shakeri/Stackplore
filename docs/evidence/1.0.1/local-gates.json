@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "version": "1.0.1",
+  "date": "2026-10-18",
+  "scope": "Corrective final working tree, including database SPDX graph/identity regressions; exact hosted main/tag and artifact results remain separate.",
+  "command": "npm.cmd run verify",
+  "exit_code": 0,
+  "log_sha256": "1f5c96026be381ec6c94dca8ae649624ea7ff082364d4f437558b50b6cf73d1f",
+  "node": "24.18.0",
+  "pnpm": "11.17.0",
+  "go": "1.26.9",
+  "postgresql": "17.11",
+  "postgresql_tests": "Owned real PostgreSQL17.11 was ready throughout both complete gates. Attempt A executed changed full-server SQL cases uncached (8.265s); unchanged repository/HTTP coverage used valid Go cache. Attempt B included final24 release/policy tests. Hosted SQL/race and archive recovery require separate fresh receipts.",
+  "client_tests": 40,
+  "web_tests": 453,
+  "web_test_files": 47,
+  "release_tests": 24,
+  "locale_messages": 715,
+  "bounded_openapi_schemas": 235,
+  "backend_core_statement_coverage": {
+    "domain": 80.6,
+    "alerting": 82.6
+  },
+  "web_coverage": {
+    "statements": 81.53,
+    "branches": 77.49,
+    "functions": 85.17,
+    "lines": 83.05
+  },
+  "builds": [
+    "production web",
+    "embedded web assets",
+    "all Go packages"
+  ],
+  "helm_lint": "passed",
+  "helm_render": "passed",
+  "browser_tests": 14,
+  "browser_exit": 0,
+  "prior_success": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "release_tests": 21,
+    "log_sha256": "4eda3a57084f7c7553c421931970680f29898eec287d7efd6addb5d5b73fcac9",
+    "scope": "Before final SPDX identity/graph corrections"
+  }
+}

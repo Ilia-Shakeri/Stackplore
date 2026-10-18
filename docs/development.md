@@ -5,7 +5,8 @@
 - Node.js `24.18.0` from `.node-version`
 - pnpm `11.17.0` through Corepack
 - Go `1.26.9` from `apps/api/go.mod`
-- PostgreSQL 17 for the supported live persistence matrix
+- PostgreSQL `17.11` or a later `17.x` patch for the server and native clients
+  (`psql`, `pg_dump`, `pg_restore`) in the supported live persistence matrix
 
 Do not substitute a globally different toolchain when reviewing reproducibility. On Windows, invoke npm as `npm.cmd` when npm is needed.
 
@@ -18,6 +19,13 @@ node scripts/bootstrap.mjs
 Bootstrap checks the pinned tools and installs the locked workspace. It does not create a database, mutate an existing database, or install system packages.
 
 ## Local PostgreSQL
+
+Use the patched server and client baseline above even for disposable fixtures.
+The upstream [PostgreSQL 17 security list](https://www.postgresql.org/support/security/17/)
+covers both components. The [patch-upgrade procedure](operations/upgrade-rollback.md#postgresql-17-patch-baseline)
+requires a validated backup, maintenance and applicable upstream cleanup/reindex
+review. Application migration tests alone do not establish a 17.6-to-17.11
+server-upgrade receipt.
 
 The API requires `STACKPLORE_DATABASE_URL`. Development accepts a local password-free role or `sslmode=disable`; production requires an explicit HTTPS public origin and PostgreSQL `sslmode=verify-full`.
 
