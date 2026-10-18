@@ -12,12 +12,20 @@ declare global {
 
 const version = process.env.SP_BROWSER_VERSION ?? '1.0.2';
 const evidence = resolve('../../docs/evidence', version);
+const defaultPeerBucketRefillMs = 2500;
 const responseFailures = new WeakMap<Page, { component: string; status: number }[]>();
+function refillDefaultPeerBucket(): Promise<void> {
+  return new Promise((done) => {
+    setTimeout(done, defaultPeerBucketRefillMs);
+  });
+}
 function observeResponses(page: Page) {
   const failures: { component: string; status: number }[] = [];
   responseFailures.set(page, failures);
   page.on('response', (response) => {
     const path = new URL(response.url()).pathname;
+    if (response.request().resourceType() === 'document' && response.status() >= 400)
+      failures.push({ component: 'public-document', status: response.status() });
     if (path.startsWith('/assets/') && response.status() >= 400)
       failures.push({ component: 'public-assets', status: response.status() });
     if (path.startsWith('/api/v1/') && response.status() >= 400) {
@@ -29,7 +37,7 @@ function observeResponses(page: Page) {
 test.beforeEach(async ({ page }) => {
   observeResponses(page);
   // Separate logical clients share one loopback peer and its default rate bucket.
-  await new Promise((done) => setTimeout(done, 2500));
+  await refillDefaultPeerBucket();
 });
 test.afterEach(async ({ page }, info) => {
   if (info.status !== 'passed')
@@ -395,7 +403,8 @@ test('bounded concurrent guest reads preserve valid page envelopes', async ({ pa
     const url = new URL(request.url());
     if (paths.includes(url.pathname)) queries.set(url.pathname, `${url.pathname}${url.search}`);
   });
-  for (const route of ['/overview', '/resources', '/topology', '/events']) {
+  const setupRoutes = ['/overview', '/resources', '/topology', '/events'];
+  for (const route of setupRoutes) {
     await page.goto(route);
     await expect(page.locator('main h1'), `${route} setup route`).toBeVisible();
     if (route === '/overview') await expect(page.locator('.source-card').first()).toBeVisible();
@@ -409,11 +418,12 @@ test('bounded concurrent guest reads preserve valid page envelopes', async ({ pa
     await expect
       .poll(() => queries.has(path), { message: `${route} public read query` })
       .toBe(true);
+    await refillDefaultPeerBucket();
   }
   await page.goto('/search');
   await expect(page.locator('.resource-list .resource-row')).toHaveCount(9);
   await page.goto('about:blank');
-  await new Promise((done) => setTimeout(done, 2500));
+  await refillDefaultPeerBucket();
   const durations: number[] = [];
   const started = Date.now();
   for (let round = 0; round < 10; round++) {
@@ -450,8 +460,11 @@ test('bounded concurrent guest reads preserve valid page envelopes', async ({ pa
     parallel: 8,
     rounds: 10,
     minimumRoundSpacingMs: 600,
-    setupRateBucketRefillMs: 2500,
-    initialRateBucketRefillMs: 2500,
+    setupRateBucketRefillMs: defaultPeerBucketRefillMs,
+    setupNavigationRefills: setupRoutes.length,
+    setupNavigationRefillMs: defaultPeerBucketRefillMs,
+    setupExcludedFromReadTiming: true,
+    initialRateBucketRefillMs: defaultPeerBucketRefillMs,
     maximumOfferedReadsPerSecond: 13.34,
     elapsedMs: Date.now() - started,
     medianMs: sorted[Math.floor(sorted.length / 2)],

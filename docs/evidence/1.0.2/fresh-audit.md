@@ -289,6 +289,36 @@ live retry coverage. Six-job CI on the commit containing this review must pass
 before handoff; commit checks and the release body bind the final run/source.
 Preserve all prior tags, failed receipts and transfers.
 
+### Later main setup failure and focused correction
+
+Main-only review commit `7545339d82f0ab54fd483b77048dd79ab3cc3fa3` failed
+CI `39138645362` during the concurrent-read case's unmeasured `/events` setup,
+before the 80-read loop started. The browser result was 13/14: the complete
+worker-update test passed, with one 200 JavaScript control response, 2576 bytes
+and one marker. The actual artifact retained all three hidden reports; its
+failed-case attachment recorded only setup-component API 429. The document's
+HTTP status was not recorded and must not be inferred. Other five jobs and the
+earlier full/race checks passed; the code job still failed on this browser step.
+
+The subsequent main-only change spaces four setup navigations by 2500 ms after
+their validated page/query checks, before the next route/search. It retains the
+initial/preload refill and every measured assertion: 80 reads, eight parallel,
+ten rounds and minimum 600-ms round spacing. Fixed public-document status
+diagnostics record no raw response body; measured reads do not gain retries.
+
+An AST-extracted execution of the exact callback/helper against the signed
+`376ed03` runtime passed with the unchanged default 20 requests/s, burst 40.
+All 86 setup responses were 200 with zero setup API 429, and all 80 timed reads
+were 200 with valid envelopes. Actual added refills were 2504/2507/2504/2508 ms;
+setup was excluded from the 6049-ms measured window. Median 86 ms and p95 129 ms
+describe this local synthetic sample only. Ten in-memory diagnostic checks,
+format/type/lint and exact-owned server/database/port cleanup passed. Test source
+SHA-256 was `3a9d84c360b6e300fed4594a29a43658d2c6bbf6fb4b3ce019083f88ae04f838`.
+[Root proof](browser-fixture-diagnostic.json) retains the failed CI and focused
+pass separately. This is focused callback proof, not a complete new browser/CI
+pass; six-job CI of the containing review commit must pass before handoff.
+Frozen public release `376ed03` and its accepted proof remain unchanged.
+
 ## Accepted public release and final scope
 
 Stable release `416503671` was published at `2026-10-18T14:43:05Z` for immutable

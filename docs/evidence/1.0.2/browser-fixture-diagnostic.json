@@ -224,5 +224,184 @@
     "conclusion": "success",
     "all_six_jobs": "success",
     "browser_cases": 14
+  },
+  "later_main_review_failures": [
+    {
+      "revision": "7545339d82f0ab54fd483b77048dd79ab3cc3fa3",
+      "ci_run": 39138645362,
+      "ci_conclusion": "failure",
+      "failed_test": "bounded concurrent guest reads preserve valid page envelopes",
+      "failed_phase": "unmeasured setup navigation at /events, before the 80-read workload",
+      "measured_workload_started": false,
+      "other_five_jobs": "success",
+      "browser_cases": 14,
+      "browser_passed": 13,
+      "public_http_statuses": [
+        {
+          "case": 11,
+          "statuses": [
+            {
+              "component": "setup",
+              "status": 429
+            }
+          ]
+        }
+      ],
+      "original_document_response_status": "not recorded; not inferred from setup API429",
+      "worker_update_case": "passed including all original acceptance and private-cache checks",
+      "worker_control_read": {
+        "deadline_ms": 15000,
+        "maximum_attempts": 4,
+        "attempts": [
+          {
+            "attempt": 1,
+            "status": 200,
+            "mime": "text/javascript",
+            "bytes": 2576,
+            "cacheMarkers": 1
+          }
+        ]
+      },
+      "hidden_report_retention": {
+        "confirmed": true,
+        "artifact_id": 12141042600,
+        "artifact_bytes": 18115316,
+        "artifact_sha256": "81dabb8ed6de9c33cf7a7d29cf4ebd2410ef62677d7f9eaf5141bcdf210a5973",
+        "reports": [
+          {
+            "mode": "guest",
+            "entry": ".tmp/browser-results.json",
+            "cases": 12,
+            "passed": 11,
+            "unexpected": 1,
+            "bytes": 23926,
+            "sha256": "d26f73c337ca0898a6822a6bb6867f2b6b1aa870d0818dc191904defe582805f"
+          },
+          {
+            "mode": "normal-en",
+            "entry": ".tmp/browser-results-normal-en.json",
+            "cases": 1,
+            "passed": 1,
+            "unexpected": 0,
+            "bytes": 6973,
+            "sha256": "18e68af00b13dcbfbb6f6fcad299b6f03d57c206cf5bce79a47b350a6cbded99"
+          },
+          {
+            "mode": "normal-fa",
+            "entry": ".tmp/browser-results-normal-fa.json",
+            "cases": 1,
+            "passed": 1,
+            "unexpected": 0,
+            "bytes": 6973,
+            "sha256": "e8f9c76d61bbd0e4c0b5c54d3bb3999718f236e072cf57f1e85f99ddd0aacf69"
+          }
+        ]
+      },
+      "diagnostic_receipt_sha256": "0120fda9cce86db5ed018b8eaedb97c4f242fbab26e5147156af5b222680f435",
+      "failure_preserved": true,
+      "source_boundary": "Main-only test/report follow-up; immutable release376 and all its accepted public checks unchanged",
+      "full_verification_and_go_race": "passed in that hosted run before the browser step"
+    }
+  ],
+  "load_setup_followup": {
+    "scope": "Further main-only test setup pacing and safe document-status diagnostics; release376 product code, default rate limits and public assets unchanged",
+    "runtime_revision": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+    "runtime_binary_sha256": "c53fbb70ee8fbc7abc7df1d0ab7687c6855b40ae5091d749183ce4c1cff4409f",
+    "harness_parent_commit": "7545339d82f0ab54fd483b77048dd79ab3cc3fa3",
+    "test_identity": {
+      "test_source_sha256": "3a9d84c360b6e300fed4594a29a43658d2c6bbf6fb4b3ce019083f88ae04f838",
+      "callback_sha256": "023470dde1b9ea71d3d7a124379d99556328ded48b7fb1ffe6a25f7aa7b80b69",
+      "refill_helper_sha256": "9eda9b239e0dfe2306682bb5204eaf383a56cb7838a9c6e0654a01ea3b0426ce",
+      "refill_constant_sha256": "87b5657eceff317e8817b65e7ba3dc3724dc3a1ef91b3ce9292861a4642849e9",
+      "transpiled_sha256": "b60e1a337ba34f4e63c3e50ca86975d9fc030fff489a395bfa490ee0365643e1"
+    },
+    "production_rate_limit": {
+      "requests_per_second": 20,
+      "burst": 40,
+      "unchanged": true
+    },
+    "setup_navigation_refills": 4,
+    "setup_navigation_refill_ms": 2500,
+    "setup_excluded_from_read_timing": true,
+    "measured_workload_identical_to_parent": true,
+    "in_memory_diagnostic_checks": 10,
+    "in_memory_diagnostic_status": "passed",
+    "focused_real_browser_status": "passed",
+    "focused_exit": 0,
+    "actual_case": {
+      "actual_metrics": {
+        "scope": "Disposable synthetic guest fixture; default read rate; local observations only.",
+        "requests": 80,
+        "parallel": 8,
+        "rounds": 10,
+        "minimumRoundSpacingMs": 600,
+        "setupRateBucketRefillMs": 2500,
+        "setupNavigationRefills": 4,
+        "setupNavigationRefillMs": 2500,
+        "setupExcludedFromReadTiming": true,
+        "initialRateBucketRefillMs": 2500,
+        "maximumOfferedReadsPerSecond": 13.34,
+        "elapsedMs": 6049,
+        "medianMs": 86,
+        "p95Ms": 129,
+        "successfulResponses": 80,
+        "envelopesValidated": true
+      },
+      "callback_elapsed_ms": 25003,
+      "actual_setup_refills": [
+        {
+          "route": "/overview",
+          "requested_ms": 2500,
+          "started_ms": 1792337069258,
+          "completed_ms": 1792337071762,
+          "elapsed_ms": 2504
+        },
+        {
+          "route": "/resources",
+          "requested_ms": 2500,
+          "started_ms": 1792337072575,
+          "completed_ms": 1792337075082,
+          "elapsed_ms": 2507
+        },
+        {
+          "route": "/topology",
+          "requested_ms": 2500,
+          "started_ms": 1792337076056,
+          "completed_ms": 1792337078560,
+          "elapsed_ms": 2504
+        },
+        {
+          "route": "/events",
+          "requested_ms": 2500,
+          "started_ms": 1792337079315,
+          "completed_ms": 1792337081823,
+          "elapsed_ms": 2508
+        }
+      ],
+      "initial_load_refill": {
+        "route": "about:blank",
+        "requested_ms": 2500,
+        "started_ms": 1792337082960,
+        "completed_ms": 1792337085464,
+        "elapsed_ms": 2504
+      },
+      "timed_read_requests": 80,
+      "timed_read_status_counts": {
+        "200": 80
+      },
+      "setup_api_429": 0,
+      "setup_response_status_counts": {
+        "200": 86
+      },
+      "first_timed_read_ms": 1792337085485,
+      "setup_excluded_from_timing": true
+    },
+    "owner_checked_database_cleanup": "removed and absence verified",
+    "owned_server_exited": true,
+    "ports_after_cleanup": "58112 and 58113 unbound",
+    "proof_sha256": "6973d1a411f255728cc1ec8c9a32ef13714968acdb3c8c1aba7b9b7201f0d864",
+    "log_sha256": "996cab51163009c8d99d04f45e56296ab42d50a345643731087cfaf2af54f297",
+    "branch_log_sha256": "736325e1c54a3e03767cdb7c65d07525f78fad18b57b1c9bbf21ebdf15a630d8",
+    "limit": "Focused local callback execution and synthetic timings only; final six-job CI for the containing review commit must pass before handoff; no customer capacity claim"
   }
 }

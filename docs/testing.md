@@ -18,6 +18,19 @@ is separate from immutable release `376ed03`; the
 [diagnostic](evidence/1.0.2/browser-fixture-diagnostic.json) retains both the failed
 first tag attempt and separate worker/reload-logo 429 observations.
 
+The load test's unmeasured setup has four additional 2500-ms refills between
+validated route/query setup and the next route/search. Initial/preload refill
+remains; setup is excluded from measured read timing. The workload stays exactly
+80 reads, eight parallel, ten rounds and minimum 600-ms spacing, with all status/
+envelope assertions unchanged and no measured-read retry. Fixed public-document
+status diagnostics distinguish HTML navigation from setup API failures without
+recording bodies. Maintainer CI `39138645362` on `7545339` failed before load
+with a recorded setup API 429; the document status was unknown. The exact revised
+callback later passed against the signed `376ed03` runtime: 86 setup responses
+and 80 measured reads were all 200, with valid envelopes, ten in-memory diagnostic
+checks and owned cleanup. This local focused proof does not replace full browser/
+six-job CI on the containing review commit. [Evidence](evidence/1.0.2/browser-fixture-diagnostic.json).
+
 The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
 are complete; architecture/code and release review score **9/10**. Full local D,

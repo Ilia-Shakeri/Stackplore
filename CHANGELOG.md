@@ -42,6 +42,14 @@
   failed because their first response was 200. It changes no release binary or
   product limit. Six-job CI on the commit containing this follow-up must pass
   before handoff; commit checks and the release body bind that final run/source.
+- Main-only commit `7545339` failed its first CI during unmeasured load-test setup
+  before the 80 reads; the setup API returned 429 while document status was not
+  captured. The full worker-update case passed and hidden reports were retained.
+  Four added 2500-ms setup refills and safe document diagnostics leave the measured
+  80/8/10/600-ms workload/assertions unchanged. Focused exact callback execution on
+  signed release `376ed03` passes all 86 setup responses/80 measured reads and
+  valid envelopes, ten diagnostic checks and owned cleanup. This local proof is
+  separate from required six-job CI on the containing review commit.
 - Earlier 1.0.1 and all failed/corrected checkpoints retain their original
   source, counts and proof limits. Customer deployment remains operator work.
 

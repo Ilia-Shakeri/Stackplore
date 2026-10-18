@@ -143,6 +143,26 @@ branch; owned cleanup passed. Those failed coverage guards are not live retry
 proof. Six-job CI on the commit containing this maintainer follow-up must pass
 before handoff; commit checks and the release body bind the final run/source.
 
+Maintainer commit `7545339d82f0ab54fd483b77048dd79ab3cc3fa3` then failed
+main CI `39138645362` during test 11's unmeasured `/events` setup, before the
+80-read workload. Thirteen of 14 browser cases passed, including the full worker
+update case with one valid 200 control response. The retained hidden reports
+show a setup-component API 429; the document status was not captured and is not
+inferred. Other five jobs and the code job's earlier full/race checks passed;
+the browser failure remains failed.
+
+The subsequent main-only setup fix adds four 2.5-second refills between validated
+setup routes and search, with safe fixed-route document-status diagnostics.
+An AST-extracted execution of the exact revised callback against the signed
+`376ed03` runtime passed: 86 setup responses were 200, then all unchanged
+80 reads/8 parallel/10 rounds/minimum 600-ms spacing were 200 with valid envelopes.
+The four actual refills were 2504/2507/2504/2508 ms, outside the measured 6049-ms
+read window; median/p95 86/129 ms are local synthetic observations, not capacity
+claims. Ten in-memory diagnostic checks also pass. Owned server/database/port
+cleanup passed. [Failure and focused proof](browser-fixture-diagnostic.json).
+This focused callback is not a full 14-case run or final six-job main CI; the
+review-commit handoff requirement above remains.
+
 The [active plan](../../implementation-plan.md) records commands and gate
 updates; [browser measurements](browser-measurements.json) retain all eight
 profile results. Historical [1.0.1 public proof](../1.0.1/published-release.json) remains
