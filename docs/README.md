@@ -3,8 +3,8 @@
 Start with the [English overview](../README.md) or [Persian overview](../README.fa.md).
 The [roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) gives delivery order;
 the [evidence plan](implementation-plan.md) states what actually passed.
-The working documentation describes the 0.9.0 candidate; completed checkpoint
-and exact candidate receipts stay separate. Project acceptance does not deploy
+The working documentation describes the final 1.0.0 candidate; completed checkpoint
+and [exact final receipts](evidence/1.0.0/README.md) stay separate. Project acceptance does not deploy
 or certify a customer's production installation.
 
 | Need | Document |

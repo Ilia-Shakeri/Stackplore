@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "version": "1.0.0",
+  "date": "2026-10-18",
+  "scope": "Final candidate working tree; exact main/tag CI and artifact proof remain separate.",
+  "command": "npm.cmd run verify",
+  "exit_code": 0,
+  "log_sha256": "7efca790b19b73d9ce179bcbe638713fa0908538ce0ee047f0ba28d0e86566b0",
+  "node": "24.18.0",
+  "pnpm": "11.17.0",
+  "go": "1.26.9",
+  "postgresql": "17.11",
+  "postgresql_tests": "Real owned test cluster; unchanged repository tests reused valid Go cache; changed full-server and HTTP SQL cases passed uncached (8.953s and 6.816s).",
+  "client_tests": 40,
+  "web_tests": 453,
+  "web_test_files": 47,
+  "release_tests": 10,
+  "locale_messages": 715,
+  "bounded_openapi_schemas": 235,
+  "backend_core_statement_coverage": {
+    "domain": 80.6,
+    "alerting": 82.6
+  },
+  "web_coverage": {
+    "statements": 81.53,
+    "branches": 77.49,
+    "functions": 85.17,
+    "lines": 83.05
+  },
+  "builds": [
+    "production web",
+    "embedded web assets",
+    "all Go packages"
+  ],
+  "helm_lint": "passed",
+  "helm_render": "passed",
+  "browser_tests": 14,
+  "browser_exit": 0,
+  "failed_attempt": "Attempt A: owned PostgreSQL cluster was stopped after host restart; two connection gates failed. Native recovery/readiness preceded complete replacement B. No assertion or timeout changed."
+}

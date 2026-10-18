@@ -5,8 +5,8 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. A version number
 does not establish a passing release or customer installation.
 
-Current code is the 0.9.0 candidate. Published checkpoint receipts through 0.7.0
-remain in the [evidence plan](implementation-plan.md); the candidate's final
+Current code is the final 1.0.0 candidate following the tagged 0.9.0 checkpoint.
+Exact checkpoint receipts remain in the [evidence plan](implementation-plan.md); the candidate's final
 changed-tree, browser, native, scan and release-artifact gates are
 recorded there separately. Do not promote an older passing run to proof of the
 candidate. Record commit/tag identities only after they exist.

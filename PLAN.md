@@ -1,6 +1,17 @@
 # Stackplore delivery plan
 
-Target: **1.0.0**. Published checkpoints: **Stages 1–7, through 0.7.0**. Current gate: **Stage 8, 0.9.0 release candidate; local Go 1.26.9 full gate and 14-case browser gate passed; exact remote artifact trial and Stage 9 remain open**.
+Target: **1.0.0**. Current gate: **Stage 9 final candidate**. Stages 1–8 are
+published checkpoints. Stage 8 `v0.9.0` is on
+`20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`; exact main/tag CI, the signed artifact
+trial/publication, consumer verification and Windows archive recovery passed.
+All 34 public assets were verified; the Windows archive matches the recovery
+trial. The final 1.0 gates remain tracked in the [active evidence](docs/implementation-plan.md).
+
+The Stage 9 review corrects stale project/security/development conventions and
+removes sensitive authentication fixture values from test failure messages.
+Runtime/assertion guards remain unchanged. Current scope, proof and acceptance
+are in [the 1.0 evidence](docs/evidence/1.0.0/README.md). Earlier paragraphs below
+are chronological checkpoints; this status takes precedence.
 
 Stage 7 is tagged at `64fd4391113cebc53e99bdd09a3d81bbff6054ce`.
 [Exact main CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39031584134)

@@ -55,7 +55,7 @@ func TestAuthCookieFlagsAndClearing(t *testing.T) {
 	}
 	cookie := cookies[0]
 	if cookie.Name != sessionCookieName || cookie.Path != authCookiePath || !cookie.HttpOnly || !cookie.Secure || cookie.SameSite != http.SameSiteLaxMode || cookie.Domain != "" || cookie.MaxAge < 1 {
-		t.Fatalf("cookie flags = %#v", cookie)
+		t.Fatal("cookie flags do not match the security policy")
 	}
 
 	cleared := httptest.NewRecorder()
@@ -64,7 +64,7 @@ func TestAuthCookieFlagsAndClearing(t *testing.T) {
 	cookies = result.Cookies()
 	_ = result.Body.Close()
 	if len(cookies) != 1 || cookies[0].MaxAge != -1 || cookies[0].Value != "" || cookies[0].Secure || !cookies[0].HttpOnly || cookies[0].Path != authCookiePath {
-		t.Fatalf("cleared cookie = %#v", cookies)
+		t.Fatal("cleared cookie does not match the expiry policy")
 	}
 }
 

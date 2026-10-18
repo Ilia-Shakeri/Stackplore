@@ -52,7 +52,7 @@ func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
 	setupRequest.AddCookie(setupPreauth.cookie)
 	setupResponse := serve(handler, setupRequest)
 	if setupResponse.Code != http.StatusCreated {
-		t.Fatalf("setup response = (%d, %q)", setupResponse.Code, setupResponse.Body.String())
+		t.Fatalf("setup response status = %d", setupResponse.Code)
 	}
 	sessionCookie := integrationCookie(t, setupResponse, sessionCookieName)
 	var session sessionResponse
@@ -60,12 +60,12 @@ func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
 		t.Fatal(err)
 	}
 	if session.User.Role != auth.RoleAdministrator || session.CSRFProof == "" {
-		t.Fatalf("setup session = %#v", session)
+		t.Fatal("setup session invariants failed")
 	}
 
 	statusResponse := serve(handler, makeRequest(http.MethodGet, "/api/v1/setup/status", "198.51.100.10:4000"))
 	if statusResponse.Code != http.StatusOK || !bytes.Contains(statusResponse.Body.Bytes(), []byte(`"state":"closed"`)) {
-		t.Fatalf("closed setup status = (%d, %q)", statusResponse.Code, statusResponse.Body.String())
+		t.Fatalf("closed setup status = %d", statusResponse.Code)
 	}
 
 	recentRequest := authJSONRequest(http.MethodPost, "/api/v1/auth/recent-grants", `{"current_password":"`+password+`","purpose":"user.create"}`)
@@ -73,7 +73,7 @@ func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
 	recentRequest.AddCookie(sessionCookie)
 	recentResponse := serve(handler, recentRequest)
 	if recentResponse.Code != http.StatusCreated {
-		t.Fatalf("recent response = (%d, %q)", recentResponse.Code, recentResponse.Body.String())
+		t.Fatalf("recent response status = %d", recentResponse.Code)
 	}
 	var recent recentGrantResponse
 	if err := json.Unmarshal(recentResponse.Body.Bytes(), &recent); err != nil {
@@ -85,7 +85,7 @@ func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
 	createRequest.AddCookie(sessionCookie)
 	createResponse := serve(handler, createRequest)
 	if createResponse.Code != http.StatusCreated || createResponse.Header().Get("ETag") != `"1"` {
-		t.Fatalf("create user response = (%d, %q, %q)", createResponse.Code, createResponse.Header().Get("ETag"), createResponse.Body.String())
+		t.Fatalf("create user status = %d; version match = %t", createResponse.Code, createResponse.Header().Get("ETag") == `"1"`)
 	}
 
 	logoutRequest := makeRequest(http.MethodPost, "/api/v1/auth/logout", "198.51.100.10:4000")
@@ -93,7 +93,7 @@ func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
 	logoutRequest.Header.Set(csrfHeaderName, session.CSRFProof)
 	logoutRequest.AddCookie(sessionCookie)
 	if response := serve(handler, logoutRequest); response.Code != http.StatusNoContent {
-		t.Fatalf("logout response = (%d, %q)", response.Code, response.Body.String())
+		t.Fatalf("logout status = %d", response.Code)
 	}
 
 	loginPreauth := integrationPreauth(t, handler, auth.PreauthPurposeLogin)
@@ -102,24 +102,24 @@ func TestAuthenticationHTTPPostgreSQLFlowKeepsRawProofsOutOfData(t *testing.T) {
 	loginRequest.AddCookie(loginPreauth.cookie)
 	loginResponse := serve(handler, loginRequest)
 	if loginResponse.Code != http.StatusOK {
-		t.Fatalf("login response = (%d, %q)", loginResponse.Code, loginResponse.Body.String())
+		t.Fatalf("login status = %d", loginResponse.Code)
 	}
 	newSessionCookie := integrationCookie(t, loginResponse, sessionCookieName)
 	currentRequest := makeRequest(http.MethodGet, "/api/v1/auth/session", "198.51.100.10:4000")
 	currentRequest.AddCookie(newSessionCookie)
 	currentResponse := serve(handler, currentRequest)
 	if currentResponse.Code != http.StatusOK {
-		t.Fatalf("session response = (%d, %q)", currentResponse.Code, currentResponse.Body.String())
+		t.Fatalf("session status = %d", currentResponse.Code)
 	}
 	var current sessionResponse
 	if err := json.Unmarshal(currentResponse.Body.Bytes(), &current); err != nil {
 		t.Fatal(err)
 	}
 	if len(currentResponse.Result().Cookies()) != 1 {
-		t.Fatalf("session renewal cookies = %#v", currentResponse.Result().Cookies())
+		t.Fatalf("session renewal cookie count = %d", len(currentResponse.Result().Cookies()))
 	}
 	if current.CSRFProof == "" {
-		t.Fatalf("session response = (%d, %q)", currentResponse.Code, currentResponse.Body.String())
+		t.Fatal("session response proof missing")
 	}
 
 	protectedValues := [][]byte{
@@ -238,7 +238,7 @@ func integrationPreauth(t *testing.T, handler http.Handler, purpose auth.Preauth
 	request := authJSONRequest(http.MethodPost, "/api/v1/auth/preflight", `{"purpose":"`+string(purpose)+`"}`)
 	response := serve(handler, request)
 	if response.Code != http.StatusCreated {
-		t.Fatalf("preflight response = (%d, %q)", response.Code, response.Body.String())
+		t.Fatalf("preflight response status = %d", response.Code)
 	}
 	var body preauthResponse
 	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {

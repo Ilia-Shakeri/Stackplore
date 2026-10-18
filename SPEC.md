@@ -4,14 +4,12 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.0
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Published development checkpoints through `0.7.0`.
-  Its exact main CI passed Compose and TLS-backed Helm installation.
-  The `0.9.0` candidate adds offline privacy, measured coverage,
-  query performance fixes, safe mounted profiles, timeline filters, health
-  history and streamed log export. The local Go 1.26.9 full gate and 14-case
-  browser gate passed. Exact remote and signed release artifacts remain gates.
-  Current exact results are recorded in the
-  [active evidence plan](docs/implementation-plan.md).
+- **Implementation status:** Final `1.0.0` candidate after the tagged `0.9.0`
+  checkpoint. The accepted scope is mapped to code, tests, documentation and
+  evidence in the [requirement matrix](docs/evidence/0.9.0/requirements.md).
+  Final exact-tag verification, signed publication and consumer acceptance
+  remain distinct gates in the [active evidence plan](docs/implementation-plan.md)
+  and [1.0 receipt](docs/evidence/1.0.0/README.md).
 
 This document defines the required behavior and quality bar for Stackplore 1.0.
 It describes a target, not current shipped functionality. Delivery order and

@@ -10,9 +10,9 @@ files were preserved and reviewed as part of the candidate baseline.
 Initial quality: 5/10. This is a review score, not measured coverage. Version 1.0
 completion is blocked by the unfinished stages in [the roadmap](roadmap.md).
 
-Current checkpoint: Stage 7 `v0.7.0` is published; its exact main run passed all
-six jobs, including actual Compose and TLS-backed Helm installation. Stage 8
-`0.9.0` is a candidate. The [requirement matrix](evidence/0.9.0/requirements.md)
+Current code: final `1.0.0` candidate after tagged Stage 8 `v0.9.0`.
+Its exact main CI and signed artifact trial passed, including Compose, Helm,
+all native/image scans and consumer verification. The [requirement matrix](evidence/0.9.0/requirements.md)
 maps the 1.0 scope to implementation, tests, documents and proof boundaries.
 Historical pending statements below describe their dated checkpoints.
 
@@ -22,6 +22,12 @@ severity label, incomplete legal packaging and vulnerable pinned dependencies.
 Independent architecture and implementation scores are 9/10 after those
 corrections. Release completion still depends on final changed-tree gates,
 actual artifact scans/signature verification and exact 1.0 publication.
+
+The [final review](evidence/1.0.0/final-review.md) rechecks the accepted scope and
+corrects stale project/security/development/contribution statements and sensitive
+auth test failure output. It retains assertions and runtime guards. Corrected
+architecture/code/document review is 9/10; exact final acceptance is recorded in
+the [1.0 receipt](evidence/1.0.0/README.md).
 
 ## Verified defects at review entry
 

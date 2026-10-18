@@ -116,6 +116,14 @@ require an eligible Enterprise Cloud plan. There is no unsigned fallback.
 Offline verification also needs a separately trusted root; saving a bundle alone
 does not supply that trust root.
 
+When the verifier cannot retrieve its trust metadata, restore access to the
+official TUF endpoints through the operator's normal trusted network path. Do
+not bypass signature or identity checks. A connected trusted machine can run
+`gh attestation trusted-root > trusted_root.jsonl`; transfer that independently
+verified root and add `--custom-trusted-root trusted_root.jsonl` to the same
+verification commands. A root bundled only with the unverified download is not
+an independent trust source. See the [trusted-root command](https://cli.github.com/manual/gh_attestation_trusted-root).
+
 The implementation follows the primary [artifact-attestation guide](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations),
 the [verification command reference](https://cli.github.com/manual/gh_attestation_verify),
 the [Trivy SBOM reference](https://trivy.dev/docs/latest/supply-chain/sbom/), and the

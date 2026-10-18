@@ -110,6 +110,13 @@ sha256sum --check --ignore-missing SHA256SUMS
 جایگزین بی‌امضا وجود ندارد. بررسی آفلاین ریشهٔ اعتماد جدا و معتبر هم می‌خواهد؛
 ذخیرهٔ bundle به‌تنهایی آن را فراهم نمی‌کند.
 
+اگر دریافت فرادادهٔ اعتماد خطا داد، دسترسی به نشانی رسمی TUF را از مسیر عادی
+و مورد اعتماد اپراتور درست کن؛ بررسی امضا یا هویت را کنار نگذار. روی دستگاه
+متصل و مورد اعتماد، `gh attestation trusted-root > trusted_root.jsonl` را اجرا
+کن؛ ریشهٔ بررسی‌شده را جدا منتقل کن و به همان دستورهای بررسی،
+`--custom-trusted-root trusted_root.jsonl` بیفزا. ریشه‌ای که فقط همراه دانلود
+تأییدنشده آمده، منبع اعتماد مستقل نیست؛ [دستور ریشهٔ اعتماد](https://cli.github.com/manual/gh_attestation_trusted-root).
+
 مرجع اصلی: [راهنمای attestation](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)،
 [دستور بررسی](https://cli.github.com/manual/gh_attestation_verify)،
 [SBOM در Trivy](https://trivy.dev/docs/latest/supply-chain/sbom/) و

@@ -5,7 +5,7 @@
 - Node.js `24.18.0` from `.node-version`
 - pnpm `11.17.0` through Corepack
 - Go `1.26.9` from `apps/api/go.mod`
-- PostgreSQL 17 or newer for live persistence checks
+- PostgreSQL 17 for the supported live persistence matrix
 
 Do not substitute a globally different toolchain when reviewing reproducibility. On Windows, invoke npm as `npm.cmd` when npm is needed.
 
@@ -151,14 +151,24 @@ The policy accepts only reviewed routes, methods, response codes, security requi
 
 ## Deployment checks
 
-Local handler tests verify embedded asset routing; they do not prove an image or installation. The CI Compose job builds and starts the exact image, checks fresh PostgreSQL readiness, UI assets and SPA routes, then restarts the API and verifies the migration ledger and readiness persist. The chart CI still lints and renders; it does not install a cluster. Real target proof requires the named tool:
+Local handler tests verify embedded asset routing. The CI Compose job builds and
+starts the exact image, checks fresh PostgreSQL readiness, setup, UI assets and
+SPA routes, then restarts the API and verifies the migration ledger and session
+persist. The separate Helm job installs the chart into an owned kind cluster
+against external PostgreSQL with TLS verification. It checks the ingress route
+and certificate references; requests use a Service port-forward. A customer's
+ingress controller and actual HTTPS edge require separate probes. Local manifest
+checks remain useful:
 
 ```sh
 docker compose --env-file deploy/compose.env.example config --quiet
 helm lint deploy/helm/stackplore --strict
 ```
 
-The CI workflow builds the application image, starts a fresh Compose stack and verifies UI/readiness/restart, and runs the PostgreSQL integration suite. Chart lint/render is not a cluster install. A workflow file is not proof until its exact run passes. See [deployment](operations/deployment.md).
+The workflow also runs real PostgreSQL/race checks, Docker observation/write
+fixtures and scoped Kubernetes observation/write fixtures. A workflow definition
+is proof only when its exact run passes. See [deployment](operations/deployment.md)
+and the [current evidence](implementation-plan.md).
 
 ## Operator commands
 

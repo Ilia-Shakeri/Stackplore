@@ -18,18 +18,18 @@ func TestOpaqueTokenUsesCanonicalFixedEncoding(t *testing.T) {
 	}
 	parsed, err := ParseOpaqueToken(encoded)
 	if err != nil || !parsed.Equal(token) {
-		t.Fatalf("ParseOpaqueToken() = (%v, %v)", parsed, err)
+		t.Fatalf("ParseOpaqueToken() invariant failed; error = %v", err)
 	}
 	if got := fmt.Sprint(token); got != "[protected proof]" {
-		t.Fatalf("formatted proof = %q", got)
+		t.Fatal("formatted proof mask invariant failed")
 	}
 	if got := fmt.Sprintf("%#v", token); got != "auth.OpaqueToken{}" {
-		t.Fatalf("Go-syntax proof = %q", got)
+		t.Fatal("Go-syntax proof mask invariant failed")
 	}
 
 	for _, invalid := range []string{"", encoded + "=", encoded[:42], encoded[:42] + "+"} {
 		if _, err := ParseOpaqueToken(invalid); !errors.Is(err, ErrInvalidOpaqueToken) {
-			t.Fatalf("ParseOpaqueToken(%q) error = %v", invalid, err)
+			t.Fatalf("ParseOpaqueToken(invalid encoding) error = %v", err)
 		}
 	}
 	if _, err := (OpaqueToken{}).Encode(); !errors.Is(err, ErrInvalidOpaqueToken) {

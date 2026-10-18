@@ -1,6 +1,92 @@
 # Stackplore active implementation evidence
 
-## Current release status — 2026-10-17
+## Current final gate — 2026-10-18
+
+Stage 9 is the final `1.0.0` candidate. The whole-repository requirement review
+retains architecture/code at 9/10 after the earlier independent corrections.
+The final documentation/failure-path review initially scored 8/10: stale
+security/project/development/contribution text and authentication test failure
+messages could misstate support or print proof-bearing objects. Corrections
+remove those values without changing assertions or runtime controls, reconcile
+all current stage/installation claims and define the actual supported matrix.
+Corrected code/doc review is 9/10; final release acceptance remains separate.
+See [final review and acceptance](evidence/1.0.0/README.md).
+
+Stage 8 source `20f8c2e30cb2ccdfc16aa266f0b0d5647c429881` passed all six jobs in
+[exact main CI 39038430422](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39038430422).
+[Artifact trial 39038439418](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39038439418)
+passed all package/native/image/source/history scans, extracted Linux runtime
+smoke and provenance/SPDX signing. Its archive digest matched the artifact API;
+all 26 checksum entries matched. Independent consumer verification passed for
+12 provenance subjects and all six archive/image SBOM attestations, requiring
+the exact main workflow/ref/source and hosted runner. A wrong source digest
+was rejected. Official trust metadata initially returned 403 to the CLI; using
+the existing system network proxy allowed normal official TUF chain verification.
+The verified root was then supplied for offline consumer checks. No signature
+or identity check was disabled. [Sanitized receipt](evidence/0.9.0/consumer-trial.json).
+
+The actual verified Windows trial archive passed setup, nine-resource reads,
+source version/state, alert acknowledgement, SSE change/replay, process restart,
+native PostgreSQL backup/empty-target restore, 16 migration entries, protected
+history, session/preauth revocation, fresh login, exact runtime version and
+nonzero ownership-loss shutdown. These are fresh owned databases, not customer
+data. Linux archive smoke is separately in the signed `native-smoke.json`.
+
+The legal-classifier replacement full local gate reached all passing stages:
+real PostgreSQL 177.158s, backend core 80.6%/82.6%, 40 client tests, 453 web tests
+in 47 files, ten release tests, frontend statements 81.53%, branches 77.49%,
+functions 85.17%, lines 83.05%, and the built web/embedded assets. The resumed
+session no longer exposed its process handle; the final API build was explicitly
+rechecked and returned exit 0. The preceding timeout attempt remains failed:
+setup returned a safe 503, its fixture cleanup timed out, the SQL package hit its
+deadline and one mutual-TLS fixture timed out. Both focused cases passed unchanged
+on rerun, followed by the complete replacement above; no timeout/assertion was
+weakened.
+
+Annotated `v0.9.0` was pushed on that unchanged checked source. Exact
+[tag CI 39114483036](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39114483036)
+and [release 39114483033](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39114483033)
+passed: all six exact-tag jobs and package/publication succeeded. Independently
+downloaded all 34 public assets, checked all 26 signed-manifest entries and
+verified 12 provenance subjects plus all six SBOM attestations against the exact
+tag workflow/source with hosted-runner enforcement. The public Windows archive
+is byte-identical to the archive used in the actual recovery drill. The first
+public transfer was interrupted; its partial receipt remains separate and every
+resumed file required its API digest before signed-manifest verification.
+[Published receipt](evidence/0.9.0/published-release.json) closes Stage 8.
+The 1.0.0 local/browser/exact-CI/artifact/recovery/tag/publication
+gates are also pending; old receipts are not promoted to proof of 1.0.
+
+Final local attempt A failed two real-PostgreSQL connection gates after the host
+restart: the owned loopback test cluster was stopped. The existing workspace
+data directory and port 55473 were verified before starting that cluster; the
+separate PostgreSQL service on port 55432 was not changed. Native crash recovery
+completed and readiness then passed. The failed receipt remains
+`.tmp/stage9-final-verify-a.log` with exit 1. Replacement B reruns the complete
+gate with the same assertions, limits and disposable test URL.
+
+Final replacement B **passed exit 0**, with the exit marker retained. All Go
+packages passed against the real owned PostgreSQL 17.11 cluster; changed
+full-server and HTTP SQL tests ran uncached (8.953s and 6.816s), while unchanged
+repository tests reused valid cache. Core coverage is 80.6%/82.6%. The gate also
+passed 40 client tests, 453 web tests in 47 files, ten release tests, 715 locale
+messages, 235 bounded schemas, format/lint/types/contracts/notices and both builds.
+Frontend coverage is 81.53% statements, 77.49% branches, 85.17% functions and
+83.05% lines. Current Helm lint/render and document/link checks passed.
+
+The freshly embedded 1.0.0 server then passed **all 14 browser cases**, exit 0:
+64 loaded route states across eight language/width/theme profiles, WCAG 2.2 AA
+rules, layout/keyboard/reduced motion, public-only offline/cache/installability,
+explicit update acceptance/reload, all 80 bounded concurrent read envelopes and
+normal English/Persian setup/recent-auth/role/history/download/logout journeys.
+All 16 public screenshots were freshly captured. Chrome was 155.0.8059.80.
+[Sanitized final local/browser receipts](evidence/1.0.0/README.md) bind the
+observed outputs and screenshots; exact CI/artifact/recovery/tag gates remain.
+
+The following sections retain the dated Stage 8 and preceding correction
+history. The current final-gate status above takes precedence.
+
+## Stage 8 correction history — 2026-10-17
 
 Stage 7 replacement [CI 39031584134](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39031584134)
 passed **all six jobs** on exact commit

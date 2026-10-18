@@ -7,17 +7,14 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-17): stages 1–7 are published development checkpoints
-through `0.7.0`. Exact local and remote outcomes are separate in the evidence
-plan. Stage 4 passed its local, PostgreSQL, native and actual browser gates;
-[retained browser evidence](evidence/0.4.0/README.md) states the scope. Stage 5
-tag `v0.5.0` is at `c2f4c6a6de72f4574f56d57248f8aa3170d7b01f`; the corrected
-main runs `39018504287` and `39018996970` both passed on the exact tag commit.
-Stage 6 `0.6.0` exact main/tag CI passed, including the disposable Engine and
-Kubernetes writer jobs. Stage 7 `0.7.0` exact main CI passed all six jobs, including
-fresh Compose setup/restart and actual Helm installation with external TLS
-PostgreSQL. Stage 8 `0.9.0` is a candidate under final verification; Stage 9 remains
-open. [Exploration](exploration.md)
+Current status (2026-10-18): stages 1–7 are published checkpoints; Stage 8 is
+tagged at `v0.9.0` on `20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`. Its exact
+main CI, 14-case browser gate, signed artifact trial, consumer provenance/SBOM
+verification and Windows archive recovery passed. Exact tag CI/publication and
+independent public-asset verification also passed; Stage 8 is complete.
+Stage 9 is the final `1.0.0` candidate, with updated review,
+security policy and documents; final checks and publication remain open in
+[1.0 acceptance](evidence/1.0.0/README.md). [Exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
 [alerts and delivery](alerts-notifications.md) describe current boundaries.
 
@@ -87,7 +84,7 @@ PostgreSQL, disposable native restart/restore, HTTPS receiver and Helm lint/rend
 proof is recorded in the active evidence plan. Instructions prohibited push
 at the time of the local checkpoint. On 2026-10-17 the unchanged tag was
 pushed under renewed authorization and both exact CI runs passed. Stage 4 is
-also verified; Stage 5 publication/CI and Stages 6–9 remain open.
+also verified; subsequent exact stage outcomes are recorded in the evidence plan.
 
 Delivered covered alert windows and observed restart increments per window,
 raw connection-loss evidence and the whole bounded scoped event window. Alert
@@ -130,7 +127,7 @@ widths; keyboard and screen-reader checks; large-fixture budgets.
 
 ## Stage 5 — Provider fidelity and deterministic demo — 0.5.0
 
-Locally verified checkpoint; exact publication/CI pending. Official vendor
+Published checkpoint; exact local and tagged CI passed. Official vendor
 clients now back restricted mTLS Docker observation and namespace-scoped
 Kubernetes discovery, safe typed metadata, health/topology, metrics/events and
 bounded historic/current/previous logs. Independently published kind/scope
@@ -154,12 +151,14 @@ story browser journey, and guest mode rejection of real sources and writes.
 Those scoped receipts are recorded in the active plan. Environment authority,
 optional-port clock and restricted-profile startup fixes have scoped passing
 regressions and the complete changed-tree gate D passed. Final independent scope
-review is 9/10 after the 8.5/10 correction loop. Exact publication/CI are pending;
-Stage 6–9 work is not complete.
+review is 9/10 after the 8.5/10 correction loop. Exact publication/CI passed;
+later stage results retain their own scope.
 
 ## Stage 6 — Narrow guarded actions and settings — 0.6.0
 
-Status: complete checkpoint: exact local, PostgreSQL and tagged CI gates passed, including disposable Engine and Kubernetes writer jobs. Production deployment and operator credential rotation remain open.
+Status: complete checkpoint: exact local, PostgreSQL and tagged CI gates passed,
+including disposable Engine and Kubernetes writer jobs. Customer deployment and
+credential-reference rotation use the documented operator procedures.
 
 Implemented: fixed allow/deny matrix with Docker restart, Kubernetes rollout restart and replica scaling; PostgreSQL intent/result audit, one-use confirmations, recent-auth gates and bounded recovery; settings/export/cleanup and bilingual personal preferences. Local concurrency, replay, synthetic source and real SQL tests pass. Exact main and tag CI runs `39022543132` and `39023109917` passed, including disposable writer jobs.
 
@@ -197,8 +196,11 @@ certificate and real HTTPS edge need their own deployment acceptance probes.
 
 ## Stage 8 — Accessibility, performance and release candidate — 0.9.0
 
-Status: implemented candidate; Go 1.26.9 full local gate and 14-case production
-browser gate passed. Exact remote and signed artifact gates remain open.
+Status: complete and published `v0.9.0`; Go 1.26.9 full local gate, exact main/tag CI, 14-case
+production browser gate, signed artifact trial, consumer verification and
+Windows archive recovery passed, followed by signed publication and independent
+verification of all 34 public assets. The public Windows archive matches the
+runtime-tested trial exactly; [receipt](evidence/0.9.0/published-release.json).
 The correction loop and sanitized browser, performance, native restore and
 security receipts are in [0.9.0 evidence](evidence/0.9.0/README.md).
 
@@ -216,7 +218,8 @@ unimplemented 1.0 requirement hidden behind a completion claim.
 
 ## Stage 9 — Final independent review and 1.0.0
 
-Status: open until exact final verification and signed publication pass.
+Status: final 1.0.0 candidate after the correction loop; open until exact final
+verification, consumer artifact acceptance and signed publication pass.
 
 Repeat the whole-repository architecture/security/correctness/operations review.
 Score architecture and implementation separately from product completion and

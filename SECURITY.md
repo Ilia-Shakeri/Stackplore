@@ -2,7 +2,19 @@
 
 ## Project status
 
-Stackplore 0.1.0 is a development checkpoint, with no production-supported release range or production-security claim. Report issues against the exact version or commit. Supported 1.0 versions and promotion evidence will be published with the final release.
+The current release line is **1.0.x**. Only its latest published patch is a
+maintenance target; 0.x checkpoints are historical prereleases. A version becomes
+accepted only after its exact tag checks, strict scans, signed artifacts and
+consumer verification pass in the [release evidence](docs/evidence/1.0.0/README.md).
+Unpublished candidates do not establish support. Report the exact version and
+full source commit.
+
+The runtime verification matrix covers Windows amd64, Linux amd64, the Linux
+amd64 image and PostgreSQL 17. Linux arm64 and macOS archives are cross-built
+outputs until separately executed. Browser evidence records the exact Chromium
+version and tested English/Persian profiles; it is not a guarantee for every
+browser or assistive technology. Customer credentials, ingress/TLS, provider
+rights, backups and capacity require deployment-specific acceptance.
 
 ## Report a vulnerability privately
 
@@ -37,7 +49,10 @@ Remove real credentials, personal data, provider tokens, session cookies, cluste
 
 ## Response process
 
-Maintainers will review private reports as availability permits, confirm a safe communication path, and coordinate validation and remediation when the report is in scope. No fixed acknowledgement, remediation, release, or disclosure deadline is promised at this prerelease stage.
+Maintainers review private reports as availability permits, confirm a safe
+communication path, and coordinate validation and remediation when the report
+is in scope. No fixed acknowledgement, remediation, release or disclosure
+deadline is promised.
 
 Please allow maintainers to investigate and prepare a fix before public disclosure. Disclosure timing will be discussed with the reporter and may depend on severity, release status, downstream impact, and the availability of a safe update.
 
@@ -61,4 +76,8 @@ Only test systems and data you own or have explicit permission to assess. Avoid 
 
 ## Security design
 
-The initial threat model and required controls are documented in [docs/security.md](docs/security.md). That document describes intended architecture; it does not certify that unreleased work is complete or audited.
+The threat model and implemented controls are documented in
+[docs/security.md](docs/security.md). The [requirement matrix](docs/evidence/0.9.0/requirements.md)
+maps controls to implementation and checks. Design documentation and automated
+tests do not certify the absence of every vulnerability or a customer's live
+installation.

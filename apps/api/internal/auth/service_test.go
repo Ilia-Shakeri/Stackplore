@@ -210,13 +210,13 @@ func TestServiceSlidesIdleExpiryWithoutExtendingAbsoluteExpiry(t *testing.T) {
 	fixture.clock = initial.Session.LastSeenAt.Add(SessionTouchInterval - time.Microsecond)
 	untouched, err := fixture.service.Authenticate(fixture.ctx, token)
 	if err != nil || !untouched.Session.LastSeenAt.Equal(initial.Session.LastSeenAt) {
-		t.Fatalf("Authenticate(before touch) = %+v, %v", untouched.Session, err)
+		t.Fatalf("Authenticate(before touch) invariant failed; error = %v", err)
 	}
 
 	fixture.clock = initial.Session.LastSeenAt.Add(SessionTouchInterval)
 	touched, err := fixture.service.Authenticate(fixture.ctx, token)
 	if err != nil || !touched.Session.LastSeenAt.Equal(fixture.clock) || !touched.Session.IdleExpiresAt.Equal(fixture.clock.Add(SessionIdleLifetime)) {
-		t.Fatalf("Authenticate(touch) = %+v, %v", touched.Session, err)
+		t.Fatalf("Authenticate(touch) invariant failed; error = %v", err)
 	}
 
 	nearAbsolute := initial.Session.AbsoluteExpiresAt.Add(-30 * time.Second)
@@ -229,7 +229,7 @@ func TestServiceSlidesIdleExpiryWithoutExtendingAbsoluteExpiry(t *testing.T) {
 	fixture.clock = nearAbsolute
 	capped, err := fixture.service.Authenticate(fixture.ctx, token)
 	if err != nil || !capped.Session.IdleExpiresAt.Equal(initial.Session.AbsoluteExpiresAt) {
-		t.Fatalf("Authenticate(absolute cap) = %+v, %v", capped.Session, err)
+		t.Fatalf("Authenticate(absolute cap) invariant failed; error = %v", err)
 	}
 	fixture.clock = initial.Session.AbsoluteExpiresAt
 	if _, err := fixture.service.Authenticate(fixture.ctx, token); !errors.Is(err, ErrUnauthenticated) {
@@ -247,7 +247,7 @@ func TestServiceCreatesPurposeBoundRecentGrantAndEnforcesRole(t *testing.T) {
 	}
 	grant, err := fixture.service.CreateRecentGrant(fixture.ctx, input)
 	if err != nil || grant.Purpose != RecentAuthPurposeUserCreate || grant.ExpiresAt.Sub(fixture.clock) != RecentGrantLifetime {
-		t.Fatalf("CreateRecentGrant() = %+v, %v", grant, err)
+		t.Fatalf("CreateRecentGrant() invariant failed; error = %v", err)
 	}
 	fixture.repository.mu.Lock()
 	account := fixture.repository.accounts["operator"]

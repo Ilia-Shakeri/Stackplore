@@ -20,10 +20,7 @@ The default branch is `main`.
 Suggested short-lived branch names:
 
 ```text
-feat/<short-name>
-fix/<short-name>
-docs/<short-name>
-chore/<short-name>
+main/<short-name>
 ```
 
 Use lowercase words separated by hyphens. Do not encode personal names, issue
@@ -88,8 +85,9 @@ Before a phase commit:
    review `git diff --cached`.
 10. Confirm the commit subject matches the actual diff.
 
-The phase checklist is marked complete inside the phase commit. The next phase
-does not repair the prior phase's tracking state.
+The phase commit records its observed local results and remaining remote gates.
+Append exact CI/publication evidence after those operations finish; never mark
+an unobserved result complete in advance. Preserve failed attempts.
 
 ## 5. File and symbol names
 
@@ -110,13 +108,14 @@ does not repair the prior phase's tracking state.
 - Line endings follow `.gitattributes`.
 - Indentation follows `.editorconfig`.
 - Go formatting uses `gofmt`.
-- Frontend formatting and lint commands are defined in Phase 1.
+- Use `npm.cmd run format:check` and `npm.cmd run lint` with the pinned tools in
+  [development](development.md).
 - Markdown uses one top-level heading per file and relative internal links.
 - YAML uses two-space indentation and no tab characters.
 
 ## 7. Backend boundaries
 
-- Domain packages do not import HTTP, SQLite, Docker, or Kubernetes packages.
+- Domain packages do not import HTTP, SQL drivers, Docker or Kubernetes packages.
 - Services coordinate use cases and own policy decisions.
 - Repositories own persistence translation.
 - Provider adapters own SDK translation and capability detection.

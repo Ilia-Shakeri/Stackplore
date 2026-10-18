@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** Stages 1–7 are published checkpoints through `0.7.0`. Exact Stage 7 CI passed actual Compose setup/restart and Helm installation against external TLS PostgreSQL. The `0.9.0` release candidate passed the complete local Go 1.26.9 gate, all 14 production-browser tests and three-executable security analysis. Exact remote artifact verification, Stage 9 and final `1.0.0` publication remain open. See the [evidence plan](docs/implementation-plan.md).
+> **Status:** Final `1.0.0` candidate. The `v0.9.0` checkpoint passed exact main CI, all 14 production-browser cases, signed artifact trial, consumer verification and Windows archive recovery. Its tag checks and final 1.0 verification/publication are recorded in the [evidence plan](docs/implementation-plan.md). See [1.0 acceptance](docs/evidence/1.0.0/README.md) for current gates and support scope.
 
 ## Implemented
 
@@ -21,13 +21,13 @@ Stackplore is a self-hosted infrastructure visibility workspace. It normalizes s
 - Administrator source enable/disable with exact target/version, impact preview, expiring one-use confirmation, purpose-bound recent authentication and atomic audit; profiles and credentials remain operator supplied
 - Covered evidence for all eight declared alert predicates, administrator rule management, persistent synthetic demo episodes, durable alert change replay and linked in-app notifications. Opt-in guarded webhook and Matrix lanes have safe status, recent-auth test delivery, stable retry payloads, fenced leases and terminal audit. See [semantics and limits](docs/alerts-notifications.md).
 - One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and actual TLS-backed chart installation.
-- Candidate additions: public-only PWA offline shell and explicit updates, bounded streamed redacted log downloads, URL event filters, health history, metric trends, coalesced live inventory/topology, and operator-mounted Kubernetes token-file or certificate profiles. See [exploration](docs/exploration.md) and [Kubernetes profiles](docs/kubernetes-provider.md).
+- Public-only PWA offline shell and explicit updates, bounded streamed redacted log downloads, URL event filters, health history, metric trends, coalesced live inventory/topology, and operator-mounted Kubernetes token-file or certificate profiles. See [exploration](docs/exploration.md) and [Kubernetes profiles](docs/kubernetes-provider.md).
 
 ## Still required for 1.0
 
-- Final changed-tree local/remote browser, PostgreSQL and provider gates for `0.9.0`
-- Actual release artifact builds/scans, checksums, signed provenance and SBOM verification
-- Independent final review and exact `1.0.0` tag and publication
+- Exact `1.0.0` full local, browser, PostgreSQL, provider and deployment gates
+- Final artifact builds/scans, checksum and signed provenance/SBOM consumer verification
+- Matching `v1.0.0` tag and publication with final evidence reconciliation
 
 Customer production rollout is an operator deployment decision. Its credentials,
 provider permissions, receiver reachability, backup destination and capacity

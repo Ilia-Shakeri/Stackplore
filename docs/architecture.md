@@ -1,7 +1,7 @@
 # Architecture
 
-Status: active 1.0 implementation. Published checkpoints run through 0.7.0;
-the current code is the 0.9.0 candidate. Exact local, remote, browser and
+Status: final 1.0.0 candidate following the tagged 0.9.0 checkpoint.
+Exact local, remote, browser and
 release-artifact proof is recorded in the [active evidence plan](implementation-plan.md).
 
 ## System shape
@@ -215,7 +215,12 @@ The application binds to host loopback. The private bridge uses an explicit subn
 
 The cluster chart uses an external PostgreSQL Secret, one Go application replica with a ReadWriteOnce runtime-key claim and `Recreate` strategy, probes, resource bounds, restricted security contexts, and optional TLS ingress. The application remains single-replica until digest-key distribution and multi-process ownership are redesigned.
 
-CI defines locked package installation, full code verification, a real PostgreSQL integration service, API image build, fresh Compose startup/UI/restart proof, and chart lint/render. These definitions are not target-environment proof until they run successfully in the release system.
+CI defines six separate jobs: code/real PostgreSQL/race/browser verification,
+image/chart checks, fresh Compose setup/UI/restart, actual kind Helm installation
+with external TLS PostgreSQL, restricted Docker and namespace-scoped Kubernetes.
+The two provider jobs exercise both read and explicitly enabled guarded writer
+fixtures. Exact run receipts establish which revision passed. Helm requests use
+a Service port-forward; customer ingress-controller HTTPS remains separate.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
 Linux race tests and image builds; see [exact run evidence](implementation-plan.md).

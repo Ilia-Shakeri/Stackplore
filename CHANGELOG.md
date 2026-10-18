@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.0.0] - 2026-10-18
+
+### Release scope
+
+- Completes the nine-stage PostgreSQL-only infrastructure exploration product:
+  local accounts and guarded administration, read-only Docker/Kubernetes,
+  durable observations/alerts, bilingual exploration, safe PWA, and bounded
+  opt-in recovery actions with protected audit.
+- Ships the single non-root application image, native maintenance tools, external
+  PostgreSQL Helm chart, English/Persian user and operator guides, legal notices,
+  checksums, SPDX inventories and signed provenance.
+- Final review removes sensitive authentication fixture values from failure
+  diagnostics and reconciles stale project, installation and security policy text.
+
+### Verification and support
+
+- Final acceptance requires the exact 1.0.0 local, browser, PostgreSQL, provider,
+  Compose/Helm, artifact scan, signature and recovery gates. Results and remaining
+  gates are recorded in the [1.0 evidence](docs/evidence/1.0.0/README.md).
+- Runtime proof targets Windows amd64, Linux amd64 and the Linux amd64 image.
+  Linux arm64 and macOS archives are cross-built only. PostgreSQL 17 is the tested
+  database major. Customer deployment acceptance remains environment-specific.
+
 ## [0.9.0] - 2026-10-17
 
 ### Added

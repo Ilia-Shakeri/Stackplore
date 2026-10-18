@@ -1,9 +1,18 @@
-# 0.9.0 candidate verification
+# 0.9.0 checkpoint verification
 
-Date: 2026-10-17. This directory records scoped evidence for the working-tree
-release candidate. It does not yet identify an accepted final tag or a customer
-production deployment. Exact remote run and artifact identities will be added
-after they complete. Failed attempts remain separate from replacement passes.
+Dates: 2026-10-17–18. Tagged source:
+`20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`, `v0.9.0`.
+[Exact main CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39038430422)
+and [signed artifact trial](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39038439418)
+passed. [Exact tag CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39114483036)
+and [signed publication](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39114483033)
+also passed; [published verification](published-release.json) records all 34
+downloaded assets, signatures and the exact runtime-tested Windows archive match.
+Stage 8 is complete. This is checkpoint evidence,
+not customer production proof. Failed attempts remain separate from replacements.
+
+[Consumer trial](consumer-trial.json) binds downloaded hashes, exact source,
+provenance/SBOM verification and actual Windows archive restart/recovery.
 
 [Requirement reconciliation](requirements.md) maps the accepted 1.0 scope to
 code, tests, documentation and the limits of its actual evidence.
@@ -16,7 +25,7 @@ code, tests, documentation and the limits of its actual evidence.
 | Native persistence/recovery | [Sanitized receipt](native-recovery.json) | Actual Windows amd64 executables, isolated PostgreSQL, acknowledgement, replay, restart, backup, empty-target restore, revoked sessions and ownership-loss stop. Built before the final source-creation audit correction; the final gate must include that correction. |
 | Browser/accessibility/PWA | [Final local receipt](browser-runtime.json), [measurements](browser-measurements.json), public [screenshots](screenshots/) | Go 1.26.9 and the actual production bundle on disposable PostgreSQL: all 14 tests passed, including 64 loaded route states, offline/privacy, real installability, update acceptance/reload, 80 bounded reads and English/Persian account/role journeys. All 16 screenshots were replaced after data loaded. No private captures or authentication material are retained. |
 | Executable vulnerability coverage | [Before/after receipt](native-security.json) | Rootfs analysis detected all three real Linux executables. Go 1.26.5 had 33 HIGH findings across 11 unique IDs; rebuilt Go 1.26.9 tools have zero HIGH/CRITICAL findings and a 97-package SPDX inventory. Empty language scans were rejected. Exact tag/image/Windows archive gates remain separate. |
-| Whole candidate | Active [implementation evidence](../../implementation-plan.md) | Complete local Go 1.26.9 gate passed: real PostgreSQL 225.357s, 40 client tests, 453 web tests, nine release tests, core coverage 80.6%/82.6%, frontend statements 81.61% and branches 77.8%, both builds. Exact remote CI, release trial, signatures and publication remain pending. |
+| Whole checkpoint | Active [implementation evidence](../../implementation-plan.md), [published receipt](published-release.json) | Final legal-classifier replacement: real PostgreSQL 177.158s, 40 client tests, 453 web tests in 47 files, ten release tests, core coverage 80.6%/82.6%, frontend statements 81.53% and branches 77.49%, both builds. Exact main/tag CI and signed publication passed, as did independent verification of all 34 public assets. |
 
 The initial browser run used a stale embedded bundle after a type-check build
 failure. Its eight guest profiles passed, but worker readiness failed because
@@ -27,4 +36,5 @@ ignored and distinct from the passing replacement.
 
 Architecture and code review scores are scoped judgments, not test coverage or
 deployment certification. The independent corrected-code review reached 9/10;
-the release is still a candidate until its remaining gates pass.
+the completed checkpoint remains a 0.x prerelease. Final 1.0 acceptance has its
+own [receipt](../1.0.0/README.md).

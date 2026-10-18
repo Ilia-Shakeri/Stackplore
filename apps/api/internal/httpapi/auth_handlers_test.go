@@ -40,20 +40,20 @@ func TestSetupStatusAndPreflightRoutes(t *testing.T) {
 
 	statusResponse := serve(handler, makeRequest(http.MethodGet, "/api/v1/setup/status", "198.51.100.10:4000"))
 	if statusResponse.Code != http.StatusOK || !strings.Contains(statusResponse.Body.String(), `"state":"required"`) || !strings.Contains(statusResponse.Body.String(), `"bootstrap_proof_required":true`) {
-		t.Fatalf("setup status = (%d, %q)", statusResponse.Code, statusResponse.Body.String())
+		t.Fatal("setup status invariant failed")
 	}
 
 	request := authJSONRequest(http.MethodPost, "/api/v1/auth/preflight", `{"purpose":"setup"}`)
 	response := serve(handler, request)
 	if response.Code != http.StatusCreated || !called {
-		t.Fatalf("preflight = (%d, %q, called=%t)", response.Code, response.Body.String(), called)
+		t.Fatal("preflight invariant failed")
 	}
 	if !strings.Contains(response.Body.String(), testOpaqueProof) {
-		t.Fatalf("preflight body = %q", response.Body.String())
+		t.Fatal("preflight body invariant failed")
 	}
 	cookies := response.Result().Cookies()
 	if len(cookies) != 1 || cookies[0].Name != preauthCookieName || !cookies[0].HttpOnly || cookies[0].Path != authCookiePath || cookies[0].SameSite != http.SameSiteLaxMode {
-		t.Fatalf("preflight cookies = %#v", cookies)
+		t.Fatal("preflight cookies invariant failed")
 	}
 
 	called = false
@@ -71,7 +71,7 @@ func TestLoginConsumesPreauthAndIssuesSession(t *testing.T) {
 	service := &testAuthentication{
 		loginFunc: func(_ context.Context, input auth.LoginInput) (auth.SessionIssue, error) {
 			if input.PreauthCookie != testOpaqueProof || input.PreauthProof != testOpaqueProof || input.SourceKey != "198.51.100.10" || input.LoginName != "operator" || string(input.Password) != "correct-horse-demo" || input.RequestID != "req_test" {
-				t.Fatalf("login input = %#v", input)
+				t.Fatal("login input invariant failed")
 			}
 			return issue, nil
 		},
@@ -85,11 +85,11 @@ func TestLoginConsumesPreauthAndIssuesSession(t *testing.T) {
 	request.AddCookie(&http.Cookie{Name: preauthCookieName, Value: testOpaqueProof})
 	response := serve(handler, request)
 	if response.Code != http.StatusOK || strings.Contains(response.Body.String(), "correct-horse-demo") {
-		t.Fatalf("login response = (%d, %q)", response.Code, response.Body.String())
+		t.Fatal("login response invariant failed")
 	}
 	cookies := response.Result().Cookies()
 	if len(cookies) != 2 {
-		t.Fatalf("login cookie count = %d; cookies = %#v", len(cookies), cookies)
+		t.Fatal("login cookie count invariant failed")
 	}
 	foundClear := false
 	foundSession := false
@@ -102,7 +102,7 @@ func TestLoginConsumesPreauthAndIssuesSession(t *testing.T) {
 		}
 	}
 	if !foundClear || !foundSession {
-		t.Fatalf("login cookies = %#v", cookies)
+		t.Fatal("login cookies invariant failed")
 	}
 }
 
@@ -112,7 +112,7 @@ func TestSessionReadRenewsCookieToCurrentServerExpiry(t *testing.T) {
 	service := &testAuthentication{
 		authenticateFunc: func(_ context.Context, token string) (auth.Authentication, error) {
 			if token != testOpaqueProof {
-				t.Fatalf("session token = %q", token)
+				t.Fatal("session token invariant failed")
 			}
 			return auth.Authentication{User: issue.Context.User, Context: issue.Context}, nil
 		},
@@ -125,11 +125,11 @@ func TestSessionReadRenewsCookieToCurrentServerExpiry(t *testing.T) {
 	request.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	response := serve(handler, request)
 	if response.Code != http.StatusOK {
-		t.Fatalf("session response = (%d, %q)", response.Code, response.Body.String())
+		t.Fatal("session response invariant failed")
 	}
 	cookies := response.Result().Cookies()
 	if len(cookies) != 1 || cookies[0].Name != sessionCookieName || cookies[0].Value != testOpaqueProof || !cookies[0].Expires.Equal(issue.Context.IdleExpiresAt) {
-		t.Fatalf("renewed session cookie = %#v", cookies)
+		t.Fatal("renewed session cookie invariant failed")
 	}
 }
 
@@ -140,7 +140,7 @@ func TestUserMutationForwardsGuardsAndReturnsEntityTag(t *testing.T) {
 	service := &testAuthentication{
 		updateUserFunc: func(_ context.Context, input auth.UserUpdateInput) (auth.User, error) {
 			if input.SessionToken != testOpaqueProof || input.CSRFProof != testOpaqueProof || input.RecentProof != testOpaqueProof || input.UserID != want.ID || input.ExpectedVersion != 7 || input.DisplayName == nil || *input.DisplayName != "Read Only" || input.RequestID != "req_test" {
-				t.Fatalf("update input = %#v", input)
+				t.Fatal("update input invariant failed")
 			}
 			return want, nil
 		},
@@ -153,11 +153,11 @@ func TestUserMutationForwardsGuardsAndReturnsEntityTag(t *testing.T) {
 	request.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	response := serve(handler, request)
 	if response.Code != http.StatusOK || response.Header().Get("ETag") != `"8"` {
-		t.Fatalf("update response = (%d, ETag=%q, body=%q)", response.Code, response.Header().Get("ETag"), response.Body.String())
+		t.Fatal("update response invariant failed")
 	}
 	var decoded userResponse
 	if err := json.Unmarshal(response.Body.Bytes(), &decoded); err != nil || decoded.ID != want.ID || decoded.Version != 8 {
-		t.Fatalf("update body = %#v; err = %v", decoded, err)
+		t.Fatal("update body invariant failed")
 	}
 }
 
@@ -180,7 +180,7 @@ func TestReadinessUsesLiveRole(t *testing.T) {
 	role = auth.RoleAdministrator
 	response := serve(handler, request)
 	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"state":"ready"`) {
-		t.Fatalf("administrator readiness = (%d, %q)", response.Code, response.Body.String())
+		t.Fatal("administrator readiness invariant failed")
 	}
 }
 
@@ -205,13 +205,13 @@ func TestAuthErrorsStayTypedAndBounded(t *testing.T) {
 	deleteRequest.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	deleteResponse := serve(handler, deleteRequest)
 	if deleteResponse.Code != http.StatusConflict || decodeProblem(t, deleteResponse).Code != string(auth.ConflictCodeLastAdministrator) {
-		t.Fatalf("delete response = (%d, %q)", deleteResponse.Code, deleteResponse.Body.String())
+		t.Fatal("delete response invariant failed")
 	}
 
 	preflightRequest := authJSONRequest(http.MethodPost, "/api/v1/auth/preflight", `{"purpose":"login"}`)
 	preflightResponse := serve(handler, preflightRequest)
 	if preflightResponse.Code != http.StatusTooManyRequests || preflightResponse.Header().Get("Retry-After") != "91" || decodeProblem(t, preflightResponse).Code != rateLimitProblem.code {
-		t.Fatalf("rate response = (%d, Retry-After=%q, body=%q)", preflightResponse.Code, preflightResponse.Header().Get("Retry-After"), preflightResponse.Body.String())
+		t.Fatal("rate response invariant failed")
 	}
 }
 
@@ -222,7 +222,7 @@ func TestAuthenticatedFailureRenewsSessionCookie(t *testing.T) {
 		deleteUserFunc: func(context.Context, auth.UserDeleteInput) error { return auth.ErrLastAdministrator },
 		authenticateFunc: func(_ context.Context, token string) (auth.Authentication, error) {
 			if token != testOpaqueProof {
-				t.Fatalf("session token = %q", token)
+				t.Fatal("session token invariant failed")
 			}
 			return auth.Authentication{User: issue.Context.User, Context: issue.Context}, nil
 		},
@@ -239,11 +239,11 @@ func TestAuthenticatedFailureRenewsSessionCookie(t *testing.T) {
 	request.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	response := serve(handler, request)
 	if response.Code != http.StatusConflict {
-		t.Fatalf("delete response = (%d, %q)", response.Code, response.Body.String())
+		t.Fatal("delete response invariant failed")
 	}
 	cookies := response.Result().Cookies()
 	if len(cookies) != 1 || cookies[0].Name != sessionCookieName || cookies[0].Value != testOpaqueProof || !cookies[0].Expires.Equal(issue.Context.IdleExpiresAt) {
-		t.Fatalf("renewed failure cookie = %#v", cookies)
+		t.Fatal("renewed failure cookie invariant failed")
 	}
 }
 
@@ -251,7 +251,7 @@ func TestLogoutReturnsEmptyNoContent(t *testing.T) {
 	service := &testAuthentication{
 		logoutFunc: func(_ context.Context, input auth.LogoutInput) error {
 			if input.SessionToken != testOpaqueProof || input.CSRFProof != testOpaqueProof {
-				t.Fatalf("logout input = %#v", input)
+				t.Fatal("logout input invariant failed")
 			}
 			return nil
 		},
@@ -263,11 +263,11 @@ func TestLogoutReturnsEmptyNoContent(t *testing.T) {
 	request.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	response := serve(handler, request)
 	if response.Code != http.StatusNoContent || response.Body.Len() != 0 || response.Header().Get("Content-Type") != "" {
-		t.Fatalf("logout response = (%d, %q, %q)", response.Code, response.Header().Get("Content-Type"), response.Body.String())
+		t.Fatal("logout response invariant failed")
 	}
 	cookies := response.Result().Cookies()
 	if len(cookies) != 1 || cookies[0].Name != sessionCookieName || cookies[0].MaxAge != -1 {
-		t.Fatalf("logout cookies = %#v", cookies)
+		t.Fatal("logout cookies invariant failed")
 	}
 }
 
@@ -278,7 +278,7 @@ func TestProtectedProofFailuresUseExactClass(t *testing.T) {
 	logout.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	logoutResponse := serve(handler, logout)
 	if logoutResponse.Code != http.StatusForbidden || decodeProblem(t, logoutResponse).Code != forbiddenProblem.code {
-		t.Fatalf("missing CSRF response = (%d, %q)", logoutResponse.Code, logoutResponse.Body.String())
+		t.Fatal("missing CSRF response invariant failed")
 	}
 
 	mutation := authJSONRequest(http.MethodPost, "/api/v1/users", `{"login_name":"viewer","display_name":"Viewer","role":"viewer","password":"correct-horse-viewer"}`)
@@ -286,7 +286,7 @@ func TestProtectedProofFailuresUseExactClass(t *testing.T) {
 	mutation.AddCookie(&http.Cookie{Name: sessionCookieName, Value: testOpaqueProof})
 	mutationResponse := serve(handler, mutation)
 	if mutationResponse.Code != http.StatusForbidden || decodeProblem(t, mutationResponse).Code != recentAuthProblem.code {
-		t.Fatalf("missing recent proof response = (%d, %q)", mutationResponse.Code, mutationResponse.Body.String())
+		t.Fatal("missing recent proof response invariant failed")
 	}
 }
 
