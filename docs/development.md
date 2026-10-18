@@ -32,8 +32,12 @@ the Compose override and `--no-build --pull never` commands in
 [deployment](operations/deployment.md#install-from-verified-release-archives).
 Helm still uses operator-owned external PostgreSQL, not a chart-managed copy.
 
-The complete derivative-image build/runtime/scan and signed artifact gates
-remain open in [corrective acceptance](evidence/1.0.1/README.md). The
+Exact-source derivative build/runtime/scans, main/tag CI, signed trial and
+independent Windows/database archive checks passed at
+`73ece4754554cca548c242768b195d21664d37b8`. Stable publication and independent
+public verification passed; [published receipt](evidence/1.0.1/published-release.json).
+Public Windows bytes match the recovery-tested trial; the different public
+database archive was independently loaded and executed successfully. The
 [standalone helper receipt](evidence/1.0.1/helper-rebuild.json) proves actual Linux
 amd64 gosu 1.19/Go 1.26.9 execution and one analyzed Go executable with zero
 HIGH/CRITICAL findings using the 2026-10-18 vulnerability database. An earlier

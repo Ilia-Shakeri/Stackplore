@@ -1,9 +1,10 @@
 # Security Model
 
-Status: implemented 0.9.0 candidate; published checkpoint receipts through
-0.7.0 and the current candidate's open gates are separated in the
-[active plan](implementation-plan.md). The Go service serves embedded UI and API
-on one origin. A mechanism described here is not an unobserved runtime result.
+Status: released and accepted 1.0.1; all nine stages are delivered. Exact local,
+hosted and independently verified public-artifact results are recorded in the
+[active plan](implementation-plan.md) and [published receipt](evidence/1.0.1/published-release.json).
+The Go service serves embedded UI and API on one origin. Customer deployment
+and external integration results retain their own evidence boundaries.
 
 ## Assets
 
@@ -244,10 +245,14 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 
 ## Acceptance and residual boundaries
 
-The current candidate still needs its exact full gate, remote release artifacts,
-image/native scan, signature and independent verification results recorded
-before final release acceptance. Older checkpoints, a local dependency scan or
-a workflow definition cannot establish those results.
+Tagged `v1.0.1` at `73ece4754554cca548c242768b195d21664d37b8` passed the full
+local gate, exact main/tag CI, strict signed-trial scans, independent trial
+verification and actual Windows/database archive recovery. Architecture/code
+review is 9/10; [consumer receipt](evidence/1.0.1/consumer-trial.json).
+Final stable publication and independent public verification also passed;
+all nine stages are delivered and accepted in the
+[published receipt](evidence/1.0.1/published-release.json). Older checkpoints, a local
+dependency scan or a workflow definition alone cannot establish those results.
 
 Browser-managed profiles/credentials are deliberately unsupported. Provider
 reference rotation uses deployment-owned files; real mutations remain disabled

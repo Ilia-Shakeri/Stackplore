@@ -1,8 +1,10 @@
 # Deployment
 
-Corrective 1.0.1 image acceptance is still pending. The commands below describe
-the source-build and verified-archive paths; they do not claim that the current
-derivative image has passed its full runtime/scan/release gates. Check the
+Tagged 1.0.1 at `73ece4754554cca548c242768b195d21664d37b8` passed exact main/tag
+CI, full image scans, the signed trial and independent Windows/database archive
+runtime checks. Stable publication and independent public-asset acceptance
+also passed; [published receipt](../evidence/1.0.1/published-release.json). The commands below describe source-build and verified-archive
+paths; they do not establish an air-gapped installation or a customer rollout. Check the
 [current acceptance receipt](../evidence/1.0.1/README.md) before choosing release
 artifacts. Preserve existing database and runtime-key volumes during changes.
 

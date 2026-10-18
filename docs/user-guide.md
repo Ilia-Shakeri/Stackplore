@@ -1,9 +1,10 @@
 # Current user guide
 
-This describes the implemented 0.9.0 candidate. Exact PostgreSQL, browser,
-provider, installation and release-artifact results belong in the
-[evidence plan](implementation-plan.md). Candidate code is not final 1.0
-acceptance or a customer production deployment. See [remaining gates](roadmap.md) and
+This describes delivered 1.0.1. All nine stages and public release acceptance
+passed; [published receipt](evidence/1.0.1/published-release.json).
+Exact PostgreSQL, browser, provider, installation and artifact results remain
+in the [evidence plan](implementation-plan.md). Customer production and offline
+installation require separate operator checks. See [roadmap](roadmap.md) and
 [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh

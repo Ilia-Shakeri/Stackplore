@@ -1,30 +1,24 @@
 # Stackplore delivery plan
 
-Target: **1.0.1**. **All nine stages are functionally implemented; corrective
-runtime, deployment, scan and publication acceptance remain open.**
+Target: **1.0.1 — released and accepted**. **All nine stages are delivered.
+Architecture/code review is 9/10.**
 
-Withheld checkpoint: `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`, immutable `v1.0.0`.
-[Exact main CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39116327391)
-and [exact tag CI](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39117205748)
-passed all six jobs. The signed trial passed independent consumer verification
-and actual Windows archive recovery. These passing receipts retain their scope.
-The
-[release run](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39117205810)
-was canceled after finding PostgreSQL 17.6 in deployment/CI and no database-image
-scan. The release API confirmed no `v1.0.0` GitHub release. The tag will not move.
-The published 0.9.0 prerelease also has the unsafe database default and is
-superseded. [Corrective 1.0.1 acceptance](docs/evidence/1.0.1/README.md) now governs
-delivery; the [1.0.0 receipt](docs/evidence/1.0.0/README.md) preserves history.
+Immutable `v1.0.1` points to `73ece4754554cca548c242768b195d21664d37b8`.
+Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
+Signed trial `39122125492` and release `39123016084` passed; stable
+[release 1.0.1](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.1)
+was published as `416416913` at `2026-10-18T11:43:54Z`.
 
-Pushed corrective source `a252718efffbdbb03c8f4552c25e998f481c77bb` is also
-rejected, with no 1.0.1 tag or acceptance. Its complete local gate B
-(24 release/policy, 40 client and 453 web tests) and all 14 browser cases passed.
-Exact main CI `39119787227` passed all six jobs.
-[Trial 39119787671](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787671)
-passed the exact upstream pull/PostgreSQL 17.11 engine probe, then failed the
-strict image scan. Fresh local reproduction found one CRITICAL and 24 HIGH
-findings in gosu's Go 1.24.6 library; all remain blocking, without suppressions.
-[Failed receipt](docs/evidence/1.0.1/failed-database-image.json).
+Independent public verification checked all 39 files, 30 checksums, all 31
+provenance subjects and seven SBOM attestations. Public Windows bytes match the
+actual recovery-tested trial. The different public database archive was
+independently loaded and executed with identity, engine/helper/root-drop,
+read-only non-root SQL, license and owned cleanup checks passing.
+[Published receipt](docs/evidence/1.0.1/published-release.json).
+
+Immutable 1.0.0 remains withheld; 0.9.0 is superseded for its unsafe database
+default. Intermediate failed trials and interrupted consumer transfers retain
+their honest outcomes. Customer/offline/cross-built limits remain separate.
 
 | Stage | Version | Delivered outcome |
 | --- | --- | --- |
@@ -36,31 +30,22 @@ findings in gosu's Go 1.24.6 library; all remain blocking, without suppressions.
 | 6 | 0.6.0 | Complete: narrowly guarded restart/scale, durable intent/result audit, settings, preferences, quota/archive-bound audit retention and bounded cleanup. |
 | 7 | 0.7.0 | Complete: one non-root embedded application, actual Compose setup/restart, Helm installation against external TLS PostgreSQL and bilingual operator runbooks. |
 | 8 | 0.9.0 | Functionally complete: PWA, redacted logs, health history, filters, measured interface/performance and signed publication passed their recorded checks. Superseded because its database default is unsafe and database-image scanning was absent. |
-| 9 | 1.0.1 | Functionality implemented. The immutable 1.0.0 checkpoint passed its recorded local/browser/main/tag/trial/recovery checks but was withheld. Corrective runtime, deployment, full scan and final artifact acceptance are pending. |
+| 9 | 1.0.1 | Delivered and accepted at 9/10: exact main/tag CI, signed publication, all independent public checks and actual Windows/database archive acceptance passed. |
 
-The current correction-loop score is **8/10**. Earlier scoped 9/10 reviews
-predate the database-image gap. The further corrective tree defines
-`stackplore-postgres:1.0.1` from the same digest-pinned PostgreSQL 17.11 base,
-rebuilding unchanged official gosu 1.19 with Go 1.26.9 while retaining the engine
-and entrypoint. The canonical [database policy](deploy/postgres-image.json)
-records source/digest pins. Actual derivative build, engine/helper/root-drop,
-full-image scan and bound SPDX proof are pending; configured gates are not
-observed proof. Return to
-9/10 only after the exact corrective real-PostgreSQL, browser, hosted deployment
-and strict scan gates pass. The [requirement matrix](docs/evidence/0.9.0/requirements.md)
-maps accepted areas to source, tests, guides and proof limits. Scores remain
-review judgments, separate from measured coverage and runtime evidence.
+The correction loop returned to **9/10** after full local D (28 release/policy,
+40 client and 453 web tests), fresh browser B (14 cases), exact six-job main CI,
+strict signed-trial scans, independent verification and actual archive recovery.
+The derivative retains PostgreSQL 17.11 and the upstream entrypoint, rebuilding
+unchanged gosu 1.19 with Go 1.26.9. Exact full-image/SPDX and engine/helper/root-drop
+proof passed without suppressions. The [requirement matrix](docs/evidence/0.9.0/requirements.md)
+maps the accepted 1.0 scope to implementation and proof limits.
 
-Remaining gates include real PostgreSQL 17.11 and native backup/empty-target
-restore proof, the full changed-tree local/browser matrix, all six hosted CI jobs,
-derivative database engine/helper/digest and root-drop probes, full image/SPDX
-scans, the signed trial and actual Windows
-1.0.1 recovery. Then tag the checked corrective source, publish, and independently
-verify all public assets and exact identity, including the database Docker-save
-archive and seventh SBOM. Expected counts are 39
-assets, 30 checksums, all 31 provenance subjects and seven native/application/database SBOM
-attestations; none is yet a 1.0.1 receipt. No accepted feature is deferred into
-these acceptance gates.
+All release gates are closed: exact-tag CI, signed publication, independent
+public identity/checksum/provenance/SBOM checks and actual public archive
+acceptance passed. No accepted code feature or severe implementation defect
+remains open in this review scope. Interrupted public transfers remain
+transport failures; bounded range resume retained normal certificate checks,
+API sizes/digests and signed-manifest verification.
 
 Customer production acceptance remains an operator task. Credentials, provider
 rights, ingress/TLS, receiver reachability, backups and capacity require the

@@ -4,27 +4,15 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.1
 - **Specification status:** Accepted for implementation
-- **Implementation status:** All nine stages are functionally implemented;
-  corrective `1.0.1` acceptance is pending at a current review score of 8/10.
-  Immutable `v1.0.0` passed its recorded checks but publication was canceled
-  after discovery of the vulnerable PostgreSQL 17.6 default and missing
-  database-image scan. The release API confirmed no 1.0.0 GitHub release;
-  [withheld receipt](docs/evidence/1.0.0/publication-withheld.json). The published
-  `v0.9.0` prerelease has the same unsafe default and is superseded.
-  The accepted 1.0 product scope is unchanged and mapped to code, tests, documentation and
-  evidence in the [requirement matrix](docs/evidence/0.9.0/requirements.md).
-  Corrective real-PostgreSQL, browser, hosted-deployment and strict scan proof,
-  exact-tag verification, signed publication and consumer acceptance
-  remain distinct gates in the [active evidence plan](docs/implementation-plan.md)
-  and [1.0 receipt](docs/evidence/1.0.1/README.md).
-
-Corrective source `a252718efffbdbb03c8f4552c25e998f481c77bb` is pushed but
-rejected and untagged. Its local gate and all 14 browser cases passed; trial
-`39119787671` passed the upstream PostgreSQL 17.11 engine probe, then failed
-the strict image scan. Fresh analysis found one CRITICAL and 24 HIGH findings
-in gosu's Go 1.24.6 standard library; all remain blocking without exceptions.
-The [failed receipt](docs/evidence/1.0.1/failed-database-image.json) is preserved.
-The derivative-image correction described below still needs actual proof.
+- **Implementation status:** All nine stages delivered; 1.0.1 released and
+  accepted at immutable `v1.0.1`, source
+  `73ece4754554cca548c242768b195d21664d37b8`. Architecture/code review is 9/10.
+  Exact main/tag CI, signed publication, independent public verification and
+  actual Windows/database archive checks passed; [published receipt](docs/evidence/1.0.1/published-release.json).
+  The accepted 1.0 product scope is unchanged; the
+  [requirement matrix](docs/evidence/0.9.0/requirements.md) maps implementation
+  and proof limits. Immutable 1.0.0 remains withheld, 0.9.0 is superseded for the
+  unsafe database default, and failed intermediate receipts remain history.
 
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
 Deferred features are explicitly listed in section 14. Delivery order and
@@ -841,10 +829,10 @@ The current runtime uses only PostgreSQL for the API, account recovery and
 native backup/restore. Server and native `psql`, `pg_dump` and `pg_restore`
 clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](deploy/postgres-image.json) pins the upstream base and
-defines the intended `stackplore-postgres:1.0.1` derivative. Unchanged official
+defines the reviewed `stackplore-postgres:1.0.1` derivative. Unchanged official
 gosu 1.19 is rebuilt from pinned source with Go 1.26.9; the PostgreSQL engine and
-entrypoint are retained. Actual derivative build, engine/helper versions and
-root-to-database-user transition still need proof. Release gates require exact
+entrypoint are retained. Exact-source trial and independent archive checks
+proved the actual build, engine/helper versions, root-drop and non-root SQL startup. Release gates require exact
 base/derivative identity, a complete image vulnerability scan and bound SPDX
 inventory in addition to application/native/source/history scans. All findings
 remain blocking; no base exception or suppression is permitted. Compose/CI must
@@ -871,13 +859,15 @@ restricted mTLS Docker observation, explicit Kubernetes namespaces, independentl
 published kind/scope authority, typed safe metadata, Pod UID/lifetime checks and
 guest isolation. Provider target receipts have named version bounds; the final
 local gate passed and exact publication CI passed, including disposable Engine
-and Kubernetes guarded-writer jobs. Profile/reference rotation and 1.0 deployment
-gates remain. Audit expiry requires the independently verified archive cutoff
-described in the current settings guide. Stage 7 aligns production packaging
-with ADR-0001 and adds Compose installation/restart proof; the exact 0.7.0 gates
-remain open until its changed tree is verified. See [current observation
-boundaries](docs/observations.md) and the roadmap for remaining work; these status
-notes do not reduce the required 1.0 behavior above.
+and Kubernetes guarded-writer jobs. At that checkpoint, profile/reference
+rotation and 1.0 deployment proof were later work; current operator rotation
+procedures and exact 1.0.1 main/tag/deployment/archive gates are now recorded. Audit expiry requires the independently verified archive cutoff
+described in the current settings guide. Stage 7 later aligned production
+packaging with ADR-0001 and added Compose installation/restart proof. Its 0.7.0
+receipts are historical; exact 1.0.1 main/tag CI, public publication and archive
+acceptance passed. Customer production remains separate. See [current observation
+boundaries](docs/observations.md) and the roadmap; these dated notes do not reduce
+the required 1.0 behavior above.
 The locally verified 0.3.0 development checkpoint adds current-configuration raw collection evidence,
 covered alert windows, source/rule/lease-fenced completion, committed replay with
 a prune watermark and isolated webhook/Matrix lanes. Its local gate and separate

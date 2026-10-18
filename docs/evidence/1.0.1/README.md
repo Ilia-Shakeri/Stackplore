@@ -1,123 +1,92 @@
-# 1.0.1 corrective acceptance — pending
+# 1.0.1 released and accepted
 
-Date: 2026-10-18. Rejected corrective candidate:
-`a252718efffbdbb03c8f4552c25e998f481c77bb`, pushed but not tagged or accepted.
-Its local gate B and all 14 browser cases passed. Exact
-[main CI 39119787227](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787227)
-then passed all six jobs. The
-[artifact trial 39119787671](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787671)
-failed its strict database-image scan before signing/publication.
+Date: 2026-10-18. Source: `73ece4754554cca548c242768b195d21664d37b8`,
+immutable `v1.0.1`. **All nine stages are delivered and release acceptance is
+complete. Architecture/code review is 9/10.**
 
-All nine stages remain functionally implemented. Current whole-release review
-score is **8/10**. A further 1.0.1 derivative-image correction is in progress;
-its exact source and fresh runtime/build/scan/recovery/artifact proof are pending.
-No `v1.0.1` tag or accepted publication is established.
+Stable [release 1.0.1](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.1),
+ID `416416913`, was published at `2026-10-18T11:43:54Z`.
+Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
+Signed trial `39122125492` and release `39123016084` passed; final package
+`117662309169` and publication `117666236715` succeeded.
 
-Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
-Its six-job main CI `39116327391`, six-job tag CI `39117205748`, signed trial
-`39116335008`, independent 26-checksum/12-provenance/six-SBOM verification and
-actual Windows recovery passed within their recorded scope. Publication run
-`39117205810` was canceled after discovery of the vulnerable PostgreSQL 17.6
-default and missing database-image scan. The release API confirmed no 1.0.0
-GitHub release; the [withheld-publication receipt](../1.0.0/publication-withheld.json)
-records that check. Preserve the tag and [checkpoint receipts](../1.0.0/README.md).
-The published 0.9.0 prerelease has the same unsafe database default and is
-superseded.
+Independent anonymous public downloads checked every API size/digest and all
+**39 files, 30 checksum entries, all 31 provenance subjects and seven SBOM
+attestations** against the exact tagged workflow/source and hosted-runner
+policy. All eight public vulnerability reports have zero HIGH/CRITICAL
+findings; secret scan has zero findings. Signed Linux amd64 guest/normal smoke
+passed. [Published receipt](published-release.json).
 
-## Corrective database boundary
+The public Windows archive is byte-identical to the actual recovery-tested
+trial. The public database archive differs from trial and was independently
+loaded and executed successfully; no equality or unexecuted runtime claim is
+borrowed from trial. [Trial consumer receipt](consumer-trial.json).
 
-The [failed database-image receipt](failed-database-image.json) retains the
-rejected trial and local reproduction. Hosted package job `117652865830`
-successfully pulled the exact upstream image and ran the compiled PostgreSQL
-17.11 probe, then failed the strict image scan. That job did not retain its scan
-JSON. A fresh-database Trivy 0.76.0 Windows reproduction found **25 blocking
-findings: one CRITICAL and 24 HIGH**, all in `/usr/local/bin/gosu`'s Go 1.24.6
-standard library. Its 45 Alpine 3.24.2 OS packages had no blocking findings;
-that narrower result does not make the complete image pass. No finding is
-suppressed, excluded or accepted as an exception.
+## Passed gates
 
-The canonical [database policy](../../../deploy/postgres-image.json) now defines
-the intended Linux amd64 runtime image `stackplore-postgres:1.0.1`, derived from
-`postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`
-by rebuilding unchanged official `gosu` 1.19 source with Go 1.26.9. Source commit
-is `6456aaa0f3c854d199d0f037f068eb97515b7513`; its source archive SHA-256 is
-`33d7537d588ea49458b9509bcf4554bdf5ceacc66da71e5caa1058ea3b689c3b`.
-The correction retains the upstream PostgreSQL engine and entrypoint; actual
-derivative build, engine/helper versions, root-to-database-user transition and
-strict scan success remain to be proved. Compose and CI must build owned patched
-fixtures first. Helm continues to use operator-owned external PostgreSQL under
-the same server/client policy.
-
-An independent Windows-to-Linux amd64 build of the pinned unchanged gosu source
-actually executed under Linux and reported gosu 1.19 with Go 1.26.9. Linux Trivy
-rootfs analysis covered **one real Go executable**, with zero HIGH/CRITICAL
-findings using the existing 2026-10-16 vulnerability database. An earlier
-Windows scan exited zero with zero analyzed executables and was rejected for
-empty coverage. This standalone helper proof does not establish a fresh full
-derivative-image scan, image startup/root-drop behavior or signed artifact proof.
-
-PostgreSQL server and native clients require 17.11 or a later 17.x patch.
-Configuration alone does not establish runtime or scan success.
-Follow the [upgrade procedure](../../operations/upgrade-rollback.md#postgresql-17-patch-baseline)
-([فارسی](../../operations/upgrade-rollback.fa.md)) for validated backup,
-maintenance and applicable upstream configuration/cleanup/reindex review.
-
-The release gate must retain `database-image.json` for base/derivative identity
-and engine/helper probes, `database-image-scan.json` for the complete image
-scan and `database.spdx.json` for the bound package inventory. Publish the actual
-database Docker-save archive and its signed SBOM as well. The **expected,
-unverified** totals are now **39 public assets, 30 checksum entries, all 31
-provenance subjects and seven SBOM attestations**: five native archives, the
-application image and the database image. The earlier upstream-only package
-shape is superseded.
-
-## Required receipts
-
-| Gate | Status and required proof |
+| Gate | Observed result |
 | --- | --- |
-| Exact corrective source | Rejected source `a252718efffbdbb03c8f4552c25e998f481c77bb` is pushed. New derivative-image source identity and complete verification are pending. |
-| Real database and native restore | Pending corrective-source execution on PostgreSQL 17.11 with readiness, ledger checks and native backup/empty-target restore. Existing 17.x minor-update guidance is upstream-documented and requires operator validation; this release does not claim a specific 17.6-to-17.11 runtime experiment. |
-| Final derivative-tree local gate | Passed complete `npm.cmd run verify` D: 28 release/policy, 40 client and 453 web tests, real PostgreSQL 17.11, format/lint/types/contracts/builds; [receipt](local-gates.json). Earlier A/B/C passes retain their original scopes. |
-| Final derivative-tree browser | Fresh B passed all 14 actual production-browser cases, 64 states and eight profiles; [receipt](browser-runtime.json), [measurements](browser-measurements.json), [public screenshots](screenshots/). Exact hosted source and packaged binary checks remain separate. |
-| Exact main CI | Rejected-source run `39119787227` passed all six jobs. A complete new derivative-source six-job result is pending. |
-| Standalone rebuilt helper | Pinned gosu 1.19 built with Go 1.26.9 actually executed on Linux amd64; Linux Trivy analyzed one Go executable with zero HIGH/CRITICAL findings using the fresh 2026-10-18 database; [receipt](helper-rebuild.json). Zero-coverage Windows output was rejected. This is not a fresh full-image scan or root-drop proof. |
-| Database engine and scans | Upstream PostgreSQL 17.11 engine probe passed, but trial `39119787671` failed the image scan. Local reproduction: one CRITICAL and 24 HIGH findings in gosu. New derivative engine/helper/root-drop probes, matching full scan/SPDX and zero blocking findings are pending. |
-| Other strict scans | Pending native executables, application image, source dependencies, licenses and full-history secret checks on the corrective source. |
-| Signed trial | Rejected upstream-only trial failed before signing. Pending a new matching derivative-source trial, all payload digests, 30 checksums, all 31 provenance subjects and seven SBOM attestations; reject wrong identity. |
-| Windows corrective archive recovery | Pending execution of the exact verified 1.0.1 archive: setup/read, acknowledgement/SSE/replay, restart, native backup/empty restore, protected history, revoked sessions/preauth, fresh login, version/source and ownership-loss shutdown. |
-| Exact immutable tag | Pending `v1.0.1` on the checked source and all matching tag CI jobs. Never move `v1.0.0`. |
-| Signed publication and public consumer check | Pending 39 public assets, independent signatures/digests/identity, 30 checksums, all 31 provenance subjects and seven SBOM attestations, plus comparison with the recovery-tested Windows archive. |
-| Final reconciliation | Pending exact commands, exit results, run identities and sanitized receipts; update this file, the active plan and [corrective review](final-review.md) only from observed evidence. |
+| Full local D | Complete `npm.cmd run verify` passed with PostgreSQL 17.11, 28 release/policy tests, 40 client tests, 453 web tests, 715 locale messages, 235 bounded schemas, notices/contracts/lint/types and both builds; [receipt](local-gates.json). Web coverage: statements 81.61%, branches 77.8%, functions 85.48%, lines 83.11%. |
+| Fresh browser B | All 14 actual production-browser cases passed: 64 loaded states, eight English/Persian profiles, RTL/LTR, both themes, keyboard/reduced motion, public-only PWA/cache/update and authenticated journeys; [receipt](browser-runtime.json), [measurements](browser-measurements.json), [screenshots](screenshots/). |
+| Exact main CI | All six jobs in `39122125020` passed, including real PostgreSQL/race/browser, application image/chart, Compose, Helm/external TLS PostgreSQL and both real providers. |
+| Strict signed trial | `39122125492` passed database/native/application/source/history scans, exact engine/helper/root-drop probes, bound SPDX and signing. No inherited database finding was suppressed or ignored. |
+| Independent trial consumer | Artifact ZIP SHA-256 `2d4fc51024f5e419963ad8a1d3ee97ff6e4c743269b0b19025233a4f5f624450`; all 39 files, 30 checksums, all 31 provenance subjects and seven SBOM attestations verified. Wrong identity rejected. |
+| Actual Windows archive recovery | Archive SHA-256 `9637166b56564fc940c3c75bf3a35e71768283b7cf36db296c4e2a494a0a5964` passed setup/read, source state/version, acknowledgement/SSE/replay, restart, PostgreSQL-native backup/empty restore, 16 migrations, protected history, revoked sessions/preauth, fresh login and ownership-loss shutdown. Go 1.26.9, CGO disabled, exact source and `vcs.modified=false`. |
+| Actual trial database archive | Archive SHA-256 `90f7c434a392b6c7dbaab54305ed0f0aa33835ec3a84a6ca07f444cd956cfeba` was independently loaded on Linux amd64. Archive configuration SHA, loaded rootfs and execution configuration matched; PostgreSQL 17.11, gosu 1.19/Go 1.26.9 and root-drop UID/GID 70 passed. A read-only, network-none, capability-dropped server ran as UID 70 and answered SQL with `server_version_num=170011`. COPYRIGHT hash matched. Owned tmpfs/container cleanup passed. |
+| Legal inventory | The production web notice check covered 63 exact production packages and 63 exact upstream legal files. This count is separate from the full source SPDX inventory. |
 
-Return the review score to 9/10 only after actual corrective real-PostgreSQL,
-browser, hosted deployment and strict scan gates pass. Passing those gates alone
-does not establish signed publication or independent public-asset acceptance.
-Record source, tool/engine versions, image digests, command, exit status and
-evidence scope; never record credentials, session proofs or private runtime data.
+## Database boundary and retained corrections
 
-Runtime acceptance targets Windows amd64 and Linux amd64 native tools, plus
-Linux amd64 application and database images.
-Linux arm64 and macOS archives remain cross-built until separately executed.
-Compose/Helm fixtures are owned disposable environments; customer credentials,
-provider permissions, ingress/TLS, receiver reachability, backup destination and
-capacity still require that deployment's own checks. Historical receipts remain
-historical and must not be relabeled as corrective or customer proof.
+The [canonical policy](../../../deploy/postgres-image.json) defines
+`stackplore-postgres:1.0.1` from
+`postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
+It retains the upstream PostgreSQL engine/entrypoint and rebuilds unchanged
+official gosu 1.19 with Go 1.26.9, from source
+`6456aaa0f3c854d199d0f037f068eb97515b7513`, archive SHA-256
+`33d7537d588ea49458b9509bcf4554bdf5ceacc66da71e5caa1058ea3b689c3b`.
+Compose/CI use the patched image; Helm keeps operator-owned external PostgreSQL.
+Server and native clients require 17.11 or a later 17.x patch. Existing-installation
+minor updates follow [upstream-based guidance](../../operations/upgrade-rollback.md#postgresql-17-patch-baseline)
+([فارسی](../../operations/upgrade-rollback.fa.md)); no specific 17.6-to-17.11
+customer upgrade is claimed.
 
-Earlier local image attempts timed out before analysis/runtime and remain
-separate failed receipts: [record](local-image-attempts.json). The later actual
-strict-scan failure is recorded above. Neither is proof of a safe derivative image.
+Retain these failures at their original scope:
 
-The [independent helper receipt](helper-rebuild.json) now also records actual
-Linux execution and one-executable analysis with the fresh2026-10-18 database.
-It has zero HIGH/CRITICAL findings; full derivative-image acceptance remains
-separate. The earlier Windows rootfs exit0 with zero executable coverage was
-rejected and never counted as successful analysis.
+- Immutable `v1.0.0` at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f` passed its recorded main/tag/trial/recovery checks, but publication `39117205810` was canceled for the unsafe database default and missing image scan. The API confirmed no release; [withheld receipt](../1.0.0/publication-withheld.json). The published 0.9.0 prerelease has that unsafe default and is superseded.
+- Upstream-only candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local B, browser and all six main CI jobs `39119787227`, but trial `39119787671`, job `117652865830`, failed with 25 gosu Go 1.24.6 findings: one CRITICAL and 24 HIGH. Its clean 45-package Alpine OS result did not make the full image safe. No findings were suppressed; [failed receipt](failed-database-image.json).
+- Derivative candidate `f046d523` built and probed the actual image and had zero HIGH/CRITICAL findings across 45 Alpine and four Go packages. Trial `39121495195` still failed on a valid versionless pinned-source main-module package URL; signing and archive recovery were not reached. Its main CI code job was canceled while five other jobs passed. The narrow format correction retained versioned dependencies and full identity/graph checks; [checkpoint](database-runtime-checkpoint.json).
+- Earlier local image timeouts remain failed [attempts](local-image-attempts.json). A Windows helper scan with exit zero but zero analyzed executables was rejected. The later [helper receipt](helper-rebuild.json) records actual Linux execution and one analyzed executable with zero blocking findings using the fresh 2026-10-18 database.
+- The first database consumer attempt rejected a Docker 29 image-ID assumption before runtime. The replacement checks archive configuration SHA, loaded rootfs diff IDs and execution configuration directly. No release artifact changed; the successful archive checks are in [consumer-trial.json](consumer-trial.json).
 
-The derivative-source trial39121495195 on f046d523 built the complete image,
-passed actual PostgreSQL17.11/gosu1.19/Go1.26.9 probes and analyzed45 Alpine
-and4 Go packages with zero HIGH/CRITICAL findings. Its unsigned retained
-reports exposed a validator error: the pinned-source main module has a valid
-versionless package URL. The narrow correction accepts only that exact main
-module form, preserves versioned dependencies and full graph/set identity, and
-passes all three untouched reports. The trial remains failed; signed packages
-and native recovery were not reached. [Actual checkpoint](database-runtime-checkpoint.json).
+## Accepted publication and scope
+
+All publication gates passed, including independent public downloads, exact
+tag/workflow/source identity, 30 checksums, all 31 provenance subjects and seven
+SBOM attestations. Public manifest SHA-256 is
+`439ec1f5bd5a543b0b903cd4eccc3be3691614abd299c42ef99604e6abdd7854`.
+The public Windows SHA-256
+`9637166b56564fc940c3c75bf3a35e71768283b7cf36db296c4e2a494a0a5964`
+matches the actual recovery-tested trial.
+
+The different public database archive SHA-256 is
+`8b9caa13e4a31b510fb7e2cc438d545ab295a0c0511837f1ddb67565f11af1db`.
+Its configuration digest is
+`sha256:372b3d466213f14583bf26c74345d22988fc312550f9248cbdaa555f30070843`.
+Independent loading verified configuration/rootfs/execution identity, PostgreSQL
+17.11, gosu 1.19/Go 1.26.9, UID/GID 70 root-drop, read-only/network-none/non-root
+SQL with `server_version_num=170011`, COPYRIGHT identity and owned tmpfs cleanup.
+The signed Linux native archive passed guest/normal smoke and graceful cleanup.
+Source SPDX inventories 470 packages, 393 npm package URLs and 74 Go package
+URLs; the production web notice check separately covers 63 exact packages/files.
+
+Interrupted managed/curl transfers retain their nonzero outcomes and partial
+bytes as consumer transport history. Final bounded public HTTPS/range resume
+preserved normal certificate checks, every API size/digest and the signed
+manifest; no artifact or trust policy changed. [Published receipt](published-release.json).
+
+Runtime proof covers Windows amd64 and Linux amd64 native tools and Linux
+amd64 application/database images. Linux arm64 and macOS outputs remain
+cross-built-only. Automated accessibility checks do not certify every assistive
+technology. Owned Compose/Helm/provider fixtures and tmpfs archive probes do not
+certify customer credentials, ingress/TLS, receiver reachability, backups,
+capacity, an air-gapped installation or an unrequested production rollout.

@@ -2,43 +2,39 @@
 
 ## Project status
 
-The current release line is **1.0.x**. Only its latest published patch is a
-maintenance target; 0.x checkpoints are historical prereleases. A version becomes
-accepted only after its exact tag checks, strict scans, signed artifacts and
-consumer verification pass in the [release evidence](docs/evidence/1.0.1/README.md).
-Unpublished candidates do not establish support. Report the exact version and
-full source commit.
+The maintained release line is **1.0.x**. A patch becomes accepted only after
+its exact tag checks, strict scans, signed publication and independent public
+consumer verification pass. Current immutable `v1.0.1` points to
+`73ece4754554cca548c242768b195d21664d37b8`. Architecture/code review is 9/10:
+exact main CI, signed trial, independent trial verification and actual
+Windows/database archive recovery passed. All six tag CI jobs, stable publication
+and independent public verification passed; all nine stages are accepted.
+[Published receipt](docs/evidence/1.0.1/published-release.json).
+Report the exact version and full source commit.
 
-Pushed corrective candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` is
-rejected and untagged. Trial `39119787671` passed its PostgreSQL 17.11 engine
-probe but failed the strict database-image scan. Fresh local reproduction found
-one CRITICAL and 24 HIGH findings in gosu's Go 1.24.6 library; all remain
-blocking, with no suppression or base-image exception. The
-[failed receipt](docs/evidence/1.0.1/failed-database-image.json) records actual
-coverage and limits. Current review score remains 8/10.
+The derivative retains PostgreSQL 17.11 and the upstream entrypoint, rebuilding
+unchanged official gosu 1.19 using Go 1.26.9. Exact full-image scans, bound SPDX,
+engine/helper/root-drop probes and actual loaded archive SQL startup passed
+without suppressions; [consumer receipt](docs/evidence/1.0.1/consumer-trial.json).
+The earlier upstream-only candidate failed on one CRITICAL and 24 HIGH gosu
+Go-library findings and remains rejected; [failed receipt](docs/evidence/1.0.1/failed-database-image.json).
+The later source-main package-URL validation failure also remains failed
+history; neither is relabeled as a passing release.
 
-The correction defines `stackplore-postgres:1.0.1` from the same digest-pinned
-PostgreSQL 17.11 base with unchanged official gosu 1.19 rebuilt using Go 1.26.9.
-Engine/entrypoint retention, helper/root-drop probes, complete image scan,
-bound SPDX, Docker-save archive and signed database SBOM still require actual
-proof. A patched engine version alone does not establish a safe image.
+Runtime proof targets Windows amd64 and Linux amd64 native tools and Linux
+amd64 application/database images. Linux arm64 and macOS archives remain
+cross-built-only until separately executed. PostgreSQL server and native
+`psql`, `pg_dump` and `pg_restore` clients require 17.11 or a later 17.x patch.
+The [upstream security list](https://www.postgresql.org/support/security/17/)
+and [minor-update procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline)
+([فارسی](docs/operations/upgrade-rollback.fa.md)) govern operator review.
+No particular customer's server update is established by project tests.
 
-The supported runtime matrix includes Windows amd64 and Linux amd64 native
-tools, Linux amd64 application/database images and PostgreSQL 17. The minimum server patch is 17.11; later 17.x
-patches are supported. The same minimum applies to native `psql`, `pg_dump` and
-`pg_restore` clients. Linux arm64 and macOS archives are cross-built
-outputs until separately executed. Browser evidence records the exact Chromium
-version and tested English/Persian profiles; it is not a guarantee for every
-browser or assistive technology. Customer credentials, ingress/TLS, provider
-rights, backups and capacity require deployment-specific acceptance.
-
-PostgreSQL 17.6 is below the supported baseline. The upstream
-[PostgreSQL 17 security list](https://www.postgresql.org/support/security/17/)
-includes server and client fixes delivered in 17.11. Operators must update both
-and follow the [patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline)
-([فارسی](docs/operations/upgrade-rollback.fa.md)). A declared minimum or a passing
-application migration test does not prove an installed server update; that needs
-its own recorded rehearsal and deployment checks.
+Immutable 1.0.0 was withheld and has no published release; 0.9.0 is superseded
+for its unsafe database default. Browser evidence covers the recorded
+English/Persian profiles, not every assistive technology. Customer credentials,
+ingress/TLS, provider rights, receivers, backups and capacity require separate
+deployment-specific acceptance.
 
 ## Report a vulnerability privately
 

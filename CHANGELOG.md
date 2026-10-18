@@ -4,37 +4,43 @@
 
 ### Security correction
 
-- Defines the corrective PostgreSQL 17.11 derivative `stackplore-postgres:1.0.1`
-  from the same immutable upstream Alpine digest. The first upstream-only
-  candidate was rejected after its actual strict scan found one CRITICAL and
-  24 HIGH gosu standard-library findings; none is suppressed or ignored.
-- Rebuilds unchanged official gosu 1.19 source with Go 1.26.9, retaining the
-  upstream PostgreSQL engine and entrypoint. Actual derivative build,
-  helper/engine/root-drop probes and complete image scan are still pending.
-- One canonical database policy checks Compose and hosted fixtures for drift.
-  Release packaging requires the engine/helper probes, full database image scan
-  and bound SPDX, plus the database Docker-save archive and seventh SBOM.
-  Expected counts are 39 assets, 30 checksums, all 31 provenance subjects and
-  seven SBOM attestations; these are pending proof. Compose/CI build owned
-  patched fixtures; Helm continues to use external PostgreSQL.
-- Server and native maintenance tools require PostgreSQL 17.11 or later within
-  major 17. Upgrade guidance distinguishes upstream minor-version advice from
-  the application schema and the tested backup/restore path.
+- Retains the pinned PostgreSQL 17.11 engine/entrypoint in
+  `stackplore-postgres:1.0.1` and rebuilds unchanged official gosu 1.19 using
+  Go 1.26.9. Exact full-image scans, bound SPDX and engine/helper/root-drop
+  probes passed without suppressing inherited findings.
+- Includes the database Docker-save archive and seventh signed SBOM. The
+  main-dispatch trial's 39 files, 30 checksums, all 31 provenance subjects and
+  seven SBOM attestations were independently verified; wrong source identity
+  was rejected. Actual Windows recovery and loaded database archive SQL/runtime,
+  identity, root-drop and owned cleanup checks passed.
+- Server/native-client minimum is PostgreSQL 17.11 within major 17. Existing
+  installations retain operator-owned backup/restore, maintenance and
+  upstream-based minor-update review. Customer upgrades are not inferred.
 
-### Acceptance
+### Verification and publication
 
-- Corrective candidate. Exact local, browser, PostgreSQL, provider, deployment,
-  artifact and recovery results belong to the [1.0.1 receipt](docs/evidence/1.0.1/README.md).
-- Pushed `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B and all
-  14 browser cases, then trial `39119787671` failed the strict database-image
-  scan after the exact pull/engine probe passed. It is rejected and untagged;
-  [failed receipt](docs/evidence/1.0.1/failed-database-image.json). Current review
-  score remains 8/10; new derivative-tree full gate/runtime/scan/recovery/artifact
-  evidence is required.
-- The immutable `v1.0.0` checkpoint remains available as source history. Its
-  publication was canceled after the database gap was found; no 1.0.0 release
-  assets were published. The 0.9.0 prerelease also has the old database default.
-  Use the corrected release once its acceptance receipt is complete.
+- Source `73ece4754554cca548c242768b195d21664d37b8`, immutable `v1.0.1`.
+  Full local D passed 28 release/policy, 40 client and 453 web tests; fresh
+  browser B passed 14 cases. Exact main CI `39122125020` passed all six jobs;
+  signed trial `39122125492` passed. Architecture/code review is 9/10.
+- Tag CI `39123016027` passed all six jobs. Release `39123016084` package and
+  publication succeeded; stable release `416416913` was published at
+  `2026-10-18T11:43:54Z`. All nine stages are delivered and accepted;
+  [published receipt](docs/evidence/1.0.1/published-release.json).
+- All 39 public files, 30 checksums, all 31 provenance subjects and seven SBOM
+  attestations passed independent verification. All eight vulnerability reports
+  have zero HIGH/CRITICAL findings. Public Windows bytes match the actual
+  recovery-tested trial; the different public database archive was independently
+  loaded and executed, with identity, root-drop, read-only non-root SQL and cleanup passing.
+- Interrupted public transfers retain their failed exits and partial bytes as
+  transport history. Bounded resume preserved normal certificate checks and
+  every API size/digest and signed-manifest check; no artifact or trust policy changed.
+- Retains failed upstream-only `a252718` trial `39119787671` and derivative
+  `f046d523` trial `39121495195` as failed history with passing subchecks.
+  The latter exposed the valid versionless source-main package URL, corrected
+  narrowly before local D and the successful exact-source trial.
+- Immutable 1.0.0 remains withheld; 0.9.0 is superseded for the unsafe database
+  default. No tag or failed receipt was rewritten.
 
 ## [1.0.0] - 2026-10-18
 

@@ -7,56 +7,41 @@ independent design. Third-party bundles and local caches are excluded. The
 review began at `08028f4` with a substantial uncommitted implementation; those
 files were preserved and reviewed as part of the candidate baseline.
 
-Initial quality was 5/10. This is a review judgment, not measured coverage.
-All nine stages are now functionally implemented; final corrective acceptance
-is blocked by the open gates in [the roadmap](roadmap.md).
+Initial quality was 5/10. Final architecture/code review is **9/10** at
+`73ece4754554cca548c242768b195d21664d37b8`, immutable `v1.0.1`.
+All nine stages are delivered and release acceptance is complete. No unresolved
+severe implementation defect or missing accepted 1.0 feature remains in this
+review scope. Review scores are judgments, not measured coverage.
 
-Current code: corrective `1.0.1` candidate, with whole-release score **8/10**.
-Pushed candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B
-(24 release/policy, 40 client, 453 web tests) and all 14 actual browser cases,
-but is rejected and untagged. Trial `39119787671`, job `117652865830`, passed
-the exact upstream pull/PostgreSQL 17.11 probe and then failed the strict image
-scan. Fresh Windows Trivy 0.76.0 reproduced one CRITICAL and 24 HIGH findings in
-gosu's Go 1.24.6 library; all remain blocking. Clean findings for the 45 Alpine
-3.24.2 OS packages did not make the complete image pass. The hosted job did not
-retain its JSON; the [failed receipt](evidence/1.0.1/failed-database-image.json)
-keeps the local reproduction separate from the passing local/browser receipts.
+Full local D passed 28 release/policy, 40 client and 453 web tests; fresh browser
+B passed 14 cases. All six exact main/tag CI jobs, strict signed trial and public
+publication passed. Independent consumers verified all 39 public files, 30
+checksums, all 31 provenance subjects and seven SBOM attestations. Public
+Windows bytes match the actual recovery-tested trial; the different public
+database archive passed independent identity, engine/helper/root-drop,
+read-only non-root SQL, license and owned cleanup checks.
+[Published receipt](evidence/1.0.1/published-release.json).
 
-The new derivative-tree real PostgreSQL/native restore, browser scope, hosted
-deployment and strict database/native/application/source/history scans remain
-pending. No new passing result is inferred from a check's definition.
-The [requirement matrix](evidence/0.9.0/requirements.md) maps the unchanged 1.0
-product scope to implementation, tests, documents and proof boundaries.
+The correction loop retained each failed candidate. PostgreSQL 17.6 and missing
+image scans withheld immutable 1.0.0; unsafe 0.9.0 is superseded. Upstream-only
+`a252718` passed local/browser/main CI but trial `39119787671` failed on one
+CRITICAL and 24 HIGH gosu findings. Derivative `f046d523` passed actual image
+build/probes and strict scan but trial `39121495195` rejected a valid
+versionless pinned-source main-module package URL; five other CI jobs passed
+while code was canceled. The narrow format fix preserved dependency versions
+and full inventory/graph identity before local D and the successful final trial.
+[Failed image receipt](evidence/1.0.1/failed-database-image.json),
+[report-format checkpoint](evidence/1.0.1/database-runtime-checkpoint.json).
+Empty-coverage helper output and interrupted public transfers were never
+relabeled as passing analysis or artifact failures. Successful resumed transfers
+preserved normal certificate and digest verification.
 
-Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
-Its exact six-job main/tag CI, signed trial/consumer verification and actual
-Windows recovery passed. Late review found the vulnerable PostgreSQL 17.6
-deployment/CI default and omitted database-image scan. Publication run
-`39117205810` was canceled; the release API confirmed no 1.0.0 GitHub release.
-[Withheld receipt](evidence/1.0.0/publication-withheld.json). The earlier published
-0.9.0 prerelease has the unsafe database default and is superseded. Preserve
-historical successes and failed attempts at their original scope.
-
-The final candidate review found and fixed deep keyset index usage, missing
-atomic source-creation audit, source-wide event clock validation, a Persian
-severity label, incomplete legal packaging and vulnerable pinned dependencies.
-Those earlier scoped architecture/implementation reviews reached 9/10 before
-the database-image finding. They do not override the current 8/10 whole-release
-score. The further correction defines `stackplore-postgres:1.0.1` from the same
-pinned PostgreSQL 17.11 base, rebuilding unchanged official gosu 1.19 with Go
-1.26.9 while retaining the upstream engine and entrypoint. Actual build,
-engine/helper/root-drop probes, full vulnerability scan and bound SPDX are
-required; no inherited finding is ignored or suppressed. Database Docker-save
-and seventh signed SBOM publication are also pending. Source work does not
-establish successful reassessment.
-
-The [corrective review](evidence/1.0.1/final-review.md) rechecks the accepted scope.
-Earlier fixes to stale documents and sensitive auth-test failure output retain
-assertions and runtime guards. Return to 9/10 only after actual corrective
-real-PostgreSQL, browser, hosted-deployment and strict scans pass; exact tag,
-signed publication and public consumer acceptance are further gates in the
-[1.0.1 receipt](evidence/1.0.1/README.md). Historical pending statements below
-describe their dated checkpoints and do not define current acceptance.
+Earlier keyset, audit, clock, locale, legal/dependency and sensitive-diagnostic
+fixes remain below. The [requirement matrix](evidence/0.9.0/requirements.md)
+maps unchanged product scope; [final review](evidence/1.0.1/final-review.md) and
+[release evidence](evidence/1.0.1/README.md) retain current results. Historical
+pending statements below describe only their dated checkpoints. Customer,
+air-gapped and cross-built platform limits remain explicit.
 
 ## Verified defects at review entry
 

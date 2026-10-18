@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "scope": "Exact main-dispatch artifacts independently downloaded and verified; actual native and database archives executed; public tag remains separate",
+  "version": "1.0.1",
+  "revision": "73ece4754554cca548c242768b195d21664d37b8",
+  "trial_run": 39122125492,
+  "main_ci_run": 39122125020,
+  "main_ci_jobs": 6,
+  "main_ci_conclusion": "success",
+  "artifact_id": 12134493627,
+  "artifact_archive_sha256": "2d4fc51024f5e419963ad8a1d3ee97ff6e4c743269b0b19025233a4f5f624450",
+  "manifest_entries_checked": 30,
+  "provenance_subjects_verified": 31,
+  "sbom_attestations_verified": 7,
+  "required_source_ref": "refs/heads/main",
+  "deny_self_hosted_runners": true,
+  "wrong_source_digest": "rejected",
+  "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+  "windows_archive_sha256": "9637166b56564fc940c3c75bf3a35e71768283b7cf36db296c4e2a494a0a5964",
+  "windows_go_metadata": {
+    "go": "1.26.9",
+    "CGO_ENABLED": 0,
+    "GOOS": "windows",
+    "GOARCH": "amd64",
+    "vcs_revision": "73ece4754554cca548c242768b195d21664d37b8",
+    "vcs_modified": false
+  },
+  "windows_checks": [
+    "setup",
+    "nine resources",
+    "972 metric samples",
+    "source state/version2",
+    "alert acknowledgement",
+    "SSE/replay",
+    "restart persistence",
+    "native PostgreSQL17.11 backup",
+    "empty-target restore",
+    "16 migrations",
+    "protected audit retained",
+    "sessions/preauth revoked",
+    "fresh administrator login",
+    "runtime version1.0.1",
+    "ownership loss nonzero shutdown"
+  ],
+  "database_archive": {
+    "schema_version": 1,
+    "date": "2026-10-18",
+    "version": "1.0.1",
+    "revision": "73ece4754554cca548c242768b195d21664d37b8",
+    "scope": "Independently verified trial database Docker-save archive loaded on local Linux amd64; owned isolated container only",
+    "archive_sha256": "90f7c434a392b6c7dbaab54305ed0f0aa33835ec3a84a6ca07f444cd956cfeba",
+    "metadata_sha256": "e6b4e29960c2af2723ee080a00de586cfbfc8cddb6973a6699ba1d41239037c0",
+    "image": "stackplore-postgres:1.0.1",
+    "config_digest": "sha256:3bd15f577c21f63c4ac9de671ef1d3d518ac28445d64033efc8cc245740b245f",
+    "postgres": "17.11",
+    "gosu": "1.19",
+    "go": "1.26.9",
+    "root_drop_uid": 70,
+    "root_drop_gid": 70,
+    "postgres_server_uid": 70,
+    "server_version_num": 170011,
+    "sql_query": "passed",
+    "network": "none",
+    "read_only": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "temporary_data": "owned tmpfs only; no persistent or customer database",
+    "copyright_sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd",
+    "cleanup": "owned label checked; container and anonymous volumes removed by exit trap"
+  },
+  "native_log_sha256": "657bc19edfeaca26ee7e03a4ca983b19b5209a675e364740c4105574dd2f7614",
+  "initial_database_consumer_attempt": "Rejected before runtime: local Docker29 reports manifest identity in Image.Id. Replacement verifies archive configuration SHA256, loaded rootfs diff IDs and execution config directly; no release artifact changed",
+  "review_score": 9,
+  "tag_and_public_acceptance": "passed; see published-release.json for independent exact-tag public verification and execution",
+  "strict_scans": [
+    {
+      "file": "dependency-scan.json",
+      "go_executables": 0,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "efaf484ea8b4a7a29d800ad5365364aa5fca5cb49f991e9b251bc1472f12768b"
+    },
+    {
+      "file": "image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "high_critical": 0,
+      "sha256": "42761fe7b956f6ca5b333ab69059419f7332f23e0a04a7233e3ca8b29f6cb3d5"
+    },
+    {
+      "file": "database-image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "high_critical": 0,
+      "sha256": "84472eeb56f9efd8f4f9daa0d3bc3b3ebc23467810a98c7eaec22fdabe856ae0"
+    },
+    {
+      "file": "stackplore_1.0.1_linux_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "17f7a381334566ccc1b706267288eaf63eff61968d8e336304f7f4eb8ea6f4c9"
+    },
+    {
+      "file": "stackplore_1.0.1_linux_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "eb2c0ba2acf30593c0899158298be2218e6ff411efadcbbe1dea8b0ec55298b5"
+    },
+    {
+      "file": "stackplore_1.0.1_windows_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "64e6dbd1a066280e0b2e2e3218ced8ef54eb0fb03c51d435ebafe22c92306aaf"
+    },
+    {
+      "file": "stackplore_1.0.1_darwin_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "34e8972694d1e31f41c1fad9d46c38dbf7de54115071548c44327ae83cc6e5dd"
+    },
+    {
+      "file": "stackplore_1.0.1_darwin_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "03396bb98b4f0284c189e715d8d48950fe09e75b99c477dd580ad9ac0b7a1a7c"
+    }
+  ],
+  "source_inventory": {
+    "packages": 470,
+    "npm_purls": 393,
+    "go_purls": 74
+  }
+}

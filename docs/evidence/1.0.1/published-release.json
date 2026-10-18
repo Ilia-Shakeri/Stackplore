@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "tag": "v1.0.1",
+  "revision": "73ece4754554cca548c242768b195d21664d37b8",
+  "published_at_utc": "2026-10-18T11:43:54Z",
+  "release": "https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.1",
+  "release_id": 416416913,
+  "main_ci_run": 39122125020,
+  "tag_ci_run": 39123016027,
+  "trial_run": 39122125492,
+  "release_run": 39123016084,
+  "package_job": 117662309169,
+  "publish_job": 117666236715,
+  "all_six_main_jobs": "success",
+  "all_six_tag_jobs": "success",
+  "package_and_publish": "success",
+  "downloaded_public_assets": 39,
+  "checked_manifest_entries": 30,
+  "provenance_subjects_verified": 31,
+  "sbom_attestations_verified": 7,
+  "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/tags/v1.0.1",
+  "required_source_ref": "refs/tags/v1.0.1",
+  "deny_self_hosted_runners": true,
+  "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+  "manifest_sha256": "439ec1f5bd5a543b0b903cd4eccc3be3691614abd299c42ef99604e6abdd7854",
+  "windows_archive_sha256": "9637166b56564fc940c3c75bf3a35e71768283b7cf36db296c4e2a494a0a5964",
+  "windows_archive_matches_runtime_tested_trial": true,
+  "trial_runtime_evidence": "consumer-trial.json",
+  "database_archive_matches_trial": false,
+  "database_archive": {
+    "schema_version": 1,
+    "date": "2026-10-18",
+    "version": "1.0.1",
+    "revision": "73ece4754554cca548c242768b195d21664d37b8",
+    "scope": "Independently verified published database Docker-save archive loaded on local Linux amd64; owned isolated container only",
+    "archive_sha256": "8b9caa13e4a31b510fb7e2cc438d545ab295a0c0511837f1ddb67565f11af1db",
+    "metadata_sha256": "f9eec2cd9b6bb6887eaaa0034b0a37167d34d407e01d1cabdb5ec152f58a84eb",
+    "image": "stackplore-postgres:1.0.1",
+    "config_digest": "sha256:372b3d466213f14583bf26c74345d22988fc312550f9248cbdaa555f30070843",
+    "postgres": "17.11",
+    "gosu": "1.19",
+    "go": "1.26.9",
+    "root_drop_uid": 70,
+    "root_drop_gid": 70,
+    "postgres_server_uid": 70,
+    "server_version_num": 170011,
+    "sql_query": "passed",
+    "network": "none",
+    "read_only": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "temporary_data": "owned tmpfs only; no persistent or customer database",
+    "copyright_sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd",
+    "cleanup": "owned label checked; container and anonymous volumes removed by exit trap"
+  },
+  "tagged_linux_native_smoke": {
+    "file": "native-smoke.json",
+    "sha256": "fe9471a77e867f44190859b1ef654a4df1703c052baead39c3657b84975fa5dd",
+    "revision": "73ece4754554cca548c242768b195d21664d37b8",
+    "platform": "linux/amd64",
+    "modes": [
+      "guest",
+      "normal"
+    ],
+    "graceful_shutdown": true,
+    "disposable_databases_removed": true
+  },
+  "strict_scans": [
+    {
+      "file": "dependency-scan.json",
+      "go_executables": 0,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "b1af2c6ef42934b409fae6ed6d9612a28cba7b4bf559fcb2ead8e6b91190b89e"
+    },
+    {
+      "file": "image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "high_critical": 0,
+      "sha256": "f5954bbe5f8faf42c56cbb0faefc494a07fd3970566e4fc4db2daae06e95aa34"
+    },
+    {
+      "file": "database-image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "high_critical": 0,
+      "sha256": "7038b96eebc73b41c4bc91d0a65c68cacb7438bccf7d819607488a63da9db8ef"
+    },
+    {
+      "file": "stackplore_1.0.1_linux_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "8bcd4e52be5fbb8933057426bbd212ae1e83ba20b3cb3c511ee73b6c69f70e49"
+    },
+    {
+      "file": "stackplore_1.0.1_linux_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "573d48c7c7ef0add11fef70597418a2f80b55d6006ae0d6c23d161e339747dcf"
+    },
+    {
+      "file": "stackplore_1.0.1_windows_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "8f0855531f54b6e643557c34b8392c12109d567bd70001c82c087ac2f33d4282"
+    },
+    {
+      "file": "stackplore_1.0.1_darwin_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "378011db0248b6d236f705bdf1a4276e26b2a9bf586c820c589c25a5e23b5be4"
+    },
+    {
+      "file": "stackplore_1.0.1_darwin_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "high_critical": 0,
+      "sha256": "6208f06ef214c25e0b06ed8da4d52e18cc2858f6f356e5574e7c4db0f152520e"
+    }
+  ],
+  "source_inventory": {
+    "packages": 470,
+    "npm_purls": 393,
+    "go_purls": 74
+  },
+  "secret_scan": {
+    "file": "secret-scan.json",
+    "findings": 0,
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "retained_transfer_attempts": [
+    "Initial managed transfer stopped after three interrupted application-image reads; partial bytes and nonzero exit retained.",
+    "Windows curl retained TLS revocation/read failures and resumed bytes; Linux direct connection timed out.",
+    "Final bounded public HTTPS TLS1.2/range resume passed normal certificate verification, every API size/digest and all signed-manifest checks. No artifact or trust policy changed."
+  ],
+  "review_score": 9,
+  "accepted_stages": 9,
+  "scope": "Exact immutable tagged public artifacts and disposable fixture acceptance. Actual Windows recovery uses byte-identical trial archive; the different public database archive was independently executed. Linux arm64 and macOS outputs are cross-built/scanned only. Customer production, credentials, ingress/TLS, receiver reachability, capacity, air-gapped installation and backup destinations require separate operator evidence."
+}

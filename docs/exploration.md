@@ -1,8 +1,10 @@
 # Exploring observations
 
-[فارسی](exploration.fa.md). This guide describes the implemented 0.9.0 candidate.
-The [evidence plan](implementation-plan.md) records executed checks; this guide
-does not establish live Docker, Kubernetes, proxy, or deployment proof.
+[فارسی](exploration.fa.md). This guide describes delivered 1.0.1.
+The [published receipt](evidence/1.0.1/published-release.json) and
+[evidence plan](implementation-plan.md) record accepted release checks.
+This guide alone does not prove a customer's Docker, Kubernetes, proxy or
+production installation.
 
 ## Sources and trustworthy states
 

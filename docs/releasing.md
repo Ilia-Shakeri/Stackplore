@@ -5,30 +5,19 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. A version number
 does not establish a passing release or customer installation.
 
-Current code is corrective 1.0.1; all nine stages are functionally implemented,
-but the current whole-release score is 8/10. Exact corrective real-PostgreSQL,
-browser, hosted-deployment and strict scan proof remains pending, followed by
-tag/publication and independent public-asset acceptance. Track results in the
-[active plan](implementation-plan.md) and [1.0.1 checklist](evidence/1.0.1/README.md).
+Release 1.0.1 is accepted and all nine stages are delivered at immutable source
+`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
+review is 9/10. Exact main/tag CI, signed publication and independent public
+verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
+SBOM attestations passed. The public Windows archive matches the actual
+recovery-tested trial. The different public database archive was independently
+loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
+Customer production and air-gapped installation remain separate operator work.
 
-The pushed upstream-only candidate `a252718efffbdbb03c8f4552c25e998f481c77bb`
-is rejected and untagged. Local B (24 release/policy, 40 client, 453 web tests)
-and all 14 browser cases passed. Trial `39119787671`, job `117652865830`, passed
-the exact upstream pull/compiled PostgreSQL 17.11 probe but failed the strict
-database-image scan. Fresh local Trivy 0.76.0 reproduced one CRITICAL and 24 HIGH
-gosu Go-library findings; all remain blocking. The hosted job did not retain
-its JSON; the [failed receipt](evidence/1.0.1/failed-database-image.json) records
-the local reproduction and scope. No exception or suppression may bypass it.
-
-Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
-Its six-job main/tag CI, signed trial, consumer verification and actual Windows
-recovery passed within their original scope. Publication run `39117205810` was
-canceled after finding the PostgreSQL 17.6 default and absent database-image
-scan; the release API confirmed no 1.0.0 GitHub release. The earlier published
-0.9.0 prerelease has the unsafe database default and is superseded.
-[Withheld receipt](evidence/1.0.0/publication-withheld.json). Preserve the tag and
-historical receipts. Do not promote an old passing run to corrective proof or
-record new commit/tag identities before they exist.
+Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
+Trial `39122125492` and release `39123016084` succeeded; stable public release
+`416416913` was published at `2026-10-18T11:43:54Z`. Failed upstream-only and
+report-format candidates, withheld 1.0.0 and superseded 0.9.0 remain history.
 
 The [artifact procedure](operations/release.md) ([فارسی](operations/release.fa.md))
 defines the implemented tag/dispatch workflow, strict scans, SBOMs, checksums,
@@ -61,7 +50,7 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
 The canonical [PostgreSQL image policy](../deploy/postgres-image.json) is a
-separate release boundary. The intended runtime `stackplore-postgres:1.0.1`
+separate release boundary. The reviewed runtime `stackplore-postgres:1.0.1`
 uses the same digest-pinned upstream PostgreSQL 17.11 base and rebuilds unchanged
 official gosu 1.19 with Go 1.26.9. Engine and entrypoint are retained. Actual
 build, helper/engine versions and root-drop behavior must be checked, followed
@@ -74,8 +63,9 @@ with identity binding between them. Publish the actual database Docker-save
 archive and its seventh signed SBOM. Application-image scanning does not cover
 the database image. Expected totals are **39 public assets, 30 checksum entries,
 all 31 provenance subjects and seven SBOM attestations**: five native archives,
-the application image and the database image. Counts and successful derivative
-execution remain unverified until the exact new trial/publication is checked.
+the application image and the database image. These counts, derivative execution and exact public publication/download checks
+passed independent verification for 1.0.1; see the
+[published receipt](evidence/1.0.1/published-release.json).
 
 After milestone checks, exact-commit CI and review, create the matching
 annotated tag. Never reuse an old checkpoint's tag command for a new version:
@@ -99,9 +89,9 @@ SBOM, signed artifact provenance, checksums, supported-version policy and final
 independent review. Screenshots must come from the running final demo. Workflow
 definitions and local scanner receipts do not replace exact-tag package, image
 scan, signing and consumer-verification evidence. Do not label a 0.x development
-checkpoint or the withheld 1.0.0 tag as a completed corrective release. Return
-the review score to 9/10 only after actual corrective PostgreSQL, browser,
-hosted-deployment and strict scans pass; final publication acceptance is additional.
+checkpoint or the withheld 1.0.0 tag as a completed corrective release. Current
+review is 9/10 after actual PostgreSQL, browser, hosted-deployment, strict scans
+and archive recovery checks; final publication acceptance is additional.
 
 ## Platform and acceptance scope
 

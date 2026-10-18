@@ -8,30 +8,26 @@ release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
 
-Current code is corrective 1.0.1, with all nine stages functionally implemented
-and a whole-release review score of 8/10. Corrective full local/browser, real
-PostgreSQL/native restore, hosted-deployment and strict scan results remain
-pending until recorded in the [active plan](implementation-plan.md) and
-[acceptance checklist](evidence/1.0.1/README.md). A running check has no passing
-result yet. Immutable 1.0.0 passed its recorded main/tag/trial/recovery checks,
-but its publication was canceled after finding the vulnerable database default
-and missing database-image scan; the release API confirmed no release.
-The published 0.9.0 prerelease has the unsafe default and is superseded.
-[Withheld receipt](evidence/1.0.0/publication-withheld.json).
-Historical receipts below describe their own revisions. Project acceptance and
-a customer's production deployment are separate; these tests do not deploy it.
+Release 1.0.1 is accepted and all nine stages are delivered at immutable source
+`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
+review is 9/10. Exact main/tag CI, signed publication and independent public
+verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
+SBOM attestations passed. The public Windows archive matches the actual
+recovery-tested trial. The different public database archive was independently
+loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
+Customer production and air-gapped installation remain separate operator work.
 
-Pushed candidate `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B
-with 24 release/policy, 40 client and 453 web tests, plus all 14 actual browser
-cases. It remains **rejected and untagged** because trial `39119787671` failed
-its strict database-image scan after passing the exact upstream pull and
-compiled PostgreSQL 17.11 probe. The hosted job did not retain its scan JSON.
-A fresh Windows Trivy 0.76.0 reproduction found one CRITICAL and 24 HIGH
-findings, all in gosu's Go 1.24.6 library; 45 Alpine 3.24.2 OS packages had no
-blocking findings. Preserve both the successful local/browser receipts and the
-[failed image receipt](evidence/1.0.1/failed-database-image.json). No finding is
-suppressed. A new derivative-tree full gate C and runtime/scan/recovery proof
-remain pending; earlier passes do not establish the new image.
+Full local D passed 28 release/policy, 40 client and 453 web tests with real
+PostgreSQL 17.11; fresh browser B passed all 14 cases. Web coverage is 81.61%
+statements, 77.8% branches, 85.48% functions and 83.11% lines. The final eight
+public vulnerability reports each have zero HIGH/CRITICAL findings; full-history
+secret scan has zero findings. Signed Linux amd64 guest/normal smoke passed.
+The public Windows archive equals the recovery-tested trial. Because the public
+database archive differs from trial, it was independently loaded and executed;
+identity, PostgreSQL 17.11, gosu 1.19/Go 1.26.9, UID/GID 70 root-drop,
+read-only/network-none/non-root SQL, license and owned cleanup passed.
+Historical failed candidates remain failed; project checks do not prove a
+customer rollout or a full air-gapped installation.
 
 | Boundary                                   | Required check                                              | Proof limitation                                                                        |
 | ------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -60,7 +56,7 @@ Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
 defines the approved digest. Corrective proof needs real database execution,
 readiness/ledger checks and native backup/empty-target restore, plus exact
 database base/derivative and engine/helper metadata, root-drop behavior, full
-image scan and matching SPDX inventory. The intended `stackplore-postgres:1.0.1`
+image scan and matching SPDX inventory. The reviewed `stackplore-postgres:1.0.1`
 rebuilds unchanged official gosu 1.19 with Go 1.26.9 on the same pinned upstream
 17.11 base, retaining its engine and entrypoint. Build owned patched fixtures
 before Compose/CI tests; Helm remains external-PostgreSQL based. Require actual

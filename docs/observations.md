@@ -1,9 +1,10 @@
 # Durable observations and source settings
 
-This reference includes the 0.9.0 candidate provider and partition boundaries;
-the exact executed gates remain in the active plan. [فارسی](observations.fa.md),
+This reference describes the delivered 1.0.1 provider and partition boundaries.
+All nine stages are delivered; public release acceptance passed in the
+[published receipt](evidence/1.0.1/published-release.json). [فارسی](observations.fa.md),
 [architecture](architecture.md), [configuration](configuration.md) and
-[current evidence](implementation-plan.md) cover the surrounding boundaries.
+[current evidence](implementation-plan.md) retain exact scope and customer limits.
 
 ## Collection and reads
 

@@ -2,7 +2,7 @@
 
 [فارسی](docker-provider.fa.md)
 
-The stage 5 candidate uses the official `github.com/moby/moby/client` `v0.6.2`
+The adapter introduced in stage 5 uses the official `github.com/moby/moby/client` `v0.6.2`
 and `github.com/moby/moby/api` `v1.56.1`. The latter is a module version; the
 highest negotiated HTTP API version is `1.56`, with client minimum `1.40`.
 SDK objects stay inside the Docker adapter. Ambient `DOCKER_HOST`,
@@ -14,8 +14,9 @@ restricted mTLS proof passed on Linux Engine `29.1.3`, negotiated API `1.52`,
 with Go `1.26.5` (128.01 seconds). Discovery, live stats, historic logs/events,
 client authentication and prohibited-route denial all passed; the owned fixture
 containers, network, volume and image were absent after cleanup. The dedicated
-CI job's remote result remains pending until recorded in the
-[evidence plan](implementation-plan.md). Another platform or operator daemon
+Docker job passed in exact main CI `39122125020` and tag CI `39123016027` on
+`73ece4754554cca548c242768b195d21664d37b8`; the
+[evidence plan](implementation-plan.md) records those results. Another platform or operator daemon
 needs its own check.
 
 ## Choose an operator profile

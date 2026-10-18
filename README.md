@@ -6,15 +6,13 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** Corrective `1.0.1` candidate; final acceptance is pending. All nine stages are functionally implemented. The immutable `v1.0.0` checkpoint passed its recorded checks, but publication was canceled after finding a vulnerable PostgreSQL 17.6 deployment default and a missing database-image scan. No `v1.0.0` GitHub release was published. The earlier `v0.9.0` prerelease also has the unsafe database default and is superseded. See the [current gates](docs/evidence/1.0.1/README.md) and [withheld checkpoint history](docs/evidence/1.0.0/README.md).
+> **Status:** Released and accepted `v1.0.1` at `73ece4754554cca548c242768b195d21664d37b8`. All nine stages are delivered; architecture/code review is **9/10**. Exact main/tag CI, signed publication, independent public verification and actual Windows/database archive checks passed. [Published receipt](docs/evidence/1.0.1/published-release.json).
 
-The pushed upstream-only 1.0.1 candidate is rejected: its local gate and all 14
-browser cases passed, but [trial 39119787671](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39119787671)
-failed the database-image scan. Fresh analysis found one CRITICAL and 24 HIGH
-findings in `gosu`'s bundled Go library; all remain blocking.
-A derivative PostgreSQL image with rebuilt `gosu` is being prepared. Its build,
-runtime and scan results remain pending; 1.0.1 is untagged and unaccepted.
-[Failed receipt](docs/evidence/1.0.1/failed-database-image.json).
+All 39 public files, 30 checksum entries, all 31 provenance subjects and seven
+SBOM attestations were verified. The public Windows archive matches the
+recovery-tested trial; the different public database archive was independently
+loaded and executed. Earlier 0.9.0 is superseded for its unsafe database default;
+immutable 1.0.0 remains withheld and failed intermediate trials remain history.
 
 ## Implemented
 
@@ -31,15 +29,12 @@ runtime and scan results remain pending; 1.0.1 is untagged and unaccepted.
 - One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and actual TLS-backed chart installation.
 - Public-only PWA offline shell and explicit updates, bounded streamed redacted log downloads, URL event filters, health history, metric trends, coalesced live inventory/topology, and operator-mounted Kubernetes token-file or certificate profiles. See [exploration](docs/exploration.md) and [Kubernetes profiles](docs/kubernetes-provider.md).
 
-## Still required for 1.0.1 acceptance
+## Release verification
 
-- Exact corrective-tree full local, browser, PostgreSQL 17.11 and hosted provider/deployment gates, including native backup/empty-target restore
-- Derivative database engine/helper/digest and root-drop proof, complete database-image scan and bound SPDX, plus native/application/source/history scans and independent signed-artifact verification
-- Matching `v1.0.1` tag, signed publication and public artifact acceptance; expected counts are 39 assets, 30 checksum entries, all 31 provenance subjects and seven native/application/database SBOM attestations, still unverified
-
-The current review score is **8/10** until the corrective runtime, deployment
-and scan gates actually pass. Earlier successful checks remain historical
-evidence; they do not establish corrective-release acceptance.
+All release gates passed: exact main/tag CI, strict scans, signed publication,
+independent public verification and actual archive recovery/runtime checks.
+The accepted public set contains 39 files, 30 checksums, all 31 provenance
+subjects and seven SBOM attestations. [Evidence](docs/evidence/1.0.1/README.md).
 
 Customer production rollout is an operator deployment decision. Its credentials,
 provider permissions, receiver reachability, backup destination and capacity
@@ -70,8 +65,9 @@ The corrective tree defines `stackplore-postgres:1.0.1` from a digest-pinned
 PostgreSQL 17.11 base in [`deploy/postgres-image.json`](deploy/postgres-image.json).
 It rebuilds unchanged `gosu` 1.19 with Go 1.26.9 while retaining the upstream
 database engine and entrypoint. Compose/CI must build the owned patched image;
-the release will include its Docker-save archive and signed SBOM. Actual
-derivative build/runtime/scan receipts remain pending. Helm continues to use
+the signed trial includes its Docker-save archive and signed SBOM. Actual
+derivative build/runtime/scan, signed publication and independent public archive
+consumption passed. Helm continues to use
 operator-owned external PostgreSQL. Do not use the superseded 0.9.0 database
 default. Existing installations need the reviewed
 [patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline),

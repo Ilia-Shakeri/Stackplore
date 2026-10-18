@@ -7,33 +7,22 @@ records commands and results. [Audit](codebase-audit.md) records defects and
 coverage. A source definition, test fixture, or deployment manifest is not proof
 that its feature works in a live target.
 
-Current status (2026-10-18): all nine stages are functionally implemented;
-corrective release acceptance is pending. Stages 1–7 are published checkpoints; Stage 8 is
-tagged at `v0.9.0` on `20f8c2e30cb2ccdfc16aa266f0b0d5647c429881`. Its exact
-main CI, 14-case browser gate, signed artifact trial, consumer provenance/SBOM
-verification and Windows archive recovery passed. Exact tag CI/publication and
-independent public-asset verification also passed. That historical 0.9.0
-prerelease has the unsafe PostgreSQL 17.6 default and is superseded.
+Release 1.0.1 is accepted and all nine stages are delivered at immutable source
+`73ece4754554cca548c242768b195d21664d37b8`, tag `v1.0.1`. Architecture/code
+review is 9/10. Exact main/tag CI, signed publication and independent public
+verification of all 39 files, 30 checksums, all 31 provenance subjects and seven
+SBOM attestations passed. The public Windows archive matches the actual
+recovery-tested trial. The different public database archive was independently
+loaded and executed successfully. [Published receipt](evidence/1.0.1/published-release.json).
+Customer production and air-gapped installation remain separate operator work.
 
-Immutable `v1.0.0` remains at `a424d9f4c9f23d25960b93482b3096a6d05d0e1f`.
-Its exact six-job main/tag CI, signed trial, independent artifact verification
-and actual Windows recovery passed, but publication run `39117205810` was
-canceled after discovering the vulnerable database default and omitted
-database-image scan. The release API confirmed no 1.0.0 GitHub release;
-[withheld receipt](evidence/1.0.0/publication-withheld.json).
-Stage 9 targets corrective `1.0.1`; current whole-release score is **8/10**.
-Pushed `a252718efffbdbb03c8f4552c25e998f481c77bb` passed local gate B and all
-14 browser cases, but trial `39119787671` failed the strict database-image scan
-after its upstream PostgreSQL 17.11 engine probe passed. Fresh reproduction found
-one CRITICAL and 24 HIGH gosu Go-library findings; all remain blocking, without
-exceptions. The candidate is rejected and untagged; preserve its
-[failed receipt](evidence/1.0.1/failed-database-image.json). The derivative-image
-replacement needs fresh actual build/runtime, PostgreSQL/native restore,
-browser scope, hosted deployment and scan proof, then exact tag/publication and
-consumer acceptance in the [current receipt](evidence/1.0.1/README.md).
-[Exploration](exploration.md)
+Stages 1–8 retain their dated history; the 0.9.0 prerelease is superseded for
+the unsafe database default. Immutable 1.0.0 remains withheld. The failed
+upstream-only and report-format candidates are preserved, with their passing
+subchecks separate from failed trial outcomes. The unchanged accepted 1.0
+product scope is described by [exploration](exploration.md)
 ([فارسی](exploration.fa.md)), [observations](observations.md) and
-[alerts and delivery](alerts-notifications.md) describe current boundaries.
+[alerts](alerts-notifications.md).
 
 ## Version and delivery rules
 
@@ -238,20 +227,11 @@ unimplemented 1.0 requirement hidden behind a completion claim.
 
 ## Stage 9 — Final independent review and corrective 1.0.1
 
-Status: corrective 1.0.1 candidate, current score **8/10**. The canonical
-[database policy](../deploy/postgres-image.json) defines the intended
-`stackplore-postgres:1.0.1` derivative from the same pinned PostgreSQL 17.11 base,
-rebuilding unchanged official gosu 1.19 with Go 1.26.9 and retaining the upstream
-engine/entrypoint. The minimum native client remains 17.11 within 17.x. Actual
-derivative build, engine/helper versions, root-drop behavior, full-image scan
-and bound SPDX join application/native/source/history gates. Compose/CI build
-owned patched fixtures; Helm retains external PostgreSQL. Include the database
-Docker-save archive and seventh signed SBOM; expected counts are 39 assets,
-30 checksums, all 31 provenance subjects and seven SBOM attestations, pending.
-Configured gates are not execution proof. Return to 9/10 only after the actual
-corrective real-PostgreSQL/native-restore, browser, hosted-deployment and strict
-scan gates pass without suppressing inherited findings. Exact tag, signed publication and independent public artifact
-acceptance remain separate required gates.
+Status: delivered and released as accepted 1.0.1, architecture/code review
+**9/10**. Exact main/tag CI, complete strict scans, signed trial/publication,
+independent 39-file/30-checksum/all-31-provenance/seven-SBOM public checks and
+actual Windows/database archive acceptance passed.
+[Published receipt](evidence/1.0.1/published-release.json).
 
 Repeat the whole-repository architecture/security/correctness/operations review.
 Score architecture and implementation separately from product completion and
