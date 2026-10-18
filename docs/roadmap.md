@@ -10,8 +10,9 @@ that its feature works in a live target.
 The current working target is **1.0.2**, a corrective candidate after a fresh
 whole-repository audit of the 1.0.1 delivery. The review reopened quality at
 **8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
-hosted, signed publication and independent public-consumer gates remain pending.
+focused regressions. Earlier full local C and the scoped production-interface
+browser passed. A later retained-event REST/SSE correction has focused proof;
+full replacement D passes; new exact-source hosted/signed/public gates remain pending.
 [Fresh review and current proof](evidence/1.0.2/README.md).
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
@@ -233,8 +234,10 @@ unimplemented 1.0 requirement hidden behind a completion claim.
 Status: reopened corrective candidate at **8/10**. The historical 1.0.1
 release retains its published proof. The fresh review fixes confirmed data,
 security, native-tool and interface defects plus the accepted navigation gap;
-the complete local and fresh production-browser gates pass; exact-source CI,
-signed publication and independent consumer gates remain pending. [Current evidence](evidence/1.0.2/README.md).
+earlier full local C and the scoped production-interface browser passed. The
+later retained-event REST/SSE response amendment has focused proof; full
+replacement D passes; new exact-source CI, signed publication and independent
+consumer gates remain pending. [Current evidence](evidence/1.0.2/README.md).
 
 Repeat the whole-repository architecture/security/correctness/operations review.
 Score architecture and implementation separately from product completion and

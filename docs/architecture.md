@@ -3,8 +3,9 @@
 The current working target is **1.0.2**, a corrective candidate after a fresh
 whole-repository audit of the 1.0.1 delivery. The review reopened quality at
 **8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
-hosted, signed publication and independent public-consumer gates remain pending.
+focused regressions. Earlier full local C and the scoped production-interface
+browser passed. A later retained-event REST/SSE correction has focused proof;
+full replacement D passes; new exact-source hosted/signed/public gates remain pending.
 [Fresh review and current proof](evidence/1.0.2/README.md).
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
@@ -63,7 +64,9 @@ docs/                         decisions, security, development, operations
 Schema 17 adds canonical byte-order notification/rule indexes; their keyset
 seek predicates and sort order share that collation. Later-page native event
 permission denial closes the collection result instead of retaining earlier data. Provider
-log/event text shares credential-userinfo masking, and native database tools
+log/event text shares credential-userinfo masking. A shared REST/initial-and-polled-SSE
+event mapper reapplies the deployment policy to retained summaries before the
+8,192-rune output limit; this does not rewrite older stored rows/backups. Native database tools
 preserve literal database identity through one URI decode and escaped libpq
 selection. The interface adds fixed role-aware keyboard navigation and presents
 localized severities and observed node facts. See the scoped

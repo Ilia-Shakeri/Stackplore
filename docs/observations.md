@@ -8,6 +8,13 @@ and [current evidence](implementation-plan.md) retain proof limits.
 
 ## Collection and reads
 
+REST and initial/subsequent SSE event responses apply the deployment redaction
+policy to summaries read from storage, including rows written by older versions,
+then enforce an 8,192-rune output limit. This response guard does not rewrite
+stored rows or archives. Follow the
+[upgrade response](operations/upgrade-rollback.md#retained-event-text-and-exposure-response)
+for retained sensitive data and prior exposure.
+
 The operator enables Demo, a loopback-development Docker socket, the restricted
 Docker proxy, or explicitly namespace-scoped Kubernetes through deployment
 configuration. Startup inserts missing registry rows and preserves enablement.

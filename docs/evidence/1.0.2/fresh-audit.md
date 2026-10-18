@@ -14,9 +14,19 @@ gap were found. Final independent backend/interface/release-helper review now
 assigns **9/10** with no open verified defect in that scope; whole-delivery
 acceptance remains **8/10** pending exact-source hosted and signed/public proof.
 Scores are review judgments, not measured coverage or customer certificates.
-The final corrected local gate C and scoped production-interface browser pass;
-exact-source hosted and signed/public-consumer acceptance remain pending.
+Earlier local gate C and the scoped production-interface browser passed before
+the retained-event response amendment. That amendment has focused passing proof;
+full replacement D now passes. New exact-source hosted and signed/public-consumer
+acceptance remain pending.
 [Gate ledger](README.md).
+
+Candidate `18e8558e76d5c2fec4eb1d752bceaa43aaa1f260` was committed/pushed,
+then review found that already-persisted native-event summaries bypassed provider
+masking on REST and SSE output. Its main CI `39131357982` and trial `39131368817`
+remain earlier-source results; the trial package passed but cannot certify this
+amendment. No 1.0.2 tag was made. The shared response mapper now applies the
+existing deployment policy before the 8,192-rune summary limit, including later
+SSE polls. Stored rows and old archives remain unchanged.
 
 After replacement B and the browser UI run passed, one more independent probe
 found a serialized URL whose escaped slashes survive an outer JSON decode.
@@ -42,6 +52,7 @@ corrected-source gate.
 | Boundary | Trigger and consequence | Correction and regression |
 | --- | --- | --- |
 | Provider text masking | A log or Kubernetes event containing a URL with credential userinfo exposed those bytes, including JSON strings/member names. | Shared masking removes complete userinfo, including usernames used as tokens. Independent review exposed apostrophe, clipped authority, embedded scheme and JSON member-name residuals after the initial fix. Whole-object masking prevents credential-name leaks/key collisions; final package regressions pass. |
+| Retained event output | A native event stored by an older version could contain credential text. REST and initial/polled SSE mapped that stored summary without output redaction. | One response mapper applies the existing deployment policy and bounds the resulting summary to 8,192 runes. Generated-marker tests cover both transports, later real SSE polling, safe text, metadata, Persian limit, mask expansion and reader immutability. No row or backup rewrite is claimed. |
 | HTTP 405 response | Unsupported methods on log download and three source-setting path forms returned an empty Allow header. | Exact GET/GET/PATCH/POST methods are now published; all four real-handler regressions pass. Successful route methods and contract shapes are unchanged. |
 | Event collection authority | Page one succeeded and a later page denied permission. The collector converted the denial to available/partial and retained one event. | A later permission-denied status stays authoritative; accumulated unauthorized native events are discarded. The regression covers the page transition; no additional unsupported-page correction is claimed. |
 | Notification/rule keysets | An installation with non-byte text collation ordered mixed-case identifiers differently from Go cursor validation, causing repository-unavailable failures. | Both ordering and seek predicates use canonical byte collation. Migration 17 adds matching indexes without rewriting prior SQL; real non-byte-collation and ledger-14/16 forward-upgrade checks pass. |
@@ -54,6 +65,21 @@ corrected-source gate.
 | Release document links | Packaged release notes pointed into mutable branch documentation. | Generated document links bind to the immutable source revision. Release-policy tests check the resulting links; a successful helper does not prove publication. |
 
 ## Focused proof
+
+The retained-event regression uses a fake persisted reader that bypasses provider
+sanitization, exercising the real HTTP/SSE mapping rather than claiming a new
+SQL migration. Before correction, ten summary cases and the later-poll test
+failed while four safe controls passed. After correction, all fourteen REST/SSE
+cases and the real subsequent poll passed in 6.991s:
+`go -C apps/api test ./internal/httpapi -run 'TestRetainedEventSummariesAreRedactedAtHTTPBoundaries|TestRetainedEventStreamPollKeepsDeploymentRedactionPolicy' -count=1 -v`.
+Full HTTP and masking packages then passed in 5.821s/0.810s. Private
+`.tmp/fresh-audit-retained-event-before.log`,
+`.tmp/fresh-audit-retained-event-after.log` and
+`.tmp/fresh-audit-retained-event-package.log` retain those outcomes. Independent
+review returned 9/10 within the amended scope; complete replacement D now passes.
+For retained credentials, follow the
+[upgrade response](../../operations/upgrade-rollback.md#retained-event-text-and-exposure-response)
+([فارسی](../../operations/upgrade-rollback.fa.md#متن-رویداد-قدیمی-و-پاسخ-به-افشا)).
 
 Backend private URL overlay `TestAuditURLCredentials` failed all three initial
 text/JSON cases with marker-free messages. The exact original Allow function
@@ -200,7 +226,16 @@ thresholds remain unchanged. Browser proof remains scoped to its recorded
 precommit UI snapshot; exact committed backend/browser checks are still required
 in hosted jobs.
 
-No new production rollout follows from these fixes. Preserve all prior tags,
+The later retained-event response amendment passed complete replacement D,
+exit 0 through final web/API builds: all Go/native/core, client 40, release/policy
+29 and web 477/49 files. The web run completed in 206.67s with coverage
+82.91% statements, 78.68% branches, 86.71% functions and 84.48% lines. The
+[current local receipt](local-gate.json) records transcript SHA-256
+`8595a3ded232a88fb920555c0484da10f9bbc85a867f2e8c478c342fae4cdb31`
+and preserves the earlier B/C results. New exact-source CI/trial remain required
+before tagging. C and the `18e8558` hosted/trial
+outcomes remain true only for their recorded earlier source. No new production
+rollout follows from these fixes. Preserve all prior tags,
 historical counts, failed trials and interrupted transfers. Full local and
 browser checks have passed within their recorded scope. Exact-source hosted jobs, strict full-image/native/source/history
 scans, signing, public identity/checksum/provenance/SBOM verification and actual

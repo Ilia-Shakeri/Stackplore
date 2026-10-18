@@ -12,8 +12,10 @@ files were preserved and reviewed as part of the candidate baseline.
 The 2026-10-18 review restarted from `657a600`, the 1.0.1 documentation
 delivery. The current target is **1.0.2** and quality reopens at **8/10**.
 Confirmed security/correctness gaps and the accepted keyboard-navigation gap
-have scoped fixes and focused regressions. The complete local and fresh production-browser gates pass; exact-source
-hosted, signed/public-consumer and final independent acceptance remain pending.
+have scoped fixes and focused regressions. Earlier full local C and the scoped
+production-interface browser passed. A later retained-event REST/SSE correction
+has focused proof; full replacement D passes; new exact-source hosted/signed/public
+acceptance remain pending.
 The [fresh audit](evidence/1.0.2/fresh-audit.md) records triggers, consequences,
 corrections, proof levels and remaining scale limits. Schema is now 17.
 

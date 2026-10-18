@@ -2,8 +2,9 @@
 
 [فارسی](exploration.fa.md). This guide describes the implemented **1.0.2
 candidate**. [Fresh proof](evidence/1.0.2/README.md) keeps focused regressions
-separate from passing local/browser gates and pending exact-source hosted
-and signed/public acceptance. Historical 1.0.1 receipts retain their original scope; a guide does
+separate from earlier local C/scoped browser proof. A later retained-event REST/SSE
+correction has focused proof; full replacement D passes; new exact-source hosted
+and signed/public acceptance remain pending. Historical 1.0.1 receipts retain their original scope; a guide does
 not prove a customer's installation.
 
 ## Sources and trustworthy states

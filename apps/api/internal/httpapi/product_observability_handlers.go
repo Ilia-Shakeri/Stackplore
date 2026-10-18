@@ -4,11 +4,14 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -456,14 +459,22 @@ func (handler productHTTP) events(w http.ResponseWriter, r *http.Request) {
 	}
 	items := make([]eventResponse, len(result.Events))
 	for index, event := range result.Events {
-		items[index] = eventResponse{
-			ID: event.ID, ResourceID: event.ResourceID, EnvironmentID: event.EnvironmentID,
-			Kind: string(event.Kind), Severity: string(event.Severity), ReasonCode: string(event.ReasonCode),
-			Summary: event.Summary, OccurredAt: authTimestamp(event.OccurredAt),
-			ObservedAt: authTimestamp(event.ObservedAt), Synthetic: event.Synthetic,
-		}
+		items[index] = eventJSON(event, handler.logRedactionPolicy)
 	}
 	writeJSON(w, http.StatusOK, eventPageResponse{observationResponse: observationJSON(result.Status), Items: items, Page: pageJSON(result.Page)})
+}
+
+func eventJSON(event domain.InfrastructureEvent, policy logsafe.Policy) eventResponse {
+	summary, _, _ := policy.Message(event.Summary, false)
+	if utf8.RuneCountInString(summary) > domain.MaxEventSummaryLength {
+		summary = strings.TrimSpace(string([]rune(summary)[:domain.MaxEventSummaryLength]))
+	}
+	return eventResponse{
+		ID: event.ID, ResourceID: event.ResourceID, EnvironmentID: event.EnvironmentID,
+		Kind: string(event.Kind), Severity: string(event.Severity), ReasonCode: string(event.ReasonCode),
+		Summary: summary, OccurredAt: authTimestamp(event.OccurredAt),
+		ObservedAt: authTimestamp(event.ObservedAt), Synthetic: event.Synthetic,
+	}
 }
 
 func (handler productHTTP) alerts(w http.ResponseWriter, r *http.Request) {

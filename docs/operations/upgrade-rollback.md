@@ -28,6 +28,31 @@ matching 1.0.1 tool, verify it, stop that runtime, then upgrade the restored cop
 Do not run an older binary on ledger 17 or edit historical ledger checksums.
 Rollback needs the separately verified pre-upgrade backup.
 
+### Retained event text and exposure response
+
+An older runtime may have stored native-event summaries containing credential
+text. The corrected REST and initial/subsequent SSE response mapper applies the
+deployment redaction policy and an 8,192-rune output limit to those retained
+summaries. Migration 17 adds indexes; it does not rewrite these rows or backups.
+Focused transport tests pass, while full corrected-source acceptance remains in
+the [current evidence](../evidence/1.0.2/README.md).
+
+1. Restrict access to or stop an exposed older runtime. Verify the patched
+   release/source and its gates before reopening event/API access.
+2. Review the actual exposure through a private operator process. Rotate
+   affected credentials when exposure occurred; do not paste sensitive rows,
+   provider logs or downloads into a report.
+3. Protect the retained database, native archives and earlier exports with the
+   operator's access, encryption and archive policy. Output masking leaves their
+   stored bytes unchanged.
+4. If expiration is appropriate, use the existing
+   [confirmed bounded history cleanup](../settings.md#explicit-bounded-history-cleanup).
+   It requires an exact preview, purpose-bound recent authentication, one-use
+   confirmation and backup acknowledgement; one action removes at most 1,000
+   eligible rows before the current retention cutoff. Younger rows remain.
+   Deletion does not sanitize WAL, backups or physical media. Preserve protected
+   audit history; do not run a blanket SQL purge or unbounded migration scrub.
+
 ## 0.1.0 to 0.2.0
 
 The first six released migration bytes are unchanged. The new runtime adds

@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** Working target **1.0.2** after a fresh whole-repository audit. Review reopened at **8/10**. Confirmed fixes and the required navigation palette are implemented; the complete local and fresh production-browser gates pass; exact-source CI, signing and independent public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
+> **Status:** Working target **1.0.2** after a fresh whole-repository audit. Review reopened at **8/10**. Confirmed fixes and the required navigation palette are implemented; earlier full local C and the scoped production-interface browser passed. A later retained-event REST/SSE correction has focused proof; full replacement D passes; new exact-source CI/signing/public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
 
 Immutable [1.0.1](docs/evidence/1.0.1/published-release.json) keeps its historical
 39-file public verification and actual archive results. Those receipts do not

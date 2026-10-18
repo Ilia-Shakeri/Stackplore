@@ -14,6 +14,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/realtime"
 )
 
@@ -161,7 +162,7 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		}
 	}
 	readContext, cancelRead := context.WithTimeout(r.Context(), streamReadTimeout)
-	initial, err := buildStreamSnapshot(readContext, topic, provider)
+	initial, err := buildStreamSnapshot(readContext, topic, provider, handler.logRedactionPolicy)
 	cancelRead()
 	if err != nil {
 		var providerError *domain.ProviderError
@@ -172,7 +173,7 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		}
 		return
 	}
-	producer := streamProducer(topic, provider, initial)
+	producer := streamProducer(topic, provider, initial, handler.logRedactionPolicy)
 	key := string(topic) + "/" + string(provider.Source().ID)
 	subscription, err := handler.streams.Subscribe(key, lastID, producer)
 	if err != nil {
@@ -226,11 +227,11 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 	}
 }
 
-func streamProducer(topic streamTopic, provider ProductProvider, initial []byte) realtime.Producer {
-	return streamProducerWithInterval(topic, provider, initial, streamPollInterval)
+func streamProducer(topic streamTopic, provider ProductProvider, initial []byte, policies ...logsafe.Policy) realtime.Producer {
+	return streamProducerWithInterval(topic, provider, initial, streamPollInterval, policies...)
 }
 
-func streamProducerWithInterval(topic streamTopic, provider ProductProvider, initial []byte, interval time.Duration) realtime.Producer {
+func streamProducerWithInterval(topic streamTopic, provider ProductProvider, initial []byte, interval time.Duration, policies ...logsafe.Policy) realtime.Producer {
 	return func(ctx context.Context, publish func(string, []byte) error) {
 		last := bytes.Clone(initial)
 		sourceUnavailable := false
@@ -245,7 +246,7 @@ func streamProducerWithInterval(topic streamTopic, provider ProductProvider, ini
 				return
 			case <-ticker.C:
 				readContext, cancelRead := context.WithTimeout(ctx, streamReadTimeout)
-				data, err := buildStreamSnapshot(readContext, topic, provider)
+				data, err := buildStreamSnapshot(readContext, topic, provider, policies...)
 				cancelRead()
 				if err != nil {
 					if !sourceUnavailable {
@@ -267,7 +268,11 @@ func streamProducerWithInterval(topic streamTopic, provider ProductProvider, ini
 	}
 }
 
-func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider ProductProvider) ([]byte, error) {
+func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider ProductProvider, policies ...logsafe.Policy) ([]byte, error) {
+	policy := logsafe.Policy{}
+	if len(policies) > 0 {
+		policy = policies[0]
+	}
 	var refs []domain.ResourceRef
 	var resources map[domain.ResourceID]bool
 	if topic != streamAlerts {
@@ -341,11 +346,7 @@ func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider Produc
 		}
 		items := make([]eventResponse, len(result.Events))
 		for index, event := range result.Events {
-			items[index] = eventResponse{
-				ID: event.ID, ResourceID: event.ResourceID, EnvironmentID: event.EnvironmentID, Kind: string(event.Kind),
-				Severity: string(event.Severity), ReasonCode: string(event.ReasonCode), Summary: event.Summary,
-				OccurredAt: authTimestamp(event.OccurredAt), ObservedAt: authTimestamp(event.ObservedAt), Synthetic: event.Synthetic,
-			}
+			items[index] = eventJSON(event, policy)
 		}
 		observedAt, data = result.Status.ObservedAt, items
 	case streamLogs:

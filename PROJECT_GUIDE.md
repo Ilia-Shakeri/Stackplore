@@ -7,8 +7,9 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 The current working target is **1.0.2**, a corrective candidate after a fresh
 whole-repository audit of the 1.0.1 delivery. The review reopened quality at
 **8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
-hosted, signed publication and independent public-consumer gates remain pending.
+focused regressions. Earlier full local C and the scoped production-interface
+browser passed. A later retained-event REST/SSE correction has focused proof;
+full replacement D passes; new exact-source hosted/signed/public gates remain pending.
 [Fresh review and current proof](docs/evidence/1.0.2/README.md).
 
 The immutable 1.0.1 source and its [published receipt](docs/evidence/1.0.1/published-release.json)

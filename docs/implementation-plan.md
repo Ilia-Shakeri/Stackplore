@@ -9,18 +9,24 @@ reopened at **8/10**. Final independent backend/interface/release-helper review
 is **9/10** with no open verified defect in that scope; whole-delivery acceptance
 remains **8/10** pending exact-source CI and signed/public proof.
 [Fresh audit](evidence/1.0.2/fresh-audit.md) records verified triggers and fixes.
+Candidate `18e8558e76d5c2fec4eb1d752bceaa43aaa1f260` was pushed, then
+superseded by the verified retained-event REST/SSE response correction. Its
+main CI `39131357982` and trial `39131368817` retain their earlier-source scope;
+the trial package passed. Full local D passes; new corrected-source hosted gates
+remain pending; no 1.0.2 tag has been made.
 
 | Gate | Current result |
 | --- | --- |
 | Backend URL/HTTP regressions | Initial and independent apostrophe/clipping/JSON-member/embedded-scheme probes failed before fixes. Later multi-layer escaped-slash cases failed 21 leak cases with six safe controls; corrected whole package passes 1.250s, independent three-case overlay passes 1.159s and full corrected gate C passes. All four real 405 route regressions pass. |
+| Retained event REST/SSE | Ten leaking summaries and the later-poll test failed before correction; four safe controls passed. All 14 transport cases plus real SSE polling pass in 6.991s, full HTTP/masking packages in 5.821s/0.810s. Shared mapping applies deployment redaction then an 8,192-rune limit without changing retained rows/backups. |
 | Observation and PostgreSQL regressions | Later-page event denial, non-byte-collation notification/rule keysets, ledger-14/16-to-17 upgrade and actual native special-name backup/restore pass. All five related packages pass uncached with native PostgreSQL 17.11 tools; the current complete local receipt also passes. |
 | Interface regressions | Severity URL/localization, locked deleted-rule drafts, topology facts and account rendering have 65 unique focused passes across ten files. Final rule/users run passes 29 tests in three files (22.06s); scoped lint/type checks pass. Five palette checks and the scoped production-interface browser pass separately. |
 | Release-note policy | Immutable document-link helper and release/policy regressions pass; no signed 1.0.2 run is claimed. |
-| Full local gate | [Final precommit replacement C](evidence/1.0.2/local-gate.json) passes exit 0 through final web/API builds: all Go/native/core, client 40/2 files, release/policy 29, web 477/49 files, locale 725, schemas 235 and all checks/builds. Normal checksums/native tools/coverage/path/ownership policies stay enabled. B remains a real earlier-state pass; intervening nested slash-escaped URL negatives retain their failures. |
+| Full local gate | [Current precommit replacement D](evidence/1.0.2/local-gate.json) passes exit 0 after the retained-event amendment through final web/API builds: all Go/native/core, client 40/2 files, release/policy 29, web 477/49 files, locale 725 and schemas 235. Normal checksum/native-tool/coverage/path/ownership policies remain enabled; prior failures keep their outcomes. |
 | Local chart check | Actual strict Helm lint passes one chart (`.tmp/reaudit102-helm-lint.log`); no install/TLS-runtime result follows from lint. |
 | Production browser | [Scoped UI build](evidence/1.0.2/browser-gate.json) passes all 14 cases (`.tmp/reaudit102-browser.log`, exit 0): guest 12 plus normal English/Persian, 64 measured routes, eight palette/focus/viewport/accessibility profiles and 24 screenshots. Four named images visually reviewed; the later backend correction needs new exact-source gates. |
-| Exact-source main/tag CI | Pending reviewed source commit and exact run. |
-| Trial/signing/publication/consumer | Pending exact-source packaging, all strict scans, signatures, publication and independent archive verification. |
+| Exact-source main/tag CI | Corrected source commit/run pending; `39131357982` belongs to superseded `18e8558`. |
+| Trial/signing/publication/consumer | New corrected-source packaging/signing/public checks pending; trial `39131368817` package passed only for superseded `18e8558`. |
 
 Backend focused command passed with exit 0:
 
@@ -36,9 +42,9 @@ manually requested cache may still grow until refresh/unmount.
 Historical proof below
 retains its exact version, counts, commits and outcomes.
 
-Current C web coverage is 82.91% statements, 78.68% branches, 86.71% functions
-and 84.48% lines; the standard thread pool completed 477 tests in 291.80s.
-B's earlier coverage/timing remain in the receipt's historical property.
+Current D web coverage is 82.91% statements, 78.68% branches, 86.71% functions
+and 84.48% lines; the standard thread pool completed 477 tests in 206.67s.
+B/C's earlier coverage/timing remain in the receipt's historical property.
 The web build checks 63 exact legal packages/files. Native tools were
 explicitly enabled and module checksum verification stayed normal. Failed
 lint/API/cleanup attempts are retained; local success does not establish

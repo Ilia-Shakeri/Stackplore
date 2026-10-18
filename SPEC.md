@@ -6,9 +6,10 @@
 - **Specification status:** Accepted for implementation
 - **Implementation status:** Corrective candidate after a fresh full audit of
   the delivered 1.0.1 baseline. Review reopened at 8/10. Confirmed defects and
-  the accepted navigation gap have corrections and focused regressions; the complete
-  local and fresh production-browser gates pass. Exact-source hosted, signed
-  release and independent public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
+  the accepted navigation gap have corrections and focused regressions; earlier local C and the
+  scoped production-interface browser passed. A later retained-event REST/SSE
+  correction has focused proof; full replacement D passes; new exact-source hosted,
+  signed release and independent public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
   The unchanged 1.0 product scope remains authoritative. The immutable 1.0.1
   [published receipt](docs/evidence/1.0.1/published-release.json) retains its
   original source and proof limits; it does not certify the new candidate.

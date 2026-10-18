@@ -1,8 +1,9 @@
 # Security Model
 
 Status: 1.0.2 corrective candidate after the fresh audit; review reopened at
-8/10. The complete local and fresh production-browser gates pass; exact-source
-hosted, signed/public-consumer and final review gates remain pending in the [active plan](implementation-plan.md) and
+8/10. Earlier full local C and the scoped production-interface browser passed.
+A later retained-event REST/SSE correction has focused proof; full replacement D passes;
+new exact-source hosted/signed/public-consumer gates remain pending in the [active plan](implementation-plan.md) and
 [current evidence](evidence/1.0.2/README.md). Historical 1.0.1 proof retains its
 original scope.
 
@@ -186,10 +187,23 @@ offline page. A waiting update activates/reloads only after the user's action.
 
 Provider text masking removes complete credential URL userinfo before log
 transport or Kubernetes event summary persistence, including usernames used as
-tokens and nested JSON string values. Clipped text must fail closed when a URL
-authority may be incomplete. Redaction is defense in depth; review existing
-retained observations separately before sharing or exporting them. New masking
-does not rewrite historical event rows or prove all arbitrary text harmless.
+tokens and nested JSON string values. The REST and initial/subsequent SSE event
+response mapper also applies the existing deployment redaction policy to
+retained summaries, then enforces the 8,192-rune output limit. This covers rows
+written by an older runtime without trusting ingestion-time filtering. Clipped
+text must fail closed when a URL authority may be incomplete.
+
+Output masking does not rewrite stored summaries, native backup archives or
+earlier downloaded text. Restrict or stop an exposed older runtime, deploy the
+verified correction before reopening access and rotate credentials actually
+affected by prior exposure. Protect retained database state, provider logs and
+archives under the operator's access/encryption/retention policy. Existing
+confirmed history cleanup only removes eligible expired rows; younger rows
+remain. Deletion does not sanitize WAL, backups or physical media. Do not erase
+protected audit history or add an unbounded upgrade scrub. Follow the
+[upgrade response](operations/upgrade-rollback.md#retained-event-text-and-exposure-response)
+([فارسی](operations/upgrade-rollback.fa.md#متن-رویداد-قدیمی-و-پاسخ-به-افشا)).
+Redaction is defense in depth and does not prove all arbitrary text harmless.
 
 A later native event page's permission-denied result overrides
 earlier success and drops accumulated native events. Canonical byte-collation

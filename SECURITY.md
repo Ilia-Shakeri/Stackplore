@@ -4,11 +4,20 @@
 
 The maintained release line is **1.0.x**. Working target **1.0.2** is a
 corrective candidate after a fresh full audit; review reopened at **8/10**.
-Provider URL-userinfo masking, later-page event authority, canonical feed
+Provider URL-userinfo masking, retained-event REST/SSE output, later-page event authority, canonical feed
 ordering and literal native database selection have corrections. Focused
-regressions, the complete local gate and fresh production browser pass.
-Exact-source CI, signing and independent public verification remain pending.
-[Current evidence](docs/evidence/1.0.2/README.md).
+regressions pass. Earlier full local C and the scoped production-interface
+browser passed before the retained-event output amendment.
+[Current evidence](docs/evidence/1.0.2/README.md). A later retained-event output
+correction has focused passing proof; complete replacement D passes; new corrected-source
+hosted proof remains pending. Earlier C and `18e8558` trial/CI cover their earlier state.
+
+An upgrade does not rewrite historical event rows, backups or prior downloads.
+Restrict an exposed older runtime, deploy the verified correction and rotate
+credentials actually affected by prior exposure. Protect retained state and
+archives; bounded expired-history cleanup does not sanitize WAL or backups.
+Preserve protected audit history. [Upgrade response](docs/operations/upgrade-rollback.md#retained-event-text-and-exposure-response)
+([فارسی](docs/operations/upgrade-rollback.fa.md#متن-رویداد-قدیمی-و-پاسخ-به-افشا)).
 
 Immutable `v1.0.1` remains at
 `73ece4754554cca548c242768b195d21664d37b8` with its original

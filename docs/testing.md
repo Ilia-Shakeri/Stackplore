@@ -11,8 +11,9 @@ Do not weaken tests or hide skips to claim completion.
 The current working target is **1.0.2**, a corrective candidate after a fresh
 whole-repository audit of the 1.0.1 delivery. The review reopened quality at
 **8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. The complete local gate and fresh production-browser suite pass; exact-source
-hosted, signed publication and independent public-consumer gates remain pending.
+focused regressions. Earlier full local C and the scoped production-interface
+browser passed. A later retained-event REST/SSE correction has focused proof;
+full replacement D passes; new exact-source hosted/signed/public gates remain pending.
 [Fresh review and current proof](evidence/1.0.2/README.md).
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
@@ -263,6 +264,13 @@ real browser journeys; they do not replace them.
 Mixed event timeline checks retain the permission boundary: denied native
 `EventHistory` means a denied empty feed even when safe operation/alert facts
 exist. A separate system subfeed is not part of the current HTTP contract.
+
+Retained-event transport regressions use a fake persisted reader to bypass
+provider ingestion filtering. They cover REST, initial SSE and a real later SSE
+poll, deployment policy, safe text/metadata, Persian 8,192-rune bounds, mask
+expansion and reader immutability. They prove output masking, not a historical
+SQL/backups rewrite. Run
+`go -C apps/api test ./internal/httpapi -run 'TestRetainedEventSummariesAreRedactedAtHTTPBoundaries|TestRetainedEventStreamPollKeepsDeploymentRedactionPolicy' -count=1 -v`.
 
 Build the embedded production UI, then run `npm.cmd run test:browser` with
 `SP_BROWSER_ADMIN_URL` loaded privately for a disposable loopback PostgreSQL

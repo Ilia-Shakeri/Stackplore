@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "version": "1.0.2",
-  "scope": "Precommit working-tree local gate; exact immutable source verification remains a separate hosted gate",
+  "scope": "Latest precommit code gate after retained-event REST, initial SSE and polled SSE correction; exact immutable hosted, signed and public source verification remains separate",
   "baseline_revision": "657a600f0ebaee7f8a5f72dd6393e07cd80f94e3",
-  "observed_at_utc": "2026-10-18T13:19:42.9182569Z",
+  "observed_at_utc": "2026-10-18T13:44:32.7663306Z",
   "command": "npm.cmd run verify",
   "exit_code": 0,
-  "transcript_sha256": "2de5e8b1bb80b71bec05e25ccbbc62ad19341b40df9c2effbf501cb9870891e1",
+  "transcript_sha256": "8595a3ded232a88fb920555c0484da10f9bbc85a867f2e8c478c342fae4cdb31",
   "environment": {
     "os": "Windows",
     "node": "24.18.0",
@@ -20,7 +20,7 @@
   },
   "checks": {
     "format": "passed",
-    "documentation_links": 851,
+    "documentation_links": 859,
     "locale_messages": 725,
     "bounded_contract_schemas": 235,
     "contract_drift": "passed",
@@ -54,19 +54,7 @@
     "Private negative probes, interrupted cold builds, worker startup timeout and fixture assertion mismatch remain failed receipts."
   ],
   "limits": "This receipt does not establish browser, exact-source hosted jobs, container installs, signing, publication, other native platforms or customer production.",
-  "earlier_passing_state": {
-    "attempt": "b",
-    "exit_code": 0,
-    "transcript_sha256": "d74e4066b012270b10f29d798b1810a3745f5f6dc44e89af60a59819e65397c0",
-    "web_coverage": {
-      "statements": 82.99,
-      "branches": 78.99,
-      "functions": 87.02,
-      "lines": 84.54
-    },
-    "scope": "Passed earlier tree before the independently reproduced serialized-URL residual; retained without relabeling"
-  },
-  "attempt": "c",
+  "attempt": "d",
   "final_redaction_proof": {
     "new_serialized_separator_cases": 27,
     "before_leak_failures": 21,
@@ -77,5 +65,50 @@
     "independent_cases": 3,
     "independent": "passed",
     "processing_bounds": "unchanged"
+  },
+  "earlier_passing_states": [
+    {
+      "attempt": "b",
+      "exit_code": 0,
+      "transcript_sha256": "d74e4066b012270b10f29d798b1810a3745f5f6dc44e89af60a59819e65397c0",
+      "web_coverage": {
+        "statements": 82.99,
+        "branches": 78.99,
+        "functions": 87.02,
+        "lines": 84.54
+      },
+      "scope": "Passed earlier tree before the independently reproduced serialized-URL residual; retained without relabeling"
+    },
+    {
+      "attempt": "c",
+      "exit_code": 0,
+      "transcript_sha256": "2de5e8b1bb80b71bec05e25ccbbc62ad19341b40df9c2effbf501cb9870891e1",
+      "web_coverage": {
+        "statements": 82.91,
+        "branches": 78.68,
+        "functions": 86.71,
+        "lines": 84.48
+      },
+      "scope": "Passed precommit tree before retained-event output correction; retained as earlier-state evidence"
+    }
+  ],
+  "candidate_parent_revision": "18e8558e76d5c2fec4eb1d752bceaa43aaa1f260",
+  "retained_event_proof": {
+    "rest_sse_cases": 14,
+    "real_polled_update_tests": 1,
+    "safe_controls": 4,
+    "negative_failures": 11,
+    "focused": "passed",
+    "full_httpapi_logsafe_packages": "passed",
+    "summary_max_unicode_codepoints": 8192,
+    "stored_rows": "unchanged",
+    "legacy_database_archives_and_search_inputs": "remain sensitive; rotation, restricted access and eligible guarded cleanup documented"
+  },
+  "final_documentation_check": {
+    "command": "node scripts/check-docs.mjs and node scripts/check-version.mjs",
+    "links": 872,
+    "version": "1.0.2",
+    "status": "passed",
+    "scope": "Final Markdown reconciliation after full D code gate"
   }
 }

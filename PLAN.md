@@ -3,9 +3,11 @@
 Target: **1.0.2 — corrective candidate**. Stage 9 delivery acceptance remains
 **8/10** pending hosted/signed/public proof; final scoped code review is **9/10**.
 Confirmed fixes and focused checks are recorded in the
-[fresh review](docs/evidence/1.0.2/fresh-audit.md). The complete local and fresh production-browser gates pass; exact-source CI,
-signing, public verification and final review remain pending.
-No new source commit or tag is recorded yet. Current schema ledger is **17**.
+[fresh review](docs/evidence/1.0.2/fresh-audit.md). Earlier local C and the scoped production-interface browser passed. The later
+retained-event REST/SSE correction has focused proof; full replacement D passes;
+new exact-source hosted/signing/public gates remain pending. Source `18e8558`
+was pushed but is superseded by that correction; no 1.0.2 tag was made. Current
+schema ledger is **17**.
 
 ## Historical accepted 1.0.1 delivery
 

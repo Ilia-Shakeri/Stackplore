@@ -1,8 +1,9 @@
 # Current user guide
 
 This describes the implemented **1.0.2 candidate**. Its focused corrections
-are recorded in the [fresh audit](evidence/1.0.2/fresh-audit.md); the complete local and fresh production-browser gates pass. Exact-source
-hosted and signed/public-consumer acceptance remain pending. Historical [1.0.1 proof](evidence/1.0.1/published-release.json) retains
+are recorded in the [fresh audit](evidence/1.0.2/fresh-audit.md); earlier full local C and the scoped production-interface browser passed. A later
+retained-event REST/SSE correction has focused proof; full replacement D passes; new
+exact-source hosted/signed/public-consumer acceptance remain pending. Historical [1.0.1 proof](evidence/1.0.1/published-release.json) retains
 its original scope. Customer production and offline installation need separate
 operator checks. [راهنمای فارسی](user-guide.fa.md).
 

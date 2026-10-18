@@ -1,9 +1,10 @@
 # Development
 
 Working target: **1.0.2 candidate**, schema **17**. Focused audit regressions
-are recorded in [current evidence](evidence/1.0.2/README.md). The complete local
-gate C and scoped production-interface browser pass; exact-source CI and
-signed/public acceptance remain pending. Preserve normal
+are recorded in [current evidence](evidence/1.0.2/README.md). Earlier full local
+C and the scoped production-interface browser passed. A later retained-event
+REST/SSE correction has focused proof; full replacement D passes; new exact-source
+CI/signed/public acceptance remain pending. Preserve normal
 checksum verification, all test thresholds and failed-run receipts. Native
 special-name database tests require disposable database-creation rights and
 `STACKPLORE_TEST_NATIVE_POSTGRES_TOOLS=true`; never point them at customer data.
