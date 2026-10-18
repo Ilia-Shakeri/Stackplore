@@ -2,10 +2,10 @@
   "schema_version": 1,
   "version": "1.0.1",
   "date": "2026-10-18",
-  "scope": "Final derivative-image correction working tree; complete local C after all runtime/helper/metadata/fixture code writes. Exact hosted image build/scan and signed archive proof remain separate.",
+  "scope": "Final pinned-source package-URL correction working tree; complete local D after all release/identity code writes. Exact hosted main/tag, signed payload and recovery proof remain separate.",
   "command": "npm.cmd run verify",
   "exit_code": 0,
-  "log_sha256": "0c6672994b7101d921f2d64749754ad03c25d5ec12503e85de8addad0ae475f6",
+  "log_sha256": "3894b3b7b6c8f42814a3e39a0a4af583a7faa98d4595f4888d25163afbd52465",
   "node": "24.18.0",
   "pnpm": "11.17.0",
   "go": "1.26.9",
@@ -14,7 +14,7 @@
   "client_tests": 40,
   "web_tests": 453,
   "web_test_files": 47,
-  "release_tests": 27,
+  "release_tests": 28,
   "locale_messages": 715,
   "bounded_openapi_schemas": 235,
   "backend_core_statement_coverage": {
@@ -22,10 +22,10 @@
     "alerting": 82.6
   },
   "web_coverage": {
-    "statements": 81.53,
-    "branches": 77.49,
-    "functions": 85.17,
-    "lines": 83.05
+    "statements": 81.61,
+    "branches": 77.8,
+    "functions": 85.48,
+    "lines": 83.11
   },
   "builds": [
     "production web",
@@ -49,5 +49,12 @@
     "release_tests": 24,
     "log_sha256": "1f5c96026be381ec6c94dca8ae649624ea7ff082364d4f437558b50b6cf73d1f",
     "scope": "Before full derivative database/helper correction"
+  },
+  "prior_success_c": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "release_tests": 27,
+    "log_sha256": "0c6672994b7101d921f2d64749754ad03c25d5ec12503e85de8addad0ae475f6",
+    "scope": "Before valid versionless pinned-source main module PURL correction"
   }
 }

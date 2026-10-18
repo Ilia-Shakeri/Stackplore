@@ -77,7 +77,7 @@ shape is superseded.
 | --- | --- |
 | Exact corrective source | Rejected source `a252718efffbdbb03c8f4552c25e998f481c77bb` is pushed. New derivative-image source identity and complete verification are pending. |
 | Real database and native restore | Pending corrective-source execution on PostgreSQL 17.11 with readiness, ledger checks and native backup/empty-target restore. Existing 17.x minor-update guidance is upstream-documented and requires operator validation; this release does not claim a specific 17.6-to-17.11 runtime experiment. |
-| Final derivative-tree local gate | Passed complete `npm.cmd run verify` C: 27 release/policy, 40 client and 453 web tests, real PostgreSQL 17.11, format/lint/types/contracts/builds; [receipt](local-gates.json). Earlier A/B passes retain their original scopes. |
+| Final derivative-tree local gate | Passed complete `npm.cmd run verify` D: 28 release/policy, 40 client and 453 web tests, real PostgreSQL 17.11, format/lint/types/contracts/builds; [receipt](local-gates.json). Earlier A/B/C passes retain their original scopes. |
 | Final derivative-tree browser | Fresh B passed all 14 actual production-browser cases, 64 states and eight profiles; [receipt](browser-runtime.json), [measurements](browser-measurements.json), [public screenshots](screenshots/). Exact hosted source and packaged binary checks remain separate. |
 | Exact main CI | Rejected-source run `39119787227` passed all six jobs. A complete new derivative-source six-job result is pending. |
 | Standalone rebuilt helper | Pinned gosu 1.19 built with Go 1.26.9 actually executed on Linux amd64; Linux Trivy analyzed one Go executable with zero HIGH/CRITICAL findings using the fresh 2026-10-18 database; [receipt](helper-rebuild.json). Zero-coverage Windows output was rejected. This is not a fresh full-image scan or root-drop proof. |
@@ -112,3 +112,12 @@ Linux execution and one-executable analysis with the fresh2026-10-18 database.
 It has zero HIGH/CRITICAL findings; full derivative-image acceptance remains
 separate. The earlier Windows rootfs exit0 with zero executable coverage was
 rejected and never counted as successful analysis.
+
+The derivative-source trial39121495195 on f046d523 built the complete image,
+passed actual PostgreSQL17.11/gosu1.19/Go1.26.9 probes and analyzed45 Alpine
+and4 Go packages with zero HIGH/CRITICAL findings. Its unsigned retained
+reports exposed a validator error: the pinned-source main module has a valid
+versionless package URL. The narrow correction accepts only that exact main
+module form, preserves versioned dependencies and full graph/set identity, and
+passes all three untouched reports. The trial remains failed; signed packages
+and native recovery were not reached. [Actual checkpoint](database-runtime-checkpoint.json).

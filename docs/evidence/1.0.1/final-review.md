@@ -89,3 +89,20 @@ notices/build gates. Fresh production-browser B passed all 14 cases. Independent
 helper analysis also passed with the fresh 2026-10-18 database and one real Go
 executable. Whole-release acceptance remains 8/10 until the complete exact
 hosted derivative image and signed artifact/recovery gates pass.
+
+The derivative-source trial39121495195 on f046d523 built the complete image,
+passed actual PostgreSQL17.11/gosu1.19/Go1.26.9 probes and analyzed45 Alpine
+and4 Go packages with zero HIGH/CRITICAL findings. Its unsigned retained
+reports exposed a validator error: the pinned-source main module has a valid
+versionless package URL. The narrow correction accepts only that exact main
+module form, preserves versioned dependencies and full graph/set identity, and
+passes all three untouched reports. The trial remains failed; signed packages
+and native recovery were not reached. [Actual checkpoint](database-runtime-checkpoint.json).
+
+Final full local D passed on2026-10-18 after the narrow source-main package URL
+correction: 28 release/policy tests,40 client tests,453 web tests and all
+format/lint/type/contract/locale/notice/build gates. Backend core coverage is
+80.6% domain and82.6% alerting. This local run measured frontend statements
+81.61%, branches77.8%, functions85.48% and lines83.11%; historical runs retain
+their own coverage values. No vulnerability threshold or dependency-version
+requirement was relaxed.

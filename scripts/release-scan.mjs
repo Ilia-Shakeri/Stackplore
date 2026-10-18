@@ -343,28 +343,34 @@ export function checkDatabaseSbomIdentity(sbom, metadata, report) {
     (entry) => entry.primaryPackagePurpose === 'APPLICATION' && entry.name === gosuReport?.Target,
   );
   const application = applications[0];
+  const isGoPackageUrl = (purl) =>
+    typeof purl === 'string' &&
+    (purl === 'pkg:golang/github.com/tianon/gosu' ||
+      /^pkg:golang\/[^@?#\s]+@[^@?#\s]+(?:\?[^#\s]+)?(?:#[^\s]+)?$/u.test(purl));
   const goPurls = (entry) =>
     (Array.isArray(entry?.externalRefs) ? entry.externalRefs : [])
       .filter(
         (reference) =>
           reference.referenceType === 'purl' &&
           typeof reference.referenceLocator === 'string' &&
-          /^pkg:golang\/.+@/u.test(reference.referenceLocator),
+          reference.referenceLocator.startsWith('pkg:golang/'),
       )
       .map((reference) => reference.referenceLocator);
   const gosuPurls = gosuReport?.Packages?.map((entry) => entry.Identifier?.PURL);
+  const inventoryPurls = packages.flatMap(goPurls);
   if (
     applications.length !== 1 ||
     !contains(root.SPDXID, application.SPDXID) ||
     !application.annotations?.some((entry) => entry.comment === 'Type: gobinary') ||
     !Array.isArray(gosuPurls) ||
     gosuPurls.length === 0 ||
-    gosuPurls.some((purl) => typeof purl !== 'string' || !/^pkg:golang\/.+@/u.test(purl)) ||
+    gosuPurls.some((purl) => !isGoPackageUrl(purl)) ||
+    inventoryPurls.some((purl) => !isGoPackageUrl(purl)) ||
     !sameSet(
       reachableIds(application.SPDXID).flatMap((id) => goPurls(packageById.get(id))),
       gosuPurls,
     ) ||
-    !sameSet(packages.flatMap(goPurls), gosuPurls)
+    !sameSet(inventoryPurls, gosuPurls)
   )
     throw new Error('Database SPDX gosu inventory does not match the analyzed Go packages.');
 }

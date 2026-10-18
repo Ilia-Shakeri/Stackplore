@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "version": "1.0.1",
+  "revision": "f046d523e73df91510ebb0abac0dc0f06ae97b86",
+  "trial_run": 39121495195,
+  "package_job": 117657853245,
+  "conclusion": "failure",
+  "reason": "Valid versionless pinned-source main module PURL was rejected by an overstrict SPDX format check",
+  "diagnostic_artifact": {
+    "id": 12133909929,
+    "bytes": 23964,
+    "sha256": "8bc98bd010b5a255752e04ad0b64d3e5902dcd12615040ba0e2de49626cb83bb",
+    "api_digest_matched": true,
+    "unsigned": true
+  },
+  "runtime": {
+    "schema_version": 1,
+    "image": "stackplore-postgres:1.0.1",
+    "upstream_image": "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+    "upstream_index_digest": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+    "upstream_platform_manifest_digest": "sha256:aa90e97ee862e558111d34cfb8b2c4bec768c2b039fb791341686928560263b3",
+    "upstream_config_digest": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+    "platform": "linux/amd64",
+    "config_digest": "sha256:01a215f586ce96485f17f1f699e08c4fef51e45748b9d6643000ea92fb9ed6c4",
+    "build_inputs": {
+      "dockerfile": "deploy/Dockerfile.postgres",
+      "gosu_version": "1.19",
+      "gosu_source_commit": "6456aaa0f3c854d199d0f037f068eb97515b7513",
+      "gosu_source_sha256": "33d7537d588ea49458b9509bcf4554bdf5ceacc66da71e5caa1058ea3b689c3b",
+      "gosu_build_go": "1.26.9",
+      "gosu_build_image": "golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade"
+    },
+    "runtime_probe": {
+      "entrypoint": "postgres",
+      "arguments": [
+        "--version"
+      ],
+      "user": "70:70",
+      "network": "none",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "no_new_privileges": true,
+      "exit_code": 0,
+      "output": "postgres (PostgreSQL) 17.11",
+      "version": "17.11"
+    },
+    "gosu_probe": {
+      "entrypoint": "gosu",
+      "arguments": [
+        "--version"
+      ],
+      "user": "70:70",
+      "network": "none",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "no_new_privileges": true,
+      "exit_code": 0,
+      "output": "1.19 (go1.26.9 on linux/amd64; gc)",
+      "version": "1.19",
+      "go_version": "1.26.9"
+    }
+  },
+  "strict_scan": {
+    "os_family": "alpine",
+    "os_version": "3.24.2",
+    "os_packages": 45,
+    "go_helper_packages": 4,
+    "high": 0,
+    "critical": 0
+  },
+  "reports": [
+    {
+      "file": "database-image-scan.json",
+      "sha256": "6de729c6efb32f0f797cbe66912cb7590a07a90bcc9dbee4acbc44fcb410d3f9"
+    },
+    {
+      "file": "database-image.json",
+      "sha256": "7cc56b3f8f2912b084491cd9ecabdade0dad118cc9f6ceb0db365f719d9d7f3a"
+    },
+    {
+      "file": "database.spdx.json",
+      "sha256": "f86421fbef8aaccdd11957c426b3b58ab513a078a1326c9ffbb300acff0432ce"
+    }
+  ],
+  "correction": "Allow only the exact versionless gosu main-module PURL; keep versioned dependencies, complete graph/set equality, source/compiler/engine probes and all vulnerability thresholds",
+  "retained_reports_corrected_gate": "Passed against all three untouched diagnostic reports",
+  "signing_and_release": "Not reached by this failed trial; new exact-source trial remains required"
+}

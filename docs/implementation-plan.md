@@ -895,3 +895,20 @@ The independently rebuilt helper passed real Linux execution and one-executable
 analysis with the fresh2026-10-18 vulnerability database;
 [receipt](evidence/1.0.1/helper-rebuild.json). Empty Windows executable analysis
 was rejected. Build contexts now exclude unrelated artifacts and env files.
+
+The derivative-source trial39121495195 on f046d523 built the complete image,
+passed actual PostgreSQL17.11/gosu1.19/Go1.26.9 probes and analyzed45 Alpine
+and4 Go packages with zero HIGH/CRITICAL findings. Its unsigned retained
+reports exposed a validator error: the pinned-source main module has a valid
+versionless package URL. The narrow correction accepts only that exact main
+module form, preserves versioned dependencies and full graph/set identity, and
+passes all three untouched reports. The trial remains failed; signed packages
+and native recovery were not reached. [Actual checkpoint](evidence/1.0.1/database-runtime-checkpoint.json).
+
+Final full local D passed on2026-10-18 after the narrow source-main package URL
+correction: 28 release/policy tests,40 client tests,453 web tests and all
+format/lint/type/contract/locale/notice/build gates. Backend core coverage is
+80.6% domain and82.6% alerting. This local run measured frontend statements
+81.61%, branches77.8%, functions85.48% and lines83.11%; historical runs retain
+their own coverage values. No vulnerability threshold or dependency-version
+requirement was relaxed.

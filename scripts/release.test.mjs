@@ -632,6 +632,78 @@ test('database SPDX traverses transitive OS dependencies and terminates dependen
   );
 });
 
+test('source-built gosu retains its versionless main PURL while Go dependencies require versions', () => {
+  const sbom = globalThis.structuredClone(databaseInventory);
+  const report = databaseReport();
+  const additions = [
+    ['github.com/tianon/gosu', null, 'pkg:golang/github.com/tianon/gosu'],
+    ['github.com/moby/sys/user', 'v0.1.0', 'pkg:golang/github.com/moby/sys/user@v0.1.0'],
+    ['golang.org/x/sys', 'v0.1.0', 'pkg:golang/golang.org/x/sys@v0.1.0'],
+  ];
+  for (const [index, [name, version, purl]] of additions.entries()) {
+    const id = `SPDXRef-Package-source-${index}`;
+    sbom.packages.push({
+      name,
+      SPDXID: id,
+      ...(version ? { versionInfo: version } : {}),
+      externalRefs: [{ referenceType: 'purl', referenceLocator: purl }],
+    });
+    sbom.relationships.push({
+      spdxElementId: 'SPDXRef-Application-gosu',
+      relatedSpdxElement: id,
+      relationshipType: 'DEPENDS_ON',
+    });
+    report.Results[1].Packages.push({
+      Name: name,
+      ...(version ? { Version: version } : {}),
+      Identifier: { PURL: purl },
+    });
+  }
+  assert.equal(report.Results[1].Packages.length, 4);
+  assert.doesNotThrow(() => checkDatabaseSbomIdentity(sbom, databaseMetadata(), report));
+  assert.doesNotThrow(() => checkDatabaseScanIdentity(report, databaseMetadata()));
+  for (const invalidPurl of [
+    'pkg:golang/github.com/moby/sys/user',
+    'pkg:golang/github.com/moby/sys/user@',
+  ]) {
+    const changedSbom = globalThis.structuredClone(sbom);
+    const changedReport = globalThis.structuredClone(report);
+    changedSbom.packages.find(
+      (entry) => entry.name === 'github.com/moby/sys/user',
+    ).externalRefs[0].referenceLocator = invalidPurl;
+    changedReport.Results[1].Packages.find(
+      (entry) => entry.Name === 'github.com/moby/sys/user',
+    ).Identifier.PURL = invalidPurl;
+    assert.throws(
+      () => checkDatabaseSbomIdentity(changedSbom, databaseMetadata(), changedReport),
+      /gosu inventory/,
+    );
+  }
+  for (const alter of [
+    (changed) => {
+      changed.packages = changed.packages.filter(
+        (entry) => entry.name !== 'github.com/tianon/gosu',
+      );
+    },
+    (changed) => {
+      changed.packages.find((entry) => entry.name === 'stdlib').externalRefs[0].referenceLocator =
+        'pkg:golang/stdlib@v1.24.6';
+    },
+    (changed) => {
+      changed.packages.find(
+        (entry) => entry.name === 'github.com/tianon/gosu',
+      ).externalRefs[0].referenceLocator = 'pkg:golang/example.org/other';
+    },
+  ]) {
+    const changed = globalThis.structuredClone(sbom);
+    alter(changed);
+    assert.throws(
+      () => checkDatabaseSbomIdentity(changed, databaseMetadata(), report),
+      /gosu inventory/,
+    );
+  }
+});
+
 const completeReleaseFixture = async (context) => {
   const data = await verificationFixture(context);
   const expected = [
