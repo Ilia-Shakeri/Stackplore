@@ -1,11 +1,13 @@
 # Security Model
 
-Status: 1.0.2 corrective candidate after the fresh audit; review reopened at
-8/10. Earlier full local C and the scoped production-interface browser passed.
-A later retained-event REST/SSE correction has focused proof; full replacement D passes;
-new exact-source hosted/signed/public-consumer gates remain pending in the [active plan](implementation-plan.md) and
-[current evidence](evidence/1.0.2/README.md). Historical 1.0.1 proof retains its
-original scope.
+Status: corrective **1.0.2 released and accepted**, immutable `v1.0.2` source
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, ledger 17. All nine stages are
+complete; architecture/code and release review score **9/10**. Full local D,
+all six exact main/tag jobs, strict signed trial/publication and independent
+public/archive verification pass. Failed first tag/release attempts and
+subsequent unchanged-tag retry remain distinct in the [active plan](implementation-plan.md)
+and [published proof](evidence/1.0.2/published-release.json). Historical proof
+keeps its source; the main-only harness follow-up is separate from the release.
 
 ## Assets
 

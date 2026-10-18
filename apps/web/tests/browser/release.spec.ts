@@ -1,7 +1,7 @@
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { chromium, expect, test, type Page } from '@playwright/test';
+import { chromium, expect, test, type Page, type TestInfo } from '@playwright/test';
 import axe from 'axe-core';
 
 declare global {
@@ -49,6 +49,80 @@ async function receipt(key: string, value: unknown) {
   }
   current[key] = value;
   await writeFile(path, `${JSON.stringify(current, null, 2)}\n`);
+}
+
+async function readPublicWorker(page: Page, info: TestInfo): Promise<string> {
+  const deadline = Date.now() + 15_000;
+  const attempts: {
+    attempt: number;
+    status: number;
+    mime: string;
+    retryDelayMs?: number;
+    bytes?: number;
+    cacheMarkers?: number;
+  }[] = [];
+  try {
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      const remaining = deadline - Date.now();
+      expect(remaining, 'public worker control read deadline').toBeGreaterThan(0);
+      const response = await page.request.get('/sw.js', { timeout: Math.min(5000, remaining) });
+      try {
+        const contentType = (response.headers()['content-type'] ?? '')
+          .split(';')[0]
+          ?.trim()
+          .toLowerCase();
+        const mime =
+          contentType !== undefined &&
+          ['text/javascript', 'application/javascript', 'text/plain'].includes(contentType)
+            ? contentType
+            : 'other';
+        const observation: (typeof attempts)[number] = { attempt, status: response.status(), mime };
+        attempts.push(observation);
+        if (response.status() === 429) {
+          expect(attempt, 'public worker control read retry count').toBeLessThan(4);
+          const retryAfter = response.headers()['retry-after']?.trim();
+          const requestedDelay =
+            retryAfter === undefined || retryAfter.length > 128
+              ? Number.NaN
+              : /^\d{1,9}$/u.test(retryAfter)
+                ? Number(retryAfter) * 1000
+                : Date.parse(retryAfter) - Date.now();
+          const delay = Math.max(0, requestedDelay);
+          expect(
+            Number.isFinite(delay) && delay <= 5000 && delay < deadline - Date.now(),
+            'public worker control read requires a bounded Retry-After',
+          ).toBe(true);
+          observation.retryDelayMs = delay;
+          await new Promise((done) => setTimeout(done, delay));
+          continue;
+        }
+        expect(response.status(), 'public worker control read HTTP status').toBe(200);
+        expect(
+          ['text/javascript', 'application/javascript'].includes(mime),
+          'public worker control read JavaScript MIME',
+        ).toBe(true);
+        const bytes = await response.body();
+        observation.bytes = bytes.length;
+        expect(bytes.length, 'public worker control read byte limit').toBeLessThanOrEqual(
+          64 * 1024,
+        );
+        const source = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        observation.cacheMarkers = (
+          source.match(/(const shellCache = 'stackplore-public-shell-)[^']+(';)/gu) ?? []
+        ).length;
+        expect(observation.cacheMarkers, 'public worker control read cache declaration').toBe(1);
+        return source;
+      } finally {
+        await response.dispose();
+      }
+    }
+    throw new Error('Public worker control read retry budget exhausted.');
+  } finally {
+    await info.attach('public-worker-control-read', {
+      body: JSON.stringify({ deadlineMs: 15_000, maximumAttempts: 4, attempts }),
+      contentType: 'application/json',
+    });
+  }
 }
 
 for (const locale of ['en', 'fa']) {
@@ -401,7 +475,7 @@ test('public worker update waits for acceptance and preserves private cache excl
   await expect
     .poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
     .toBe(true);
-  const original = await (await page.request.get('/sw.js')).text();
+  const original = await readPublicWorker(page, info);
   const revised = original.replace(
     /(const shellCache = 'stackplore-public-shell-)[^']+(';)/u,
     '$1browser-update-fixture$2',

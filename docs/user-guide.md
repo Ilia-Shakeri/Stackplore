@@ -1,11 +1,9 @@
 # Current user guide
 
-This describes the implemented **1.0.2 candidate**. Its focused corrections
-are recorded in the [fresh audit](evidence/1.0.2/fresh-audit.md); earlier full local C and the scoped production-interface browser passed. A later
-retained-event REST/SSE correction has focused proof; full replacement D passes; new
-exact-source hosted/signed/public-consumer acceptance remain pending. Historical [1.0.1 proof](evidence/1.0.1/published-release.json) retains
-its original scope. Customer production and offline installation need separate
-operator checks. [راهنمای فارسی](user-guide.fa.md).
+This describes accepted **1.0.2**, immutable release source `376ed03`, ledger 17. All nine stages and named release gates pass; [published proof](evidence/1.0.2/published-release.json)
+records independent public/archive verification and platform limits. Customer
+production/offline installation requires separate operator checks.
+[راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
    installation exposed beyond loopback needs a short-lived setup proof from

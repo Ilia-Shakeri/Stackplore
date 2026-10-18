@@ -4,15 +4,15 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.2
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Corrective candidate after a fresh full audit of
-  the delivered 1.0.1 baseline. Review reopened at 8/10. Confirmed defects and
-  the accepted navigation gap have corrections and focused regressions; earlier local C and the
-  scoped production-interface browser passed. A later retained-event REST/SSE
-  correction has focused proof; full replacement D passes; new exact-source hosted,
-  signed release and independent public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
-  The unchanged 1.0 product scope remains authoritative. The immutable 1.0.1
-  [published receipt](docs/evidence/1.0.1/published-release.json) retains its
-  original source and proof limits; it does not certify the new candidate.
+- **Implementation status:** Corrective 1.0.2 is released and accepted, immutable
+  `v1.0.2` at `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, ledger 17. All nine
+  stages are complete; architecture/code and release review score 9/10. Full
+  local D, six-job exact main/tag CI, signed trial/publication and independent
+  public identity/checksum/provenance/SBOM/archive checks pass. Failed first
+  tag/release attempts retain their outcomes. [Published proof](docs/evidence/1.0.2/published-release.json).
+  The accepted 1.0 product/security scope remains authoritative; historical proof
+  keeps its original source and limits. The later main-only harness/documentation
+  follow-up is separate from the immutable release source.
 
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
 Deferred features are explicitly listed in section 14. Delivery order and

@@ -1,13 +1,16 @@
 # Stackplore delivery plan
 
-Target: **1.0.2 — corrective candidate**. Stage 9 delivery acceptance remains
-**8/10** pending hosted/signed/public proof; final scoped code review is **9/10**.
-Confirmed fixes and focused checks are recorded in the
-[fresh review](docs/evidence/1.0.2/fresh-audit.md). Earlier local C and the scoped production-interface browser passed. The later
-retained-event REST/SSE correction has focused proof; full replacement D passes;
-new exact-source hosted/signing/public gates remain pending. Source `18e8558`
-was pushed but is superseded by that correction; no 1.0.2 tag was made. Current
-schema ledger is **17**.
+Accepted release: **1.0.2**, immutable `v1.0.2` at
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
+are complete; architecture/code and release acceptance score **9/10**. Full
+local D, six-job main CI `39132989641`, six-job tag CI `39134154907` after
+its unchanged-source code retry, signed trial `39133022021`, signed publication
+`39134154891` and independent public/archive verification pass. Release
+`416503671` was published at `2026-10-18T14:43:05Z`. First failed tag/browser
+and blocked-release attempts remain failed. The later main-only harness/docs
+follow-up is outside frozen release source; six-job CI on the commit containing
+this review must pass before handoff. Final run/source binding belongs to commit
+checks and the release body. [Published proof](docs/evidence/1.0.2/published-release.json).
 
 ## Historical accepted 1.0.1 delivery
 
@@ -28,19 +31,19 @@ Immutable 1.0.0 remains withheld; 0.9.0 is superseded for its unsafe database
 default. Intermediate failed trials and interrupted consumer transfers retain
 their honest outcomes. Customer/offline/cross-built limits remain separate.
 
-| Stage | Version | Delivered outcome |
-| --- | --- | --- |
-| 1 | 0.1.0 | Complete: safe ownership/migrations, final administrator, bounded calls, invalid-input handling, masking, source selection and reproducible baseline. |
-| 2 | 0.2.0 | Complete: durable PostgreSQL observations and safe source profiles, bounded collection/retention, truthful authority and audited source settings. |
-| 3 | 0.3.0 | Complete: covered alert evidence/lifecycle, durable replay and fenced opt-in webhook/Matrix delivery. |
-| 4 | 0.4.0 | Complete: paginated exploration, URL filters, log controls, resource details, metric truth, accessible topology and bilingual browser journeys. |
-| 5 | 0.5.0 | Complete: official scoped Docker/Kubernetes adapters, restricted mTLS, independent coverage, safe typed facts, stable log/metric identity and isolated deterministic guest demo. |
-| 6 | 0.6.0 | Complete: narrowly guarded restart/scale, durable intent/result audit, settings, preferences, quota/archive-bound audit retention and bounded cleanup. |
-| 7 | 0.7.0 | Complete: one non-root embedded application, actual Compose setup/restart, Helm installation against external TLS PostgreSQL and bilingual operator runbooks. |
-| 8 | 0.9.0 | Functionally complete: PWA, redacted logs, health history, filters, measured interface/performance and signed publication passed their recorded checks. Superseded because its database default is unsafe and database-image scanning was absent. |
-| 9 | 1.0.2 | Reopened corrective candidate; 1.0.1 historical delivery remains recorded, while the fresh audit and new exact-source gates must close before current acceptance. |
+| Stage | Version | Delivered outcome                                                                                                                                                                                                                                 |
+| ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | 0.1.0   | Complete: safe ownership/migrations, final administrator, bounded calls, invalid-input handling, masking, source selection and reproducible baseline.                                                                                             |
+| 2     | 0.2.0   | Complete: durable PostgreSQL observations and safe source profiles, bounded collection/retention, truthful authority and audited source settings.                                                                                                 |
+| 3     | 0.3.0   | Complete: covered alert evidence/lifecycle, durable replay and fenced opt-in webhook/Matrix delivery.                                                                                                                                             |
+| 4     | 0.4.0   | Complete: paginated exploration, URL filters, log controls, resource details, metric truth, accessible topology and bilingual browser journeys.                                                                                                   |
+| 5     | 0.5.0   | Complete: official scoped Docker/Kubernetes adapters, restricted mTLS, independent coverage, safe typed facts, stable log/metric identity and isolated deterministic guest demo.                                                                  |
+| 6     | 0.6.0   | Complete: narrowly guarded restart/scale, durable intent/result audit, settings, preferences, quota/archive-bound audit retention and bounded cleanup.                                                                                            |
+| 7     | 0.7.0   | Complete: one non-root embedded application, actual Compose setup/restart, Helm installation against external TLS PostgreSQL and bilingual operator runbooks.                                                                                     |
+| 8     | 0.9.0   | Functionally complete: PWA, redacted logs, health history, filters, measured interface/performance and signed publication passed their recorded checks. Superseded because its database default is unsafe and database-image scanning was absent. |
+| 9     | 1.0.2   | Complete: corrective implementation, full local D, six-job exact main/tag CI, signed trial/publication, independent 39-file public verification and actual archive acceptance. Failed attempts and historical proof retain their scope.           |
 
-The correction loop returned to **9/10** after full local D (28 release/policy,
+The historical **1.0.1** correction loop returned to **9/10** after its full local D (28 release/policy,
 40 client and 453 web tests), fresh browser B (14 cases), exact six-job main CI,
 strict signed-trial scans, independent verification and actual archive recovery.
 The derivative retains PostgreSQL 17.11 and the upstream entrypoint, rebuilding

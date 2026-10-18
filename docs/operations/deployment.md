@@ -1,8 +1,10 @@
 # Deployment
 
-Current source target: **1.0.2 candidate**. Full exact-source deployment,
-signed/public archive and final acceptance remain pending in
-[current evidence](../evidence/1.0.2/README.md). Historical
+Current source target: **1.0.2**, immutable `v1.0.2` at `376ed03`, schema 17.
+All six exact main/tag jobs passed, including Compose restart, external-TLS
+Helm and both providers. Signed trial and actual trial native/database archives
+passed; signed publication, all 39 public files and independent public archive
+identity/execution also passed in [published proof](../evidence/1.0.2/published-release.json). Historical
 [1.0.1 proof](../evidence/1.0.1/published-release.json) retains its original
 source and scope. The commands below describe source-build and verified-archive
 paths; they do not establish an air-gapped installation or customer rollout.
@@ -50,7 +52,7 @@ The archive commands have not been executed as an air-gapped installation;
 source-build Compose/restart CI receipts do not establish that path.
 
 After 1.0.2 is published and independently verified, load both matching
-compressed Docker-save archives (these candidate names do not imply availability):
+compressed Docker-save archives from the verified 1.0.2 release:
 
 ```sh
 docker image load --input stackplore_1.0.2_image.tar.gz

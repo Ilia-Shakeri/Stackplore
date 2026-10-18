@@ -1,8 +1,9 @@
 # Durable observations and source settings
 
-This reference describes the implemented **1.0.2 candidate** boundaries.
+This reference describes the accepted **1.0.2** boundaries, source `376ed03`, ledger 17.
 Focused corrections are in the [fresh audit](evidence/1.0.2/fresh-audit.md);
-full exact-source acceptance remains pending. Historical 1.0.1 proof keeps its
+full exact-source/public acceptance is in the [published receipt](evidence/1.0.2/published-release.json).
+Historical 1.0.1 proof keeps its
 original scope. [فارسی](observations.fa.md), [architecture](architecture.md)
 and [current evidence](implementation-plan.md) retain proof limits.
 

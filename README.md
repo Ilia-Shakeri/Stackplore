@@ -6,11 +6,11 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** Working target **1.0.2** after a fresh whole-repository audit. Review reopened at **8/10**. Confirmed fixes and the required navigation palette are implemented; earlier full local C and the scoped production-interface browser passed. A later retained-event REST/SSE correction has focused proof; full replacement D passes; new exact-source CI/signing/public verification remain pending. [Current evidence](docs/evidence/1.0.2/README.md).
+> **Status:** **1.0.2 released and accepted. All nine stages complete; review 9/10.** Immutable `v1.0.2` is `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. Full local D, six-job exact main/tag CI, signed publication and independent public/archive verification pass. Failed first attempts retain their outcomes. [Release](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.2) · [Published proof](docs/evidence/1.0.2/published-release.json).
 
 Immutable [1.0.1](docs/evidence/1.0.1/published-release.json) keeps its historical
 39-file public verification and actual archive results. Those receipts do not
-certify this changed candidate. The 0.9.0 database default remains superseded,
+certify a different source. The 0.9.0 database default remains superseded,
 immutable 1.0.0 remains withheld and failed attempts retain their outcomes.
 
 ## Implemented
@@ -31,11 +31,14 @@ immutable 1.0.0 remains withheld and failed attempts retain their outcomes.
 
 ## Release verification
 
-The 1.0.2 candidate must pass the full local and browser gates, exact-source
-main/tag CI, strict scans, signed publication and independent public/archive
-checks before acceptance. Expected packaging remains 39 files, 30 checksums,
-31 provenance subjects and seven SBOM attestations; current execution results
-belong to [1.0.2 evidence](docs/evidence/1.0.2/README.md).
+Corrective source `376ed03` passes full local D and all six exact main/tag jobs,
+including real SQL/race/browser, Compose, external-TLS Helm and both providers.
+Its signed trial and independent consumer pass 30 payload checksums, all
+31 provenance subjects, seven SBOM attestations, strict scans and actual native/
+database archive recovery. Signed public publication and independent public-byte
+verification also pass in [published proof](docs/evidence/1.0.2/published-release.json).
+Packaging remains 39 files; the later main-only browser-harness/report-retention
+follow-up has a separate source/CI boundary from the immutable release tag.
 
 Customer production rollout is an operator deployment decision. Its credentials,
 provider permissions, receiver reachability, backup destination and capacity
@@ -66,8 +69,10 @@ The corrective tree defines `stackplore-postgres:1.0.2` from a digest-pinned
 PostgreSQL 17.11 base in [`deploy/postgres-image.json`](deploy/postgres-image.json).
 It rebuilds unchanged `gosu` 1.19 with Go 1.26.9 while retaining the upstream
 database engine and entrypoint. Compose/CI must build the owned patched image;
-the signed trial includes its Docker-save archive and signed SBOM. The corresponding 1.0.1 image passed actual build/runtime/scan and independent
-public consumption. The 1.0.2 image requires its own exact-source proof. Helm continues to use
+the signed trial includes its Docker-save archive and signed SBOM. The actual
+1.0.2 trial archive passed independent Linux amd64 loading, engine/helper and
+root-drop checks, restricted non-root SQL and full-image scans. Public archive
+identity and separate public database execution passed. Helm continues to use
 operator-owned external PostgreSQL. Do not use the superseded 0.9.0 database
 default. Existing installations need the reviewed
 [patch-upgrade procedure](docs/operations/upgrade-rollback.md#postgresql-17-patch-baseline),

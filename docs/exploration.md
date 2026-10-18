@@ -1,11 +1,10 @@
 # Exploring observations
 
-[فارسی](exploration.fa.md). This guide describes the implemented **1.0.2
-candidate**. [Fresh proof](evidence/1.0.2/README.md) keeps focused regressions
-separate from earlier local C/scoped browser proof. A later retained-event REST/SSE
-correction has focused proof; full replacement D passes; new exact-source hosted
-and signed/public acceptance remain pending. Historical 1.0.1 receipts retain their original scope; a guide does
-not prove a customer's installation.
+[فارسی](exploration.fa.md). This guide describes accepted **1.0.2**, immutable
+release source `376ed03`, ledger 17. All nine stages and release gates pass;
+[published proof](evidence/1.0.2/published-release.json) records exact CI, signing
+and independent public/archive checks. Failed attempts and the later main-only
+harness follow-up stay separate. A guide does not certify customer installation.
 
 ## Sources and trustworthy states
 
@@ -192,7 +191,6 @@ Long names/scopes are visually bounded while full accessible details remain
 available. The list provides the equivalent facts. Quick navigation opens from
 the header or Ctrl+K/Command+K, supports Up/Down, Enter and Escape, preserves
 the source and respects the current role; [user guide](user-guide.md#quick-navigation).
-
 
 Resource nodes and relationships have separate bounded page controls. A partial
 notice remains while either server result has more pages. A relationship whose

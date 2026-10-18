@@ -62,6 +62,7 @@ jobs:
             docs/evidence/*/screenshots/*.png
           if-no-files-found: error
           retention-days: 14
+          include-hidden-files: true
       - name: Stop only the owned PostgreSQL fixture
         if: always()
         run: bash scripts/start-test-postgres.sh stop code

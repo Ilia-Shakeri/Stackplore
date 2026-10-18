@@ -9,22 +9,24 @@ files were preserved and reviewed as part of the candidate baseline.
 
 ## Fresh audit of the delivered baseline
 
-The 2026-10-18 review restarted from `657a600`, the 1.0.1 documentation
-delivery. The current target is **1.0.2** and quality reopens at **8/10**.
-Confirmed security/correctness gaps and the accepted keyboard-navigation gap
-have scoped fixes and focused regressions. Earlier full local C and the scoped
-production-interface browser passed. A later retained-event REST/SSE correction
-has focused proof; full replacement D passes; new exact-source hosted/signed/public
-acceptance remain pending.
-The [fresh audit](evidence/1.0.2/fresh-audit.md) records triggers, consequences,
-corrections, proof levels and remaining scale limits. Schema is now 17.
+The 2026-10-18 review restarted from documentation delivery `657a600`.
+Accepted corrective source is `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`,
+immutable `v1.0.2`, schema 17. All nine stages are complete; architecture/code
+and release acceptance score **9/10** after verified corrections and full local,
+exact main/tag, signed trial/publication and independent public/archive proof.
+The first tag browser failure, blocked release and unchanged-tag retry keep
+their actual outcomes. The [fresh audit](evidence/1.0.2/fresh-audit.md) records
+all negative-to-positive loops, four-context rate diagnosis and the separate
+main-only harness follow-up, including failed live retry-coverage guards.
+[Public acceptance](evidence/1.0.2/published-release.json). Customer capacity
+and production-rollout evidence remain operator responsibilities.
 
 ## Historical accepted 1.0.1 review
 
 Initial quality was 5/10. Final architecture/code review is **9/10** at
 `73ece4754554cca548c242768b195d21664d37b8`, immutable `v1.0.1`.
 That review accepted the nine stages within its then-recorded scope. The fresh
-audit above supersedes its no-open-defect conclusion for the changed candidate. Review scores are judgments, not measured coverage.
+audit above supersedes its no-open-defect conclusion for the changed source. Review scores are judgments, not measured coverage.
 
 Full local D passed 28 release/policy, 40 client and 453 web tests; fresh browser
 B passed 14 cases. All six exact main/tag CI jobs, strict signed trial and public

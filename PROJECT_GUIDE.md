@@ -4,17 +4,16 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-The current working target is **1.0.2**, a corrective candidate after a fresh
-whole-repository audit of the 1.0.1 delivery. The review reopened quality at
-**8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. Earlier full local C and the scoped production-interface
-browser passed. A later retained-event REST/SSE correction has focused proof;
-full replacement D passes; new exact-source hosted/signed/public gates remain pending.
-[Fresh review and current proof](docs/evidence/1.0.2/README.md).
+The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
+are complete; architecture/code and release review score **9/10**. Full local D,
+all six exact-source main/tag jobs, signed trial/publication and independent
+public checksum/provenance/SBOM/archive checks pass. Failed first tag/browser
+and blocked-release attempts retain their outcomes; unchanged-tag retry passed.
+[Published proof and runtime limits](docs/evidence/1.0.2/published-release.json).
 
 The immutable 1.0.1 source and its [published receipt](docs/evidence/1.0.1/published-release.json)
-retain their original results and scope. Those checks do not certify this new
-candidate. Customer production and air-gapped installation require separate
+retain their original results and scope. Those older checks do not certify a different source. Customer production and air-gapped installation require separate
 operator evidence.
 
 ## Delivery contract

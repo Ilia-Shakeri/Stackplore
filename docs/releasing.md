@@ -5,17 +5,16 @@ package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. A version number
 does not establish a passing release or customer installation.
 
-The current working target is **1.0.2**, a corrective candidate after a fresh
-whole-repository audit of the 1.0.1 delivery. The review reopened quality at
-**8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. Earlier full local C and the scoped production-interface
-browser passed. A later retained-event REST/SSE correction has focused proof;
-full replacement D passes; new exact-source hosted/signed/public gates remain pending.
-[Fresh review and current proof](evidence/1.0.2/README.md).
+The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
+are complete; architecture/code and release review score **9/10**. Full local D,
+all six exact-source main/tag jobs, signed trial/publication and independent
+public checksum/provenance/SBOM/archive checks pass. Failed first tag/browser
+and blocked-release attempts retain their outcomes; unchanged-tag retry passed.
+[Published proof and runtime limits](evidence/1.0.2/published-release.json).
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
-retain their original results and scope. Those checks do not certify this new
-candidate. Customer production and air-gapped installation require separate
+retain their original results and scope. Those older checks do not certify a different source. Customer production and air-gapped installation require separate
 operator evidence.
 
 Historical 1.0.1 evidence only: Main CI `39122125020` and tag CI `39123016027` passed all six jobs each.
@@ -94,9 +93,17 @@ independent review. Screenshots must come from the running final demo. Workflow
 definitions and local scanner receipts do not replace exact-tag package, image
 scan, signing and consumer-verification evidence. Do not label a 0.x development
 checkpoint or the withheld 1.0.0 tag as a completed corrective release. Current
-review reopened at 8/10 for the fresh findings. Raise it only after corrections,
+review initially reopened at 8/10 for the fresh findings. Raise it only after corrections,
 full PostgreSQL/browser gates, exact hosted proof and independent review; final
 signed/public archive acceptance remains separately required.
+
+For corrective 1.0.2, immutable source `376ed03` passed six-job exact main/tag
+CI, the strict signed trial and independent actual trial archive recovery.
+The first tag/browser failure and blocked release are retained; the unchanged-tag
+code retry passed. Signed publication and independent public/archive checks also
+pass. A later main-only worker control-read/report-retention fix must have six-job
+CI on its review commit before handoff; never
+describe it as part of the unchanged release tag. [Proof](evidence/1.0.2/README.md).
 
 ## Platform and acceptance scope
 

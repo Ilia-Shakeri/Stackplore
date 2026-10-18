@@ -1,13 +1,17 @@
 # Development
 
-Working target: **1.0.2 candidate**, schema **17**. Focused audit regressions
-are recorded in [current evidence](evidence/1.0.2/README.md). Earlier full local
-C and the scoped production-interface browser passed. A later retained-event
-REST/SSE correction has focused proof; full replacement D passes; new exact-source
-CI/signed/public acceptance remain pending. Preserve normal
-checksum verification, all test thresholds and failed-run receipts. Native
-special-name database tests require disposable database-creation rights and
-`STACKPLORE_TEST_NATIVE_POSTGRES_TOOLS=true`; never point them at customer data.
+Accepted release: **1.0.2**, immutable source
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**, all nine stages,
+review **9/10**. Full local D, exact main/tag CI, signed publication and independent
+public/archive verification pass. [Current proof](evidence/1.0.2/published-release.json)
+keeps failed attempts and the unchanged-tag retry separate. The later main-only
+browser control-read/report-retention follow-up has fourteen passing in-memory
+branch cases; live retry-coverage attempts C/D remain failed because each received
+200 before the intended 429 branch. Six-job CI on the commit containing this
+review must pass before handoff; commit checks and the release body bind its
+final run/source. Preserve normal checksums, limits and thresholds. Native
+special-name tests require disposable database-creation rights and
+`STACKPLORE_TEST_NATIVE_POSTGRES_TOOLS=true`; never use customer data.
 
 ## Toolchain
 

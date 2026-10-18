@@ -4,6 +4,13 @@ Stackplore exposes no HTTP backup or restore route. The local storage command
 wraps `pg_dump` and `pg_restore`; the tools must be installed on the operator
 host and compatible with the PostgreSQL server major version.
 
+Accepted 1.0.2 is immutable source `376ed03`, ledger 17. Its actual Windows
+native backup/empty-target restore passed, and the public archive is byte-identical
+to that tested trial. The different public database archive was independently
+loaded/executed; [published proof](../evidence/1.0.2/published-release.json) keeps
+both identities. Use the matching release storage tool; operator backup custody
+and a restore check on the actual installation remain required.
+
 After [verifying a native release package](release.md), run its
 `./stackplore-storage` executable (`.\stackplore-storage.exe` on Windows).
 Replace the `go -C apps/api run ./cmd/storage` prefix in the examples below

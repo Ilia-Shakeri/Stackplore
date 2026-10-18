@@ -1,4 +1,4 @@
-# Fresh full audit — 1.0.2 candidate
+# Fresh full audit — accepted 1.0.2
 
 Review date: 2026-10-18. Baseline: documentation delivery `657a600`; previous
 immutable release source `73ece4754554cca548c242768b195d21664d37b8`. The review
@@ -12,19 +12,23 @@ legal bytes are checked against their authorities; local caches and unrelated
 Quality reopened at **8/10** after concrete defects and an accepted navigation
 gap were found. Final independent backend/interface/release-helper review now
 assigns **9/10** with no open verified defect in that scope; whole-delivery
-acceptance remains **8/10** pending exact-source hosted and signed/public proof.
+acceptance is **9/10**, with all nine stages complete after actual publication
+and independent public/archive proof.
 Scores are review judgments, not measured coverage or customer certificates.
 Earlier local gate C and the scoped production-interface browser passed before
 the retained-event response amendment. That amendment has focused passing proof;
-full replacement D now passes. New exact-source hosted and signed/public-consumer
-acceptance remain pending.
+full replacement D now passes. Current immutable `v1.0.2` source
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b` passed all six exact main/tag jobs,
+the strict signed trial and independent actual trial archive recovery. Public
+publication and independent public consumption also pass in the
+[exact public receipt](published-release.json).
 [Gate ledger](README.md).
 
 Candidate `18e8558e76d5c2fec4eb1d752bceaa43aaa1f260` was committed/pushed,
 then review found that already-persisted native-event summaries bypassed provider
 masking on REST and SSE output. Its main CI `39131357982` and trial `39131368817`
 remain earlier-source results; the trial package passed but cannot certify this
-amendment. No 1.0.2 tag was made. The shared response mapper now applies the
+amendment; no tag was made on that superseded source. The shared response mapper now applies the
 existing deployment policy before the 8,192-rune summary limit, including later
 SSE polls. Stored rows and old archives remain unchanged.
 
@@ -49,20 +53,21 @@ corrected-source gate.
 
 ## Verified findings and corrections
 
-| Boundary | Trigger and consequence | Correction and regression |
-| --- | --- | --- |
-| Provider text masking | A log or Kubernetes event containing a URL with credential userinfo exposed those bytes, including JSON strings/member names. | Shared masking removes complete userinfo, including usernames used as tokens. Independent review exposed apostrophe, clipped authority, embedded scheme and JSON member-name residuals after the initial fix. Whole-object masking prevents credential-name leaks/key collisions; final package regressions pass. |
-| Retained event output | A native event stored by an older version could contain credential text. REST and initial/polled SSE mapped that stored summary without output redaction. | One response mapper applies the existing deployment policy and bounds the resulting summary to 8,192 runes. Generated-marker tests cover both transports, later real SSE polling, safe text, metadata, Persian limit, mask expansion and reader immutability. No row or backup rewrite is claimed. |
-| HTTP 405 response | Unsupported methods on log download and three source-setting path forms returned an empty Allow header. | Exact GET/GET/PATCH/POST methods are now published; all four real-handler regressions pass. Successful route methods and contract shapes are unchanged. |
-| Event collection authority | Page one succeeded and a later page denied permission. The collector converted the denial to available/partial and retained one event. | A later permission-denied status stays authoritative; accumulated unauthorized native events are discarded. The regression covers the page transition; no additional unsupported-page correction is claimed. |
-| Notification/rule keysets | An installation with non-byte text collation ordered mixed-case identifiers differently from Go cursor validation, causing repository-unavailable failures. | Both ordering and seek predicates use canonical byte collation. Migration 17 adds matching indexes without rewriting prior SQL; real non-byte-collation and ledger-14/16 forward-upgrade checks pass. |
-| Native PostgreSQL name selection | URI names containing a literal percent sequence were decoded twice; names containing equals could be parsed as libpq connection options by native tools. | Decode the URL path once and preserve the selected database as a literal escaped connection value. Real owned-name backup/restore tests cover percent, equals, quote and backslash and verify restored state/generation. |
-| Log severity and language | Trace/unknown deep links and history lost their severity; several views showed raw severity codes instead of English/Persian text. | All seven log severities survive URL state and use one locale helper in logs/alerts/notifications. API/download values remain unchanged; native events retain five supported severities. |
-| Rule editing | Deleting the rule currently being edited left a stale draft that could be submitted against the deleted rule. Final peer review also found active Cancel could begin another draft while deletion was pending, then the late reply cleared it. | Successful same-rule deletion clears the draft; failure retains it. Cancel stays disabled while saving/loading, and a deferred-response regression proves the lock through completion. |
-| Topology node facts | Graph nodes omitted required provider icon, scope and observed state despite available resource facts. | Graph/list present equivalent actual facts; technical scope stays LTR, long text is bounded and full accessible details remain available. No graph geometry expansion or invented health state is used. |
-| Keyboard navigation | The accepted quick-navigation journey had no implementation. | A bilingual fixed-route palette supports keyboard search/selection, role-aware destinations, source preservation, Escape and focus return. It adds no arbitrary route/endpoint execution. |
-| Account rendering scale | Manual load-more appended every fetched account into the DOM, creating unbounded rendered growth across requested pages. No authorization bypass was found. | A 50-row render window preserves previous/next access to the full loaded cache and existing final-administrator checks. Six generated multi-page/bilingual regressions plus the existing tests pass. The cache itself remains manually grown until refresh/unmount. |
-| Release document links | Packaged release notes pointed into mutable branch documentation. | Generated document links bind to the immutable source revision. Release-policy tests check the resulting links; a successful helper does not prove publication. |
+| Boundary                                | Trigger and consequence                                                                                                                                                                                                                        | Correction and regression                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider text masking                   | A log or Kubernetes event containing a URL with credential userinfo exposed those bytes, including JSON strings/member names.                                                                                                                  | Shared masking removes complete userinfo, including usernames used as tokens. Independent review exposed apostrophe, clipped authority, embedded scheme and JSON member-name residuals after the initial fix. Whole-object masking prevents credential-name leaks/key collisions; final package regressions pass.                                                                                                    |
+| Retained event output                   | A native event stored by an older version could contain credential text. REST and initial/polled SSE mapped that stored summary without output redaction.                                                                                      | One response mapper applies the existing deployment policy and bounds the resulting summary to 8,192 runes. Generated-marker tests cover both transports, later real SSE polling, safe text, metadata, Persian limit, mask expansion and reader immutability. No row or backup rewrite is claimed.                                                                                                                   |
+| HTTP 405 response                       | Unsupported methods on log download and three source-setting path forms returned an empty Allow header.                                                                                                                                        | Exact GET/GET/PATCH/POST methods are now published; all four real-handler regressions pass. Successful route methods and contract shapes are unchanged.                                                                                                                                                                                                                                                              |
+| Event collection authority              | Page one succeeded and a later page denied permission. The collector converted the denial to available/partial and retained one event.                                                                                                         | A later permission-denied status stays authoritative; accumulated unauthorized native events are discarded. The regression covers the page transition; no additional unsupported-page correction is claimed.                                                                                                                                                                                                         |
+| Notification/rule keysets               | An installation with non-byte text collation ordered mixed-case identifiers differently from Go cursor validation, causing repository-unavailable failures.                                                                                    | Both ordering and seek predicates use canonical byte collation. Migration 17 adds matching indexes without rewriting prior SQL; real non-byte-collation and ledger-14/16 forward-upgrade checks pass.                                                                                                                                                                                                                |
+| Native PostgreSQL name selection        | URI names containing a literal percent sequence were decoded twice; names containing equals could be parsed as libpq connection options by native tools.                                                                                       | Decode the URL path once and preserve the selected database as a literal escaped connection value. Real owned-name backup/restore tests cover percent, equals, quote and backslash and verify restored state/generation.                                                                                                                                                                                             |
+| Log severity and language               | Trace/unknown deep links and history lost their severity; several views showed raw severity codes instead of English/Persian text.                                                                                                             | All seven log severities survive URL state and use one locale helper in logs/alerts/notifications. API/download values remain unchanged; native events retain five supported severities.                                                                                                                                                                                                                             |
+| Rule editing                            | Deleting the rule currently being edited left a stale draft that could be submitted against the deleted rule. Final peer review also found active Cancel could begin another draft while deletion was pending, then the late reply cleared it. | Successful same-rule deletion clears the draft; failure retains it. Cancel stays disabled while saving/loading, and a deferred-response regression proves the lock through completion.                                                                                                                                                                                                                               |
+| Topology node facts                     | Graph nodes omitted required provider icon, scope and observed state despite available resource facts.                                                                                                                                         | Graph/list present equivalent actual facts; technical scope stays LTR, long text is bounded and full accessible details remain available. No graph geometry expansion or invented health state is used.                                                                                                                                                                                                              |
+| Keyboard navigation                     | The accepted quick-navigation journey had no implementation.                                                                                                                                                                                   | A bilingual fixed-route palette supports keyboard search/selection, role-aware destinations, source preservation, Escape and focus return. It adds no arbitrary route/endpoint execution.                                                                                                                                                                                                                            |
+| Account rendering scale                 | Manual load-more appended every fetched account into the DOM, creating unbounded rendered growth across requested pages. No authorization bypass was found.                                                                                    | A 50-row render window preserves previous/next access to the full loaded cache and existing final-administrator checks. Six generated multi-page/bilingual regressions plus the existing tests pass. The cache itself remains manually grown until refresh/unmount.                                                                                                                                                  |
+| Release document links                  | Packaged release notes pointed into mutable branch documentation.                                                                                                                                                                              | Generated document links bind to the immutable source revision. Release-policy tests check the resulting links; a successful helper does not prove publication.                                                                                                                                                                                                                                                      |
+| Browser control-read/report diagnostics | The first exact-tag browser test treated an unchecked control response as worker source and failed before update assertions. Its intended hidden JSON reports were omitted from the uploaded artifact.                                         | Separate signed-trial reproduction observes default-bucket 429 on one extra worker GET and one reload logo; original hosted status remains unknown. A main-only follow-up bounds 429-only Retry-After handling, validates status/MIME/size/one marker and includes only the existing sanitized report whitelist. Every PWA assertion and product limit remains. It is separate from frozen release source `376ed03`. |
 
 ## Focused proof
 
@@ -165,9 +170,9 @@ Private `.tmp/fresh-audit-rule-lock-before-b.log` and
 `.tmp/fresh-audit-final-rule-users-after.log` retain that transition. The product
 focused total is now 65 unique tests across ten files, with 19 new regressions;
 this is a sum of named focused runs, not a replacement full-suite receipt.
-Independent frontend review is 9/10 within that domain; whole-candidate delivery
-remains at its pending gates. Actual production-browser and exact-source release
-checks are separate.
+Independent frontend review is 9/10 within that domain. The later complete local,
+exact main/tag, signed publication and independent public/archive results below
+support current release acceptance separately from those focused checks.
 
 ## Remaining scope and acceptance
 
@@ -210,7 +215,8 @@ eight palette/focus/accessibility/viewport checks. Twenty-four screenshots were
 captured; four were visually reviewed: English 360px light palette/topology,
 Persian 360px dark palette and English 1280px light topology. These are the
 recorded UI build's results. The later backend escaped-slash finding required
-corrected-source gate C, whose result follows; exact hosted checks remain pending.
+corrected-source gate C, whose result follows. Exact hosted checks were still
+pending at that earlier checkpoint; current main/tag results follow below.
 
 After the final multi-layer escaped-slash correction, complete replacement C
 passed exit 0, including final web/API builds. The
@@ -232,11 +238,83 @@ exit 0 through final web/API builds: all Go/native/core, client 40, release/poli
 82.91% statements, 78.68% branches, 86.71% functions and 84.48% lines. The
 [current local receipt](local-gate.json) records transcript SHA-256
 `8595a3ded232a88fb920555c0484da10f9bbc85a867f2e8c478c342fae4cdb31`
-and preserves the earlier B/C results. New exact-source CI/trial remain required
-before tagging. C and the `18e8558` hosted/trial
-outcomes remain true only for their recorded earlier source. No new production
-rollout follows from these fixes. Preserve all prior tags,
-historical counts, failed trials and interrupted transfers. Full local and
-browser checks have passed within their recorded scope. Exact-source hosted jobs, strict full-image/native/source/history
-scans, signing, public identity/checksum/provenance/SBOM verification and actual
-archive use are required before raising the final score or accepting 1.0.2.
+and preserves the earlier B/C results. C and the `18e8558` hosted/trial outcomes
+remain true only for their earlier source. Current immutable `v1.0.2` points to
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`. Main `39132989641` passed all six
+required jobs; signed trial `39133022021` package passed. The independent
+[current trial consumer](consumer-trial.json) verified 30 payload checksums,
+all 31 provenance subjects and seven SBOM attestations under exact-source and
+hosted-runner policy, rejected a wrong source, found zero blocking findings in
+eight strict scan reports/zero secret findings, and executed Windows recovery
+with 17 migrations plus Linux native/database archives. The later public proof
+binds Windows equality and separate database archive execution below.
+
+## Exact tag failure, reproduction and unchanged-source retry
+
+The first tag CI `39134154907` code attempt failed at the worker control-body
+replacement assertion before the update/acceptance assertions ran. Eleven
+guest and both normal-language journeys passed. The original control status
+was not recorded; the uploaded artifact omitted hidden `.tmp` JSON reports,
+so that hosted response cannot be retrospectively classified as 429. Release
+`39134154891` correctly refused packaging and skipped publication.
+
+The [separate actual signed-trial diagnostic](browser-fixture-diagnostic.json)
+ran four cold contexts with the product's unchanged 20 requests/s, burst 40.
+One context's reload logo received 429; another context's extra worker control
+GET received 429 at 583ms, then returned the valid one-marker worker after a
+2.5-second refill. No cold-navigation or API error was observed in those four
+cases. This is a bounded rate-path reproduction, not proof of the original
+hosted status or customer capacity. First private diagnostic A remains failed
+on a shutdown classifier; confirmation B verified real server exit, exact-owned
+database absence and unbound ports.
+
+One failed-code-job retry on the unchanged original tag/source then passed all
+14 browser cases; all six tag jobs are green with the other five original
+successes. The tag was not moved. Its original failure and the first blocked
+release remain failed attempts. Release `39134154891` was retried only after
+that green exact tag; package `117702264862` and publication `117703943506`
+passed on retry. Original failures remain failed.
+
+A separate later main-only harness follow-up validates worker status, JavaScript
+MIME, a 64-KiB body assertion and exactly one cache marker, with four attempts,
+a 15-second deadline and bounded `Retry-After` handling only for 429. Safe
+metadata attachments retain the response classification; the uploader includes
+only the existing explicit sanitized report whitelist, never all `.tmp`.
+Every PWA acceptance/cache assertion and production limit stays unchanged.
+That follow-up is outside immutable release source `376ed03`. Fourteen
+in-memory branch cases passed; private live helper-coverage attempts C/D remain
+exit 1 because each first response was valid 200 and the intended 429 retry
+branch was not reached. Owned cleanup passed, but those guards do not prove
+live retry coverage. Six-job CI on the commit containing this review must pass
+before handoff; commit checks and the release body bind the final run/source.
+Preserve all prior tags, failed receipts and transfers.
+
+## Accepted public release and final scope
+
+Stable release `416503671` was published at `2026-10-18T14:43:05Z` for immutable
+`v1.0.2`, source `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`. Independent
+anonymous downloads verified all 39 public assets, every API size/digest,
+30 manifest entries, all 31 provenance subjects and seven SBOM attestations
+against exact tagged source/workflow and hosted-runner identity. Wrong-source
+rejection passed. Eight strict vulnerability reports have zero HIGH/CRITICAL
+findings; secret findings are zero. Source SPDX records 470 packages, 393 npm
+package URLs and 74 Go package URLs, separate from the 63-package web notice check.
+
+Public manifest SHA-256 is
+`c3409cc8300212fcbf27e83a1524ba0c64291e9f0503b8d9c7ebaf9789e45bf1`.
+Public Windows archive SHA-256
+`d7c1e7807b5b71946c2df274da07945e4c284421ae425f9b29febe2d36ddde1b`
+matches the actual 17-migration recovery-tested trial. The different public
+database archive SHA-256
+`9c5e686b1350c4ac21c68ad9234199efb04b5c9f95bf695ed8311060844ac79f`
+was independently loaded and executed with PostgreSQL 17.11, gosu 1.19/Go 1.26.9,
+UID/GID 70 root-drop, restricted non-root/read-only/network-none SQL, matching
+configuration/rootfs identity and owned cleanup. Signed Linux amd64 native
+guest/normal smoke passed. [Machine-readable public proof](published-release.json).
+
+All nine stages and release acceptance are complete at **9/10**. No customer
+production rollout follows from this project proof; customer ingress, provider
+rights, receivers, backup destination, capacity and full air-gap installation
+still need operator evidence. Linux arm64/macOS remain cross-built and scanned,
+without a native execution claim. Historical scores/counts and every failed
+attempt retain their original version and scope.

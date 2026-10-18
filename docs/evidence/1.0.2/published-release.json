@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "version": "1.0.2",
+  "revision": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+  "observed_at_utc": "2026-10-18T14:50:56.554208Z",
+  "main_ci_run": 39132989641,
+  "main_ci_jobs": 6,
+  "main_ci_conclusion": "success",
+  "release_run": 39134154891,
+  "checked_manifest_entries": 30,
+  "manifest_sha256": "c3409cc8300212fcbf27e83a1524ba0c64291e9f0503b8d9c7ebaf9789e45bf1",
+  "provenance_subjects_verified": 31,
+  "sbom_attestations_verified": 7,
+  "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/tags/v1.0.2",
+  "required_source_ref": "refs/tags/v1.0.2",
+  "deny_self_hosted_runners": true,
+  "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+  "windows_archive_sha256": "d7c1e7807b5b71946c2df274da07945e4c284421ae425f9b29febe2d36ddde1b",
+  "database_archive": {
+    "schema_version": 1,
+    "observed_at": "2026-10-18T14:49:52.374Z",
+    "version": "1.0.2",
+    "revision": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+    "scope": "Independently verified published database Docker-save archive loaded on local Linux amd64; owned isolated container only",
+    "archive_sha256": "9c5e686b1350c4ac21c68ad9234199efb04b5c9f95bf695ed8311060844ac79f",
+    "metadata_sha256": "ccc18fbd948eee3f5599b702ee726aa4653593cbd2cec27e542017a2de58af70",
+    "image": "stackplore-postgres:1.0.2",
+    "config_digest": "sha256:ef0b232c67945f66c51c2c9291c81b2130e29b96fe9f88d160507ee03975291f",
+    "postgres": "17.11",
+    "gosu": "1.19",
+    "go": "1.26.9",
+    "root_drop_uid": 70,
+    "root_drop_gid": 70,
+    "postgres_server_uid": 70,
+    "server_version_num": 170011,
+    "sql_query": "passed",
+    "network": "none",
+    "read_only": true,
+    "cap_drop": ["ALL"],
+    "temporary_data": "owned tmpfs only; no persistent or customer database",
+    "copyright_sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd",
+    "cleanup": "owned label checked; container and anonymous volumes removed by exit trap"
+  },
+  "database_proof_sha256": "6e7d467e65a1056929430f7e79c532bbce261560c7e0dc35b3f75470df4a07d2",
+  "database_log_sha256": "002cc7e6b105f60fe102ed5bb516e2ab468387c66033fe2ebdd177b331eb8d23",
+  "linux_native_smoke": {
+    "file": "native-smoke.json",
+    "sha256": "3c53d2589afcc103c3db6a288a1b0c88c95a65d3f3d5e7936180ea398b23f1ae",
+    "revision": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+    "platform": "linux/amd64",
+    "modes": ["guest", "normal"],
+    "graceful_shutdown": true,
+    "disposable_databases_removed": true
+  },
+  "strict_scans": [
+    {
+      "file": "dependency-scan.json",
+      "go_executables": 0,
+      "os_results": 0,
+      "packages": 467,
+      "high_critical": 0,
+      "sha256": "7c3cb6f0f7359d4e6ef51c931f2c5cd5703c0765f519edfff672fc4853a9b9cc"
+    },
+    {
+      "file": "image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 91,
+      "high_critical": 0,
+      "sha256": "3e85e3e2b89f0b4942a1f84d05a4de024436b545aa8196a16f045adfec8d26ff"
+    },
+    {
+      "file": "database-image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 49,
+      "high_critical": 0,
+      "sha256": "4a88a1c67769e282bd0fde2e4f44567a1182e30f24839b7d2e475571f1de70cc"
+    },
+    {
+      "file": "stackplore_1.0.2_linux_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0,
+      "sha256": "b13f6cf4ec33704092ad61b2ad311ca030177b4622f4f189cdd36c5ad3e2aff5"
+    },
+    {
+      "file": "stackplore_1.0.2_linux_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0,
+      "sha256": "0e85ff954ee301985ef23bf4102500d834051e527b19540f5fd36452608d58aa"
+    },
+    {
+      "file": "stackplore_1.0.2_windows_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 94,
+      "high_critical": 0,
+      "sha256": "bf5547fd58554f395bf1620eb513f27c2a6d5042365e8689993f5c7d1af29bfa"
+    },
+    {
+      "file": "stackplore_1.0.2_darwin_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0,
+      "sha256": "8ea39d5218bdc3b4296a35b7df56e88e162c597e37d1ec44802b18f2ce109416"
+    },
+    {
+      "file": "stackplore_1.0.2_darwin_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0,
+      "sha256": "9682b4342206e4b2fd2c5a731ca9acb2119d4e4b0ca94967ff3c94d8f74c599f"
+    }
+  ],
+  "source_inventory": {
+    "packages": 470,
+    "npm_purls": 393,
+    "go_purls": 74
+  },
+  "secret_scan": {
+    "file": "secret-scan.json",
+    "findings": 0,
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "package_job": 117702264862,
+  "windows_archive_matches_runtime_tested_trial": true,
+  "trial_run": 39133022021,
+  "trial_windows_archive_sha256": "d7c1e7807b5b71946c2df274da07945e4c284421ae425f9b29febe2d36ddde1b",
+  "database_archive_matches_trial": false,
+  "trial_database_archive_sha256": "c73d5d409fd344f8058dcc673b2ecde1a08456b60eff28eeb7a1e7baae88c082",
+  "trial_context_sha256": "6263c4b1eca182273d41b83da30cfd2cdb62b383a30b540a2feb14822e25af8d",
+  "windows_runtime": {
+    "archive_sha256": "d7c1e7807b5b71946c2df274da07945e4c284421ae425f9b29febe2d36ddde1b",
+    "proof": {
+      "restore_generation": 1,
+      "observed_at": "2026-10-18T13:56:44.6646506Z",
+      "native_tools": {
+        "pg_dump": "pg_dump (PostgreSQL) 17.11",
+        "pg_restore": "pg_restore (PostgreSQL) 17.11"
+      },
+      "proof_case": "triala",
+      "source_version": 2,
+      "restored_sessions": 0,
+      "version": "1.0.2",
+      "migration_entries": 17,
+      "metric_samples": 972,
+      "revision": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+      "resources": 9,
+      "owned_database_cleanup": "owner checked and absence verified",
+      "durable_alert_acknowledgement": true,
+      "restored_preauth_challenges": 0,
+      "schema_version": 1,
+      "durable_sse_replay_after_restart": true,
+      "fresh_login": true,
+      "source_disabled": true,
+      "ownership_loss_nonzero_shutdown": true,
+      "native_backup_restore": true,
+      "platform": "windows/amd64",
+      "binary_sha256": {
+        "stackplore-operator.exe": "e44ef1116781fecfef9f092441f719ffb1a642fe28fcef59b5697581494ded92",
+        "stackplore-server.exe": "c53fbb70ee8fbc7abc7df1d0ab7687c6855b40ae5091d749183ce4c1cff4409f",
+        "stackplore-storage.exe": "583c0cffffbbb5f54cf00f3d8273414e8cd047452d00825a77a922e66508b480"
+      }
+    },
+    "proof_sha256": "b521260f00f6be550c2b7213a65a2954a3c635cc027f2166048c79cdee675a46",
+    "log_sha256": "90ec7bf01f836a8920ade150312182c9d19e9260adff911288dbfc2458bbea6b"
+  },
+  "windows_runtime_source": "actual trial and public archive SHA256 match",
+  "tag": "v1.0.2",
+  "tag_ci_run": 39134154907,
+  "all_six_tag_jobs": "success",
+  "publish_job": 117703943506,
+  "package_and_publish": "success",
+  "release_id": 416503671,
+  "published_at_utc": "2026-10-18T14:43:05Z",
+  "release": "https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.2",
+  "downloaded_public_assets": 39,
+  "scope": "Exact tagged public assets independently fetched and cryptographically verified. Windows recovery is bound to these actual archive bytes; the public database archive has independent isolated SQL/runtime proof. Linux amd64 guest/normal smoke validated from the signed package evidence. Linux arm64 and macOS outputs are cross-built and scanned only. Customer production, ingress/TLS, receiver reachability, capacity and backup destinations require operator evidence.",
+  "review_score": 9,
+  "completed_roadmap_stages": 9,
+  "tag_ci_run_attempt": 2,
+  "first_failed_attempts": "Original tag/browser failure and blocked release retained in browser-fixture-diagnostic.json; successful retry does not relabel them",
+  "consumer_verifier": {
+    "version": "2.102.0",
+    "platform": "windows_amd64",
+    "archive_sha256": "ae64e556ecc240b200f7eba60d550e4bb60d78e860e69dd88c449405b86067f4",
+    "binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "checksum_source": "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_checksums.txt",
+    "status": "passed",
+    "observed_at_utc": "2026-10-18T13:27:40.2649745Z"
+  },
+  "negative_source_identity_check": {
+    "status": "passed",
+    "negative_exit": 1,
+    "wrong_source_rejected": true,
+    "source_ref": "refs/tags/v1.0.2",
+    "expected_rejected_digest": "0000000000000000000000000000000000000000",
+    "actual_source": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+    "raw_log_sha256": "d7e9262bd7c4ae898a677117da2ab2adc6cba85ec0ef37f37bc86a522cb08c08",
+    "parser_note": "Initial private guard expected a different wording and failed; actual immutable verifier output explicitly rejects the wrong digest. The original output and exit are unchanged."
+  },
+  "maintainer_followup": "Test/workflow/reporting follow-up is separate from immutable release source. Its six-job main CI on the commit containing this review must pass before handoff; final run/revision binding belongs to the reconciled release body and commit checks."
+}

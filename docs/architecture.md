@@ -1,16 +1,15 @@
 # Architecture
 
-The current working target is **1.0.2**, a corrective candidate after a fresh
-whole-repository audit of the 1.0.1 delivery. The review reopened quality at
-**8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. Earlier full local C and the scoped production-interface
-browser passed. A later retained-event REST/SSE correction has focused proof;
-full replacement D passes; new exact-source hosted/signed/public gates remain pending.
-[Fresh review and current proof](evidence/1.0.2/README.md).
+The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
+are complete; architecture/code and release review score **9/10**. Full local D,
+all six exact-source main/tag jobs, signed trial/publication and independent
+public checksum/provenance/SBOM/archive checks pass. Failed first tag/browser
+and blocked-release attempts retain their outcomes; unchanged-tag retry passed.
+[Published proof and runtime limits](evidence/1.0.2/published-release.json).
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
-retain their original results and scope. Those checks do not certify this new
-candidate. Customer production and air-gapped installation require separate
+retain their original results and scope. Those older checks do not certify a different source. Customer production and air-gapped installation require separate
 operator evidence.
 
 ## System shape
@@ -70,7 +69,8 @@ event mapper reapplies the deployment policy to retained summaries before the
 preserve literal database identity through one URI decode and escaped libpq
 selection. The interface adds fixed role-aware keyboard navigation and presents
 localized severities and observed node facts. See the scoped
-[fresh audit](evidence/1.0.2/fresh-audit.md) for proof and pending acceptance.
+[fresh audit](evidence/1.0.2/fresh-audit.md) and [public acceptance](evidence/1.0.2/published-release.json)
+for the exact proof and limits.
 
 ## Backend boundaries
 
@@ -93,7 +93,9 @@ and reviewed `stackplore-postgres:1.0.2` derivative. It rebuilds unchanged
 official gosu 1.19 with Go 1.26.9 while retaining the PostgreSQL engine and
 entrypoint. Actual helper/engine/root-drop behavior, complete scans, bound SPDX
 and independent archive SQL startup passed for historical 1.0.1; the current
-1.0.2 candidate requires its own exact-source gates. The release must include the database Docker-save archive
+Current 1.0.2 exact main/tag CI and signed trial passed; independent trial
+database archive loading/execution and scans passed. Public Windows byte identity
+and separate public database execution also passed. The release includes the database Docker-save archive
 and signed SBOM. Existing 17.x minor-update guidance follows upstream and requires
 operator maintenance and validated backup/restore; no specific 17.6-to-17.11
 runtime experiment is claimed. Startup:
@@ -260,7 +262,9 @@ history. It requires exact base/derivative and engine/helper metadata, root-drop
 probes, a complete image vulnerability scan and an SPDX package inventory bound
 to that identity. Compose/CI first build owned patched database fixtures; Helm
 continues to use external PostgreSQL under the server/client policy. The historical 1.0.1
-main/tag/trial/public/archive gates passed; 1.0.2 requires fresh recorded proof. A scan of the application image alone does not prove the database image.
+main/tag/trial/public/archive gates passed. Current 1.0.2 main/tag/trial and actual
+trial and public archive proof also pass. A scan of the
+application image alone does not prove the database image.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including
 Linux race tests and image builds; see [exact run evidence](implementation-plan.md).

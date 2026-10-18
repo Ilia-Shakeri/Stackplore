@@ -5,7 +5,10 @@
 ### Fresh audit corrections
 
 - Removes complete credential userinfo from provider log/event URLs, including
-  nested structured text, and publishes exact Allow headers on four existing routes.
+  nested structured text, escaped slashes, clipped authority and JSON member names.
+  Shared REST/initial-and-polled-SSE mapping also masks retained event summaries
+  before the 8,192-rune limit; older stored rows/backups remain unchanged.
+  Publishes exact Allow headers on four existing routes.
 - Keeps a later-page event permission denial authoritative and discards partial
   unauthorized event evidence. Notification/rule keysets use byte ordering under
   every database collation; migration 17 adds the matching indexes.
@@ -13,7 +16,9 @@
   including percent signs and libpq-looking names, without double decoding or
   interpreting names as connection options.
 - Preserves trace/unknown log URL filters and localizes severity labels. Deleting
-  the rule being edited clears its stale draft; topology nodes show their type
+  the rule being edited clears its stale draft and locks Cancel during saving.
+  Account rendering uses a 50-row window over the accessible loaded cache;
+  topology nodes show their type
   icon, scope and observed state with bounded text and accessible details.
 - Adds the required keyboard-accessible navigation palette with English/Persian
   copy, role-aware fixed routes, source preservation and focus return. Release
@@ -21,11 +26,24 @@
 
 ### Verification state
 
-- Fresh regression probes failed before correction and passed their focused
-  checks afterward. Full local, production-browser, exact-source hosted and
-  signed public release gates remain to be recorded; this is a candidate.
-- Earlier 1.0.1 receipts retain their original source and scope. The new audit
-  reopens completion at 8/10 until all corrective gates and review pass.
+- Corrective code passed precommit full local D (477 web, 40 client and 29
+  release/policy tests) with real SQL/native checks. Immutable `v1.0.2` at
+  `376ed0379900ab870dd8eb8af6b55ef3e5ec389b` then passed exact six-job main/tag
+  CI including race, production browser and real installs/providers.
+- Signed trial and publication passed. Independent public verification checked
+  all 39 assets, 30 manifest entries, all 31 provenance subjects/seven SBOM
+  attestations, eight clean strict scans, wrong-source rejection and actual
+  Windows/Linux archive proof. The different public database archive was
+  independently loaded and executed. All nine stages are complete, review 9/10;
+  [public receipt](docs/evidence/1.0.2/published-release.json).
+- Original first tag/browser and blocked-release attempts remain failed; the
+  unchanged-tag retry passed. A later main-only worker-control/report-retention
+  follow-up has 14 passing in-memory cases; two live retry-coverage guards remain
+  failed because their first response was 200. It changes no release binary or
+  product limit. Six-job CI on the commit containing this follow-up must pass
+  before handoff; commit checks and the release body bind that final run/source.
+- Earlier 1.0.1 and all failed/corrected checkpoints retain their original
+  source, counts and proof limits. Customer deployment remains operator work.
 
 ## [1.0.1] - 2026-10-18
 
@@ -118,7 +136,6 @@
 
 - Release candidate. Local, browser, deployment, scan and exact tagged artifact results have distinct receipts in the [active evidence plan](docs/implementation-plan.md). Publishing requires complete exact-tag checks, scan completeness, checksums and signed provenance/SBOMs.
 
-
 ## [0.7.0] - 2026-10-17
 
 ### Added
@@ -199,7 +216,6 @@
 - Local, browser, real-provider and remote evidence are recorded separately in
   the active plan; test definitions alone do not prove a target deployment.
 
-
 ## [0.4.0] - 2026-10-17
 
 ### Added
@@ -232,7 +248,6 @@
   show at most 200 nodes, with paginated alternatives and explicit loaded-edge bounds.
 - Real provider/container/cluster and final assistive-technology acceptance remain
   separate from local browser/DOM and PostgreSQL evidence.
-
 
 ## [0.3.0] - 2026-10-16
 

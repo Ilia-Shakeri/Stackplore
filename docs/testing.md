@@ -8,17 +8,26 @@ release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
 
-The current working target is **1.0.2**, a corrective candidate after a fresh
-whole-repository audit of the 1.0.1 delivery. The review reopened quality at
-**8/10**. Confirmed defects and an accepted navigation gap have corrections and
-focused regressions. Earlier full local C and the scoped production-interface
-browser passed. A later retained-event REST/SSE correction has focused proof;
-full replacement D passes; new exact-source hosted/signed/public gates remain pending.
-[Fresh review and current proof](evidence/1.0.2/README.md).
+The public-worker update test's maintainer follow-up treats its extra script GET
+as a bounded control read: status/MIME, at most 64 KiB and one marker are checked;
+only 429 may retry within four attempts/15 seconds using bounded `Retry-After`.
+Safe status/count/size metadata is attached. The artifact uploader includes hidden
+reports only through its explicit sanitized filename whitelist. Real page/API
+errors stay failures; no product rate is raised. This later main-only follow-up
+is separate from immutable release `376ed03`; the
+[diagnostic](evidence/1.0.2/browser-fixture-diagnostic.json) retains both the failed
+first tag attempt and separate worker/reload-logo 429 observations.
+
+The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
+are complete; architecture/code and release review score **9/10**. Full local D,
+all six exact-source main/tag jobs, signed trial/publication and independent
+public checksum/provenance/SBOM/archive checks pass. Failed first tag/browser
+and blocked-release attempts retain their outcomes; unchanged-tag retry passed.
+[Published proof and runtime limits](evidence/1.0.2/published-release.json).
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
-retain their original results and scope. Those checks do not certify this new
-candidate. Customer production and air-gapped installation require separate
+retain their original results and scope. Those older checks do not certify a different source. Customer production and air-gapped installation require separate
 operator evidence.
 
 Historical 1.0.1 evidence only: Full local D passed 28 release/policy, 40 client and 453 web tests with real
@@ -42,21 +51,21 @@ navigation. Focused checks do not replace the full gate or fresh production
 browser; exact commands and failed attempts are in the
 [fresh audit](evidence/1.0.2/fresh-audit.md).
 
-| Boundary                                   | Required check                                              | Proof limitation                                                                        |
-| ------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Domain/auth/provider/service/HTTP          | `npm.cmd run test:api`                                      | Most provider tests use fixtures.                                                       |
-| Browser client                             | `npm.cmd run test:client`                                   | Network mocks do not prove a deployment.                                                |
-| React/locale/interface flows               | `npm.cmd run test:web`                                      | DOM tests do not prove geometry, contrast or browsers.                                  |
-| HTTP model/client drift                    | `npm.cmd run check:contracts`                               | Does not alone compare every runtime parser bound.                                      |
-| English/Persian key parity                 | `npm.cmd run check:locales`                                 | Natural language quality needs review.                                                  |
-| Documents/version metadata                 | `npm.cmd run check:docs`, `npm.cmd run check:version`       | Link/file checks do not certify factual accuracy.                                       |
-| PostgreSQL SQL/migrations/auth concurrency | Test URL plus `npm.cmd run test:api`                        | Must run against a disposable real server.                                              |
-| PostgreSQL derivative identity and scan | Exact base/derivative and engine/helper metadata, root-drop probe, full image scan, bound SPDX and Docker-save/SBOM proof | Application-image scans, engine-only probes and clean OS results do not prove the complete database image. |
-| Native archive/restore                     | `cmd/storage` on separate fresh databases                   | Successful archive listing alone is not a restore.                                      |
-| Compose/model/images                       | Compose config, build, start, probes and restart            | Definitions or image build alone do not prove startup.                                  |
-| Helm/cluster                               | Lint, render, install, probes, RBAC and TLS                 | Rendering alone does not prove a pod runs.                                              |
-| Webhook/Matrix                             | Persisted retries against a disposable HTTPS receiver       | Local receipt does not prove an operator receiver, public DNS or a complete homeserver. |
-| Browser/accessibility/performance          | Critical journeys in both locales/themes at required widths | Each needs saved current evidence.                                                      |
+| Boundary                                   | Required check                                                                                                            | Proof limitation                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Domain/auth/provider/service/HTTP          | `npm.cmd run test:api`                                                                                                    | Most provider tests use fixtures.                                                                          |
+| Browser client                             | `npm.cmd run test:client`                                                                                                 | Network mocks do not prove a deployment.                                                                   |
+| React/locale/interface flows               | `npm.cmd run test:web`                                                                                                    | DOM tests do not prove geometry, contrast or browsers.                                                     |
+| HTTP model/client drift                    | `npm.cmd run check:contracts`                                                                                             | Does not alone compare every runtime parser bound.                                                         |
+| English/Persian key parity                 | `npm.cmd run check:locales`                                                                                               | Natural language quality needs review.                                                                     |
+| Documents/version metadata                 | `npm.cmd run check:docs`, `npm.cmd run check:version`                                                                     | Link/file checks do not certify factual accuracy.                                                          |
+| PostgreSQL SQL/migrations/auth concurrency | Test URL plus `npm.cmd run test:api`                                                                                      | Must run against a disposable real server.                                                                 |
+| PostgreSQL derivative identity and scan    | Exact base/derivative and engine/helper metadata, root-drop probe, full image scan, bound SPDX and Docker-save/SBOM proof | Application-image scans, engine-only probes and clean OS results do not prove the complete database image. |
+| Native archive/restore                     | `cmd/storage` on separate fresh databases                                                                                 | Successful archive listing alone is not a restore.                                                         |
+| Compose/model/images                       | Compose config, build, start, probes and restart                                                                          | Definitions or image build alone do not prove startup.                                                     |
+| Helm/cluster                               | Lint, render, install, probes, RBAC and TLS                                                                               | Rendering alone does not prove a pod runs.                                                                 |
+| Webhook/Matrix                             | Persisted retries against a disposable HTTPS receiver                                                                     | Local receipt does not prove an operator receiver, public DNS or a complete homeserver.                    |
+| Browser/accessibility/performance          | Critical journeys in both locales/themes at required widths                                                               | Each needs saved current evidence.                                                                         |
 
 ## Real database
 
@@ -144,7 +153,7 @@ checks, and Helm lint/render passed. Exact commands and outcomes are in the acti
 evidence plan. Later exploration and provider receipts are recorded below;
 complete Matrix homeserver and target installation proof remain separate. Under renewed authorization on
 2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
-jobs. Older tagged results do not certify the 1.0.2 candidate; current results
+jobs. Older tagged results do not certify a different 1.0.2 source; current results
 are recorded in the evidence plan.
 
 ## Historical provider and isolated-demo checkpoint
@@ -154,7 +163,7 @@ receipts. Final complete changed-tree gate D passed with real PostgreSQL,
 36 client tests, 350 web tests and both builds. Exact publication/CI identities
 are retained in the active plan; do not report early failed full gates as successful. The active
 plan records the 8.5/10 findings, fixes and final independent scoped 9/10 review.
-Those counts are historical and are not current candidate acceptance.
+Those counts are historical and are not current release counts.
 
 With a disposable real PostgreSQL URL, reproduce the narrow authority and clock
 checks after preparing the pinned tools:
@@ -228,7 +237,7 @@ paths require representative data and `EXPLAIN (ANALYZE, BUFFERS)` before a
 performance claim. Browser measurements require actual rendering and large
 fixtures; bundle byte counts alone are insufficient.
 
-## Current candidate regressions and runtime gates
+## Current 1.0.2 regressions and runtime gates
 
 Focused cases cover exact-resource health history (200 samples, 30-day lookback,
 current source authority), server event filters before pagination and cursor

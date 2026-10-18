@@ -2,15 +2,18 @@
 
 ## Project status
 
-The maintained release line is **1.0.x**. Working target **1.0.2** is a
-corrective candidate after a fresh full audit; review reopened at **8/10**.
+The maintained release line is **1.0.x**. Corrective target **1.0.2** is immutable
+`v1.0.2` at `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema 17. Code
+and release review are **9/10**; all nine stages are complete after actual public
+publication and independent archive verification.
 Provider URL-userinfo masking, retained-event REST/SSE output, later-page event authority, canonical feed
 ordering and literal native database selection have corrections. Focused
-regressions pass. Earlier full local C and the scoped production-interface
-browser passed before the retained-event output amendment.
-[Current evidence](docs/evidence/1.0.2/README.md). A later retained-event output
-correction has focused passing proof; complete replacement D passes; new corrected-source
-hosted proof remains pending. Earlier C and `18e8558` trial/CI cover their earlier state.
+regressions and complete local D pass. All six exact main/tag jobs, the strict
+signed trial/publication and actual public archive verification pass. The first tag/browser and
+blocked-release attempts remain failed; unchanged-tag retry passed.
+[Current evidence](docs/evidence/1.0.2/README.md) separates the later main-only
+harness/report-retention fix from frozen release `376ed03`. Earlier C and
+`18e8558` trial/CI retain their earlier-source scope.
 
 An upgrade does not rewrite historical event rows, backups or prior downloads.
 Restrict an exposed older runtime, deploy the verified correction and rotate
@@ -22,7 +25,7 @@ Preserve protected audit history. [Upgrade response](docs/operations/upgrade-rol
 Immutable `v1.0.1` remains at
 `73ece4754554cca548c242768b195d21664d37b8` with its original
 [published receipt](docs/evidence/1.0.1/published-release.json). Its historical
-passing gates do not certify the changed candidate or erase these fresh
+passing gates do not certify a different source or erase these fresh
 findings. Report the exact version and full source commit.
 
 The historical 1.0.1 derivative retains PostgreSQL 17.11 and the upstream entrypoint, rebuilding

@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "revision": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+  "binary_sha256": "c53fbb70ee8fbc7abc7df1d0ab7687c6855b40ae5091d749183ce4c1cff4409f",
+  "scope": "Four isolated cold guest contexts; signed trial binary; default rate20/s burst40; HTTP status/MIME and bounded public body classification/hash only.",
+  "runtime": "Signed trial Windows amd64 binary; isolated disposable guest database and four cold browser contexts",
+  "production_rate_limit": {
+    "requests_per_second": 20,
+    "burst": 40,
+    "unchanged": true
+  },
+  "cases": [
+    {
+      "case": 1,
+      "immediate_worker": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "immediate_elapsed_ms": 799,
+      "refill_control": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "responses": 50,
+      "status_counts": {
+        "200": 50
+      }
+    },
+    {
+      "case": 2,
+      "immediate_worker": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "immediate_elapsed_ms": 654,
+      "refill_control": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "responses": 50,
+      "status_counts": {
+        "200": 50
+      }
+    },
+    {
+      "case": 3,
+      "immediate_worker": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "immediate_elapsed_ms": 597,
+      "refill_control": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "responses": 54,
+      "status_counts": {
+        "200": 53,
+        "429": 1
+      }
+    },
+    {
+      "case": 4,
+      "immediate_worker": {
+        "status": 429,
+        "mime": "text/plain; charset=utf-8",
+        "classification": "plain_rate_limited",
+        "worker_marker_count": 0,
+        "bytes": 18,
+        "sha256": "d493a0e6163ec828d0e49428cc43173ed74e3675ef52e23dcc86cf5c74d37871"
+      },
+      "immediate_elapsed_ms": 583,
+      "refill_control": {
+        "status": 200,
+        "mime": "text/javascript; charset=utf-8",
+        "classification": "production_worker_one_cache_marker",
+        "worker_marker_count": 1,
+        "bytes": 2576,
+        "sha256": "a89971a7802f9798a889b7057e28c73c9acc6c562610ebfaf856d19b73ca7188"
+      },
+      "responses": 54,
+      "status_counts": {
+        "200": 53,
+        "429": 1
+      }
+    }
+  ],
+  "non_success_responses": [
+    {
+      "case": 3,
+      "phase": "reload",
+      "path": "/brand/stackplore-mark.svg",
+      "status": 429,
+      "mime": "text/plain; charset=utf-8"
+    },
+    {
+      "case": 4,
+      "phase": "immediate_worker_get",
+      "path": "/sw.js",
+      "status": 429,
+      "mime": "text/plain; charset=utf-8"
+    }
+  ],
+  "refill_control_delay_ms": 2500,
+  "owned_server_exited": true,
+  "owned_server_exit_signal": "SIGTERM",
+  "owned_database_cleanup": "owner checked and absence verified",
+  "ports_after_cleanup": "58112 and 58113 unbound",
+  "proof_sha256": "f1c08cb20522692b016606780b08613dce2af517322a6295f3f4e2160c296e95",
+  "log_sha256": "5d39362434ddd2608ed53d390202c752f81678ffd7fc2d169d967bb309c349a8",
+  "first_diagnostic": {
+    "exit": 1,
+    "cause": "Private Windows shutdown classifier incorrectly treated signal termination as a live process; original failed receipt retained",
+    "actual_shutdown_and_database_cleanup": true,
+    "proof_sha256": "8c0248a6ca64551da9e70f9f1b097862be3d787464e9b0e6da24dcad6e0a4cf1"
+  },
+  "tag_attempt_1": {
+    "run": 39134154907,
+    "conclusion": "failure",
+    "failed_job": 117695149313,
+    "failed_step": "Verify production browser and offline shell in disposable PostgreSQL",
+    "failed_test": "public worker update waits for acceptance and preserves private cache exclusion",
+    "observed": "Control response did not match the worker declaration; original test did not record its HTTP status",
+    "failure_scope": "The update/acceptance assertions were not reached in the first tag attempt",
+    "failure_preserved": true
+  },
+  "release_attempt_1": {
+    "run": 39134154891,
+    "conclusion": "failure",
+    "cause": "Correctly refused packaging after exact-tag verification failed",
+    "publish": "skipped",
+    "failure_preserved": true
+  },
+  "artifact_diagnostic": {
+    "artifact_id": 12138394980,
+    "sha256": "e676c66512b9763ea0b842e0cf9906286621f42df45f5e743139e79f9177f0cf",
+    "browser_result_reports_present": false,
+    "cause": "Hidden .tmp result reports excluded by uploader default; public measurements/screenshots remained"
+  },
+  "limits": "The original hosted failure response status cannot be recovered from the uploaded files. The isolated reproduction proves a rapid cold-navigation/reload sequence can rate-limit the extra worker control GET; one reload logo request was also rate-limited. No cold-navigation or API failure was observed in these four confirmation cases. This does not relax product rate limits or prove customer deployment capacity.",
+  "harness_followup": {
+    "scope": "Main-only test/workflow follow-up; immutable v1.0.2 source and product binaries unchanged",
+    "control_read": "Only HTTP429 may retry using valid bounded Retry-After; maximum four attempts and 15 seconds. Require HTTP200, JavaScript MIME, at most 64 KiB, valid UTF-8 and exactly one cache declaration. All original update/acceptance/navigation/private-cache checks remain.",
+    "ci_artifact_whitelist": "Hidden files enabled only for existing explicit sanitized browser-result JSON and public measurements/screenshots paths; no broad scratch-directory upload",
+    "in_memory_branch_cases": 14,
+    "in_memory_branch_status": "passed",
+    "in_memory_branch_log_sha256": "b5100656c04419ddf869a3de74334aeaa3239e807c505d6f4f8eeb98abce130d",
+    "raw_inputs_absent_from_attachments": true,
+    "private_live_coverage_attempts": [
+      {
+        "attempt": "c",
+        "exit": 1,
+        "coverage_goal_met": false,
+        "helper_source_sha256": "d2132c3dd6e6be6d77a27a2479342d0527a34e1be156b795be79af25dec7ac4d",
+        "observations": null,
+        "failure_classification": "Actual helper first response was valid 200; intended live 429 retry branch not exercised before rate refill; coverage guard failed",
+        "owned_server_exited": true,
+        "owned_database_cleanup": "owner checked and absence verified",
+        "proof_sha256": "691aaf080c72587ff10c0de820e413ac783deed406bc013454111aaa05752ef4",
+        "original_failure_preserved": true
+      },
+      {
+        "attempt": "d",
+        "exit": 1,
+        "coverage_goal_met": false,
+        "helper_source_sha256": "d2132c3dd6e6be6d77a27a2479342d0527a34e1be156b795be79af25dec7ac4d",
+        "observations": [
+          {
+            "name": "public-worker-control-read",
+            "data": {
+              "deadlineMs": 15000,
+              "maximumAttempts": 4,
+              "attempts": [
+                {
+                  "attempt": 1,
+                  "status": 200,
+                  "mime": "text/javascript",
+                  "bytes": 2576,
+                  "cacheMarkers": 1
+                }
+              ]
+            }
+          }
+        ],
+        "failure_classification": "Actual helper first response was valid 200; intended live 429 retry branch not exercised before rate refill; coverage guard failed",
+        "owned_server_exited": true,
+        "owned_database_cleanup": "owner checked and absence verified",
+        "proof_sha256": "c508f23c3c376b9cb360fa75a196c1ca1762ef25caf84d50ce5d4b2625b5fe9e",
+        "original_failure_preserved": true
+      }
+    ],
+    "full_latest_main_browser": "Required separate six-job verification on the commit containing this main-only harness follow-up; final handoff requires success, bound in release-body links and commit checks"
+  },
+  "tag_retry": {
+    "run": 39134154907,
+    "run_attempt": 2,
+    "source": "376ed0379900ab870dd8eb8af6b55ef3e5ec389b",
+    "source_and_original_test_unchanged": true,
+    "conclusion": "success",
+    "all_six_jobs": "success",
+    "browser_cases": 14
+  }
+}

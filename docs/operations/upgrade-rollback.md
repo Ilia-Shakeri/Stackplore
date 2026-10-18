@@ -13,7 +13,7 @@ development database is required.
 
 ## 1.0.1 to corrective 1.0.2
 
-The current candidate advances ledger **16 to 17**. Migration 17 adds matching
+Corrective `v1.0.2` at `376ed03` advances ledger **16 to 17**. Migration 17 adds matching
 byte-collation indexes for notification and alert-rule keysets; query seek and
 ordering now agree under non-byte database defaults. Existing identifiers,
 authorization and the first sixteen migration bytes remain unchanged. Real
@@ -91,14 +91,14 @@ verified pre-upgrade backup; there are no reverse migrations.
 
 Earlier released migration files remain byte-identical. The later ledger adds:
 
-| Migration | Change |
-| --- | --- |
-| 11 | Current inventory partition coverage and authority fences |
-| 12 | Separate normal/guest deployment identity |
-| 13 | Durable guarded-operation preview, intent and result state |
-| 14 | Versioned application settings and protected audit policy |
-| 15 | Permits the operator-owned `kubernetes_kubeconfig` mounted profile |
-| 16 | Adds the source alert feed's matching update-time/opaque-ID keyset index |
+| Migration | Change                                                                   |
+| --------- | ------------------------------------------------------------------------ |
+| 11        | Current inventory partition coverage and authority fences                |
+| 12        | Separate normal/guest deployment identity                                |
+| 13        | Durable guarded-operation preview, intent and result state               |
+| 14        | Versioned application settings and protected audit policy                |
+| 15        | Permits the operator-owned `kubernetes_kubeconfig` mounted profile       |
+| 16        | Adds the source alert feed's matching update-time/opaque-ID keyset index |
 
 Migrations 15–16 are forward-only additions. The mounted profile stores a logical
 profile reference, never kubeconfig text, credentials or browser-selected paths.
@@ -134,7 +134,7 @@ these operator gates:
    `btree_gist`/`ltree` reindex requirements where applicable. Stackplore does not
    create or use those optional extensions or custom logical decoding plugins;
    inspect operator-added components separately. Review scripted `COPY FROM
-   STDIN` data terminators with the patched `psql`.
+STDIN` data terminators with the patched `psql`.
 3. Update the approved server image and native clients, preserving the existing
    database volume. Record their exact versions and image digest. Never remove
    the volume to make an update pass.
@@ -187,7 +187,8 @@ data or archives as part of the application restore command.
 Restores revoke sessions and pre-auth state; users must sign in again. The
 operator owns archive encryption/retention, secret changes and target cleanup.
 Every target upgrade/rollback rehearsal is recorded separately from local tests.
-The current candidate's final acceptance is recorded in the [active plan](../implementation-plan.md).
+Current 1.0.2 release acceptance is recorded in the [active plan](../implementation-plan.md)
+and [public proof](../evidence/1.0.2/published-release.json).
 Project acceptance does not authorize or prove an unrequested customer rollout.
 For recovery from a suspected compromise, preserve evidence and use
 [incident response](incident-response.md).
