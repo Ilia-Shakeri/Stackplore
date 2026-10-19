@@ -1,4 +1,4 @@
-import type { AlertRuleRecord } from '@stackplore/api-client';
+import { sliceCodePoints, type AlertRuleRecord } from '@stackplore/api-client';
 import {
   useCallback,
   useEffect,
@@ -24,6 +24,7 @@ import {
   type RuleDraft,
   type RuleKind,
   type Severity,
+  type RuleDefaults,
 } from './alert-rule-draft';
 
 import { useProductApi, useProductView } from './product-context';
@@ -40,11 +41,66 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
   const loadController = useRef<AbortController | null>(null);
   const loadGeneration = useRef(0);
   const [rules, setRules] = useState<readonly AlertRuleRecord[]>([]);
-  const [draft, setDraft] = useState<RuleDraft>(emptyDraft);
+  const [draft, setDraft] = useState<RuleDraft>(() => emptyDraft());
+  const [defaults, setDefaults] = useState<
+    | { readonly kind: 'loading' | 'error' }
+    | { readonly kind: 'ready'; readonly value: RuleDefaults }
+  >({ kind: 'loading' });
+  const defaultsController = useRef<AbortController | null>(null);
+  const defaultsValue = useRef<RuleDefaults | undefined>(undefined);
+  const editedFields = useRef(new Set<keyof RuleDraft>());
+  const draftMode = useRef<'new' | 'editing'>('new');
   const [editing, setEditing] = useState<AlertRuleRecord | null>(null);
   const [deleteIntent, setDeleteIntent] = useState<string | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'saving' | 'error'>('loading');
   const input = useMemo(() => draftInput(draft), [draft]);
+
+  const loadDefaults = useCallback(async () => {
+    defaultsController.current?.abort();
+    const controller = new AbortController();
+    defaultsController.current = controller;
+    setDefaults({ kind: 'loading' });
+    try {
+      const settings = await api.getApplicationSettings(controller.signal);
+      if (controller.signal.aborted) return;
+      const value = {
+        windowSeconds: settings.values.default_alert_window_seconds,
+        pendingSeconds: settings.values.default_alert_pending_seconds,
+      };
+      defaultsValue.current = value;
+      setDefaults({ kind: 'ready', value });
+      if (draftMode.current === 'new') {
+        setDraft((current) =>
+          draftMode.current === 'editing'
+            ? current
+            : {
+                ...current,
+                ...(editedFields.current.has('windowSeconds')
+                  ? {}
+                  : { windowSeconds: String(value.windowSeconds) }),
+                ...(editedFields.current.has('pendingSeconds')
+                  ? {}
+                  : { pendingSeconds: String(value.pendingSeconds) }),
+              },
+        );
+      }
+    } catch {
+      if (!controller.signal.aborted) setDefaults({ kind: 'error' });
+    }
+  }, [api]);
+  useEffect(() => {
+    void loadDefaults();
+    return () => {
+      defaultsController.current?.abort();
+    };
+  }, [loadDefaults]);
+
+  const resetDraft = () => {
+    draftMode.current = 'new';
+    editedFields.current.clear();
+    setEditing(null);
+    setDraft(emptyDraft(defaultsValue.current));
+  };
 
   const loadPage = useCallback(
     async (pageCursor?: string) => {
@@ -100,12 +156,19 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
   };
 
   const update = <Key extends keyof RuleDraft>(key: Key, value: RuleDraft[Key]) => {
+    editedFields.current.add(key);
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
   const save = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (input === null || state === 'saving' || state === 'loading') return;
+    if (
+      input === null ||
+      state === 'saving' ||
+      state === 'loading' ||
+      (editing === null && defaults.kind !== 'ready')
+    )
+      return;
     const generation = loadGeneration.current;
     setState('saving');
     try {
@@ -121,8 +184,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
       } else {
         setRules((current) => current.map((rule) => (rule.id === saved.id ? saved : rule)));
       }
-      setEditing(null);
-      setDraft(emptyDraft());
+      resetDraft();
       if (editing !== null) setState('ready');
     } catch {
       if (generation === loadGeneration.current) setState('error');
@@ -157,8 +219,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
       if (generation !== loadGeneration.current) return;
       setRules((current) => current.filter((item) => item.id !== rule.id));
       if (editing?.id === rule.id) {
-        setEditing(null);
-        setDraft(emptyDraft());
+        resetDraft();
       }
       setDeleteIntent(null);
       setState('ready');
@@ -196,6 +257,23 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
         </button>
       ) : null}
       <section className="alert-rule-settings__panel" aria-labelledby="rule-editor-title">
+        {defaults.kind === 'loading' ? (
+          <p role="status">{t('alerts.rules.defaults.loading')}</p>
+        ) : null}
+        {defaults.kind === 'error' ? (
+          <div role="alert">
+            <p>{t('alerts.rules.defaults.error')}</p>
+            <button
+              type="button"
+              className="ui-button ui-focus-ring"
+              onClick={() => {
+                void loadDefaults();
+              }}
+            >
+              {t('alerts.rules.defaults.retry')}
+            </button>
+          </div>
+        ) : null}
         <h2 id="rule-editor-title">
           {editing === null ? t('alerts.rules.create') : t('alerts.rules.edit')}
         </h2>
@@ -208,10 +286,10 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
           <RuleField label={t('alerts.rules.name')}>
             <input
               required
-              maxLength={256}
+              maxLength={512}
               value={draft.displayName}
               onChange={(event) => {
-                update('displayName', event.target.value);
+                update('displayName', sliceCodePoints(event.target.value, 256));
               }}
             />
           </RuleField>
@@ -392,7 +470,12 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
           <div className="alert-rule-settings__actions">
             <button
               className="ui-button ui-button--primary ui-focus-ring"
-              disabled={input === null || state === 'saving' || state === 'loading'}
+              disabled={
+                input === null ||
+                state === 'saving' ||
+                state === 'loading' ||
+                (editing === null && defaults.kind !== 'ready')
+              }
               type="submit"
             >
               {editing === null ? t('alerts.rules.createAction') : t('alerts.rules.saveAction')}
@@ -403,8 +486,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
                 type="button"
                 disabled={state === 'saving' || state === 'loading'}
                 onClick={() => {
-                  setEditing(null);
-                  setDraft(emptyDraft());
+                  resetDraft();
                 }}
               >
                 {t('alerts.rules.cancel')}
@@ -435,6 +517,7 @@ export function ProductAlertRulesSettingsPage({ toolbar }: { readonly toolbar?: 
                   className="ui-button ui-button--secondary ui-focus-ring"
                   disabled={state === 'saving' || state === 'loading'}
                   onClick={() => {
+                    draftMode.current = 'editing';
                     setEditing(rule);
                     setDraft(recordDraft(rule));
                   }}

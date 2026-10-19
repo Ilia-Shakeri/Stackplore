@@ -10,6 +10,18 @@
 {{- end }}
 {{- end }}
 
+{{- define "stackplore.apiName" -}}
+{{- $full := include "stackplore.fullname" . -}}
+{{- if not (regexMatch "^[a-z]" $full) -}}
+{{- $full = printf "sp-%s" $full -}}
+{{- end -}}
+{{- if le (len $full) 59 -}}
+{{- printf "%s-api" $full -}}
+{{- else -}}
+{{- printf "%s-%s-api" ($full | trunc 50 | trimSuffix "-") ($full | sha256sum | trunc 8) -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "stackplore.labels" -}}
 app.kubernetes.io/name: {{ include "stackplore.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}

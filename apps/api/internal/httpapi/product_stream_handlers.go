@@ -3,6 +3,7 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,11 +20,12 @@ import (
 )
 
 const (
-	streamPollInterval = 2 * time.Second
-	streamKeepalive    = 15 * time.Second
-	streamAuthCheck    = 30 * time.Second
-	streamMaximumLife  = 30 * time.Minute
-	streamWriteTimeout = 5 * time.Second
+	streamPollInterval          = 2 * time.Second
+	streamKeepalive             = 15 * time.Second
+	streamAuthCheck             = 30 * time.Second
+	streamMaximumLife           = 30 * time.Minute
+	streamWriteTimeout          = 5 * time.Second
+	transientStreamMaximumFrame = 256 * 1024
 )
 
 type streamTopic string
@@ -161,10 +163,14 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 			return
 		}
 	}
+	key := string(topic) + "/" + string(provider.Source().ID)
 	readContext, cancelRead := context.WithTimeout(r.Context(), streamReadTimeout)
 	initial, err := buildStreamSnapshot(readContext, topic, provider, handler.logRedactionPolicy)
 	cancelRead()
 	if err != nil {
+		if streamPermissionDenied(err) {
+			handler.streams.Invalidate(key)
+		}
 		var providerError *domain.ProviderError
 		if errors.As(err, &providerError) {
 			writeProviderProblem(w, r, err)
@@ -174,7 +180,6 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 		return
 	}
 	producer := streamProducer(topic, provider, initial, handler.logRedactionPolicy)
-	key := string(topic) + "/" + string(provider.Source().ID)
 	subscription, err := handler.streams.Subscribe(key, lastID, producer)
 	if err != nil {
 		writeProblem(w, r, unavailableProblem)
@@ -220,6 +225,10 @@ func (handler productHTTP) stream(w http.ResponseWriter, r *http.Request, topic 
 				return
 			}
 		case frame, open := <-subscription.C:
+			if subscription.Revoked() {
+				_ = writeSSE(w, 0, "stream.reset.v1", []byte(`{"reason":"source_unavailable"}`))
+				return
+			}
 			if !open || writeSSE(w, frame.ID, frame.Event, frame.Data) != nil {
 				return
 			}
@@ -232,23 +241,31 @@ func streamProducer(topic streamTopic, provider ProductProvider, initial []byte,
 }
 
 func streamProducerWithInterval(topic streamTopic, provider ProductProvider, initial []byte, interval time.Duration, policies ...logsafe.Policy) realtime.Producer {
-	return func(ctx context.Context, publish func(string, []byte) error) {
-		last := bytes.Clone(initial)
+	initialFingerprint := sha256.Sum256(initial)
+	initialEvent, initialFrame := streamSnapshotFrame(topic, initial)
+	// The producer retains only a bounded frame and a fixed-size fingerprint,
+	// including when the legal REST snapshot is larger than the replay budget.
+	initialFrame = bytes.Clone(initialFrame)
+	return func(ctx context.Context, publish func(string, []byte) error) error {
+		last := initialFingerprint
 		sourceUnavailable := false
-		if publish(string(topic)+".snapshot.v1", last) != nil {
-			return
+		if err := publish(initialEvent, initialFrame); err != nil {
+			return err
 		}
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
-				return
+				return ctx.Err()
 			case <-ticker.C:
 				readContext, cancelRead := context.WithTimeout(ctx, streamReadTimeout)
 				data, err := buildStreamSnapshot(readContext, topic, provider, policies...)
 				cancelRead()
 				if err != nil {
+					if streamPermissionDenied(err) {
+						return realtime.ErrRevoked
+					}
 					if !sourceUnavailable {
 						_ = publish("stream.reset.v1", []byte(`{"reason":"source_unavailable"}`))
 						sourceUnavailable = true
@@ -257,15 +274,24 @@ func streamProducerWithInterval(topic streamTopic, provider ProductProvider, ini
 				}
 				recovered := sourceUnavailable
 				sourceUnavailable = false
-				if recovered || !bytes.Equal(data, last) {
-					if publish(string(topic)+".snapshot.v1", data) != nil {
-						return
+				fingerprint := sha256.Sum256(data)
+				if recovered || fingerprint != last {
+					event, frame := streamSnapshotFrame(topic, data)
+					if err := publish(event, frame); err != nil {
+						return err
 					}
-					last = bytes.Clone(data)
+					last = fingerprint
 				}
 			}
 		}
 	}
+}
+
+func streamSnapshotFrame(topic streamTopic, data []byte) (string, []byte) {
+	if len(data) > transientStreamMaximumFrame {
+		return "stream.reset.v1", []byte(`{"reason":"snapshot_overflow"}`)
+	}
+	return string(topic) + ".snapshot.v1", data
 }
 
 func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider ProductProvider, policies ...logsafe.Policy) ([]byte, error) {
@@ -299,6 +325,9 @@ func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider Produc
 		if err != nil {
 			return nil, err
 		}
+		if err := streamStatusPermission(result.Status); err != nil {
+			return nil, err
+		}
 		items := make([]healthResponse, len(result.Snapshots))
 		for index, health := range result.Snapshots {
 			reasons := make([]string, len(health.Evidence))
@@ -319,6 +348,9 @@ func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider Produc
 		names := []domain.MetricName{domain.MetricCPUUsageCores, domain.MetricMemoryUsageBytes, domain.MetricRestartCount}
 		result, err := metricProvider.GetCurrentMetrics(ctx, domain.CurrentMetricQuery{Source: providerRef(provider), Resources: refs, Names: names})
 		if err != nil {
+			return nil, err
+		}
+		if err := streamStatusPermission(result.Status); err != nil {
 			return nil, err
 		}
 		items := make([]metricResponse, 0, len(refs)*len(names))
@@ -344,6 +376,9 @@ func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider Produc
 		if err != nil {
 			return nil, err
 		}
+		if err := streamStatusPermission(result.Status); err != nil {
+			return nil, err
+		}
 		items := make([]eventResponse, len(result.Events))
 		for index, event := range result.Events {
 			items[index] = eventJSON(event, policy)
@@ -364,6 +399,9 @@ func buildStreamSnapshot(ctx context.Context, topic streamTopic, provider Produc
 			LineLimit: 100, ByteLimit: domain.MaxLogBytes,
 		})
 		if err != nil {
+			return nil, err
+		}
+		if err := streamStatusPermission(result.Status); err != nil {
 			return nil, err
 		}
 		items := make([]logResponse, len(result.Records))
@@ -404,6 +442,9 @@ func streamResources(ctx context.Context, provider ProductProvider, limit int) (
 	if err != nil {
 		return nil, nil, err
 	}
+	if err := streamStatusPermission(page.Status); err != nil {
+		return nil, nil, err
+	}
 	refs := make([]domain.ResourceRef, len(page.Resources))
 	synthetic := make(map[domain.ResourceID]bool, len(page.Resources))
 	for index, item := range page.Resources {
@@ -411,6 +452,19 @@ func streamResources(ctx context.Context, provider ProductProvider, limit int) (
 		synthetic[item.Resource.Ref.ID] = item.Resource.Synthetic
 	}
 	return refs, synthetic, nil
+}
+
+func streamStatusPermission(status domain.ObservationStatus) error {
+	if status.State != domain.AvailabilityPermissionDenied {
+		return nil
+	}
+	failure, _ := domain.NewProviderError("stream.snapshot.read", domain.ProviderErrorPermissionDenied, false, errors.New("source permission denied"))
+	return failure
+}
+
+func streamPermissionDenied(err error) bool {
+	var failure *domain.ProviderError
+	return errors.As(err, &failure) && failure.Code == domain.ProviderErrorPermissionDenied
 }
 
 func parseLastEventID(r *http.Request) (uint64, error) {

@@ -62,7 +62,7 @@ func newProductHTTP(auth authHTTP, providers []ProductProvider, audit AuditReade
 		byID[provider.Source().ID] = provider
 	}
 	streams, err := realtime.NewManager(realtime.ManagerOptions{
-		MaximumFeeds: 64, ReplaySize: 128, QueueSize: 16, MaximumFrame: 256 * 1024,
+		MaximumFeeds: 64, ReplaySize: 128, QueueSize: 16, MaximumFrame: transientStreamMaximumFrame,
 	})
 	if err != nil {
 		panic("invalid built-in realtime limits")

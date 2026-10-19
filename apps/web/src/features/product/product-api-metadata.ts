@@ -1,4 +1,4 @@
-import type { ResourceMetadata } from '@stackplore/api-client';
+import { hasCodePointLength, type ResourceMetadata } from '@stackplore/api-client';
 import {
   hasExactKeys,
   isDisplayText,
@@ -89,7 +89,7 @@ function isLabel(value: unknown) {
     !isRecord(value) ||
     !hasExactKeys(value, ['key', 'value']) ||
     typeof value.value !== 'string' ||
-    value.value.length > 256
+    !hasCodePointLength(value.value, 256)
   )
     return false;
   if (value.key === 'com.docker.compose.project' || value.key === 'com.docker.compose.service')
@@ -130,7 +130,7 @@ function isDocker(value: unknown) {
     inList(value.health, ['healthy', 'unhealthy', 'starting', 'none', 'unknown']) &&
     isSafeRangeInteger(value.restart_count, 0, maximumInteger) &&
     (value.engine_version === undefined ||
-      (isDisplayText(value.engine_version) && value.engine_version.length <= 64)) &&
+      (isDisplayText(value.engine_version) && hasCodePointLength(value.engine_version, 64))) &&
     (value.image === undefined ||
       (typeof value.image === 'string' &&
         value.image.length <= 256 &&

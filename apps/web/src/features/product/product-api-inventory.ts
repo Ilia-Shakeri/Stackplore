@@ -1,4 +1,5 @@
 import { isResourceMetadata } from './product-api-metadata';
+import { hasCodePointLength } from '@stackplore/api-client';
 import type {
   ApiClient,
   ProductResource,
@@ -59,9 +60,7 @@ const isResource = (value: unknown): value is ProductResource =>
   namespacedCodePattern.test(value.kind) &&
   isOneOf(value.scope_kind, scopes) &&
   (value.scope_name === undefined || isDisplayText(value.scope_name)) &&
-  typeof value.name === 'string' &&
-  value.name.length > 0 &&
-  value.name.length <= 256 &&
+  isDisplayText(value.name) &&
   typeof value.synthetic === 'boolean' &&
   isTimestamp(value.observed_at) &&
   (value.health === undefined || isOneOf(value.health, healthStates)) &&
@@ -138,14 +137,11 @@ const isSource = (value: unknown): value is SourceSummary => {
     typeof value.id === 'string' &&
     tokenPattern.test(value.id) &&
     isOneOf(value.provider, providers) &&
-    typeof value.name === 'string' &&
-    value.name.length > 0 &&
-    value.name.length <= 256 &&
+    isDisplayText(value.name) &&
     typeof value.synthetic === 'boolean' &&
     (value.fixture_version === undefined ||
       (typeof value.fixture_version === 'string' &&
-        value.fixture_version.length > 0 &&
-        value.fixture_version.length <= 64)) &&
+        hasCodePointLength(value.fixture_version, 64, 1))) &&
     isTimestamp(value.observed_at) &&
     isOneOf(value.availability, availabilityStates) &&
     isOneOf(value.completeness, completenessStates) &&
@@ -192,10 +188,7 @@ const isEnvironment = (value: unknown): value is ProductEnvironmentPage['items']
   typeof value.source_id === 'string' &&
   tokenPattern.test(value.source_id) &&
   isOneOf(value.provider, providers) &&
-  typeof value.name === 'string' &&
-  value.name.length > 0 &&
-  value.name.length <= 256 &&
-  value.name.length > 0 &&
+  isDisplayText(value.name) &&
   isOneOf(value.availability, availabilityStates) &&
   isOneOf(value.completeness, completenessStates) &&
   isTimestamp(value.observed_at) &&
@@ -203,7 +196,7 @@ const isEnvironment = (value: unknown): value is ProductEnvironmentPage['items']
 
 const resourceQuery = (options: ResourceReadOptions) => {
   if (
-    (options.search !== undefined && options.search.length > 200) ||
+    (options.search !== undefined && !hasCodePointLength(options.search, 200)) ||
     (options.provider !== undefined && !providers.has(options.provider)) ||
     (options.environmentId !== undefined && !tokenPattern.test(options.environmentId)) ||
     (options.kind !== undefined &&

@@ -12,6 +12,7 @@ import { App } from '../../app/App';
 import { createAppRouter } from '../../app/router';
 import { createAuthenticatedAuthStore } from '../../test/auth';
 import { createTestUsersApi } from '../../test/users';
+import { settingsFixture } from '../settings/settings-test-fixtures';
 
 const observedAt = '2026-08-20T08:00:00Z';
 const rule: AlertRuleRecord = {
@@ -49,6 +50,7 @@ function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
       enabled: false,
     }),
     getSystemReadiness: vi.fn(),
+    getApplicationSettings: vi.fn().mockResolvedValue(settingsFixture),
     listAlertRules: vi
       .fn()
       .mockResolvedValue({ items: [rule], page: { has_more: false, limit: 100 } }),
@@ -70,6 +72,171 @@ function productApi(overrides: Partial<ProductApi> = {}): ProductApi {
 }
 
 describe('alert rule settings', () => {
+  it('uses effective defaults for new drafts and restores them after editing', async () => {
+    const user = userEvent.setup();
+    const getApplicationSettings = vi.fn().mockResolvedValue({
+      ...settingsFixture,
+      values: {
+        ...settingsFixture.values,
+        default_alert_window_seconds: 900,
+        default_alert_pending_seconds: 23,
+      },
+    });
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ getApplicationSettings })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('23');
+    });
+    await user.selectOptions(screen.getByLabelText('Rule kind'), 'cpu_threshold');
+    expect(screen.getByLabelText<HTMLInputElement>('Evidence window (seconds)').value).toBe('900');
+    await user.click(await screen.findByRole('button', { name: 'Edit' }));
+    expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('60');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('23');
+    await user.selectOptions(screen.getByLabelText('Rule kind'), 'cpu_threshold');
+    expect(screen.getByLabelText<HTMLInputElement>('Evidence window (seconds)').value).toBe('900');
+    expect(getApplicationSettings).toHaveBeenCalledOnce();
+  });
+
+  it('preserves manual defaults while the settings request is pending', async () => {
+    let finish!: (value: typeof settingsFixture) => void;
+    const getApplicationSettings = vi.fn().mockImplementation(
+      () =>
+        new Promise<typeof settingsFixture>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ getApplicationSettings })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await user.selectOptions(screen.getByLabelText('Rule kind'), 'cpu_threshold');
+    await user.clear(screen.getByLabelText('Pending time (seconds)'));
+    await user.type(screen.getByLabelText('Pending time (seconds)'), '9');
+    await user.clear(screen.getByLabelText('Evidence window (seconds)'));
+    await user.type(screen.getByLabelText('Evidence window (seconds)'), '120');
+    await act(async () => {
+      finish({
+        ...settingsFixture,
+        values: {
+          ...settingsFixture.values,
+          default_alert_window_seconds: 900,
+          default_alert_pending_seconds: 23,
+        },
+      });
+      await Promise.resolve();
+    });
+    expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('9');
+    expect(screen.getByLabelText<HTMLInputElement>('Evidence window (seconds)').value).toBe('120');
+  });
+
+  it('shows a retryable defaults failure and never substitutes hidden values', async () => {
+    const getApplicationSettings = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Settings unavailable.'))
+      .mockResolvedValueOnce(settingsFixture);
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ getApplicationSettings })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Reload alert defaults' }));
+    await waitFor(() => {
+      expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('0');
+    });
+    expect(getApplicationSettings).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a persisted rule unchanged when defaults arrive during editing', async () => {
+    let finish!: (value: typeof settingsFixture) => void;
+    const getApplicationSettings = vi.fn().mockImplementation(
+      () =>
+        new Promise<typeof settingsFixture>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ getApplicationSettings })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Edit' }));
+    await act(async () => {
+      finish({
+        ...settingsFixture,
+        values: {
+          ...settingsFixture.values,
+          default_alert_window_seconds: 900,
+          default_alert_pending_seconds: 23,
+        },
+      });
+      await Promise.resolve();
+    });
+    expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('60');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('23');
+  });
+
+  it('submits explicit draft values and resets a saved rule to effective defaults', async () => {
+    const getApplicationSettings = vi.fn().mockResolvedValue({
+      ...settingsFixture,
+      values: {
+        ...settingsFixture.values,
+        default_alert_window_seconds: 900,
+        default_alert_pending_seconds: 23,
+      },
+    });
+    const createAlertRule = vi
+      .fn<ProductApi['createAlertRule']>()
+      .mockImplementation((input) => Promise.resolve({ ...rule, ...input, id: 'rule_new' }));
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ProductProvider api={productApi({ getApplicationSettings, createAlertRule })}>
+          <ProductAlertRulesSettingsPage />
+        </ProductProvider>
+      </LocaleProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('23');
+    });
+    await user.type(screen.getByLabelText('Rule name'), 'CPU load');
+    await user.type(screen.getByLabelText('Source ID'), 'source_demo');
+    await user.selectOptions(screen.getByLabelText('Rule kind'), 'cpu_threshold');
+    await user.type(screen.getByLabelText('Resource ID'), `r1_${'A'.repeat(43)}`);
+    await user.clear(screen.getByLabelText('Evidence window (seconds)'));
+    await user.type(screen.getByLabelText('Evidence window (seconds)'), '120');
+    await user.click(screen.getByRole('button', { name: 'Create rule' }));
+    await waitFor(() => {
+      expect(createAlertRule).toHaveBeenCalledOnce();
+    });
+    expect(createAlertRule.mock.calls[0]?.[0]).toMatchObject({
+      pending_for_seconds: 23,
+      window_seconds: 120,
+    });
+    await waitFor(() => {
+      expect(screen.getByLabelText<HTMLInputElement>('Rule name').value).toBe('');
+    });
+    expect(screen.getByLabelText<HTMLInputElement>('Pending time (seconds)').value).toBe('23');
+    await user.selectOptions(screen.getByLabelText('Rule kind'), 'cpu_threshold');
+    expect(screen.getByLabelText<HTMLInputElement>('Evidence window (seconds)').value).toBe('900');
+  });
+
   it('keeps the editor locked until its pending deletion finishes', async () => {
     let finish!: () => void;
     const deleteAlertRule = vi.fn<ProductApi['deleteAlertRule']>().mockImplementation(

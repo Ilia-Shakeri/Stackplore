@@ -1,4 +1,7 @@
 {
+  "alerts.rules.defaults.loading": "Loading alert defaults…",
+  "alerts.rules.defaults.error": "Alert defaults could not be loaded. New rules need the current settings.",
+  "alerts.rules.defaults.retry": "Reload alert defaults",
   "alerts.rules.pagination": "Alert rule pages",
   "alerts.rules.firstPage": "First rules",
   "alerts.rules.previousPage": "Previous rules",

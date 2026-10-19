@@ -1,11 +1,12 @@
 # Durable observations and source settings
 
-This reference describes the accepted **1.0.2** boundaries, source `376ed03`, ledger 17.
-Focused corrections are in the [fresh audit](evidence/1.0.2/fresh-audit.md);
-full exact-source/public acceptance is in the [published receipt](evidence/1.0.2/published-release.json).
-Historical 1.0.1 proof keeps its
-original scope. [فارسی](observations.fa.md), [architecture](architecture.md)
-and [current evidence](implementation-plan.md) retain proof limits.
+This reference describes the **1.0.3 candidate**, ledger 17. Fresh local focused
+checks cover its retention and stream-authority corrections; complete candidate
+and release acceptance remain separately recorded in the
+[active plan](implementation-plan.md). The historical
+[1.0.2 audit](evidence/1.0.2/fresh-audit.md) and
+[published receipt](evidence/1.0.2/published-release.json) retain their exact
+source and proof limits. [فارسی](observations.fa.md), [architecture](architecture.md).
 
 ## Collection and reads
 
@@ -132,6 +133,24 @@ event page becomes permission-denied, that status overrides
 earlier successful pages and their accumulated native events are discarded.
 The collector cannot turn a denial into an available partial result.
 
+Transient health, metric, event and log SSE also check permission before opening
+the stream. A permission-denied status or typed denial returns HTTP 403 before
+SSE headers and invalidates the shared topic/source feed. If a running poll
+observes denial, it revokes that feed, clears its replay ring and queued frames,
+and closes its subscriptions; an active HTTP client receives
+`stream.reset.v1` with `source_unavailable` when the connection can still write.
+Recovery creates a new feed from a fresh authorized snapshot. Already delivered
+bytes cannot be recalled. This transient feed is separate from durable alert
+replay and does not alter committed alert history.
+
+Transient snapshot JSON is capped at 256 KiB per frame. A larger legal page
+emits only `stream.reset.v1` with `snapshot_overflow`; clients refetch the bounded
+REST page while the stream stays open. A fixed-size SHA-256 fingerprint tracks
+the full snapshot: changed oversized pages emit another reset, unchanged pages
+do not, and a later in-budget page resumes normal snapshot frames. The replay
+ring never stores the oversized page. Permission revocation still closes the
+feed rather than using this size fallback.
+
 Notification and alert-rule keysets compare opaque identifiers with canonical
 byte ordering in both SQL seek predicates and ordering. This remains true when
 the database's default text collation differs. Migration 17 adds the matching
@@ -140,11 +159,15 @@ unchanged. [Upgrade procedure](operations/upgrade-rollback.md).
 
 ## Retention and protected audit
 
-The fixed worker runs every minute. Each run has one ten-second aggregate
+The scheduled worker runs every minute. Each run has one ten-second aggregate
 deadline and at most ten cleanup transactions. Each transaction deletes at most
 1,000 rows across fair quotas for metrics, health, events and terminal ordinary
-notification deliveries. Metrics older than seven days are eligible, health,
-events and eligible terminal deliveries older than 30 days are eligible. The
+notification deliveries. Each transaction reads and validates the effective
+application settings under `FOR SHARE` and holds that policy row lock through
+all four deletions. Concurrent policy updates serialize before or after the
+whole batch; the next batch reads policy again. Defaults are seven days for
+metrics and 30 days for health, events and eligible terminal deliveries; each
+class has its own administrator-configured 1–8760-hour retention. The
 newest metric for each resource/name is kept for current reads. Unchanged health
 refreshes update current state without writing another history fact.
 
@@ -154,7 +177,9 @@ deliveries and audit-linked deliveries are excluded. Audit rows use a separate
 audit worker prunes only rows older than both limits and never expires linked
 operation or notification facts; without an archive cutoff it does no pruning.
 The cutoff is monotonic: startup rejects removing or rolling back a previously
-stored cutoff. There is no browser retention override. Monitor database growth
+stored cutoff. Ordinary retention changes use the guarded
+[application settings](settings.md) workflow; browsers cannot alter audit policy
+or supply arbitrary cleanup cutoffs. Monitor database growth
 and preserve PostgreSQL-native verified backups. A backlog can
 outgrow the bounded cleanup rate and needs operator attention; these caps are
 not a production capacity claim.
@@ -173,3 +198,10 @@ truth, keysets and retention. Local query-plan timings come from disposable
 warm-cache fixtures and are not production latency proof. Live provider,
 browser, container and target-cluster gates remain separately recorded in the
 roadmap and evidence plan.
+
+Fresh real PostgreSQL 17.11 regressions cover the default retention control,
+8760-hour preservation of eight-day metrics and all four older history classes,
+one-hour expiry, independent class ages, policy reload between batches and both
+orders of concurrent policy update/deletion. Existing fair-quota, newest metric,
+synthetic and protected audit guards remain covered. These local results do not
+certify candidate CI, released archives or an operator installation.

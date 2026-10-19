@@ -1,4 +1,5 @@
 {
+  "explore.retry": "Try again",
   "explore.events.search": "Search event history",
   "explore.events.apply": "Search events",
   "explore.events.severity.debug": "Debug",

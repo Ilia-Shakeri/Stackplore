@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.0.3] - 2026-10-19
+
+- Apply effective PostgreSQL retention settings per bounded batch under a shared
+  policy lock; preserve protected history and validate all settings transactions.
+- Revoke denied native SSE replay and active feeds, including poll-time denial;
+  return the documented typed 403 before subscription and permit clean recovery.
+- Replace oversized native snapshots with a bounded reset and REST refetch;
+  preserve the 256 KiB frame cap, change detection, replay limits and recovery.
+- Refresh event/log pages after stream changes even when explicit time bounds or
+  the synthetic source clock stay fixed; preserve filters and existing intervals.
+- Repair Matrix test delivery query composition, align Unicode lengths with
+  contract code points and give the production browser the bounded 16 MiB server
+  response budget while preserving the generic client's 1 MiB default.
+- Populate new alert drafts from effective settings without overwriting edits;
+  expose localized retry controls across history and exploration failures.
+- Add a bounded bilingual environment selector with truthful route scope,
+  keyboard/focus support and filter-preserving source-bound navigation.
+- Bound long Helm API names with stable hashes and alphabetic prefixes, preserve existing valid Service
+  and PVC identities, and check rendered references plus server dry-run in CI.
+- Schema remains 17. Focused proof is recorded in the [fresh audit](docs/evidence/1.0.3/fresh-audit.md).
+  Final local/browser/hosted and release acceptance remain pending.
+
 ## [1.0.2] - 2026-10-18
 
 ### Fresh audit corrections

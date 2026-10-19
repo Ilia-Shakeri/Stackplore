@@ -1,10 +1,11 @@
 # Exploring observations
 
-[فارسی](exploration.fa.md). This guide describes accepted **1.0.2**, immutable
-release source `376ed03`, ledger 17. All nine stages and release gates pass;
-[published proof](evidence/1.0.2/published-release.json) records exact CI, signing
-and independent public/archive checks. Failed attempts and the later main-only
-harness follow-up stay separate. A guide does not certify customer installation.
+[فارسی](exploration.fa.md). This guide describes the **1.0.3 candidate** in current
+source. Its corrections are implemented; candidate verification and publication
+remain separate gates. It is not a published or accepted 1.0.3 release.
+Accepted 1.0.2 remains immutable at `376ed03`, ledger 17; its
+[published proof](evidence/1.0.2/published-release.json) is historical evidence for
+that release, not proof for this candidate or a customer installation.
 
 ## Sources and trustworthy states
 
@@ -12,6 +13,16 @@ Choose an infrastructure source before following a resource, log, event, or
 topology link. Resource detail URLs include the exact source, provider, resource
 kind, and opaque resource identifier. The source in that path takes precedence
 over a conflicting query parameter.
+
+The header's **Browse environment** control lists observed environments for the
+selected source, with explicit loading, unavailable and retry states. Choices
+load in pages of 100, up to 1,000 loaded entries; a bookmarked environment that
+has not loaded is identified as such. Selecting an environment applies
+`environment_id` on `/resources`, `/search`, `/events` and `/topology`. From
+another page it opens the resource inventory. It does not filter overview
+totals, metric histories, logs, alerts or audit history. Navigation preserves
+the environment only for those four supported routes; source changes clear
+dependent environment and target/cursor selections.
 
 Health and availability are separate. Healthy, degraded, unhealthy, and unknown
 describe observed resource health. Available, stale, unavailable, unsupported,
@@ -51,6 +62,26 @@ merges. The 1,000-item notice also appears if a final page would cross that
 browser limit. Narrow server filters to inspect a smaller set. This is a bounded
 explorer, not an unbounded browser archive.
 
+Failed initial reads offer **Try again** without a document reload, including
+audit and notification history. Retrying repeats the current bounded read and
+retains the selected URL filters; it does not replay a write or test delivery.
+Partial resource metric/health failures and notification-status failures also
+offer a read retry.
+
+Text limits count Unicode code points, including supplementary characters,
+rather than JavaScript UTF-16 units. Search accepts at most 200 code points,
+display names and scope names at most 256, and event summaries at most 8,192.
+Combining marks and joined characters still count as separate code points.
+Unknown fields and invalid values remain rejected.
+
+The production browser client accepts at most **16 MiB of JSON per response**,
+matching the service's default response ceiling. This permits legal bounded
+multilingual event and log pages above 1 MiB. Declared lengths and streamed
+bytes are both checked; an oversized response is cancelled. The generic client
+default stays 1 MiB, problem responses stay at most 64 KiB, and text log downloads
+stay at most 1 MiB. Item, page and history limits still apply. Narrow the selected
+range or filters if a response reaches a safety limit.
+
 ## Time correlation
 
 Overview metrics and event/log views offer one-hour, six-hour, and one-day
@@ -68,6 +99,17 @@ bounds remain exact shareable snapshots. Charts retain
 accessible table alternatives and show missing or partial observation states.
 An observation clock, a collection clock, and a source-wide count do not prove
 that all resources were sampled at the same instant.
+
+Transient snapshot frames have a 256 KiB JSON budget. A larger legal snapshot
+emits `stream.reset.v1` with reason `snapshot_overflow` so the browser reads the
+bounded REST page instead; it does not silently truncate observation data or
+close a healthy stream. Changed oversized snapshots invalidate again; unchanged
+ones do not. An in-budget recovery resumes normal snapshot frames. Event resets
+and recovery refetch even an explicit absolute window, preserving its exact
+`from`/`to` and source, environment, text and severity filters. Live log polling
+and stream invalidation also refetch when a synthetic source keeps the same
+fixture clock. Pause still closes the stream and stops polling; resume restores
+them. These size fallbacks do not bypass current permission denial.
 
 Resource detail additionally reads exact-resource health history from
 `/api/v1/health/history`, with at most 200 samples per read and a maximum 30-day
@@ -210,7 +252,11 @@ direct neighbors, upstream, or downstream nodes. Zoom, fit, pan buttons, minimap
 and full-screen controls complement pointer navigation. The node and relationship
 list provides keyboard links to equivalent resource and evidence details.
 
-Topology state uses `topology_q`, `topology_kind`, `topology_environment`,
+Topology uses canonical `environment_id`; legacy `topology_environment` bookmarks
+remain readable. Resource reads apply that environment before pagination.
+Relationship reads remain bounded source pages; only relationships with matching
+loaded endpoints are displayed. This does not prove that unloaded relationships
+are absent. Other topology state uses `topology_q`, `topology_kind`,
 `topology_scope`, `topology_health`, `topology_group`, `topology_selected`, and
 `topology_neighbors`. Edges distinguish source-to-target, bidirectional, and
 undirected relationships. Evidence records provider, provenance, certainty,

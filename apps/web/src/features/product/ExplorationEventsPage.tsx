@@ -1,4 +1,4 @@
-import type { ProductEventPage } from '@stackplore/api-client';
+import { sliceCodePoints, type ProductEventPage } from '@stackplore/api-client';
 import { Button, TechnicalText } from '@stackplore/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale } from '../../i18n';
@@ -70,7 +70,7 @@ export function ProductEventsPage() {
       }),
     [api, selectedSource, resourceId, environmentId, search, severity, time.range],
   );
-  const page = useCursorPage(load);
+  const page = useCursorPage(load, stream.revision);
   return (
     <ObservedPageHeader
       title={t('route.events.title')}
@@ -123,10 +123,10 @@ export function ProductEventsPage() {
           <label>
             {t('explore.events.search')}
             <input
-              maxLength={200}
+              maxLength={400}
               value={draft}
               onChange={(event) => {
-                setDraft(event.currentTarget.value);
+                setDraft(sliceCodePoints(event.currentTarget.value, 200));
               }}
             />
           </label>
@@ -134,7 +134,9 @@ export function ProductEventsPage() {
         </form>
       </div>
       {page.state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {page.state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {page.state.kind === 'error' ? (
+        <ProductState text={t('product.error')} onRetry={page.retry} />
+      ) : null}
       {page.state.kind === 'ready' ? (
         <>
           <ObservationNotice data={page.state.data} />

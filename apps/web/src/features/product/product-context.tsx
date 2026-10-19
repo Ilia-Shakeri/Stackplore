@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import type { ProductApi } from './product-api';
+import { hasCodePointLength } from '@stackplore/api-client';
 
 interface ProductContextValue {
   readonly api: ProductApi;
@@ -30,7 +31,7 @@ export function readProductSource(search: string) {
 
 export function readProductQuery(search: string) {
   const query = new URLSearchParams(search).get('q') ?? '';
-  return query.length <= 200 && query.trim() === query ? query : '';
+  return hasCodePointLength(query, 200) && query.trim() === query ? query : '';
 }
 
 function initialQuery() {
@@ -82,6 +83,7 @@ export function ProductProvider({
   const selectSource = useCallback(
     (sourceId: string) => {
       if (!sourcePattern.test(sourceId)) throw new Error('Source identifier is invalid.');
+      if (sourceId === selectedSource) return;
       if (onSourceChange !== undefined) {
         onSourceChange(sourceId);
         return;
@@ -90,14 +92,25 @@ export function ProductProvider({
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href);
         url.searchParams.set('source', sourceId);
+        for (const key of [
+          'environment_id',
+          'topology_environment',
+          'topology_selected',
+          'resource_id',
+          'container',
+          'rule_cursor',
+        ])
+          url.searchParams.delete(key);
         window.history.replaceState(window.history.state, '', url);
+        setLocalViewSearch(url.search);
       }
     },
-    [onSourceChange],
+    [onSourceChange, selectedSource],
   );
   const selectQuery = useCallback(
     (value: string) => {
-      if (value.length > 200 || value.trim() !== value) throw new Error('Search query is invalid.');
+      if (!hasCodePointLength(value, 200) || value.trim() !== value)
+        throw new Error('Search query is invalid.');
       if (onQueryChange !== undefined) {
         onQueryChange(value);
         return;
@@ -122,6 +135,13 @@ export function ProductProvider({
       const url = new URL(window.location.href);
       if (value === '') url.searchParams.delete(name);
       else url.searchParams.set(name, value);
+      if (name === 'environment_id' || name === 'topology_environment') {
+        url.searchParams.delete('topology_environment');
+        if (value === '') url.searchParams.delete('environment_id');
+        else url.searchParams.set('environment_id', value);
+        for (const key of ['topology_selected', 'resource_id', 'container', 'rule_cursor'])
+          url.searchParams.delete(key);
+      }
       window.history.replaceState(window.history.state, '', url);
       setLocalViewSearch(url.search);
     },
@@ -188,6 +208,13 @@ export function useProductView() {
     const url = new URL(window.location.href);
     if (entry === '') url.searchParams.delete(name);
     else url.searchParams.set(name, entry);
+    if (name === 'environment_id' || name === 'topology_environment') {
+      url.searchParams.delete('topology_environment');
+      if (entry === '') url.searchParams.delete('environment_id');
+      else url.searchParams.set('environment_id', entry);
+      for (const key of ['topology_selected', 'resource_id', 'container', 'rule_cursor'])
+        url.searchParams.delete(key);
+    }
     window.history.replaceState(window.history.state, '', url);
     setFallbackSearch(url.search);
   }, []);

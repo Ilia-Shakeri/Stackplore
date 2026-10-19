@@ -1,12 +1,16 @@
 # Architecture
 
-The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
-`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
-are complete; architecture/code and release review score **9/10**. Full local D,
-all six exact-source main/tag jobs, signed trial/publication and independent
-public checksum/provenance/SBOM/archive checks pass. Failed first tag/browser
-and blocked-release attempts retain their outcomes; unchanged-tag retry passed.
-[Published proof and runtime limits](evidence/1.0.2/published-release.json).
+The current implementation is the **1.0.3 candidate**, schema **17**. Fresh
+focused local checks cover the corrected boundaries below. Candidate full-gate,
+exact-source CI, signed artifacts and independent consumer acceptance must be
+recorded separately in the [active plan](implementation-plan.md).
+
+Historical **1.0.2**, immutable `v1.0.2` at
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, passed its local, exact-source
+main/tag, signed release and independent archive gates. Failed attempts retain
+their original outcomes in its
+[published proof](evidence/1.0.2/published-release.json); that receipt does not
+certify this candidate.
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
 retain their original results and scope. Those older checks do not certify a different source. Customer production and air-gapped installation require separate
@@ -72,6 +76,12 @@ localized severities and observed node facts. See the scoped
 [fresh audit](evidence/1.0.2/fresh-audit.md) and [public acceptance](evidence/1.0.2/published-release.json)
 for the exact proof and limits.
 
+The 1.0.3 corrections resolve retention policy inside each bounded deletion
+transaction under a shared settings lock, seed new rule drafts from effective
+alert defaults, and revoke transient topic/source replay when permission denial
+is observed. Local PostgreSQL, HTTP and interface regressions establish those
+named behaviors; publication and installation remain separate gates.
+
 ## Backend boundaries
 
 The backend follows inward dependencies:
@@ -89,14 +99,14 @@ Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and
 `pg_restore` clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](../deploy/postgres-image.json) pins the upstream base
-and reviewed `stackplore-postgres:1.0.2` derivative. It rebuilds unchanged
+and the `stackplore-postgres:1.0.3` candidate derivative. It rebuilds unchanged
 official gosu 1.19 with Go 1.26.9 while retaining the PostgreSQL engine and
 entrypoint. Actual helper/engine/root-drop behavior, complete scans, bound SPDX
-and independent archive SQL startup passed for historical 1.0.1; the current
-Current 1.0.2 exact main/tag CI and signed trial passed; independent trial
-database archive loading/execution and scans passed. Public Windows byte identity
-and separate public database execution also passed. The release includes the database Docker-save archive
-and signed SBOM. Existing 17.x minor-update guidance follows upstream and requires
+and independent archive SQL startup passed for historical 1.0.1 and 1.0.2.
+Those source-bound receipts cannot certify the 1.0.3 candidate. A 1.0.3 release
+requires its own exact image scans, signed SBOM and independently loaded
+database Docker-save archive, plus native archive recovery proof.
+Existing 17.x minor-update guidance follows upstream and requires
 operator maintenance and validated backup/restore; no specific 17.6-to-17.11
 runtime experiment is claimed. Startup:
 
@@ -137,12 +147,16 @@ reads. Optional ports retain separate status and observation clocks. See the
 [collection and retention reference](observations.md) for fixed limits and stale,
 disabled, interrupted and synthetic behavior.
 
-Retention runs bounded transactions with fair quotas across eligible metrics,
+Retention reads validated effective application settings using `FOR SHARE` in
+each bounded transaction and holds that row lock through all four class deletions.
+Concurrent settings updates serialize against the entire batch; later batches
+reload policy. Each class has an independent 1–8760-hour age. Fair quotas cover eligible metrics,
 health, events and terminal ordinary deliveries. It preserves the newest metric
 per resource/name, synthetic facts, current state, pending/audit-linked deliveries
-and audit history. Protected audit quota and minimum-retention
-policy, verified-archive cutoff, and separately authenticated settings export
-and ordinary-history cleanup. Audit rows remain outside ordinary cleanup.
+and audit history. Protected audit quota, minimum-retention policy and verified
+archive cutoff have a separate lifecycle. Settings export and ordinary-history
+cleanup require separate purpose-bound recent authentication. Audit rows remain
+outside ordinary cleanup.
 
 PostgreSQL backup uses custom-format `pg_dump`, validates the artifact with `pg_restore --list`, and publishes it through an atomic no-overwrite hard link. Restore accepts an empty target only, runs in one transaction, verifies the exact migration ledger, advances the restore generation, and invalidates sessions and pre-auth state.
 
@@ -184,6 +198,23 @@ hidden because their former namespace cannot be proven. Fixed safe operation
 and alert-transition events can remain source-wide and carry no account or
 audit identifiers. Denied native event-history capability closes the combined
 feed; the contract exposes no separate system subfeed.
+
+Transient health, metric, event and log SSE reject permission-denied snapshots
+with HTTP 403 before stream headers. An observed denial invalidates the shared
+topic/source hub: replay and queued frames are discarded, subscriptions are
+revoked and the producer stops. Active HTTP clients receive the bounded
+`source_unavailable` reset when writable. A later authorized subscription creates
+a fresh hub, preventing recovery from replaying frames retained before denial.
+Bytes already sent remain outside that revocation boundary. Durable alert SSE
+retains its separate committed PostgreSQL feed.
+
+Transient snapshot JSON has a separate 256-KiB replay-frame budget. A larger
+legal snapshot is represented by a small `snapshot_overflow` reset directing
+clients to bounded REST reads. Producers retain a bounded initial frame and a
+32-byte SHA-256 fingerprint, never the large page in replay. Fingerprints compare
+the complete snapshot before this projection, so later large-page changes are
+not collapsed into one unchanged reset. In-budget recovery resumes snapshots;
+permission denial retains the stronger feed-revocation boundary.
 
 An explicit isolated demonstration binds a separate empty PostgreSQL database
 and private data directory to a persisted deployment mode. Restart resets only
@@ -262,8 +293,9 @@ history. It requires exact base/derivative and engine/helper metadata, root-drop
 probes, a complete image vulnerability scan and an SPDX package inventory bound
 to that identity. Compose/CI first build owned patched database fixtures; Helm
 continues to use external PostgreSQL under the server/client policy. The historical 1.0.1
-main/tag/trial/public/archive gates passed. Current 1.0.2 main/tag/trial and actual
-trial and public archive proof also pass. A scan of the
+main/tag/trial/public/archive gates passed. Historical 1.0.2 trial and public
+archive proof also passed. Current 1.0.3 acceptance needs fresh source-bound
+receipts. A scan of the
 application image alone does not prove the database image.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including

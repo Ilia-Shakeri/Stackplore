@@ -1,5 +1,5 @@
 import type { ProductLogPage, ProductLogRecord } from '@stackplore/api-client';
-import { ApiProblemError } from '@stackplore/api-client';
+import { ApiProblemError, sliceCodePoints } from '@stackplore/api-client';
 import { Button, TechnicalText } from '@stackplore/ui';
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { useLocale } from '../../i18n';
@@ -105,7 +105,7 @@ export function ProductLogsPage() {
       }),
     [api, selectedSource, target, time.range],
   );
-  const page = useCursorPage(load);
+  const page = useCursorPage(load, pollRevision);
   useEffect(() => {
     if (paused || page.state.kind === 'loading' || page.loadingMore) return;
     const timer = window.setTimeout(() => {
@@ -265,11 +265,12 @@ export function ProductLogsPage() {
           {t('explore.logs.search')}
           <input
             type="search"
-            maxLength={200}
+            maxLength={400}
             value={query}
             onChange={(event) => {
-              setQuery(event.target.value);
-              writeViewParameter('log_q', event.target.value);
+              const value = sliceCodePoints(event.target.value, 200);
+              setQuery(value);
+              writeViewParameter('log_q', value);
             }}
           />
         </label>
@@ -326,7 +327,9 @@ export function ProductLogsPage() {
       </div>
       {paused ? <p role="status">{t('explore.logs.paused')}</p> : null}
       {page.state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {page.state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {page.state.kind === 'error' ? (
+        <ProductState text={t('product.error')} onRetry={page.retry} />
+      ) : null}
       {page.state.kind === 'ready' ? (
         <>
           <ObservationNotice data={page.state.data} />

@@ -1,4 +1,4 @@
-import type { ProductRelationshipPage } from '@stackplore/api-client';
+import { hasCodePointLength, type ProductRelationshipPage } from '@stackplore/api-client';
 import type {
   ObservationReadOptions,
   ProductPageOptions,
@@ -32,8 +32,7 @@ export const namespacedCodePattern = /^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/
 
 export const isDisplayText = (value: unknown): value is string =>
   typeof value === 'string' &&
-  value.length >= 1 &&
-  value.length <= 256 &&
+  hasCodePointLength(value, 256, 1) &&
   /^(?=\P{White_Space})(?!.*\p{White_Space}$)(?=.*[\p{L}\p{N}\p{P}\p{S}])(?:[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]|\u200C|\u200D)+$/u.test(
     value,
   );

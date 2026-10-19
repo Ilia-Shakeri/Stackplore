@@ -1,5 +1,13 @@
 # Documentation
 
+Active correction: **1.0.3**, schema **17**, baseline 089727f.
+The 2026-10-19 review reopened nine verified bugs and two missing interface
+requirements. Fixes and focused tests are implemented; final local/browser/hosted
+gates remain pending. [Current audit](evidence/1.0.3/fresh-audit.md).
+Historical released source and receipts below retain their original scope.
+
+## Historical 1.0.2 acceptance
+
 Start with the [English overview](../README.md) or [Persian overview](../README.fa.md).
 The [roadmap](roadmap.md) ([فارسی](roadmap.fa.md)) gives delivery order;
 the [evidence plan](implementation-plan.md) states what actually passed.

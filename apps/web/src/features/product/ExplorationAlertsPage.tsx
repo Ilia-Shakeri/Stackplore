@@ -23,6 +23,7 @@ export function ProductAlertsPage() {
   const view = useExplorationView();
   const filterState = view.read('alert_state');
   const [state, setState] = useState<LoadState<ProductAlertPage>>({ kind: 'loading' });
+  const [revision, setRevision] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
   const [truncated, setTruncated] = useState(false);
@@ -62,7 +63,7 @@ export function ProductAlertsPage() {
       moreController.current?.abort();
       loadGeneration.current++;
     };
-  }, [api, selectedSource, stream.revision]);
+  }, [api, selectedSource, stream.revision, revision]);
 
   const loadMore = async () => {
     if (
@@ -171,7 +172,14 @@ export function ProductAlertsPage() {
         <ProductState text={t('explore.alert.noLoadedMatches')} />
       ) : null}
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {state.kind === 'error' ? (
+        <ProductState
+          text={t('product.error')}
+          onRetry={() => {
+            setRevision((current) => current + 1);
+          }}
+        />
+      ) : null}
       {state.kind === 'ready' && state.data.items.length === 0 ? (
         <ProductState text={t('product.alert.empty')} />
       ) : null}

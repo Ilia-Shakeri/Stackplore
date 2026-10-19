@@ -5,7 +5,7 @@
   "server_version_num": 170011,
   "platform": "linux/amd64",
   "minimum_native_tools": "17.11",
-  "runtime_image": "stackplore-postgres:1.0.2",
+  "runtime_image": "stackplore-postgres:1.0.3",
   "gosu_version": "1.19",
   "gosu_source_commit": "6456aaa0f3c854d199d0f037f068eb97515b7513",
   "gosu_source_sha256": "33d7537d588ea49458b9509bcf4554bdf5ceacc66da71e5caa1058ea3b689c3b",

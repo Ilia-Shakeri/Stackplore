@@ -2,7 +2,7 @@ import type {
   ProductHealthHistoryResult,
   ProductMetricHistoryResult,
 } from '@stackplore/api-client';
-import { TechnicalText } from '@stackplore/ui';
+import { Button, TechnicalText } from '@stackplore/ui';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { useLocale } from '../../i18n';
 import { useProductApi } from './product-context';
@@ -22,6 +22,7 @@ export function ResourceMetricsPanel({
   const api = useProductApi();
   const { t, formatDate, formatNumber } = useLocale();
   const time = useExplorationTime();
+  const [revision, setRevision] = useState(0);
   const [state, setState] = useState<{
     metrics: ProductMetricHistoryResult | null;
     health: ProductHealthHistoryResult | null;
@@ -42,7 +43,7 @@ export function ResourceMetricsPanel({
     return () => {
       controller.abort();
     };
-  }, [api, resourceId, sourceId, time.range]);
+  }, [api, resourceId, sourceId, time.range, revision]);
   const metrics = state?.metrics ?? null;
   return (
     <section aria-labelledby="resource-history-title">
@@ -52,6 +53,15 @@ export function ResourceMetricsPanel({
         <ProductState text={t('product.loading')} />
       ) : (
         <>
+          {state.metrics === null || state.health === null ? (
+            <Button
+              onClick={() => {
+                setRevision((current) => current + 1);
+              }}
+            >
+              {t('explore.retry')}
+            </Button>
+          ) : null}
           {metrics === null ? (
             <p role="status">{t('product.source.unavailable')}</p>
           ) : (

@@ -1,7 +1,7 @@
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { chromium, expect, test, type Page, type TestInfo } from '@playwright/test';
+import { chromium, expect, test, type Page, type Request, type TestInfo } from '@playwright/test';
 import axe from 'axe-core';
 
 declare global {
@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const version = process.env.SP_BROWSER_VERSION ?? '1.0.2';
+const version = process.env.SP_BROWSER_VERSION ?? '1.0.3';
 const evidence = resolve('../../docs/evidence', version);
 const defaultPeerBucketRefillMs = 2500;
 const responseFailures = new WeakMap<Page, { component: string; status: number }[]>();
@@ -130,6 +130,117 @@ async function readPublicWorker(page: Page, info: TestInfo): Promise<string> {
       body: JSON.stringify({ deadlineMs: 15_000, maximumAttempts: 4, attempts }),
       contentType: 'application/json',
     });
+  }
+}
+
+async function verifyEnvironmentSelection(page: Page, locale: string, width: number) {
+  await refillDefaultPeerBucket();
+  let reads = 0;
+  const observe = (request: Request) => {
+    if (new URL(request.url()).pathname === '/api/v1/environments') reads++;
+  };
+  page.on('request', observe);
+  try {
+    const trigger = page.getByRole('button', {
+      name: locale === 'fa' ? /^مرور محیط‌ها/u : /^Browse environments/u,
+    });
+    const dialog = page.getByRole('dialog', {
+      name: locale === 'fa' ? 'انتخاب محیط' : 'Choose an environment',
+    });
+    await expect(trigger).toBeVisible();
+    expect(reads, 'environment chooser stays lazy on About').toBe(0);
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(dialog.getByRole('combobox')).toBeVisible();
+    expect(reads).toBe(1);
+    expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+    expect(
+      await dialog.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.left >= -1 && rect.right <= innerWidth + 1;
+      }),
+    ).toBe(true);
+    const violations = await dialog.evaluate(async (element) => {
+      const result = await window.axe.run(element, {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] },
+      });
+      return result.violations.map(({ id }) => id);
+    });
+    expect(violations).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    const select = dialog.getByRole('combobox');
+    await expect(select).toBeVisible();
+    const choices = await select
+      .locator('option:not(:disabled)')
+      .evaluateAll((options) => options.map((option) => option.getAttribute('value') ?? ''));
+    const value = choices.find((choice) => choice.startsWith('source_demo/'));
+    expect(value, 'available synthetic environment').toBeDefined();
+    if (value === undefined) throw new Error('Synthetic environment fixture is unavailable.');
+    const [source, environment] = value.split('/');
+    if (
+      source === undefined ||
+      environment === undefined ||
+      !/^[A-Za-z][A-Za-z0-9_-]{0,127}$/u.test(source) ||
+      !/^[A-Za-z][A-Za-z0-9_-]{0,127}$/u.test(environment)
+    )
+      throw new Error('Synthetic environment fixture identifier is invalid.');
+    const resourceRead = page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        url.pathname === '/api/v1/resources' &&
+        url.searchParams.get('source_id') === source &&
+        url.searchParams.get('environment_id') === environment
+      );
+    });
+    await select.selectOption(value);
+    expect((await resourceRead).status()).toBe(200);
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('main')).toBeFocused();
+    const location = new URL(page.url());
+    expect(location.pathname).toBe('/resources');
+    expect(location.searchParams.get('source')).toBe(source);
+    expect(location.searchParams.get('environment_id')).toBe(environment);
+    await expect(
+      page.getByRole('main').getByLabel(locale === 'fa' ? 'محیط' : 'Environment', { exact: true }),
+    ).toHaveValue(environment);
+    await expect(page.locator('.resource-list .resource-row').first()).toBeVisible();
+    expect(reads).toBe(2);
+    if (width === 360) {
+      const openNavigation = page.getByRole('button', {
+        name: locale === 'fa' ? 'باز کردن ناوبری' : 'Open navigation',
+      });
+      await openNavigation.click();
+      const drawer = page.getByRole('dialog', { name: locale === 'fa' ? 'ناوبری' : 'Navigation' });
+      await expect(drawer).toBeVisible();
+      const events = drawer.getByRole('link', {
+        name: locale === 'fa' ? 'رویدادها' : 'Events',
+        exact: true,
+      });
+      const target = new URL((await events.getAttribute('href')) ?? '', page.url());
+      expect(target.searchParams.get('source')).toBe(source);
+      expect(target.searchParams.get('environment_id')).toBe(environment);
+      await page.keyboard.press('Escape');
+      await expect(drawer).toBeHidden();
+      await expect(openNavigation).toBeFocused();
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+      true,
+    );
+    return {
+      lazyReads: true,
+      environmentReads: reads,
+      sourceBound: true,
+      keyboard: true,
+      focusReturn: true,
+      accessibility: true,
+      viewport: true,
+      mobileDrawer: width === 360,
+    };
+  } finally {
+    page.off('request', observe);
   }
 }
 
@@ -283,6 +394,8 @@ for (const locale of ['en', 'fa']) {
         await expect(palette).toBeVisible();
         await page.keyboard.press('Escape');
         await expect(page.getByRole('main')).toBeFocused();
+        const environmentSelector =
+          theme === 'light' ? await verifyEnvironmentSelection(page, locale, width) : undefined;
         expect(errors).toEqual([]);
         await receipt(`${locale}-${String(width)}-${theme}`, {
           scope: 'Loopback disposable synthetic guest fixture; local observations only.',
@@ -296,6 +409,7 @@ for (const locale of ['en', 'fa']) {
             fixedNavigation: true,
             focusReturn: true,
           },
+          ...(environmentSelector === undefined ? {} : { environmentSelector }),
           httpFailures: responseFailures.get(page) ?? [],
         });
       });

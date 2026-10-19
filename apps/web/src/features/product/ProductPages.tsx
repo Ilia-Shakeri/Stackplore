@@ -185,7 +185,14 @@ export function ProductOverviewPage() {
         <ProductStreamBadge status={stream.status} />
       </header>
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {state.kind === 'error' ? (
+        <ProductState
+          text={t('product.error')}
+          onRetry={() => {
+            setRevision((current) => current + 1);
+          }}
+        />
+      ) : null}
       {state.kind === 'ready' ? (
         <>
           <label className="product-source-select">

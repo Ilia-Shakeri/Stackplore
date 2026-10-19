@@ -26,7 +26,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "stackplore.fullname" . }}-api
+                name: {{ include "stackplore.apiName" . }}
                 port:
                   name: http
 {{- end }}

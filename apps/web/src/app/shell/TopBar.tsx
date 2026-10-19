@@ -1,14 +1,20 @@
 import { Bell, Search } from '@stackplore/ui/icons';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type SyntheticEvent } from 'react';
+import { sliceCodePoints } from '@stackplore/api-client';
 
 import { Breadcrumbs } from './Breadcrumbs';
 import { CommandPalette } from './CommandPalette';
+import { EnvironmentSelector } from './EnvironmentSelector';
 import { LocaleControl } from './LocaleControl';
 import { MobileNav } from './MobileNav';
 import { ThemeControl } from './ThemeControl';
 import { UserMenu } from '../../features/auth/UserMenu';
-import { useProductSource } from '../../features/product/product-context';
+import { useProductSource, useProductView } from '../../features/product/product-context';
+import {
+  environmentNavigationSearch,
+  readEnvironment,
+} from '../../features/product/environment-navigation';
 import { getPageTitle } from './navigation';
 import { useLocale } from '../../i18n';
 
@@ -17,6 +23,8 @@ export function TopBar() {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
   const { selectedSource } = useProductSource();
+  const view = useProductView();
+  const environment = readEnvironment(view.search);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { t } = useLocale();
   const pageTitle = getPageTitle(pathname, t);
@@ -26,7 +34,7 @@ export function TopBar() {
     if (q === '') return;
     void navigate({
       to: '/search',
-      search: { q, ...(selectedSource === undefined ? {} : { source: selectedSource }) },
+      search: { q, ...environmentNavigationSearch('/search', selectedSource, environment) },
     });
   };
 
@@ -44,9 +52,9 @@ export function TopBar() {
       <form className="app-topbar__search" role="search" onSubmit={submitSearch}>
         <input
           aria-label={t('product.search.label')}
-          maxLength={200}
+          maxLength={400}
           onChange={(event) => {
-            setQuery(event.target.value);
+            setQuery(sliceCodePoints(event.target.value, 200));
           }}
           placeholder={t('product.search.placeholder')}
           type="search"
@@ -57,6 +65,7 @@ export function TopBar() {
         </button>
       </form>
       <div className="app-topbar__actions">
+        <EnvironmentSelector />
         <CommandPalette />
         <Link
           className="app-topbar__notification ui-focus-ring"

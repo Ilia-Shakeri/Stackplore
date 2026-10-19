@@ -1,3 +1,4 @@
+import { sliceCodePoints } from '@stackplore/api-client';
 import {
   Button,
   Dialog,
@@ -300,7 +301,14 @@ export function UserActionDialog({
           {action.kind === 'create' ? (
             <>
               <Field label={t('auth.field.displayName')} required>
-                <Input autoComplete="off" maxLength={256} name="display_name" />
+                <Input
+                  autoComplete="off"
+                  maxLength={512}
+                  name="display_name"
+                  onInput={(event) => {
+                    event.currentTarget.value = sliceCodePoints(event.currentTarget.value, 256);
+                  }}
+                />
               </Field>
               <Field
                 label={t('auth.field.loginName')}
@@ -355,7 +363,10 @@ export function UserActionDialog({
                 <Input
                   autoComplete="off"
                   defaultValue={action.user.displayName}
-                  maxLength={256}
+                  maxLength={512}
+                  onInput={(event) => {
+                    event.currentTarget.value = sliceCodePoints(event.currentTarget.value, 256);
+                  }}
                   name="display_name"
                 />
               </Field>

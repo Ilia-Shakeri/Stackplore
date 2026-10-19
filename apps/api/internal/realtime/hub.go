@@ -16,6 +16,7 @@ var (
 	ErrInvalidFrame   = errors.New("realtime frame is invalid")
 	ErrTooManyFeeds   = errors.New("realtime feed limit reached")
 	ErrInvalidOptions = errors.New("realtime options are invalid")
+	ErrRevoked        = errors.New("realtime feed authority was revoked")
 )
 
 type Frame struct {
@@ -25,7 +26,7 @@ type Frame struct {
 	CreatedAt time.Time
 }
 
-type Producer func(context.Context, func(event string, data []byte) error)
+type Producer func(context.Context, func(event string, data []byte) error) error
 
 type ManagerOptions struct {
 	MaximumFeeds int
@@ -63,6 +64,7 @@ type hub struct {
 	subscribers  map[uint64]chan Frame
 	closed       bool
 	overflows    atomic.Uint64
+	revoked      atomic.Bool
 	now          func() time.Time
 }
 
@@ -71,6 +73,7 @@ type Subscription struct {
 	Reset     bool
 	closeOnce sync.Once
 	close     func()
+	revoked   *atomic.Bool
 }
 
 func NewManager(options ManagerOptions) (*Manager, error) {
@@ -121,7 +124,7 @@ func (manager *Manager) Subscribe(key string, lastID uint64, producer Producer) 
 	if newFeed {
 		go feed.run(producerContext)
 	}
-	subscription := &Subscription{C: channel, Reset: reset}
+	subscription := &Subscription{C: channel, Reset: reset, revoked: &feed.hub.revoked}
 	subscription.close = func() {
 		closeHub()
 		feed.release()
@@ -133,6 +136,23 @@ func (subscription *Subscription) Close() {
 	if subscription != nil {
 		subscription.closeOnce.Do(subscription.close)
 	}
+}
+
+func (subscription *Subscription) Revoked() bool {
+	return subscription != nil && subscription.revoked != nil && subscription.revoked.Load()
+}
+
+// Invalidate discards a scope's history and queued frames before closing its
+// subscriptions. A replacement feed never shares the revoked producer or ring.
+func (manager *Manager) Invalidate(key string) {
+	if manager == nil {
+		return
+	}
+	manager.mu.Lock()
+	if feed := manager.feeds[key]; feed != nil {
+		feed.invalidateLocked()
+	}
+	manager.mu.Unlock()
 }
 
 func (manager *Manager) Close() {
@@ -168,8 +188,39 @@ func (manager *Manager) ActiveFeeds() int {
 
 func (feed *managedFeed) run(ctx context.Context) {
 	defer close(feed.done)
-	feed.producer(ctx, feed.hub.publish)
+	if errors.Is(feed.producer(ctx, feed.hub.publish), ErrRevoked) {
+		feed.manager.mu.Lock()
+		feed.invalidateLocked()
+		feed.manager.mu.Unlock()
+		return
+	}
 	feed.hub.close()
+}
+
+func (feed *managedFeed) invalidateLocked() {
+	if feed.manager.feeds[feed.key] == feed {
+		delete(feed.manager.feeds, feed.key)
+	}
+	feed.cancel()
+	feed.hub.mu.Lock()
+	defer feed.hub.mu.Unlock()
+	feed.hub.revoked.Store(true)
+	feed.hub.replay = nil
+	if !feed.hub.closed {
+		feed.hub.closed = true
+		for id, subscriber := range feed.hub.subscribers {
+		drain:
+			for {
+				select {
+				case <-subscriber:
+				default:
+					break drain
+				}
+			}
+			close(subscriber)
+			delete(feed.hub.subscribers, id)
+		}
+	}
 }
 
 func (feed *managedFeed) release() {

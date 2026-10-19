@@ -1,4 +1,8 @@
-import type { ProductResourcePage, SourceSummary } from '@stackplore/api-client';
+import {
+  sliceCodePoints,
+  type ProductResourcePage,
+  type SourceSummary,
+} from '@stackplore/api-client';
 import { Button, TechnicalText } from '@stackplore/ui';
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 
@@ -167,9 +171,9 @@ export function ProductResourcesPage({
         <div>
           <input
             id="resource-search"
-            maxLength={200}
+            maxLength={400}
             onChange={(event) => {
-              setSearch(event.target.value);
+              setSearch(sliceCodePoints(event.target.value, 200));
             }}
             placeholder={t('product.search.placeholder')}
             value={search}
@@ -296,14 +300,14 @@ export function ProductResourcesPage({
           {t('product.detail.scope')}
           <input
             dir="ltr"
-            maxLength={256}
+            maxLength={512}
             key={`scope-${filters.scopeName ?? ''}`}
             defaultValue={filters.scopeName ?? ''}
             onKeyDown={(event) => {
               if (event.key === 'Enter') event.currentTarget.blur();
             }}
             onBlur={(event) => {
-              change('scopeName', 'scope_name', event.target.value);
+              change('scopeName', 'scope_name', sliceCodePoints(event.target.value, 256));
             }}
           />
         </label>
@@ -355,7 +359,9 @@ export function ProductResourcesPage({
         </label>
       </details>
       {page.state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {page.state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {page.state.kind === 'error' ? (
+        <ProductState text={t('product.error')} onRetry={page.retry} />
+      ) : null}
       {page.state.kind === 'ready' ? (
         <>
           <ObservationNotice data={page.state.data} />

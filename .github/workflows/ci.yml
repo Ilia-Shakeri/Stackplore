@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
-      CI: "true"
-      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:1.0.2
+      CI: 'true'
+      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:1.0.3
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -80,6 +80,8 @@ jobs:
         run: docker compose --env-file deploy/compose.env.example config --quiet
       - name: Lint cluster chart
         run: helm lint deploy/helm/stackplore --strict
+      - name: Verify chart naming and preserved runtime references
+        run: node scripts/check-helm-contracts.mjs
       - name: Verify private runtime initialization and legacy key preservation
         run: bash scripts/check-runtime-volume.sh
       - name: Render reviewed chart profiles
@@ -193,10 +195,17 @@ jobs:
           cluster_name="stackplore-install-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "STACKPLORE_INSTALL_KIND_NAME=$cluster_name" >> "$GITHUB_ENV"
           kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --wait 180s
-          docker build --file deploy/Dockerfile.postgres --tag stackplore-postgres:1.0.2 .
-          kind load docker-image stackplore-postgres:1.0.2 --name "$cluster_name"
+          docker build --file deploy/Dockerfile.postgres --tag stackplore-postgres:1.0.3 .
+          kind load docker-image stackplore-postgres:1.0.3 --name "$cluster_name"
           docker build --file deploy/Dockerfile.api --tag stackplore-api:verify .
           kind load docker-image stackplore-api:verify --name "$cluster_name"
+      - name: Validate long chart names against the Kubernetes API
+        run: |
+          for release_name in 123 stackplore-proof-with-a-long-name-shared-prefix-alpha stackplore-proof-with-a-long-name-shared-prefix-beta; do
+            helm template "$release_name" deploy/helm/stackplore | kubectl apply --dry-run=server -f - >/dev/null
+          done
+          helm template override-proof deploy/helm/stackplore --set-string "fullnameOverride=$(printf 'a%.0s' $(seq 1 63))" | kubectl apply --dry-run=server -f - >/dev/null
+          helm template numeric-proof deploy/helm/stackplore --set-string "fullnameOverride=1$(printf 'a%.0s' $(seq 1 62))" | kubectl apply --dry-run=server -f - >/dev/null
       - name: Prepare external PostgreSQL with verified TLS
         run: |
           test_dir="$RUNNER_TEMP/stackplore-helm-install"
@@ -233,7 +242,7 @@ jobs:
                   fsGroup: 70
                 containers:
                   - name: postgres
-                    image: stackplore-postgres:1.0.2
+                    image: stackplore-postgres:1.0.3
                     imagePullPolicy: Never
                     args: ["postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/tls/tls.crt", "-c", "ssl_key_file=/tls/tls.key"]
                     env:

@@ -4,7 +4,7 @@ import { draftInput, emptyDraft, recordDraft } from './alert-rule-draft';
 
 const resourceId = `r1_${'A'.repeat(43)}`;
 const validDraft = () => ({
-  ...emptyDraft(),
+  ...emptyDraft({ pendingSeconds: 60, windowSeconds: 300 }),
   displayName: 'Gateway health',
   sourceId: 'source_demo',
   resourceId,

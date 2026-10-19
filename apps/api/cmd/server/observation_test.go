@@ -24,7 +24,7 @@ func (*fakeDatabase) ListSourceConfigurations(_ context.Context, page domain.Pag
 func (*fakeDatabase) BeginCapture(context.Context, domain.SourceID, int64, time.Time) (domain.CaptureToken, error) {
 	return domain.CaptureToken{}, domain.ErrRepositoryConflict
 }
-func (*fakeDatabase) PruneObservationHistory(context.Context, domain.ObservationRetentionPolicy, int) (int64, error) {
+func (*fakeDatabase) PruneObservationHistory(context.Context, time.Time, int) (int64, error) {
 	return 0, nil
 }
 func (*fakeDatabase) GetSourceCollectionStatus(context.Context, domain.ProviderRef) (domain.SourceCollectionOutcome, error) {

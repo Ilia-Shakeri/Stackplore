@@ -1,5 +1,13 @@
 # Version and release procedure
 
+Active correction: **1.0.3**, schema **17**, baseline 089727f.
+The 2026-10-19 review reopened nine verified bugs and two missing interface
+requirements. Fixes and focused tests are implemented; final local/browser/hosted
+gates remain pending. [Current audit](evidence/1.0.3/fresh-audit.md).
+Historical released source and receipts below retain their original scope.
+
+## Historical 1.0.2 acceptance
+
 Each roadmap stage has its own checked development version. Root/workspace
 package versions, OpenAPI metadata, Helm chart/app versions, default image tags
 and changelog agree; `npm.cmd run check:version` enforces this. A version number
@@ -53,7 +61,7 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
 The canonical [PostgreSQL image policy](../deploy/postgres-image.json) is a
-separate release boundary. The reviewed runtime `stackplore-postgres:1.0.2`
+separate release boundary. The reviewed runtime `stackplore-postgres:1.0.3`
 uses the same digest-pinned upstream PostgreSQL 17.11 base and rebuilds unchanged
 official gosu 1.19 with Go 1.26.9. Engine and entrypoint are retained. Actual
 build, helper/engine versions and root-drop behavior must be checked, followed
@@ -81,7 +89,7 @@ git push origin vVERSION
 Use the task's existing branch or a focused `main/` branch. Never force push,
 rewrite historical release tags, or stage all local files without review.
 
-## Final 1.0 scope and corrective 1.0.2 gate
+## Final 1.0 scope and corrective 1.0.3 gate
 
 Every specification requirement needs code, tests, current accurate documents
 and direct evidence. Include browser/a11y/RTL/theme/performance, real provider,
@@ -97,7 +105,7 @@ review initially reopened at 8/10 for the fresh findings. Raise it only after co
 full PostgreSQL/browser gates, exact hosted proof and independent review; final
 signed/public archive acceptance remains separately required.
 
-For corrective 1.0.2, immutable source `376ed03` passed six-job exact main/tag
+Historical corrective 1.0.2: immutable source `376ed03` passed six-job exact main/tag
 CI, the strict signed trial and independent actual trial archive recovery.
 The first tag/browser failure and blocked release are retained; the unchanged-tag
 code retry passed. Signed publication and independent public/archive checks also

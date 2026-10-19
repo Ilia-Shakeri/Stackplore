@@ -33,7 +33,9 @@ export function ProductNotificationsPage() {
       description={t('route.notificationCenter.description')}
     >
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {state.kind === 'error' ? (
+        <ProductState text={t('product.error')} onRetry={page.retry} />
+      ) : null}
       {state.kind === 'ready' && state.data.items.length === 0 ? (
         <ProductState text={t('product.notification.empty')} />
       ) : null}
@@ -105,7 +107,9 @@ export function ProductAuditPage() {
   return (
     <ObservedPageHeader title={t('route.audit.title')} description={t('route.audit.description')}>
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {state.kind === 'error' ? (
+        <ProductState text={t('product.error')} onRetry={page.retry} />
+      ) : null}
       {state.kind === 'ready' && state.data.items.length === 0 ? (
         <ProductState text={t('product.audit.empty')} />
       ) : null}
@@ -174,9 +178,11 @@ export function ProductSystemSettingsPage({ toolbar }: { readonly toolbar: React
   const api = useProductApi();
   const { t } = useLocale();
   const [state, setState] = useState<LoadState<SystemReadiness>>({ kind: 'loading' });
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
+    setState({ kind: 'loading' });
     void api.getSystemReadiness(controller.signal).then(
       (report) => {
         setState({ kind: 'ready', data: report });
@@ -189,7 +195,7 @@ export function ProductSystemSettingsPage({ toolbar }: { readonly toolbar: React
     return () => {
       controller.abort();
     };
-  }, [api]);
+  }, [api, revision]);
 
   return (
     <div className="route-page product-page">
@@ -199,7 +205,14 @@ export function ProductSystemSettingsPage({ toolbar }: { readonly toolbar: React
       </header>
       {toolbar}
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {state.kind === 'error' ? (
+        <ProductState
+          text={t('product.error')}
+          onRetry={() => {
+            setRevision((current) => current + 1);
+          }}
+        />
+      ) : null}
       {state.kind === 'ready' ? (
         <section className="readiness-panel" aria-labelledby="readiness-title">
           <header>

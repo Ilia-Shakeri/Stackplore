@@ -1,3 +1,4 @@
+import { hasCodePointLength } from '@stackplore/api-client';
 import type {
   ApiClient,
   ProductRelationshipPage,
@@ -129,7 +130,7 @@ const isLog = (value: unknown): value is ProductLogPage['items'][number] =>
   ) &&
   isTimestamp(value.timestamp) &&
   typeof value.message === 'string' &&
-  value.message.length <= 65_536 &&
+  hasCodePointLength(value.message, 65_536) &&
   typeof value.redacted === 'boolean' &&
   typeof value.truncated === 'boolean' &&
   typeof value.synthetic === 'boolean';
@@ -204,7 +205,7 @@ const isEvent = (value: unknown): value is ProductEventPage['items'][number] =>
   namespacedCodePattern.test(value.reason_code) &&
   ['debug', 'info', 'warning', 'error', 'critical'].includes(String(value.severity)) &&
   typeof value.summary === 'string' &&
-  value.summary.length <= 8192 &&
+  hasCodePointLength(value.summary, 8192) &&
   isTimestamp(value.occurred_at) &&
   isTimestamp(value.observed_at) &&
   typeof value.synthetic === 'boolean';
@@ -249,7 +250,8 @@ export function createObservationApi(
         throw new Error('Event environment is invalid.');
       if (
         options.search !== undefined &&
-        (options.search.length > 200 || (options.search !== '' && !isDisplayText(options.search)))
+        (!hasCodePointLength(options.search, 200) ||
+          (options.search !== '' && !isDisplayText(options.search)))
       )
         throw new Error('Event search is invalid.');
       if (
@@ -288,7 +290,7 @@ export function createObservationApi(
       const severities = ['trace', 'debug', 'info', 'warning', 'error', 'critical', 'unknown'];
       if (
         options.search !== undefined &&
-        (Array.from(options.search).length > 200 ||
+        (!hasCodePointLength(options.search, 200) ||
           (options.search !== '' && !isDisplayText(options.search)))
       )
         throw new Error('Log search is invalid.');

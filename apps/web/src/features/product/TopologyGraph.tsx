@@ -1,4 +1,5 @@
 import type { ProductRelationship, ProductResource } from '@stackplore/api-client';
+import { sliceCodePoints } from '@stackplore/api-client';
 import {
   useEffect,
   useMemo,
@@ -38,9 +39,12 @@ function readNeighborhood(value: string): TopologyNeighborhood {
 export function TopologyGraph({ relationships, resources }: TopologyGraphProps) {
   const { t } = useLocale();
   const view = useExplorationView();
-  const parameter = (name: string) => view.read(`topology_${name}`, name === 'scope' ? 300 : 200);
+  const parameter = (name: string) =>
+    name === 'environment'
+      ? view.read('environment_id', 128) || view.read('topology_environment', 128)
+      : view.read(`topology_${name}`, name === 'scope' ? 300 : 200);
   const writeParameter = (name: string, value: string) => {
-    view.write(`topology_${name}`, value);
+    view.write(name === 'environment' ? 'environment_id' : `topology_${name}`, value);
   };
   const frame = useRef<HTMLElement>(null);
   const drag = useRef<{
@@ -191,9 +195,9 @@ export function TopologyGraph({ relationships, resources }: TopologyGraphProps) 
         <label>
           <span>{t('product.topology.searchLabel')}</span>
           <input
-            maxLength={200}
+            maxLength={400}
             onChange={(event) => {
-              changeFilter('q', event.target.value, setQuery);
+              changeFilter('q', sliceCodePoints(event.target.value, 200), setQuery);
             }}
             placeholder={t('product.topology.searchPlaceholder')}
             type="search"

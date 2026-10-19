@@ -195,10 +195,8 @@ export function createActivityApi(
         async (protection) => {
           const response = await client.request<unknown>({
             method: 'POST',
-            path:
-              adapter === 'matrix'
-                ? '/settings/notifications/test?adapter=matrix'
-                : '/settings/notifications/test',
+            path: '/settings/notifications/test',
+            ...(adapter === 'matrix' ? { query: { adapter: 'matrix' } } : {}),
             protection,
           });
           if (!isNotificationTestResponse(response.data)) {

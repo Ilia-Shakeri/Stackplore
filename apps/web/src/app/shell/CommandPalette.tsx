@@ -5,7 +5,11 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import { getPrimaryNavigation, getSecondaryNavigation, type NavigationItem } from './navigation';
 import { useAuth } from '../../features/auth/auth-context';
-import { useProductSource } from '../../features/product/product-context';
+import { useProductSource, useProductView } from '../../features/product/product-context';
+import {
+  environmentNavigationSearch,
+  readEnvironment,
+} from '../../features/product/environment-navigation';
 import { useLocale } from '../../i18n';
 
 export function CommandPalette() {
@@ -18,6 +22,8 @@ export function CommandPalette() {
   const listId = useId();
   const { snapshot } = useAuth();
   const { selectedSource } = useProductSource();
+  const view = useProductView();
+  const environment = readEnvironment(view.search);
   const { locale, t } = useLocale();
   const navigate = useNavigate();
   const role = snapshot.status === 'authenticated' ? snapshot.user.role : 'viewer';
@@ -81,7 +87,7 @@ export function CommandPalette() {
     setOpen(false);
     void navigate({
       to: command.to,
-      search: selectedSource === undefined ? {} : { source: selectedSource },
+      search: environmentNavigationSearch(command.to, selectedSource, environment),
     });
   };
 

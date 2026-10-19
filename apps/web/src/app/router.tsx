@@ -1,4 +1,4 @@
-import { createApiClient } from '@stackplore/api-client';
+import { createBrowserApiClient } from './api-client';
 import {
   Navigate,
   Outlet,
@@ -56,7 +56,7 @@ interface RouterContext {
   readonly users: UsersApi;
 }
 
-const defaultApiClient = createApiClient();
+const defaultApiClient = createBrowserApiClient();
 const defaultAuthStore = new AuthStore(createAuthApi(defaultApiClient));
 const defaultUsersApi = createUsersApi(defaultApiClient, defaultAuthStore);
 const defaultProductApi = createProductApi(defaultApiClient, defaultAuthStore);
@@ -101,6 +101,24 @@ function RootRoute() {
       const url = new URL(router.history.location.href, 'http://localhost');
       if (value === '') url.searchParams.delete(name);
       else url.searchParams.set(name, value);
+      if (name === 'source') {
+        for (const key of [
+          'environment_id',
+          'topology_environment',
+          'topology_selected',
+          'resource_id',
+          'container',
+          'rule_cursor',
+        ])
+          url.searchParams.delete(key);
+      }
+      if (name === 'environment_id' || name === 'topology_environment') {
+        url.searchParams.delete('topology_environment');
+        if (value === '') url.searchParams.delete('environment_id');
+        else url.searchParams.set('environment_id', value);
+        for (const key of ['topology_selected', 'resource_id', 'container', 'rule_cursor'])
+          url.searchParams.delete(key);
+      }
       router.history.replace(`${url.pathname}${url.search}${url.hash}`);
     },
     [router],
@@ -458,10 +476,10 @@ export function createAppRouter(
   auth: AuthStore = defaultAuthStore,
   users: UsersApi = auth === defaultAuthStore
     ? defaultUsersApi
-    : createUsersApi(createApiClient(), auth),
+    : createUsersApi(createBrowserApiClient(), auth),
   product: ProductApi = auth === defaultAuthStore
     ? defaultProductApi
-    : createProductApi(createApiClient(), auth),
+    : createProductApi(createBrowserApiClient(), auth),
 ) {
   return createRouter({
     context: { auth, product, users },

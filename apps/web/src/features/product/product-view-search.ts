@@ -1,3 +1,5 @@
+import { hasCodePointLength } from '@stackplore/api-client';
+
 const token = /^[A-Za-z][A-Za-z0-9_.:-]{0,252}$/u;
 const resource = /^r1_[A-Za-z0-9_-]{43}$/u;
 const enums: Readonly<Record<string, readonly string[]>> = {
@@ -34,12 +36,15 @@ export function validViewParameter(name: string, value: string) {
     return /^[A-Za-z][A-Za-z0-9_-]{0,127}$/u.test(value);
   if (name === 'kind' || name === 'topology_kind')
     return value.length <= 96 && /^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/u.test(value);
-  if (name === 'scope_name') return value.length <= 256 && !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(value);
-  if (name === 'topology_scope') return value.length <= 300 && !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(value);
+  if (name === 'scope_name')
+    return hasCodePointLength(value, 256) && !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(value);
+  if (name === 'topology_scope')
+    return hasCodePointLength(value, 300) && !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(value);
   if (enums[name] !== undefined) return enums[name].includes(value);
   if (name === 'resource_id' || name === 'topology_selected') return resource.test(value);
   if (tokenKeys.has(name)) return token.test(value);
-  if (textKeys.has(name)) return value.length <= 200 && !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(value);
+  if (textKeys.has(name))
+    return hasCodePointLength(value, 200) && !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(value);
   if (name === 'from' || name === 'to')
     return (
       /^(?!0000)\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z$/u.test(value) &&

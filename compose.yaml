@@ -2,7 +2,7 @@ name: stackplore
 
 services:
   postgres:
-    image: stackplore-postgres:1.0.2
+    image: stackplore-postgres:1.0.3
     build:
       context: .
       dockerfile: deploy/Dockerfile.postgres

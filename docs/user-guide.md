@@ -1,8 +1,11 @@
 # Current user guide
 
-This describes accepted **1.0.2**, immutable release source `376ed03`, ledger 17. All nine stages and named release gates pass; [published proof](evidence/1.0.2/published-release.json)
-records independent public/archive verification and platform limits. Customer
-production/offline installation requires separate operator checks.
+This describes the **1.0.3 candidate** in current source. Its corrections are
+implemented; candidate verification and publication remain separate gates.
+It is not a published or accepted 1.0.3 release. Accepted 1.0.2 stays immutable
+at `376ed03`, ledger 17; its [published proof](evidence/1.0.2/published-release.json)
+is historical evidence for that release. It does not certify this candidate or
+a customer production/offline installation.
 [راهنمای فارسی](user-guide.fa.md).
 
 1. Ask the operator to start the installation with PostgreSQL. A fresh
@@ -30,6 +33,8 @@ production/offline installation requires separate operator checks.
    a download separately streams matching redacted server pages under the current
    source/resource/time/container/search/severity selection and export policy.
    Event text/severity/environment filters apply on the server before paging.
+   A stream reset refetches events even in a fixed absolute window, keeping its
+   filters. Live log refresh also works with a fixed synthetic fixture clock.
    The alert-state filter still applies only to loaded alerts.
    When native event-history capability is denied, the entire event timeline is
    denied/empty; safe operation/alert facts are not a separately exposed subfeed.
@@ -38,6 +43,11 @@ production/offline installation requires separate operator checks.
    test delivery when operator webhook or Matrix configuration allows it. Select
    the configured test lane and supply the current password. A queued test
    is not proof that a receiver accepted it.
+   New rule drafts load the effective alert window and pending-time defaults
+   from application settings. Existing rules keep their stored values; a late
+   defaults reply preserves manual inputs and the rule being edited. If defaults
+   cannot load, reload them before creating a rule. Both webhook and Matrix test
+   lanes use the fixed test endpoint and a validated adapter query selection.
 7. Administrators use `/settings/users` for account management and `/audit` for
    protected history. High-risk account/test operations request the current
    password to obtain a purpose-bound one-use grant.
@@ -50,11 +60,21 @@ production/offline installation requires separate operator checks.
 
 ## Quick navigation
 
+Use **Browse environment** in the header to choose an observed environment.
+Choices are paginated and bounded. On resources, search, events and topology,
+the choice becomes a shareable `environment_id` filter. From any other page,
+choosing an environment opens resources. Overview totals, metric histories,
+logs, alerts and audit remain outside this filter; the control does not claim
+that they are environment-filtered. Source changes clear dependent selections.
+Topology accepts older `topology_environment` bookmarks and uses
+`environment_id` for current links, filtering resources before pagination.
+
 Use the header's navigation button or **Ctrl+K** (**Command+K** on macOS) to
 open quick navigation. Search by the translated page name or its fixed path;
 use Up/Down and Enter to choose, or Escape to close. Viewer/guest choices omit
 administrator destinations. The selected infrastructure source follows the
-navigation. Closing returns focus to the prior control; choosing a page moves
+navigation. An environment follows only navigation to resources, search, events
+or topology. Closing returns focus to the prior control; choosing a page moves
 focus to its main content. An existing modal keeps its own keyboard interaction.
 
 Log severity labels are translated, while their shareable URL/API values stay
@@ -116,8 +136,14 @@ navigation shows the public offline page; it does not offer old private data.
 A waiting worker shows an update action and reloads after the user chooses it.
 Without service-worker support or installation permission, online use continues.
 
-Loading, denied, unavailable and disconnected states deserve attention. Retry a
-failed read; if it persists, give the operator only the safe error code and
+Loading, denied, unavailable and disconnected states deserve attention. Failed
+initial reads, including audit and notification history, offer **Try again**
+without reloading the document. That repeats the bounded read with its current
+filters; it does not replay a write or send another test notice. Text limits count
+Unicode code points: 200 for search and 256 for display/scope names. Multilingual
+event and log pages use a bounded 16-MiB production JSON budget; text log downloads
+remain limited to 1 MiB. See the [exact limits](exploration.md).
+If a failure persists, give the operator only the safe error code and
 request ID. Do not share raw logs, credentials, session data or private targets.
 See [troubleshooting](operations/troubleshooting.md).
 

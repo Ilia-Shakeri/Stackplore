@@ -1,4 +1,8 @@
-import type { AvailabilityState, ProductResource } from '@stackplore/api-client';
+import {
+  sliceCodePoints,
+  type AvailabilityState,
+  type ProductResource,
+} from '@stackplore/api-client';
 import { Button } from '@stackplore/ui';
 import type { ReactNode } from 'react';
 
@@ -12,10 +16,18 @@ export type ProductLoadState<T> =
   | { readonly kind: 'unavailable'; readonly availability: AvailabilityState }
   | { readonly kind: 'ready'; readonly data: T };
 
-export function ProductState({ text }: { readonly text: string }) {
+export function ProductState({
+  text,
+  onRetry,
+}: {
+  readonly text: string;
+  readonly onRetry?: () => void;
+}) {
+  const { t } = useLocale();
   return (
     <section className="product-state" aria-live="polite">
       <p>{text}</p>
+      {onRetry === undefined ? null : <Button onClick={onRetry}>{t('explore.retry')}</Button>}
     </section>
   );
 }
@@ -126,7 +138,7 @@ export function resourceHref(resource: ProductResource) {
 export function readViewParameter(name: string, maximum = 200) {
   return typeof window === 'undefined'
     ? ''
-    : (new URLSearchParams(window.location.search).get(name)?.slice(0, maximum) ?? '');
+    : sliceCodePoints(new URLSearchParams(window.location.search).get(name) ?? '', maximum);
 }
 
 export function writeViewParameter(name: string, value: string) {
@@ -142,7 +154,7 @@ export function useExplorationView() {
   return {
     search: view.search,
     read: (name: string, maximum = 200) =>
-      new URLSearchParams(view.search).get(name)?.slice(0, maximum) ?? '',
+      sliceCodePoints(new URLSearchParams(view.search).get(name) ?? '', maximum),
     write: view.selectParameter,
   };
 }

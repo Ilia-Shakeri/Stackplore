@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 1.0.2
+  version: 1.0.3
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -1984,6 +1984,8 @@ paths:
           $ref: '#/components/responses/BadRequestProblem'
         '401':
           $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
         '413':
           $ref: '#/components/responses/PayloadTooLargeProblem'
         '429':
@@ -2011,6 +2013,8 @@ paths:
           $ref: '#/components/responses/BadRequestProblem'
         '401':
           $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
         '413':
           $ref: '#/components/responses/PayloadTooLargeProblem'
         '429':
@@ -2038,6 +2042,8 @@ paths:
           $ref: '#/components/responses/BadRequestProblem'
         '401':
           $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
         '413':
           $ref: '#/components/responses/PayloadTooLargeProblem'
         '429':
@@ -2065,6 +2071,8 @@ paths:
           $ref: '#/components/responses/BadRequestProblem'
         '401':
           $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
         '413':
           $ref: '#/components/responses/PayloadTooLargeProblem'
         '429':
@@ -7021,7 +7029,14 @@ components:
         pattern: '^"[1-9][0-9]{0,15}"$'
   responses:
     ProductEventStream:
-      description: Authenticated bounded SSE feed. Snapshot and reset frames carry versioned JSON data.
+      description: >-
+        Authenticated bounded SSE feed. Snapshot JSON data is capped at 256 KiB.
+        A larger legal snapshot emits a bounded stream.reset.v1 frame with reason
+        snapshot_overflow so clients refetch the bounded REST page. The stream
+        remains open; each changed oversized snapshot emits a new reset, while an
+        unchanged snapshot emits none. Recovery to an in-budget snapshot resumes
+        normal snapshot frames. Permission denial revokes transient replay and
+        subscriptions independently of this size fallback.
       headers:
         Cache-Control:
           description: Prevents storage of transient infrastructure observations.

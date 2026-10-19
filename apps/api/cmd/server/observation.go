@@ -137,8 +137,7 @@ func buildObservationRuntime(ctx context.Context, settings config.Config, databa
 	}
 	retention, err := observation.NewRetentionWorker(observation.RetentionOptions{Repository: repository, Now: time.Now,
 		OnError:      func(error) { logger.Warn("observation retention delayed", "reason", "bounded_retention_failed") },
-		PollInterval: time.Minute, Timeout: 10 * time.Second, BatchLimit: 1000, MaximumBatches: 10, MetricAge: 7 * 24 * time.Hour, HealthAge: 30 * 24 * time.Hour,
-		EventAge: 30 * 24 * time.Hour, DeliveryAge: 30 * 24 * time.Hour})
+		PollInterval: time.Minute, Timeout: 10 * time.Second, BatchLimit: 1000, MaximumBatches: 10})
 	if err != nil {
 		return observationRuntime{}, errObservationStart
 	}

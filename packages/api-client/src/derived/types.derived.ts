@@ -5096,6 +5096,10 @@ export type StreamProductHealthErrors = {
    */
   401: Problem;
   /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
    * The bounded request body limit was exceeded.
    */
   413: Problem;
@@ -5156,6 +5160,10 @@ export type StreamProductMetricsErrors = {
    * A valid local session is required.
    */
   401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
   /**
    * The bounded request body limit was exceeded.
    */
@@ -5219,6 +5227,10 @@ export type StreamProductEventsErrors = {
    */
   401: Problem;
   /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
    * The bounded request body limit was exceeded.
    */
   413: Problem;
@@ -5279,6 +5291,10 @@ export type StreamProductLogsErrors = {
    * A valid local session is required.
    */
   401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
   /**
    * The bounded request body limit was exceeded.
    */

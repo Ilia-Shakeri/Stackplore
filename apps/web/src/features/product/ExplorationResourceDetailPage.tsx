@@ -28,6 +28,7 @@ export function ProductResourceDetailPage({
   const api = useProductApi();
   const { formatDate, t } = useLocale();
   const [state, setState] = useState<LoadState<ResourceDetailData>>({ kind: 'loading' });
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -66,7 +67,7 @@ export function ProductResourceDetailPage({
     return () => {
       controller.abort();
     };
-  }, [api, id, kind, provider, source]);
+  }, [api, id, kind, provider, source, revision]);
 
   return (
     <div className="route-page product-page">
@@ -80,7 +81,14 @@ export function ProductResourceDetailPage({
         <Identity label={t('route.resourceDetail.identifier')} value={id} />
       </dl>
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
-      {state.kind === 'error' ? <ProductState text={t('product.error')} /> : null}
+      {state.kind === 'error' ? (
+        <ProductState
+          text={t('product.error')}
+          onRetry={() => {
+            setRevision((current) => current + 1);
+          }}
+        />
+      ) : null}
       {state.kind === 'ready' ? (
         <section className="resource-detail-card" aria-labelledby="resource-detail-name">
           <div className="resource-detail-card__heading">

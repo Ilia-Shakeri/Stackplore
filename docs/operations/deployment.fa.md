@@ -1,5 +1,9 @@
 # نصب و راه‌اندازی
 
+نسخهٔ فعال **۱٫۰٫۳** در گیت نهایی است؛ دستورهای تصویر زیر این نسخه را هدف می‌گیرند. پذیرش و رسید **۱٫۰٫۲** پایین فقط تاریخی‌اند. [مدرک فعال](../evidence/1.0.3/README.md).
+
+## Historical release proof
+
 هدف منبع فعلی **۱٫۰٫۲**، تگ ثابت `v1.0.2` روی `376ed03` و ledger برابر ۱۷
 است. هر شش بررسی اصلی و تگ همان منبع، شامل Compose،‏ Helm با TLS خارجی و هر
 دو فراهم‌کننده گذشتند. بستهٔ آزمایشی امضاشده و اجرای واقعی آرشیو بومی و پایگاه
@@ -13,7 +17,7 @@
 ## اجرای محلی با Compose
 
 Compose **دو تصویر** می‌سازد: برنامهٔ Go غیر root با فایل‌های وب درون آن، و
-تصویر مشتق PostgreSQL برای Linux amd64 با نام `stackplore-postgres:1.0.2` از
+تصویر مشتق PostgreSQL برای Linux amd64 با نام `stackplore-postgres:1.0.3` از
 `deploy/Dockerfile.postgres`. درگاه برنامه فقط روی `127.0.0.1` باز است.
 PostgreSQL و کلید runtime در volumeهای نام‌دار می‌مانند. readiness تنها پس از
 آماده‌شدن API و پایگاه داده موفق می‌شود.
@@ -52,15 +56,15 @@ checksum و همهٔ ۳۱ موضوع provenance داشته باشد؛ این ش�
 فرمان‌های آرشیو در نصب بدون شبکه اجرا نشده‌اند؛ رسید CI ساخت از منبع و restart
 در Compose، این مسیر را ثابت نمی‌کند.
 
-پس از انتشار و بررسی مستقل ۱٫۰٫۲، هر دو آرشیو فشردهٔ همان نسخه را بار کن؛
-نام آرشیوهای انتشار عمومیِ بررسی‌شدهٔ ۱٫۰٫۲ چنین است:
+پس از انتشار و بررسی مستقل ۱٫۰٫۳، هر دو آرشیو فشردهٔ همان نسخه را بار کن؛
+نام آرشیوهای مورد انتظار ۱٫۰٫۳ چنین است:
 
 ```sh
-docker image load --input stackplore_1.0.2_image.tar.gz
-docker image load --input stackplore_1.0.2_postgres_image.tar.gz
+docker image load --input stackplore_1.0.3_image.tar.gz
+docker image load --input stackplore_1.0.3_postgres_image.tar.gz
 ```
 
-تگ‌های بارشده باید `stackplore-api:1.0.2` و `stackplore-postgres:1.0.2` باشند؛
+تگ‌های بارشده باید `stackplore-api:1.0.3` و `stackplore-postgres:1.0.3` باشند؛
 هویت تصویرها را با `image-id.txt` و `database-image.json` بررسی‌شده بسنج.
 سرویس API در Compose پایه، build دارد و تگ تصویر انتشار ندارد. فایل
 `compose.release.yaml` را کنار منبع همان نسخه بساز تا تصویر بارشده صریح انتخاب شود:
@@ -68,9 +72,9 @@ docker image load --input stackplore_1.0.2_postgres_image.tar.gz
 ```yaml
 services:
   api:
-    image: stackplore-api:1.0.2
+    image: stackplore-api:1.0.3
   postgres:
-    image: stackplore-postgres:1.0.2
+    image: stackplore-postgres:1.0.3
 ```
 
 مراحل `.env` خصوصی و proof راه‌اندازی پایگاه خالی را طبق بالا انجام بده؛ سپس

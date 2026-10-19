@@ -1,6 +1,6 @@
 # Application settings and browser preferences
 
-[فارسی](settings.fa.md). This guide describes the Stage 6 implementation. The
+[فارسی](settings.fa.md). This guide describes the 1.0.3 candidate behavior. The
 [active plan](implementation-plan.md) records verification and publication;
 the presence of this guide is not a passing runtime or release gate.
 
@@ -62,6 +62,18 @@ Deployment mutation flags are read-only on this page. Enabling an application
 flag alone never grants provider write authority or bypasses an action preview.
 Audit retention/quota are separately operator controlled, with a 90-day minimum;
 general history cleanup cannot edit or prune audit history.
+
+The scheduled history worker resolves all four retention values in each bounded
+PostgreSQL transaction and holds the settings row's shared lock until deletion
+ends. A concurrent policy update takes effect before or after that whole batch;
+the next batch reloads policy. A longer period preserves rows still present but
+cannot restore rows already deleted. Defaults are not fixed worker constants.
+
+New alert-rule drafts load the effective default window and pending period from
+the application settings API. Creation waits for that read; a failed read shows
+a retry state. Late settings responses preserve fields already edited by the
+administrator. Existing rules retain their stored values; changing the defaults
+does not rewrite them. A new draft after reset uses the loaded effective values.
 
 ## Review and change a policy
 
@@ -137,5 +149,10 @@ cutoffs, and keeps confirmation/recent-auth material only in memory.
 Focused tests cover numeric/schema bounds, unknown fields, masked exports,
 count sentinels, version/scope/cutoff binding, preview expiry, password clearing,
 single submission, uncertain outcomes, viewer controls and English/Persian
-formatting. Real PostgreSQL transactions and actual browser/download behavior
-require their own evidence in [testing](testing.md) and the active plan.
+formatting. Fresh real PostgreSQL 17.11 tests also cover concurrent one-use
+settings commits across all seven fields; version, material, confirmation,
+backup, expiry and purpose rejection; audit-failure rollback; 1,000-row cleanup
+with frozen cutoffs and remaining-work reporting; and masked export with one-use
+authentication. Rejected or rolled-back transactions leave settings unchanged
+and do not spend confirmations or grants. These local tests are distinct from candidate full-gate, browser
+download and publication evidence in [testing](testing.md) and the active plan.

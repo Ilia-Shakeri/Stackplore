@@ -2,17 +2,9 @@
 
 - **Product:** Stackplore
 - **Tagline:** Explore every service in your stack.
-- **Target release:** 1.0.2
+- **Target release:** 1.0.3
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Corrective 1.0.2 is released and accepted, immutable
-  `v1.0.2` at `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, ledger 17. All nine
-  stages are complete; architecture/code and release review score 9/10. Full
-  local D, six-job exact main/tag CI, signed trial/publication and independent
-  public identity/checksum/provenance/SBOM/archive checks pass. Failed first
-  tag/release attempts retain their outcomes. [Published proof](docs/evidence/1.0.2/published-release.json).
-  The accepted 1.0 product/security scope remains authoritative; historical proof
-  keeps its original source and limits. The later main-only harness/documentation
-  follow-up is separate from the immutable release source.
+- **Implementation status:** Corrective 1.0.3 is implemented and awaiting final verification, ledger 17. The 2026-10-19 review reopened nine bugs and two missing interface controls; [current evidence](docs/evidence/1.0.3/fresh-audit.md) records reproductions and corrections. Historical immutable [1.0.2 acceptance](docs/evidence/1.0.2/published-release.json) retains its source and limits. The accepted 1.0 product and security scope remains authoritative.
 
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
 Deferred features are explicitly listed in section 14. Delivery order and
@@ -565,6 +557,8 @@ infrastructure events, and terminal notification deliveries. It cannot delete
 users, sessions, sources, current settings, or audit records. Those records
 follow separate, explicit lifecycle rules.
 
+Automatic retention reads effective persisted settings for every bounded batch, holding a shared settings-row lock through its deletions. A concurrent settings transaction orders before or after that batch; the next batch reloads its policy. Alert defaults populate only new rules, with a failed settings read blocking creation until retry.
+
 Lowering a retention setting does not silently expire existing rows. If the
 new value would make stored data newly eligible, it uses the same preview,
 purpose-bound recent authentication, hard confirmation, backup warning, and
@@ -715,7 +709,15 @@ Requirements:
 SSE carries resource status, events, metrics, logs, and alerts. Streams require
 authentication, event IDs, keepalive, reconnection, bounded buffers,
 backpressure behavior, per-client cancellation, and an explicit disconnected
-state. Credentials must not appear in URLs.
+state. Fresh native stream reads must check current authority before subscribing or replaying. Permission denial clears queued/history data, revokes existing clients and prevents replay; a polling denial resets and closes clients. A later authorized connection starts a new feed. Credentials must not appear in URLs.
+
+Native transient frames remain capped at 256 KiB. A larger legal snapshot emits
+a bounded `stream.reset.v1` with `snapshot_overflow`; it does not enlarge replay
+or client queues or silently close a successful feed. Changed large snapshots
+notify again, unchanged ones do not repeat, and smaller snapshots recover normal
+delivery. The browser refetches bounded REST pages, preserving explicit time
+ranges and filters. Production browser JSON responses have a 16 MiB ceiling;
+the general transport client retains its 1 MiB default.
 
 ## 9. Interface and experience
 
@@ -743,7 +745,7 @@ state. Credentials must not appear in URLs.
 
 Desktop uses a collapsible sidebar, top bar, environment selector, global
 search, command palette, notification center, language and theme controls, user
-menu, breadcrumbs, main area, and optional detail panel.
+menu, breadcrumbs, main area, and optional detail panel. The environment selector loads bounded pages on demand and scopes resource/search/event/topology navigation using source and environment identifiers. Other pages remain source-wide; choosing an environment there opens resources. Same-route selection preserves other filters and clears dependent targets/cursors.
 
 Mobile uses a compact top bar, drawer navigation, touch-sized controls,
 topology-specific controls, and table alternatives without page-level
@@ -829,7 +831,7 @@ The current runtime uses only PostgreSQL for the API, account recovery and
 native backup/restore. Server and native `psql`, `pg_dump` and `pg_restore`
 clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](deploy/postgres-image.json) pins the upstream base and
-defines the reviewed `stackplore-postgres:1.0.2` derivative. Unchanged official
+defines the reviewed `stackplore-postgres:1.0.3` derivative. Unchanged official
 gosu 1.19 is rebuilt from pinned source with Go 1.26.9; the PostgreSQL engine and
 entrypoint are retained. Exact-source trial and independent archive checks
 proved the actual build, engine/helper versions, root-drop and non-root SQL startup. Release gates require exact
@@ -986,7 +988,7 @@ Stackplore 1.0 is complete only when:
 - English and Persian documentation describe only real behavior;
 - screenshots come from the final running demo;
 - no production TODO remains;
-- version is `1.0.2`;
+- version is `1.0.3`;
 - release artifacts have checksums and a software bill of materials;
 - the separately deployed database image has matching engine/digest metadata,
   helper/root-drop probes, a complete vulnerability scan and an SPDX inventory

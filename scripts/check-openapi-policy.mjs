@@ -514,7 +514,7 @@ const routePolicies = new Map([
       get: {
         operationId: 'streamProductHealth',
         requestBody: false,
-        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
         security: browserSession,
       },
     },
@@ -525,7 +525,7 @@ const routePolicies = new Map([
       get: {
         operationId: 'streamProductMetrics',
         requestBody: false,
-        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
         security: browserSession,
       },
     },
@@ -536,7 +536,7 @@ const routePolicies = new Map([
       get: {
         operationId: 'streamProductEvents',
         requestBody: false,
-        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
         security: browserSession,
       },
     },
@@ -547,7 +547,7 @@ const routePolicies = new Map([
       get: {
         operationId: 'streamProductLogs',
         requestBody: false,
-        responses: ['200', '400', '401', '413', '429', '500', '503'],
+        responses: ['200', '400', '401', '403', '413', '429', '500', '503'],
         security: browserSession,
       },
     },

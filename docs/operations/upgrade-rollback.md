@@ -1,5 +1,22 @@
 # Upgrade and rollback
 
+## 1.0.2 to corrective 1.0.3
+
+Schema remains **17**. Keep PostgreSQL, the runtime digest key, source references
+and volumes; take a verified native backup before replacing the application.
+Automatic history retention now follows the effective saved settings on every
+bounded batch. Review those values before startup: the prior worker incorrectly
+used fixed defaults. Increasing a retention period cannot recover already deleted
+history. Lowering it remains behind the guarded preview and confirmation path.
+
+Normal short Helm API names and runtime PVC names retain their identities. Long
+names that previously exceeded the Service limit now use stable hashed API names;
+Deployment, Service and Ingress references agree. The chart does not rename the
+runtime PVC. Compare the rendered upgrade before applying it to an installation.
+Recheck source permissions, stream denial/recovery and effective alert defaults.
+Candidate verification is in [1.0.3 evidence](../evidence/1.0.3/README.md);
+customer upgrade and rollback still need the installation's own acceptance.
+
 The 0.x baseline has no supported automatic upgrade from old development
 SQLite data. PostgreSQL is the only runtime store. Keep any earlier development
 data untouched; an import would need a separate offline, bounded, tested tool.

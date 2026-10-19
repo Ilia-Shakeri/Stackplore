@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "version": "1.0.3",
+  "baseline_revision": "089727fdfac0fa0bacb15c520212c3fbd37bd8b1",
+  "scope": "Precommit production interface snapshot after environment chooser and boundary corrections, before the later native oversized-stream and fixed-window refresh amendments. Exact final-source hosted browser acceptance remains separate.",
+  "command": "npm.cmd run build; node scripts/browser-gate.mjs",
+  "exit_code": 0,
+  "transcript_sha256": "853a6b2e2518158540d3f9187215fa4ea7be13803da816f3266b6a7e45aae3ec",
+  "fixture": "Three disposable loopback PostgreSQL 17.11 databases and synthetic guest data; owned application processes and databases cleaned by gate finally blocks.",
+  "checks": {
+    "guest_cases": 12,
+    "normal_english_cases": 1,
+    "normal_persian_cases": 1,
+    "total_cases": 14,
+    "profiles": 8,
+    "route_profile_journeys": 64,
+    "widths": [360, 1280],
+    "locales": ["en", "fa"],
+    "themes": ["light", "dark"],
+    "reduced_motion": "passed",
+    "accessibility_and_overflow": "passed",
+    "environment_selector_profiles": 4,
+    "environment_selector_checks": "Actual lazy reads, source-bound selection, filtered resource HTTP 200, keyboard, focus, dialog accessibility, mobile drawer URL preservation and viewport width passed in EN/FA light profiles at both widths.",
+    "profile_api_failures": 0,
+    "screenshots": 24,
+    "visually_reviewed": [
+      "overview-fa-360-light.png",
+      "command-palette-en-1280-dark.png",
+      "topology-en-360-dark.png",
+      "overview-fa-1280-light.png"
+    ],
+    "offline_private_cache_exclusion": "passed",
+    "explicit_worker_update": "passed",
+    "default_guest_concurrent_read_limits": "unchanged and passed",
+    "normal_setup_recent_auth_roles_history_logout": "passed in English and Persian"
+  },
+  "limits": "Local synthetic browser acceptance does not prove target Docker/Kubernetes rights, customer installation, outbound receiver delivery, every native platform, or final-source hosted release acceptance. The later stream-size and fixed-window fixes have separate regression and exact-source CI gates."
+}

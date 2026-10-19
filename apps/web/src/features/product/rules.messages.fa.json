@@ -1,4 +1,7 @@
 {
+  "alerts.rules.defaults.loading": "پیش‌فرض‌های هشدار در حال بارگیری است…",
+  "alerts.rules.defaults.error": "پیش‌فرض‌های هشدار بارگیری نشد. ایجاد قانون به تنظیمات فعلی نیاز دارد.",
+  "alerts.rules.defaults.retry": "بارگیری دوبارهٔ پیش‌فرض‌های هشدار",
   "alerts.rules.pagination": "صفحه‌های قانون هشدار",
   "alerts.rules.firstPage": "قانون‌های نخست",
   "alerts.rules.previousPage": "قانون‌های پیشین",

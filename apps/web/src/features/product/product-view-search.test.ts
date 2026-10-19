@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { productViewSearch, validViewParameter } from './product-view-search';
 
 describe('shared exploration query policy', () => {
+  it.each([
+    ['event_q', 200],
+    ['log_q', 200],
+    ['scope_name', 256],
+    ['topology_scope', 300],
+  ] as const)('counts supplementary text by code points for %s', (name, maximum) => {
+    expect(validViewParameter(name, '🚀'.repeat(maximum))).toBe(true);
+    expect(validViewParameter(name, '🚀'.repeat(maximum + 1))).toBe(false);
+    expect(productViewSearch({ [name]: '🚀'.repeat(maximum) })).toEqual({
+      [name]: '🚀'.repeat(maximum),
+    });
+  });
   it.each(['trace', 'unknown'])('preserves the supported log severity %s', (severity) => {
     expect(validViewParameter('severity', severity)).toBe(true);
     expect(productViewSearch({ severity })).toEqual({ severity });

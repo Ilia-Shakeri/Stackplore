@@ -1,15 +1,14 @@
 # Development
 
-Accepted release: **1.0.2**, immutable source
-`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**, all nine stages,
-review **9/10**. Full local D, exact main/tag CI, signed publication and independent
-public/archive verification pass. [Current proof](evidence/1.0.2/published-release.json)
-keeps failed attempts and the unchanged-tag retry separate. The later main-only
-browser control-read/report-retention follow-up has fourteen passing in-memory
-branch cases; live retry-coverage attempts C/D remain failed because each received
-200 before the intended 429 branch. Six-job CI on the commit containing this
-review must pass before handoff; commit checks and the release body bind its
-final run/source. Preserve normal checksums, limits and thresholds. Native
+Current work: **1.0.3 candidate**, schema **17**. Focused local checks cover
+effective retention policy, guarded application transactions and transient
+stream authority. Full changed-tree verification and exact-source CI/release
+acceptance remain separate gates in the [active plan](implementation-plan.md).
+Historical [1.0.2 proof](evidence/1.0.2/published-release.json) binds immutable
+source `376ed0379900ab870dd8eb8af6b55ef3e5ec389b` and retains failures and retry
+outcomes; it does not certify 1.0.3. Its separate browser fixture diagnostic keeps
+the C/D live retry-coverage attempts failed because they received 200 before the
+intended 429 branch. Preserve normal checksums, limits and thresholds. Native
 special-name tests require disposable database-creation rights and
 `STACKPLORE_TEST_NATIVE_POSTGRES_TOOLS=true`; never use customer data.
 
@@ -34,7 +33,7 @@ Bootstrap checks the pinned tools and installs the locked workspace. It does not
 ## Local PostgreSQL
 
 The corrective Compose profile builds two Linux images: the application from
-`deploy/Dockerfile.api` and `stackplore-postgres:1.0.2` from
+`deploy/Dockerfile.api` and `stackplore-postgres:1.0.3` from
 `deploy/Dockerfile.postgres`. The [database policy](../deploy/postgres-image.json)
 pins the upstream PostgreSQL 17.11 base and unchanged gosu 1.19 source, rebuilt
 with Go 1.26.9. The upstream database entrypoint initializes as needed before
@@ -90,6 +89,11 @@ $env:GOCACHE = "$repoRoot\.tmp\go-build-v1"
 npm.cmd run bootstrap
 ```
 
+If overriding `GOTMPDIR`, use a canonical native Windows path with backslashes
+and an existing owned directory. Go 1.26 can preserve a slash-style drive path
+in `t.TempDir`; storage/path security tests correctly reject that noncanonical
+input. Correct the test environment instead of relaxing production path checks.
+
 ## Run
 
 ```sh
@@ -117,6 +121,14 @@ product reads come from PostgreSQL and logs remain live reads. Use the
 behavior. The 0.2 checkpoint passed its full local gate and disposable
 PostgreSQL/restart/restore checks. Current results are in the evidence plan;
 historical 0.1 results are separate proof.
+
+Retention must not cache fixed ages in startup wiring or in the worker. Its
+repository port accepts the run's UTC observation time and batch limit; each
+bounded PostgreSQL transaction reads validated application settings `FOR SHARE`
+before deriving all four cutoffs and holds that row lock until deletion commits.
+Tests must cover longer and shorter settings, independent classes, policy reload
+between batches, concurrent policy updates and the existing newest/synthetic/
+audit guards. See [settings](settings.md) and [testing](testing.md).
 
 The locally verified 0.3.0 development checkpoint adds covered alert evidence,
 durable alert replay and opt-in webhook/Matrix workers. The full local gate with

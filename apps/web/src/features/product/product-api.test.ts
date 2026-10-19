@@ -568,7 +568,8 @@ describe('product API adapter', () => {
     await expect(api.testNotification('admin-password', 'matrix')).resolves.toEqual(queued);
     expect(request).toHaveBeenLastCalledWith({
       method: 'POST',
-      path: '/settings/notifications/test?adapter=matrix',
+      path: '/settings/notifications/test',
+      query: { adapter: 'matrix' },
       protection: { csrfToken: 'A'.repeat(43), kind: 'session', recentAuthToken: 'B'.repeat(43) },
     });
   });

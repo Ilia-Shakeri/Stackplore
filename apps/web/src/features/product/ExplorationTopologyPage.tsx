@@ -1,7 +1,8 @@
 import type { ProductRelationshipPage, ProductResourcePage } from '@stackplore/api-client';
 import { lazy, Suspense, useCallback } from 'react';
 import { useLocale } from '../../i18n';
-import { useProductApi, useProductSource } from './product-context';
+import { useProductApi, useProductSource, useProductView } from './product-context';
+import { readEnvironment } from './environment-navigation';
 import {
   dataAllowed,
   ObservedPageHeader,
@@ -18,6 +19,7 @@ const TopologyGraph = lazy(() =>
 export function ProductTopologyPage() {
   const api = useProductApi();
   const { selectedSource } = useProductSource();
+  const environment = readEnvironment(useProductView().search);
   const { t } = useLocale();
   const live = useLiveObservation(selectedSource);
   const loadResources = useCallback(
@@ -26,9 +28,10 @@ export function ProductTopologyPage() {
         signal,
         limit: 100,
         ...(selectedSource === undefined ? {} : { sourceId: selectedSource }),
+        ...(environment === undefined ? {} : { environmentId: environment }),
         ...(cursor === undefined ? {} : { cursor }),
       }),
-    [api, selectedSource],
+    [api, selectedSource, environment],
   );
   const loadEdges = useCallback(
     (signal: AbortSignal, cursor?: string): Promise<ProductRelationshipPage> =>
@@ -52,7 +55,13 @@ export function ProductTopologyPage() {
         <ProductState text={t('product.loading')} />
       ) : null}
       {resources.state.kind === 'error' || edges.state.kind === 'error' ? (
-        <ProductState text={t('product.error')} />
+        <ProductState
+          text={t('product.error')}
+          onRetry={() => {
+            resources.retry();
+            edges.retry();
+          }}
+        />
       ) : null}
       {resources.state.kind === 'ready' && edges.state.kind === 'ready' ? (
         <>

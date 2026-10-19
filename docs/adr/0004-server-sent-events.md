@@ -52,6 +52,22 @@ that stream with a recoverable overflow reason and record a safe metric. Do not
 block provider watches on one client and do not silently drop events while
 leaving the view apparently current.
 
+Native feeds recheck current inventory and topic authority before subscription
+or replay. A permission-denied read revokes that source/topic feed, clears its
+queued and replay frames, and closes its clients. Poll-time denial emits reset
+and closes clients; a later authorized subscription creates an independent feed.
+The handler checks revocation before writes; a network write already in flight
+cannot be recalled. Stale or partial authorized snapshots retain their existing
+availability semantics. Durable alert replay keeps ADR-0012's separate scope.
+
+Native transient snapshots retain a 256 KiB frame ceiling. Larger legal
+snapshots project to a small `snapshot_overflow` reset, allowing bounded REST
+refetch without expanding replay or per-client queues. Compare the original
+snapshot fingerprint so changed oversized data signals again, identical data
+does not repeat, and smaller data resumes ordinary snapshots. Retain only the
+bounded initial frame and its fixed-size fingerprint in the producer closure.
+Clients refetch even when an explicit time range remains unchanged.
+
 The live hub is transient fan-out, not durable storage. Events, alert changes,
 and metric samples use repositories when product retention requires history.
 Log-tail buffers remain bounded and are not persisted by default.
@@ -121,4 +137,3 @@ Later phases must:
 - [Architecture overview](../architecture.md)
 - [ADR-0001: Monorepo and same origin](0001-monorepo-and-same-origin.md)
 - [ADR-0003: SQLite and one active API instance](0003-sqlite-single-instance-and-repositories.md)
-

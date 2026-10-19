@@ -8,6 +8,11 @@ release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
 
+The current source is the **1.0.3 candidate**, schema **17**. Fresh focused local
+proof is described below; the complete candidate gate, exact-source hosted CI,
+signed trial/public assets and independent archive runtime acceptance must have
+their own receipts. Historical 1.0.2 or 1.0.1 results do not certify this source.
+
 The public-worker update test's maintainer follow-up treats its extra script GET
 as a bounded control read: status/MIME, at most 64 KiB and one marker are checked;
 only 429 may retry within four attempts/15 seconds using bounded `Retry-After`.
@@ -31,7 +36,7 @@ and 80 measured reads were all 200, with valid envelopes, ten in-memory diagnost
 checks and owned cleanup. This local focused proof does not replace full browser/
 six-job CI on the containing review commit. [Evidence](evidence/1.0.2/browser-fixture-diagnostic.json).
 
-The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
+The historical accepted corrective release is **1.0.2**, immutable `v1.0.2` at
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
 are complete; architecture/code and release review score **9/10**. Full local D,
 all six exact-source main/tag jobs, signed trial/publication and independent
@@ -55,7 +60,7 @@ read-only/network-none/non-root SQL, license and owned cleanup passed.
 Historical failed candidates remain failed; project checks do not prove a
 customer rollout or a full air-gapped installation.
 
-Current correction coverage includes generated-marker URL/userinfo and clipped
+Retained 1.0.2 correction coverage includes generated-marker URL/userinfo and clipped
 text, real HTTP 405 Allow sets, later-page event denial, actual non-byte database
 collation, ledger 14/16-to-17 upgrades and native percent/equals/quote/backslash
 database names. Interface regressions cover all seven log-severity deep links,
@@ -91,7 +96,7 @@ Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
 defines the approved digest. Corrective proof needs real database execution,
 readiness/ledger checks and native backup/empty-target restore, plus exact
 database base/derivative and engine/helper metadata, root-drop behavior, full
-image scan and matching SPDX inventory. The reviewed `stackplore-postgres:1.0.2`
+image scan and matching SPDX inventory. The candidate `stackplore-postgres:1.0.3`
 rebuilds unchanged official gosu 1.19 with Go 1.26.9 on the same pinned upstream
 17.11 base, retaining its engine and entrypoint. Build owned patched fixtures
 before Compose/CI tests; Helm remains external-PostgreSQL based. Require actual
@@ -166,7 +171,7 @@ checks, and Helm lint/render passed. Exact commands and outcomes are in the acti
 evidence plan. Later exploration and provider receipts are recorded below;
 complete Matrix homeserver and target installation proof remain separate. Under renewed authorization on
 2026-10-17, exact unchanged 0.3.0 main/tag CI passed code/race/image-build/chart
-jobs. Older tagged results do not certify a different 1.0.2 source; current results
+jobs. Older tagged results do not certify a different 1.0.3 source; current results
 are recorded in the evidence plan.
 
 ## Historical provider and isolated-demo checkpoint
@@ -250,7 +255,63 @@ paths require representative data and `EXPLAIN (ANALYZE, BUFFERS)` before a
 performance claim. Browser measurements require actual rendering and large
 fixtures; bundle byte counts alone are insufficient.
 
-## Current 1.0.2 regressions and runtime gates
+## Candidate 1.0.3 focused corrections
+
+Fresh PostgreSQL 17.11 tests ran on separate owned disposable databases and
+verified cleanup/absence. The retention control expires an eight-day metric at
+the default 168 hours; 8760 hours preserves it and all four older history
+classes. One-hour and mixed class policies expire only eligible rows. Real
+lock contention proves that an already pending policy increase is read before
+deletion, and that an update cannot pass the shared policy lock while deletion
+is blocked. Another case changes policy between worker batches and verifies
+the next batch reloads it. Existing fair quotas, newest samples, current health,
+synthetic observations and protected audit/deliveries remain covered.
+
+Direct application transaction tests exercise all seven settings in a concurrent
+one-winner commit; stale version, changed material, wrong/expired confirmation,
+missing backup acknowledgement and wrong-purpose rejection; one-use grants;
+and failed-audit rollback. Cleanup preview/commit removes at most 1,000 rows,
+retains its frozen cutoffs, reports remaining work and rolls back deletion when
+audit insertion fails. Export checks effective settings/source summaries,
+masking, audit rollback and one-use authentication. A failed additional fixture
+attempt used a nonexistent `interval_us` column; it remains failed. The corrected
+fixture uses `interval_seconds` and passed. Preserve both outcomes in the active
+plan rather than relabeling the fixture error as a product failure or success.
+
+With a disposable real PostgreSQL test URL and pinned tools:
+
+```powershell
+go -C apps/api test ./internal/postgres -run 'TestScheduledRetention|TestRetentionSerializes|TestRetentionHolds|TestObservationRetention|TestApplicationSettings|TestApplicationCleanup|TestApplicationConfigurationExport' -count=1 -v
+go -C apps/api test ./internal/observation -run TestRetention -count=1 -v
+go -C apps/api test ./internal/httpapi -run 'TestStreamsRejectDeniedReplayAndRecoverWithFreshFeed|TestStreamsPollDenialClosesActiveClientsAndAllowsFreshRecovery|TestStreamsRejectInventoryAndTypedPermissionDenials|TestStreamSnapshotsKeepStalePartialAndOtherAvailability' -count=1 -v
+go -C apps/api test ./internal/realtime -run TestManagerInvalidation -count=1 -v
+```
+
+The transient SSE tests use real HTTP connections with controlled provider
+snapshots, two active clients, denied handshakes and poll-time revocation across
+health, metrics, events and logs. Recovery must use fresh authorized data, with
+old replay and queued frames fenced. Stale/partial/unavailable/unsupported states
+retain their existing semantics; denial is a separate 403 boundary. These tests
+do not contact a live provider or prove deployment revocation latency. New-rule
+default tests use the effective settings read, delayed-response edit preservation
+and failure/retry states; they do not change existing stored rules.
+
+An additional real HTTP regression reproduced a legal 100-event Persian REST
+page (1,669,440 bytes, HTTP 200) followed by an SSE HTTP 200 response with no
+frame: the old transient hub rejected the page above its 256-KiB limit. The
+corrected producer emits a bounded `snapshot_overflow` reset and stays open;
+event and log HTTP cases recover to normal small snapshots. Actual producer/hub
+tests cover changed and unchanged large pages, subsequent small-page recovery,
+permission revocation and exact frame-budget boundaries for every transient
+topic. The initial fixture-only failure used the generic test helper's 64-KiB
+REST ceiling; its corrected fixture uses the production 16-MiB default. Keep that
+failed setup separate from the reproduced silent-stream defect.
+
+```powershell
+go -C apps/api test ./internal/httpapi -run TestStreamBudget -count=1 -v
+```
+
+## Retained 1.0.2 regressions and runtime gates
 
 Focused cases cover exact-resource health history (200 samples, 30-day lookback,
 current source authority), server event filters before pagination and cursor

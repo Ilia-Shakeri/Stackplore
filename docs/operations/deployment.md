@@ -1,5 +1,9 @@
 # Deployment
 
+Active target **1.0.3** is in final verification. Image commands below target this version; the **1.0.2** acceptance and receipts below are historical. [Active evidence](../evidence/1.0.3/README.md).
+
+## Historical release proof
+
 Current source target: **1.0.2**, immutable `v1.0.2` at `376ed03`, schema 17.
 All six exact main/tag jobs passed, including Compose restart, external-TLS
 Helm and both providers. Signed trial and actual trial native/database archives
@@ -14,7 +18,7 @@ Preserve existing database and runtime-key volumes during changes.
 
 Compose builds **two images**: the non-root Go application with the production
 web bundle embedded, and the Linux amd64 PostgreSQL derivative
-`stackplore-postgres:1.0.2` from `deploy/Dockerfile.postgres`. The application
+`stackplore-postgres:1.0.3` from `deploy/Dockerfile.postgres`. The application
 binds to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes,
 and reports ready only after the API and database are ready.
 
@@ -51,16 +55,16 @@ accepted version for the source/Compose files and both Linux amd64 images.
 The archive commands have not been executed as an air-gapped installation;
 source-build Compose/restart CI receipts do not establish that path.
 
-After 1.0.2 is published and independently verified, load both matching
-compressed Docker-save archives from the verified 1.0.2 release:
+After 1.0.3 is published and independently verified, load both matching
+compressed Docker-save archives from the verified 1.0.3 release:
 
 ```sh
-docker image load --input stackplore_1.0.2_image.tar.gz
-docker image load --input stackplore_1.0.2_postgres_image.tar.gz
+docker image load --input stackplore_1.0.3_image.tar.gz
+docker image load --input stackplore_1.0.3_postgres_image.tar.gz
 ```
 
-Confirm the loaded tags are `stackplore-api:1.0.2` and
-`stackplore-postgres:1.0.2`, and compare their image identities with the verified
+Confirm the loaded tags are `stackplore-api:1.0.3` and
+`stackplore-postgres:1.0.3`, and compare their image identities with the verified
 `image-id.txt` and `database-image.json`. The base Compose API service has a
 build definition without a release image tag. Create `compose.release.yaml`
 alongside the matching source to select the loaded release images explicitly:
@@ -68,9 +72,9 @@ alongside the matching source to select the loaded release images explicitly:
 ```yaml
 services:
   api:
-    image: stackplore-api:1.0.2
+    image: stackplore-api:1.0.3
   postgres:
-    image: stackplore-postgres:1.0.2
+    image: stackplore-postgres:1.0.3
 ```
 
 Complete the private `.env` and fresh-database setup-proof steps above, then

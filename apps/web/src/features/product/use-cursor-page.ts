@@ -28,6 +28,7 @@ export function useCursorPage<Item extends { readonly id: string }, Page extends
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
   const [truncated, setTruncated] = useState(false);
+  const [retryRevision, setRetryRevision] = useState(0);
   const generation = useRef(0);
   const active = useRef<AbortController | null>(null);
   const pending = useRef(false);
@@ -105,7 +106,11 @@ export function useCursorPage<Item extends { readonly id: string }, Page extends
       active.current?.abort();
       generation.current++;
     };
-  }, [load, refreshRevision]);
+  }, [load, refreshRevision, retryRevision]);
+
+  const retry = useCallback(() => {
+    setRetryRevision((current) => current + 1);
+  }, []);
 
   const loadMore = useCallback(async () => {
     const value = current.current;
@@ -168,6 +173,7 @@ export function useCursorPage<Item extends { readonly id: string }, Page extends
   }, [load]);
   return {
     state,
+    retry,
     setState,
     loadMore,
     loadingMore,

@@ -86,8 +86,7 @@ VALUES($1,'system',NULL,NULL,NULL,NULL,'system.test','info','system.test','Syste
 		t.Fatal("seed protected observation audit")
 	}
 	seedObservationTerminalDelivery(t, fixture, "delivery_protected", string(audit.ID))
-	policy := domain.ObservationRetentionPolicy{MetricsBefore: at, HealthBefore: at, EventsBefore: at, DeliveriesBefore: at}
-	removed, err := fixture.store.PruneObservationHistory(ctx, policy, 8)
+	removed, err := fixture.store.PruneObservationHistory(ctx, at.Add(31*24*time.Hour), 8)
 	if err != nil || removed != 2 {
 		t.Fatalf("aggregate retention bound: %v", err)
 	}
@@ -160,8 +159,8 @@ SELECT 'health_retention_native_'||item,$1,'healthy','available','complete',$2,0
 	if err := fixture.store.FinishCapture(fixture.ctx, domain.CaptureCompletion{Token: token, Status: status, Capabilities: capabilities, Complete: true}); err != nil {
 		t.Fatal("finish native retention capture")
 	}
-	policy := domain.ObservationRetentionPolicy{MetricsBefore: fixture.at, HealthBefore: fixture.at, EventsBefore: fixture.at, DeliveriesBefore: fixture.at}
-	if removed, err := fixture.store.PruneObservationHistory(fixture.ctx, policy, 8); err != nil || removed != 8 {
+	pruneAt := fixture.at.Add(31 * 24 * time.Hour)
+	if removed, err := fixture.store.PruneObservationHistory(fixture.ctx, pruneAt, 8); err != nil || removed != 8 {
 		t.Fatalf("fair aggregate retention: removed=%d err=%v", removed, err)
 	}
 	var metrics, health, events, deliveries int
@@ -176,7 +175,7 @@ SELECT 'health_retention_native_'||item,$1,'healthy','available','complete',$2,0
 		t.Fatal("metric backlog starved another retention class")
 	}
 	for range 20 {
-		removed, err := fixture.store.PruneObservationHistory(fixture.ctx, policy, 8)
+		removed, err := fixture.store.PruneObservationHistory(fixture.ctx, pruneAt, 8)
 		if err != nil {
 			t.Fatal("drain native observation history")
 		}

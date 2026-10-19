@@ -1,13 +1,13 @@
 # Security Model
 
-Status: corrective **1.0.2 released and accepted**, immutable `v1.0.2` source
-`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, ledger 17. All nine stages are
-complete; architecture/code and release review score **9/10**. Full local D,
-all six exact main/tag jobs, strict signed trial/publication and independent
-public/archive verification pass. Failed first tag/release attempts and
-subsequent unchanged-tag retry remain distinct in the [active plan](implementation-plan.md)
-and [published proof](evidence/1.0.2/published-release.json). Historical proof
-keeps its source; the main-only harness follow-up is separate from the release.
+Status: **1.0.3 candidate**, ledger 17. The current source corrects effective
+retention policy and transient stream replay revocation; fresh focused local
+regressions cover those boundaries. Complete candidate verification, exact-source
+CI and independent signed-archive acceptance remain separately recorded in the
+[active plan](implementation-plan.md). Historical immutable `v1.0.2`, source
+`376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, keeps its own accepted
+[published proof](evidence/1.0.2/published-release.json) and failed-attempt history;
+it does not certify the candidate.
 
 ## Assets
 
@@ -235,8 +235,29 @@ Denial closes the entire feed and returns no items, including safe operation/
 alert facts. The current contract has no separately exposed system subfeed;
 those facts cannot be used to bypass the native event permission boundary.
 
+For transient health, metric, event and log SSE, either a permission-denied
+status or typed denial returns HTTP 403 before stream headers. An observed
+denial also invalidates the shared topic/source hub, discards replay and queued
+frames and revokes existing subscriptions. A running producer stops on denial;
+the writable HTTP connection sends `stream.reset.v1` with `source_unavailable`
+and closes. Reauthorization starts a fresh feed rather than exposing the old
+ring. This does not recall already transmitted bytes or change the separate
+durable alert feed. Local HTTP regressions use controlled providers and real
+connections; live provider revocation latency requires its own deployment proof.
+
+Transient snapshot JSON has a 256-KiB frame budget even when a bounded REST page
+is larger. Oversize emits only a small `snapshot_overflow` reset for REST refetch
+and keeps the stream open. Full-snapshot SHA-256 fingerprints distinguish changed
+large pages without retaining them in replay or repeatedly notifying unchanged
+pages. The producer retains only a bounded initial frame and one fingerprint;
+permission denial still revokes the feed. The budget is not raised to match the
+larger REST response ceiling.
+
 A scheduled retention worker uses effective configured ages, one aggregate deadline and bounded
-transactions with fair quotas across eligible metrics, health, events and
+transactions. Every transaction validates the current settings row `FOR SHARE`
+and holds its shared lock through all four deletions, so concurrent policy
+updates serialize before or after the batch. The next batch reloads settings.
+Independent 1–8760-hour policies and fair quotas cover eligible metrics, health, events and
 terminal ordinary deliveries. Synthetic facts, current state, newest current
 metric samples, pending/audit-linked deliveries and audit rows are excluded. Audit policy enforces a 90-day minimum and bounded quota. Scheduled expiry is capped at an operator-verified archive cutoff, preserves operation/delivery-linked facts, writes a policy/cleanup audit record, and prunes at most 1,000 rows per transaction. Without archive proof no audit row expires. Monitor growth; bounded cleanup is not a production capacity guarantee. Exact limits are in
 [observations](observations.md).

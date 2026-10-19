@@ -8,6 +8,7 @@ import type { ProductApi, SessionActionRunner } from './product-api-types';
 import {
   pageQuery,
   isRecord,
+  isDisplayText,
   hasExactKeys,
   resourceIdPattern,
   tokenPattern,
@@ -109,9 +110,7 @@ const isAlertRule = (value: unknown): value is AlertRuleRecord =>
     (typeof value.environment_id === 'string' && tokenPattern.test(value.environment_id))) &&
   (value.resource_id === undefined ||
     (typeof value.resource_id === 'string' && resourceIdPattern.test(value.resource_id))) &&
-  typeof value.display_name === 'string' &&
-  value.display_name.length >= 1 &&
-  value.display_name.length <= 256 &&
+  isDisplayText(value.display_name) &&
   isOneOf(value.kind, alertRuleKinds) &&
   typeof value.enabled === 'boolean' &&
   isOneOf(value.severity, eventSeverities) &&

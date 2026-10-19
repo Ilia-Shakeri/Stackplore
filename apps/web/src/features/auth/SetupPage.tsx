@@ -1,3 +1,4 @@
+import { sliceCodePoints } from '@stackplore/api-client';
 import {
   Button,
   Card,
@@ -128,7 +129,14 @@ export function SetupPage() {
               error={fieldErrors.has('display_name') ? t('auth.field.invalid') : undefined}
               required
             >
-              <Input autoComplete="name" maxLength={256} name="display_name" />
+              <Input
+                autoComplete="name"
+                maxLength={512}
+                name="display_name"
+                onInput={(event) => {
+                  event.currentTarget.value = sliceCodePoints(event.currentTarget.value, 256);
+                }}
+              />
             </Field>
             <Field
               label={t('auth.field.loginName')}

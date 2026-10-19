@@ -23,7 +23,7 @@ jobs:
       attestations: write
     env:
       CI: 'true'
-      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:1.0.2
+      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:1.0.3
       TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
       TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1
     steps:

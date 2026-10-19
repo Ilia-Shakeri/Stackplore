@@ -1,0 +1,399 @@
+{
+  "schema_version": 1,
+  "version": "1.0.3",
+  "observed_at_utc": "2026-10-19T09:27:50.643Z",
+  "scope": "Complete precommit local gate E after all nine bug corrections and two required interface controls; implementation, configuration and test source stayed unchanged during the gate. Exact-source hosted and signed artifact acceptance remains separate.",
+  "baseline_revision": "089727fdfac0fa0bacb15c520212c3fbd37bd8b1",
+  "command": "npm.cmd run verify",
+  "exit_code": 0,
+  "transcript_sha256": "9c458d73a66b49af2ea0df03fc3039476ee4f8f7b6d9b31ff8ce75653d652a7f",
+  "implementation_manifest_sha256": "9bcb80f5f6712e7a02e4900d933cadc58dca5aef11d5bc5b5c891588935be65e",
+  "implementation_manifest": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "40931d138e0accd62a167b2e5410fcb110fc9d4f3888ed2984be2721fa2f7ac5"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "4cc538da4882cc9f0bb8742aa853ba4becb0001c88fffc2fed1343dcc1b5bf3a"
+    },
+    {
+      "path": "apps/api/cmd/server/observation_test.go",
+      "sha256": "07a40e585ef891379edb605474de9e5ea2c07f350730e663a8e6417c3f5d45d2"
+    },
+    {
+      "path": "apps/api/cmd/server/observation.go",
+      "sha256": "6d5293cdb5eac8e7c02c9f82e00dfb77d7bfb5bf3ddd56c494fb76dd44d03d84"
+    },
+    {
+      "path": "apps/api/internal/config/audit_policy.go",
+      "sha256": "c193381fa8c6078a2e93730aa204003375c34099a1de7ce87be95fed89c10925"
+    },
+    {
+      "path": "apps/api/internal/domain/observation_ports.go",
+      "sha256": "a9500ef00188e83fc51165c92989e524cdc4ce0db8b03c86d39bf7f9d2a8e8c3"
+    },
+    {
+      "path": "apps/api/internal/httpapi/product_handlers.go",
+      "sha256": "57dda53622c3363631f4ee5dbef44e7057cc2e91624d199c07acb514cf036483"
+    },
+    {
+      "path": "apps/api/internal/httpapi/product_stream_authority_test.go",
+      "sha256": "3511ba537983768b95a7525bd873ed795b597ad07fc40784c0f24d124823a53f"
+    },
+    {
+      "path": "apps/api/internal/httpapi/product_stream_budget_test.go",
+      "sha256": "ead79631e7288e3180e9a8e1bf84fc7fce8b35850a05efd21d80fcffb3230451"
+    },
+    {
+      "path": "apps/api/internal/httpapi/product_stream_handlers.go",
+      "sha256": "c823883deb3a1e98fad2476ce15cd0adc3a227bac4d218cd282c6d6ac1d97488"
+    },
+    {
+      "path": "apps/api/internal/observation/retention_test.go",
+      "sha256": "480048f3ff00f2c8a3a22bd6813879a18f19080a6cce57c74aed2c12a443e59c"
+    },
+    {
+      "path": "apps/api/internal/observation/retention.go",
+      "sha256": "56344b17506b305805ccc4e48b43c894ca86770593a2528011f7cecf4c582484"
+    },
+    {
+      "path": "apps/api/internal/postgres/application_settings_integration_test.go",
+      "sha256": "ad3513d450152b5e3d123daf2dcb93fdc863cfb2af357d3e5ce9104537683225"
+    },
+    {
+      "path": "apps/api/internal/postgres/observation_retention_policy_test.go",
+      "sha256": "dd85e497d3335d97b22dcff3683bcee26e2b8e40ca4e72153cf4e92d54344915"
+    },
+    {
+      "path": "apps/api/internal/postgres/observation_retention.go",
+      "sha256": "565ba90b910f4e33d31040a8235b3928f12de0dfa9acb4889bccc3c3e4e71e69"
+    },
+    {
+      "path": "apps/api/internal/postgres/observation_upgrade_retention_test.go",
+      "sha256": "33a3ae03faf16f8e014c61091eff85e52a30e92007c2ec77ee703981afcd230d"
+    },
+    {
+      "path": "apps/api/internal/realtime/hub_test.go",
+      "sha256": "ff8d13e9ef10c7214acb16402fc2a22847f906e8000fa70d6e61037e3feb8347"
+    },
+    {
+      "path": "apps/api/internal/realtime/hub.go",
+      "sha256": "8806f7bf104a8b2f668f969dec44edee2ca3c149265378b37ce7397dd58f8d2b"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "ffbe6c7397fbaa45ee6eb0a28d82f5d4b4cfff8ece1cf028565cb95205fa6beb"
+    },
+    {
+      "path": "apps/web/src/app/api-client.ts",
+      "sha256": "2b15d80d904025e734a7735e38204aabe1ac02c86fb48626d11b0511a7b30217"
+    },
+    {
+      "path": "apps/web/src/app/router.tsx",
+      "sha256": "d824f282b85f98158266e4cf5b309d759849281c8a3841872c7bd1f19a213486"
+    },
+    {
+      "path": "apps/web/src/app/shell/Breadcrumbs.tsx",
+      "sha256": "846670bd6578ef538a5f0fdfc710c91d2c502fa59636715f5e96cf4737a8ea28"
+    },
+    {
+      "path": "apps/web/src/app/shell/CommandPalette.tsx",
+      "sha256": "e8e9b72e8f1a47cf04ae736830f2e715bf62d874725669358ef9eff2aa95baff"
+    },
+    {
+      "path": "apps/web/src/app/shell/EnvironmentSelector.test.tsx",
+      "sha256": "d98d135d616bf5aa3bb73afa83ffdcf802d8f6d16f39c3a8887a8aa22550b8e0"
+    },
+    {
+      "path": "apps/web/src/app/shell/EnvironmentSelector.tsx",
+      "sha256": "0e56eac8c49227d561be163019b0b68c4d4b5b5b6efa71b6a0067533901e6ef5"
+    },
+    {
+      "path": "apps/web/src/app/shell/messages.en.json",
+      "sha256": "5e3b5bc3273fbdb2499e135ab0832f6c8f32c88c3ec2ed20d798c87291e6b0e4"
+    },
+    {
+      "path": "apps/web/src/app/shell/messages.fa.json",
+      "sha256": "297571e1a0b516f69225684dd54dc3303f26e97df6505e830c754e67c55fa497"
+    },
+    {
+      "path": "apps/web/src/app/shell/NavigationLinks.tsx",
+      "sha256": "2d208ba827a0d4b5a175d3b8079905d11fd12a981ca6eae865ad53f9866d5b6d"
+    },
+    {
+      "path": "apps/web/src/app/shell/TopBar.tsx",
+      "sha256": "6d1717113c77bc8699e661ebc7f7894e432e3ebaead8ef26e3b3a0a9835bd81f"
+    },
+    {
+      "path": "apps/web/src/features/auth/SetupPage.tsx",
+      "sha256": "8db08cf4746fb9118f2373e55f61c6df246d55247c113e363219ad1be25aa61b"
+    },
+    {
+      "path": "apps/web/src/features/product/alert-rule-draft.test.ts",
+      "sha256": "dcc6562bf3854fc16ec7f0f908cae86012ff3e592e610109f1789ddaba9a1f1c"
+    },
+    {
+      "path": "apps/web/src/features/product/alert-rule-draft.ts",
+      "sha256": "598d0804f0831e97888a34e62853be61d44be52bb31dd49be5048e582028e322"
+    },
+    {
+      "path": "apps/web/src/features/product/AlertRulesSettingsPage.test.tsx",
+      "sha256": "d7056afcc3c2f56df887f002045e51b050c9ae0f0291ae5c3fedd6cf59175213"
+    },
+    {
+      "path": "apps/web/src/features/product/AlertRulesSettingsPage.tsx",
+      "sha256": "b42be3270e7f9258462c06375518fa5cbc717ce8135ec919581aedb0ddc11f6d"
+    },
+    {
+      "path": "apps/web/src/features/product/environment-navigation.ts",
+      "sha256": "1fec56f5067d70649319e45cf60ea0b33c80e6543263737077baea687a0bb46d"
+    },
+    {
+      "path": "apps/web/src/features/product/exploration-ui.tsx",
+      "sha256": "6d67d4df86c34ca0245ab8e9c9db004b8290e393ecc7257b8f89c6d035fd988c"
+    },
+    {
+      "path": "apps/web/src/features/product/exploration.messages.en.json",
+      "sha256": "aef796250c4cbdb353ec7460761fb144cd6b411178a27d30525626f38b430171"
+    },
+    {
+      "path": "apps/web/src/features/product/exploration.messages.fa.json",
+      "sha256": "ddf3839faf23597b357fb2e11fcec3d9ce4d04e50c429383713972623c7ccfb6"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationAlertsPage.tsx",
+      "sha256": "36a5dba7470e6528121a474b5f462a7ad52afed4758421272c5222bc170062ac"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationEventsPage.tsx",
+      "sha256": "b1131efed104080caf09689f3465a9a0856d2bccc685c9e8e7e00ba4e9979a94"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationLogsPage.tsx",
+      "sha256": "120d74ca93b9b6c4837e3bcd75f8cd256de35a2658917b7af67171fb4fd9d618"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationResourceDetailPage.tsx",
+      "sha256": "00d635576b63db0eacd66af48f6a885cff8f219e616047536a9faf4cd724fa7e"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationResourcesPage.tsx",
+      "sha256": "b889fa8dfcd6fdcec2866cb2b2a2a4e8e99bef99ffcddb5d59587357d4e79d19"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationTopologyPage.tsx",
+      "sha256": "762a6f2f06f9953eeb98591a3050d6f9957f70a2bdcbf81f0975a76cae350c0b"
+    },
+    {
+      "path": "apps/web/src/features/product/NotificationDeliverySettings.tsx",
+      "sha256": "86812cac7639e5eb6cfde78f89dc5219606e999885698de3d2b9c128b96b8f06"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api-activity.ts",
+      "sha256": "ec7f6320c8e533e4d9fc2c6ac93527bb23463ff92fa3d54322d26c5d2cf4751d"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api-alerts.ts",
+      "sha256": "b15cf2e26b80232757971fbeb594723afa8cca08f0dcf3963bc55f38e844de15"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api-common.ts",
+      "sha256": "4f344056015f8ba2a86d572b8c4b8bc50ce6b5a96d1e607dccf50bd4d455e8f2"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api-inventory.ts",
+      "sha256": "81d825e42343927026de62ab26fb0c7944a1571ec533864c597793457f871cb9"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api-metadata.ts",
+      "sha256": "49f3fb0c386de92cb732ab3cd899152b3d10827c634653eb0f486850e02193b2"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api-observations.ts",
+      "sha256": "1ef70372b15f32379e5104bf36a3f129bf898d8183b39f3774338d250e8923a4"
+    },
+    {
+      "path": "apps/web/src/features/product/product-api.test.ts",
+      "sha256": "7b3ae0110c51739c66ec3991284359619f3457dee581e603226f797e44a6f442"
+    },
+    {
+      "path": "apps/web/src/features/product/product-boundaries.test.ts",
+      "sha256": "702428854c3b3e5d055fec3bf34cdd69a730d6b9df44562dc5617b098ecc7238"
+    },
+    {
+      "path": "apps/web/src/features/product/product-context.tsx",
+      "sha256": "4b60d16994e01f47f5868f0c6a8ad9931c111158a50fe169ae465e62057cde63"
+    },
+    {
+      "path": "apps/web/src/features/product/product-retry.test.tsx",
+      "sha256": "de74d415dbf142c08b54bdbed7c9e72663a236a6c0931e5b12e4bd7d21faf2ce"
+    },
+    {
+      "path": "apps/web/src/features/product/product-stream-refresh.test.tsx",
+      "sha256": "08be601cb762161ff0a532217cadf5ffa1cb7933eca02480609c2ee364f5ef94"
+    },
+    {
+      "path": "apps/web/src/features/product/product-view-search.test.ts",
+      "sha256": "6898b9de03d684465d4c6caafa89021ff65854462288628e15e651b66f162e64"
+    },
+    {
+      "path": "apps/web/src/features/product/product-view-search.ts",
+      "sha256": "6fdfc58f3d8df19fff506ca5df37a198e6285bc85b32c1be2d3eab4734fcd804"
+    },
+    {
+      "path": "apps/web/src/features/product/ProductHistoryPages.tsx",
+      "sha256": "e9d831846ebe32143c18f06b16b5844d3954366362aa93f714e77e21a4d45ca7"
+    },
+    {
+      "path": "apps/web/src/features/product/ProductPages.tsx",
+      "sha256": "d5645b0d6fa2df77b40e92adf317c9e8cc05d381526a0a8e37ce15e71a52bc92"
+    },
+    {
+      "path": "apps/web/src/features/product/ResourceMetricsPanel.tsx",
+      "sha256": "41c46b3a6ffb2ee05db6bfa974a4752b1bd83a2699c3579b5b720b3859bdcfd6"
+    },
+    {
+      "path": "apps/web/src/features/product/rules.messages.en.json",
+      "sha256": "817298db9070900e859636c44715ba5d09b8f39044fd6a826e1092dc38160fb3"
+    },
+    {
+      "path": "apps/web/src/features/product/rules.messages.fa.json",
+      "sha256": "d01c19b3c4404a81f721a12e77f9b6f8fbaa69520dbb02e501f45ff9334c9d92"
+    },
+    {
+      "path": "apps/web/src/features/product/TopologyGraph.tsx",
+      "sha256": "789be6bbe9fa79fda0a12d534447cdac9d9314f2007cf2639ad5dc134f1c9e5e"
+    },
+    {
+      "path": "apps/web/src/features/product/use-cursor-page.ts",
+      "sha256": "b7522276d65b15b7437fa7cbfdc5132f9cb448352833833dd9dfce39d1cec709"
+    },
+    {
+      "path": "apps/web/src/features/users/UserActionDialog.tsx",
+      "sha256": "ec2afcd464494fc2f75512fb9895e75cf20349bbefabfdab377e3aae06b728d2"
+    },
+    {
+      "path": "apps/web/src/styles/app.css",
+      "sha256": "e1a90c819ed768674269b4d30041d03b733d3e3134dde4e9b22e6e57f0fa0d22"
+    },
+    {
+      "path": "apps/web/tests/browser/release.spec.ts",
+      "sha256": "70513da5b66b7596b6ef2067d7a0e2c339fdca2a6d0fed3dcaed321f6ef315a5"
+    },
+    {
+      "path": "compose.yaml",
+      "sha256": "b7a08279af346d22ddfabd74187fd438e3e67a4f0c5f1b5c7dd2d72539971806"
+    },
+    {
+      "path": "contracts/openapi.yaml",
+      "sha256": "97be1eb4f873cdccbd3aedfed62534a7c78e469beae83e8098ab77922af0ced0"
+    },
+    {
+      "path": "deploy/helm/stackplore/Chart.yaml",
+      "sha256": "e7455fee1832dcfc8aa3a3c7533bf1850e630184de6f99e7c95390972360eb75"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/_helpers.tpl",
+      "sha256": "db315493ffbbdd15ab6a488960754f7c9383e9b5b02394ba98ba30f43cc4cd0c"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/api-deployment.yaml",
+      "sha256": "1f0ba4322ab725c91fdac6dbc34ed1c47f641f62da9f5f49d00c21ae851262e2"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/api-service.yaml",
+      "sha256": "a54afb69edc53daa4abd9a131d8efa1026c14e595f62cc1564d265f63307731b"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/ingress.yaml",
+      "sha256": "6672cdcc00d21b9b44473c12fb76dc1a7e7e1f71fc7e9a0e90e218d5464f67a3"
+    },
+    {
+      "path": "deploy/helm/stackplore/values.yaml",
+      "sha256": "5f898f52f42f5aa6397821cb02cd645e01b5dc0bbf0846b51abd56f680392de3"
+    },
+    {
+      "path": "deploy/postgres-image.json",
+      "sha256": "72f8e8544417abf6b0435278cef379078b9600a1761f66ed10a2e738a1977b9e"
+    },
+    {
+      "path": "package.json",
+      "sha256": "14d03e51f1f464c0addf4277279eb155ca5383b11e25b175510b6e694b74d2a6"
+    },
+    {
+      "path": "packages/api-client/package.json",
+      "sha256": "c8f4f705b733836fe7e4c98d17c8354e91879c3953a57579149055089e997de6"
+    },
+    {
+      "path": "packages/api-client/src/derived/types.derived.ts",
+      "sha256": "7c6d103ff5737a49b17d8592883395506b81b13189c3439a01a5b39a279dcf08"
+    },
+    {
+      "path": "packages/api-client/src/index.ts",
+      "sha256": "512ebbe698fe0751b33f2d24f67aa0dce463a8b3b9a729aa88c851e66fa79d78"
+    },
+    {
+      "path": "packages/api-client/src/unicode-text.ts",
+      "sha256": "5895d2d0e9f93385d044b0109ee25888a3f97bac2963f8204ab21de2d1649369"
+    },
+    {
+      "path": "packages/ui/package.json",
+      "sha256": "a70386d7f158cbad23c41ebb1105f259b0bb786950fce694e90399ae5b85d8ec"
+    },
+    {
+      "path": "scripts/check-helm-contracts.mjs",
+      "sha256": "6b495d95cd52a94e941dcce3c56588a26da935d745d24de158402ba0590d5dbf"
+    },
+    {
+      "path": "scripts/check-openapi-policy.mjs",
+      "sha256": "87f724261799a932f71c4f7d9c4ce2c5a1e5bbca2ca31744bf7664866ce2f3c6"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "node": "24.18.0",
+    "go": "1.26.9",
+    "postgres": "17.11",
+    "native_tools_enabled": true,
+    "module_checksum_verification": "normal",
+    "web_pool": "default threads; one worker; unchanged coverage and assertions"
+  },
+  "checks": {
+    "format": "passed",
+    "documentation_links": 928,
+    "locale_messages": 738,
+    "bounded_contract_schemas": 235,
+    "lint": "passed",
+    "typecheck": "passed",
+    "runtime_image_policy": "passed",
+    "contract_drift": "passed",
+    "release_policy_tests": 29,
+    "go_tests": "all packages passed; real owned PostgreSQL URL and native tools enabled; cached package results retain their honest scope",
+    "fresh_sql_proof": "Gate C executed the complete PostgreSQL package in 150.222s and PostgreSQL operations in 36.779s; unchanged SQL source plus separate focused A/C retention/settings fixtures and native cleanup proof retained.",
+    "http_stream_budget_authority_proof": "Whole HTTP/realtime packages passed uncached in 19.922s/0.721s after bulk-frame correction; new four budget tests, lifecycle/topic/boundary checks and prior authority controls included.",
+    "domain_statement_coverage": 80.6,
+    "alerting_statement_coverage": 82.6,
+    "client_tests": 40,
+    "client_files": 2,
+    "web_tests": 530,
+    "web_files": 53,
+    "web_coverage": {
+      "statements": 83.81,
+      "branches": 80.33,
+      "functions": 88.41,
+      "lines": 85.36
+    },
+    "production_build": "web production assets embedded and Go build passed",
+    "helm": "nine actual naming/reference/volume renders and strict one-chart lint pass separately; official Kubernetes validator also accepts nine independently rendered names; actual server/install gate remains CI"
+  },
+  "retained_failed_attempts": [
+    "A: legacy Windows PowerShell converted an npm stderr warning into NativeCommandError; empty transcript retained, no code pass claimed.",
+    "B: three actual lint errors; corrected without disabling rules.",
+    "C: one of 527 web tests timed out at the unchanged 15-second cap; repeated accessibility-tree scans in the 1,000-option fixture were replaced with native option checks; assertions, pages and limits preserved.",
+    "D: 527 web tests passed with global coverage, then the build found a boolean literal type in the new three-case refresh test being added during that intermediate run; corrected fixture retained strict typing.",
+    "Focused one-file coverage run passed all 18 tests but exited 1 on unchanged global coverage floors; only complete gate E supplies global coverage acceptance.",
+    "Negative probes, initial bulk-stream fixture 500 and corrected real HTTP failure, retention fixture column error, and first environment matcher/static errors remain separate failed outcomes."
+  ],
+  "limits": "No customer rollout, every native platform, external receiver delivery, exact-source hosted jobs, signing/publication or independent public archive acceptance follows from this local receipt."
+}

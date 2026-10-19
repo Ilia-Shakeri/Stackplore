@@ -228,6 +228,12 @@
   list-style: none;
 }
 
+.environment-selector__choices {
+  display: grid;
+  gap: var(--sp-space-3);
+  min-inline-size: 0;
+}
+
 .command-palette__option {
   display: flex;
   align-items: center;
@@ -1931,7 +1937,7 @@ html[dir='rtl'] .route-page__eyebrow {
     display: grid;
     grid-column: 1 / -1;
     grid-row: 2;
-    grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr);
+    grid-template-columns: 2.5rem 2.5rem 2.5rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr);
     inline-size: 100%;
     max-inline-size: 34rem;
     justify-self: end;

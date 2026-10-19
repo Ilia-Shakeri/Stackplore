@@ -3,6 +3,7 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import { useProductApi } from './product-context';
 import { useLocale } from '../../i18n';
+import { ProductState } from './exploration-ui';
 
 export function NotificationDeliverySettings() {
   const api = useProductApi();
@@ -12,6 +13,7 @@ export function NotificationDeliverySettings() {
     | { readonly kind: 'ready'; readonly status: NotificationSettingsStatus }
   >({ kind: 'loading' });
   const [testPassword, setTestPassword] = useState('');
+  const [revision, setRevision] = useState(0);
   const [testAdapter, setTestAdapter] = useState<'generic_webhook' | 'matrix'>('generic_webhook');
   const [testDelivery, setTestDelivery] = useState<
     | { readonly kind: 'idle' | 'sending' | 'error' }
@@ -19,6 +21,7 @@ export function NotificationDeliverySettings() {
   >({ kind: 'idle' });
   useEffect(() => {
     const controller = new AbortController();
+    setDelivery({ kind: 'loading' });
     void api.getNotificationSettings(controller.signal).then(
       (status) => {
         if (controller.signal.aborted) return;
@@ -37,7 +40,7 @@ export function NotificationDeliverySettings() {
     return () => {
       controller.abort();
     };
-  }, [api]);
+  }, [api, revision]);
 
   const sendTest = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,7 +79,14 @@ export function NotificationDeliverySettings() {
       {delivery.kind === 'loading' ? (
         <p aria-live="polite">{t('notifications.settings.loading')}</p>
       ) : null}
-      {delivery.kind === 'error' ? <p role="alert">{t('notifications.settings.error')}</p> : null}
+      {delivery.kind === 'error' ? (
+        <ProductState
+          text={t('notifications.settings.error')}
+          onRetry={() => {
+            setRevision((current) => current + 1);
+          }}
+        />
+      ) : null}
       {delivery.kind === 'ready' ? (
         <>
           <dl>

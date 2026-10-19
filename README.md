@@ -6,7 +6,7 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-> **Status:** **1.0.2 released and accepted. All nine stages complete; review 9/10.** Immutable `v1.0.2` is `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. Full local D, six-job exact main/tag CI, signed publication and independent public/archive verification pass. Failed first attempts retain their outcomes. [Release](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.2) · [Published proof](docs/evidence/1.0.2/published-release.json).
+> **Status:** Corrective **1.0.3** is in final verification (schema **17**). Nine verified defects and two missing controls are corrected; complete acceptance is pending. [Current audit](docs/evidence/1.0.3/fresh-audit.md). Historical immutable [1.0.2 proof](docs/evidence/1.0.2/published-release.json) keeps its original source and limits.
 
 Immutable [1.0.1](docs/evidence/1.0.1/published-release.json) keeps its historical
 39-file public verification and actual archive results. Those receipts do not
@@ -29,7 +29,7 @@ immutable 1.0.0 remains withheld and failed attempts retain their outcomes.
 - One non-root Go image serving the UI and API, persistent local Compose, and an external-PostgreSQL cluster chart. CI checks code, PostgreSQL integration, image build, fresh Compose readiness/UI/restart, and actual TLS-backed chart installation.
 - Public-only PWA offline shell and explicit updates, bounded streamed redacted log downloads, URL event filters, health history, metric trends, coalesced live inventory/topology, and operator-mounted Kubernetes token-file or certificate profiles. See [exploration](docs/exploration.md) and [Kubernetes profiles](docs/kubernetes-provider.md).
 
-## Release verification
+## Historical 1.0.2 release verification
 
 Corrective source `376ed03` passes full local D and all six exact main/tag jobs,
 including real SQL/race/browser, Compose, external-TLS Helm and both providers.
@@ -65,7 +65,7 @@ reused unchanged for development. See [configuration](docs/configuration.md).
 
 ## Deployment
 
-The corrective tree defines `stackplore-postgres:1.0.2` from a digest-pinned
+The corrective tree defines `stackplore-postgres:1.0.3` from a digest-pinned
 PostgreSQL 17.11 base in [`deploy/postgres-image.json`](deploy/postgres-image.json).
 It rebuilds unchanged `gosu` 1.19 with Go 1.26.9 while retaining the upstream
 database engine and entrypoint. Compose/CI must build the owned patched image;

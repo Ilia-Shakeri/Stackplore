@@ -236,13 +236,7 @@ type ObservationReader interface {
 	GetObservationStatus(context.Context, ProviderRef) (ObservationStatus, error)
 }
 
-type ObservationRetentionPolicy struct {
-	MetricsBefore    time.Time
-	HealthBefore     time.Time
-	EventsBefore     time.Time
-	DeliveriesBefore time.Time
-}
-
 type ObservationRetentionRepository interface {
-	PruneObservationHistory(context.Context, ObservationRetentionPolicy, int) (int64, error)
+	// Each bounded batch resolves and locks the effective policy before deletion.
+	PruneObservationHistory(context.Context, time.Time, int) (int64, error)
 }

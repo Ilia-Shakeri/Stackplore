@@ -1,8 +1,29 @@
 # Alerts, live changes and outbound delivery
 
-[فارسی](alerts-notifications.fa.md). This describes the locally verified 0.3.0 development
-checkpoint. Exact executed checks live in the [evidence plan](implementation-plan.md).
-It is not a production capacity or live-provider claim.
+[فارسی](alerts-notifications.fa.md). This describes the **1.0.3 candidate** in
+current source. Its corrections are implemented; candidate verification and
+publication remain separate gates. It is not a published or accepted 1.0.3
+release. The [evidence plan](implementation-plan.md) records executed checks;
+[accepted 1.0.2 proof](evidence/1.0.2/published-release.json) remains historical
+evidence for immutable source `376ed03`, not proof for this candidate or a
+customer receiver.
+
+## New rule defaults and read recovery
+
+The rule editor reads effective application settings before enabling creation.
+New drafts use `default_alert_window_seconds` and
+`default_alert_pending_seconds`; the window applies to predicates that use a
+window. Saving a new rule, cancelling an edit, or successfully deleting the rule
+being edited resets the new draft to the loaded effective defaults. Existing
+rules keep their stored values. Settings arriving late do not overwrite manual
+draft fields or a rule being edited. A settings-read failure is explicit and
+retryable; no hidden fallback values enable a new rule.
+
+Display names accept up to 256 Unicode code points, with the same safe-text
+rules as the contract. A supplementary character counts once; invalid or
+oversized text remains rejected. Failed alert, notification-history and
+notification-status reads offer a bounded read retry. This does not retry
+acknowledgement or outbound delivery automatically.
 
 ## Evidence and windows
 
@@ -148,6 +169,11 @@ the intent transaction; a failed or lost request needs fresh authentication and
 state inspection. Never automatically replay it. A queued response is not proof
 of receipt. Credentials, room IDs, full URLs and response bodies never cross this
 browser boundary or enter audit metadata.
+
+The candidate browser sends the Matrix adapter as a query parameter on that
+fixed path. Both configured lanes pass through the real same-origin request
+builder; no query text is embedded in the path argument. This corrects the
+earlier browser-side path rejection while preserving every delivery gate.
 
 Disposable local HTTPS tests and real PostgreSQL tests are distinct from live
 operator receiver, container, reverse-proxy, browser and target-cluster proof.

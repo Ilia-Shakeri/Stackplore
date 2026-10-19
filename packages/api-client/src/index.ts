@@ -14,3 +14,4 @@ export {
 export type * from './contract';
 export { ApiProblemError, parseProblem } from './problem';
 export { createRequestId, isRequestId, type RequestIdFactory } from './request-id';
+export { hasCodePointLength, sliceCodePoints } from './unicode-text';

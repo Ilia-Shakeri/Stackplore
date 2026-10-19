@@ -1,4 +1,5 @@
 import type { AlertRuleInput, AlertRuleRecord } from '@stackplore/api-client';
+import { isDisplayText } from './product-api-common';
 
 export type RuleKind = AlertRuleInput['kind'];
 export type Severity = AlertRuleInput['severity'];
@@ -39,7 +40,12 @@ export const comparisons: readonly NonNullable<AlertRuleInput['comparison_operat
   'equal',
 ];
 
-export const emptyDraft = (): RuleDraft => ({
+export interface RuleDefaults {
+  readonly windowSeconds: number;
+  readonly pendingSeconds: number;
+}
+
+export const emptyDraft = (defaults?: RuleDefaults): RuleDraft => ({
   comparison: 'greater_than_or_equal',
   displayName: '',
   enabled: true,
@@ -47,13 +53,13 @@ export const emptyDraft = (): RuleDraft => ({
   evaluationSeconds: '30',
   kind: 'resource_unavailable',
   minimumSeverity: 'warning',
-  pendingSeconds: '60',
+  pendingSeconds: defaults === undefined ? '' : String(defaults.pendingSeconds),
   resourceId: '',
   severity: 'warning',
   sourceId: '',
   thresholdCount: '1',
   thresholdValue: '80',
-  windowSeconds: '300',
+  windowSeconds: defaults === undefined ? '' : String(defaults.windowSeconds),
 });
 
 export const isHealthKind = (kind: RuleKind) =>
@@ -75,8 +81,7 @@ export function draftInput(draft: RuleDraft): AlertRuleInput | null {
   const evaluation = positiveInteger(draft.evaluationSeconds, 1, 86_400);
   const pending = positiveInteger(draft.pendingSeconds, 0, 86_400);
   if (
-    draft.displayName.trim() === '' ||
-    draft.displayName.trim().length > 256 ||
+    !isDisplayText(draft.displayName.trim()) ||
     !/^[A-Za-z][A-Za-z0-9_-]{0,127}$/u.test(draft.sourceId.trim()) ||
     evaluation === null ||
     pending === null
@@ -182,6 +187,6 @@ export function recordDraft(rule: AlertRuleRecord): RuleDraft {
     sourceId: rule.source_id,
     thresholdCount: String(rule.threshold_count ?? 1),
     thresholdValue: String(rule.threshold_value ?? 80),
-    windowSeconds: String(rule.window_seconds ?? 300),
+    windowSeconds: rule.window_seconds === undefined ? '' : String(rule.window_seconds),
   };
 }

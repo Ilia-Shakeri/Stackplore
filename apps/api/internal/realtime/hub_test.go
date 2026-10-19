@@ -3,6 +3,7 @@ package realtime
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 )
@@ -12,13 +13,14 @@ func TestManagerFansOutOneProducerAndStopsAfterLastSubscriber(t *testing.T) {
 	defer manager.Close()
 	started := make(chan struct{})
 	stopped := make(chan struct{})
-	producer := func(ctx context.Context, publish func(string, []byte) error) {
+	producer := func(ctx context.Context, publish func(string, []byte) error) error {
 		close(started)
 		if err := publish("health.snapshot.v1", []byte(`{"state":"ready"}`)); err != nil {
 			t.Errorf("publish error = %v", err)
 		}
 		<-ctx.Done()
 		close(stopped)
+		return ctx.Err()
 	}
 	first, err := manager.Subscribe("health/source", 0, producer)
 	if err != nil {
@@ -52,9 +54,10 @@ func TestManagerReplaysAvailableFramesAndSignalsGap(t *testing.T) {
 	manager := testManager(t, 2, 2)
 	defer manager.Close()
 	publishReady := make(chan func(string, []byte) error, 1)
-	producer := func(ctx context.Context, publish func(string, []byte) error) {
+	producer := func(ctx context.Context, publish func(string, []byte) error) error {
 		publishReady <- publish
 		<-ctx.Done()
+		return ctx.Err()
 	}
 	first, err := manager.Subscribe("events/source", 0, producer)
 	if err != nil {
@@ -91,9 +94,10 @@ func TestManagerCutsSlowSubscriberAndRejectsBadFrames(t *testing.T) {
 	manager := testManager(t, 2, 1)
 	defer manager.Close()
 	publishReady := make(chan func(string, []byte) error, 1)
-	producer := func(ctx context.Context, publish func(string, []byte) error) {
+	producer := func(ctx context.Context, publish func(string, []byte) error) error {
 		publishReady <- publish
 		<-ctx.Done()
+		return ctx.Err()
 	}
 	subscription, err := manager.Subscribe("logs/source", 0, producer)
 	if err != nil {
@@ -122,6 +126,84 @@ func TestManagerCutsSlowSubscriberAndRejectsBadFrames(t *testing.T) {
 		t.Fatal("slow subscriber was not cut")
 	}
 	subscription.Close()
+}
+
+func TestManagerInvalidationDiscardsQueuedReplayAndFencesOldProducer(t *testing.T) {
+	manager := testManager(t, 4, 4)
+	t.Cleanup(manager.Close)
+	ready := make(chan func(string, []byte) error, 1)
+	releaseOld := make(chan struct{})
+	releaseOldProducer := sync.OnceFunc(func() { close(releaseOld) })
+	t.Cleanup(releaseOldProducer)
+	producer := func(ctx context.Context, publish func(string, []byte) error) error {
+		ready <- publish
+		<-ctx.Done()
+		<-releaseOld
+		return ErrRevoked
+	}
+	first, err := manager.Subscribe("events/source", 0, producer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(first.Close)
+	oldFeed := manager.feeds["events/source"]
+	publish := <-ready
+	for range 2 {
+		if err := publish("events.snapshot.v1", []byte(`{"value":1}`)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	replay, err := manager.Subscribe("events/source", 1, producer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(replay.Close)
+	unrelated, err := manager.Subscribe("health/other", 0, func(ctx context.Context, _ func(string, []byte) error) error {
+		<-ctx.Done()
+		return ctx.Err()
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(unrelated.Close)
+	manager.Invalidate("events/source")
+	for _, subscription := range []*Subscription{first, replay} {
+		if !subscription.Revoked() {
+			t.Fatal("invalidated subscription retained authority")
+		}
+		if _, open := <-subscription.C; open {
+			t.Fatal("invalidated subscription retained queued history")
+		}
+	}
+	if !errors.Is(publish("events.snapshot.v1", []byte(`{"value":2}`)), ErrClosed) || unrelated.Revoked() || manager.ActiveFeeds() != 1 {
+		t.Fatal("scope invalidation failed to fence only the previous producer")
+	}
+	recovered, err := manager.Subscribe("events/source", 1, func(ctx context.Context, publish func(string, []byte) error) error {
+		if err := publish("events.snapshot.v1", []byte(`{"value":3}`)); err != nil {
+			return err
+		}
+		<-ctx.Done()
+		return ctx.Err()
+	})
+	if err != nil || !recovered.Reset {
+		t.Fatal("recovery did not start a fresh replay ring")
+	}
+	t.Cleanup(recovered.Close)
+	releaseOldProducer()
+	select {
+	case <-oldFeed.done:
+	case <-time.After(time.Second):
+		t.Fatal("revoked producer did not stop")
+	}
+	first.Close()
+	replay.Close()
+	if recovered.Revoked() || manager.ActiveFeeds() != 2 {
+		t.Fatal("late completion or closure of revoked feed affected its replacement")
+	}
+	frame := receiveFrame(t, recovered.C)
+	if frame.ID != 1 || string(frame.Data) != `{"value":3}` {
+		t.Fatal("recovered feed returned history from previous authority")
+	}
 }
 
 func testManager(t *testing.T, replay, queue int) *Manager {

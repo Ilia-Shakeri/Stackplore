@@ -1,5 +1,9 @@
 # Release artifacts and verification
 
+Active target **1.0.3** is in final verification. Image commands below target this version; the **1.0.2** acceptance and receipts below are historical. [Active evidence](../evidence/1.0.3/README.md).
+
+## Historical release proof
+
 [فارسی](release.fa.md) · [Stage procedure](../releasing.md) · [Current evidence](../implementation-plan.md)
 
 The `release` workflow builds candidate artifacts on manual dispatch and publishes

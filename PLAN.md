@@ -1,5 +1,13 @@
 # Stackplore delivery plan
 
+Active correction: **1.0.3**, schema **17**, baseline 089727f.
+The 2026-10-19 review reopened nine verified bugs and two missing interface
+requirements. Fixes and focused tests are implemented; final local/browser/hosted
+gates remain pending. [Current audit](docs/evidence/1.0.3/fresh-audit.md).
+Historical released source and receipts below retain their original scope.
+
+## Historical 1.0.2 acceptance
+
 Accepted release: **1.0.2**, immutable `v1.0.2` at
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
 are complete; architecture/code and release acceptance score **9/10**. Full

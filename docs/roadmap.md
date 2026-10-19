@@ -1,6 +1,14 @@
 # Stackplore completion roadmap
 
-Review date: 2026-10-18. Target: 1.0.2; accepted product scope remains 1.0. This is the delivery order for work after
+Active correction: **1.0.3**, schema **17**, baseline 089727f.
+The 2026-10-19 review reopened nine verified bugs and two missing interface
+requirements. Fixes and focused tests are implemented; final local/browser/hosted
+gates remain pending. [Current audit](evidence/1.0.3/fresh-audit.md).
+Historical released source and receipts below retain their original scope.
+
+## Historical 1.0.2 acceptance
+
+Historical review date: 2026-10-18. Historical target: 1.0.2; accepted product scope remains 1.0. This is the delivery order for work after
 the repository-wide review. Existing foundations are reused; the old numbered
 phase ledger is historical. [Implementation evidence](implementation-plan.md)
 records commands and results. [Audit](codebase-audit.md) records defects and
