@@ -81,3 +81,32 @@ argument/reference fixtures. Those probes caught and corrected the initially
 missed numeric ingress class. Source review found no additional defect in these
 corrections. Actual server validation and external-TLS installation remain
 required hosted gates; the earlier failed run keeps its failure.
+
+## Deterministic lifecycle amendment
+
+Candidate `fdb96008160f692d37daac3133d4881c4100177c` includes the hub/Helm
+corrections and full local F proof. A real pinned Linux 1.26.9 detector run
+then exposed a timing flaw in the new lifecycle test. The first run failed
+HTTP in 15.866s while realtime passed in 2.042s. Instrumented reproduction
+showed a 1,670,083-byte snapshot taking 2,090ms, followed by an already-running
+unchanged snapshot taking 2,255ms. Changing generation during that old snapshot
+made two full builds exceed the test's 3-second wait. No generation was lost,
+no producer error occurred, and neither negative run reported a detector data
+race. The score reopened at **8/10** for the unreliable test boundary.
+
+The test-only amendment uses explicit provider-read barriers: a completed
+unchanged poll is proven before the 350-ms duplicate check, and subsequent
+generation, recovery and denial reads are released deliberately. The lifecycle
+fixture contains 100 valid 2,622-character fields and asserts that its full
+encoded snapshot exceeds the 256 KiB cap. Separate actual HTTP tests still
+exercise the original 100 maximum-length Persian events and maximum-length
+logs. The 3-second waits, 100-ms poll interval, 350-ms silence check, production
+timeouts, frame cap and coverage floors remain unchanged. Windows lifecycle
+events/logs pass; pinned Linux focused detector tests pass uncached in
+**18.246s / 2.043s**. Complete Linux HTTP/realtime detector packages then pass
+uncached in **29.022s / 2.039s**, with the same three frozen file hashes.
+All Windows API/native/core-coverage checks pass. The
+[lifecycle receipt](lifecycle-race.json) records the unchanged bounds and both
+negative outcomes. Reviewed code/test quality returns to **9/10**.
+Full local F and browser B keep their earlier source scope;
+replacement exact-source full hosted and signed/public gates remain required.

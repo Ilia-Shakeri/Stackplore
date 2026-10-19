@@ -24,6 +24,8 @@ type streamBudgetProvider struct {
 	large      bool
 	generation int
 	denied     bool
+	textLength int
+	pollStarts chan chan struct{}
 }
 
 func (provider *streamBudgetProvider) change(large, denied bool, generation int) {
@@ -36,6 +38,23 @@ func (provider *streamBudgetProvider) state() (bool, bool, int) {
 	provider.mu.Lock()
 	defer provider.mu.Unlock()
 	return provider.large, provider.denied, provider.generation
+}
+
+func (provider *streamBudgetProvider) ListResources(ctx context.Context, query domain.InventoryQuery) (domain.ResourcePage, error) {
+	if provider.pollStarts != nil {
+		proceed := make(chan struct{})
+		select {
+		case provider.pollStarts <- proceed:
+		case <-ctx.Done():
+			return domain.ResourcePage{}, ctx.Err()
+		}
+		select {
+		case <-proceed:
+		case <-ctx.Done():
+			return domain.ResourcePage{}, ctx.Err()
+		}
+	}
+	return provider.Provider.ListResources(ctx, query)
 }
 
 func (provider *streamBudgetProvider) ListEvents(ctx context.Context, query domain.EventQuery) (domain.EventPage, error) {
@@ -55,6 +74,9 @@ func (provider *streamBudgetProvider) ListEvents(ctx context.Context, query doma
 	if large {
 		count = min(100, query.Page.Limit)
 		event.Summary = strings.Repeat("ن", domain.MaxEventSummaryLength)
+		if provider.textLength > 0 {
+			event.Summary = strings.Repeat("x", provider.textLength)
+		}
 	}
 	event.ObservedAt = event.ObservedAt.Add(time.Duration(generation) * time.Microsecond)
 	page.Status.ObservedAt = page.Status.ObservedAt.Add(time.Duration(generation) * time.Microsecond)
@@ -84,6 +106,9 @@ func (provider *streamBudgetProvider) ReadLogs(ctx context.Context, query domain
 	if large {
 		count = min(100, query.LineLimit)
 		record.Message = strings.Repeat("ن", domain.MaxLogLineLength)
+		if provider.textLength > 0 {
+			record.Message = strings.Repeat("x", provider.textLength)
+		}
 	}
 	record.Timestamp = record.Timestamp.Add(time.Duration(generation) * time.Microsecond)
 	page.Status.ObservedAt = page.Status.ObservedAt.Add(time.Duration(generation) * time.Microsecond)
@@ -177,14 +202,30 @@ func streamBudgetFrame(t *testing.T, subscription *realtime.Subscription) realti
 	return realtime.Frame{}
 }
 
+func streamBudgetNextPoll(t *testing.T, provider *streamBudgetProvider) func() {
+	t.Helper()
+	select {
+	case proceed := <-provider.pollStarts:
+		return sync.OnceFunc(func() { close(proceed) })
+	case <-time.After(3 * time.Second):
+		t.Fatal("bounded live stream poll did not begin")
+	}
+	return func() {}
+}
+
 func TestStreamBudgetPollOverflowChangesRecoveryAndDenial(t *testing.T) {
 	for _, topic := range []streamTopic{streamEvents, streamLogs} {
 		t.Run(string(topic), func(t *testing.T) {
-			provider := &streamBudgetProvider{Provider: demo.MustNew()}
+			provider := &streamBudgetProvider{Provider: demo.MustNew(), textLength: transientStreamMaximumFrame/100 + 1}
 			initial, err := buildStreamSnapshot(context.Background(), topic, provider)
 			if err != nil {
 				t.Fatal("build initial budget fixture")
 			}
+			provider.change(true, false, 1)
+			if oversized, err := buildStreamSnapshot(context.Background(), topic, provider); err != nil || len(oversized) <= transientStreamMaximumFrame {
+				t.Fatal("lifecycle fixture must be domain-valid and exceed the frame limit")
+			}
+			provider.pollStarts = make(chan chan struct{})
 			manager, err := realtime.NewManager(realtime.ManagerOptions{MaximumFeeds: 1, ReplaySize: 4, QueueSize: 4, MaximumFrame: transientStreamMaximumFrame})
 			if err != nil {
 				t.Fatal(err)
@@ -199,23 +240,30 @@ func TestStreamBudgetPollOverflowChangesRecoveryAndDenial(t *testing.T) {
 				t.Fatal("initial small snapshot changed")
 			}
 			provider.change(true, false, 1)
+			streamBudgetNextPoll(t, provider)()
 			if frame := streamBudgetFrame(t, subscription); frame.ID != 2 || frame.Event != "stream.reset.v1" || string(frame.Data) != `{"reason":"snapshot_overflow"}` {
 				t.Fatal("poll overflow did not publish bounded refetch reset")
 			}
+			streamBudgetNextPoll(t, provider)()
+			// Reaching the next read proves the unchanged snapshot completed.
+			releaseChangedPoll := streamBudgetNextPoll(t, provider)
 			select {
 			case <-subscription.C:
 				t.Fatal("unchanged oversized snapshot repeated its reset")
 			case <-time.After(350 * time.Millisecond):
 			}
 			provider.change(true, false, 2)
+			releaseChangedPoll()
 			if frame := streamBudgetFrame(t, subscription); frame.ID != 3 || frame.Event != "stream.reset.v1" || string(frame.Data) != `{"reason":"snapshot_overflow"}` {
 				t.Fatal("changed oversized snapshot lost its refetch reset")
 			}
 			provider.change(false, false, 3)
+			streamBudgetNextPoll(t, provider)()
 			if frame := streamBudgetFrame(t, subscription); frame.ID != 4 || frame.Event != string(topic)+".snapshot.v1" {
 				t.Fatal("in-budget recovery did not resume normal snapshots")
 			}
 			provider.change(true, true, 4)
+			streamBudgetNextPoll(t, provider)()
 			select {
 			case _, open := <-subscription.C:
 				if open || !subscription.Revoked() {

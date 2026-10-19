@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "version": "1.0.3",
+  "observed_at_utc": "2026-10-19T10:08:23.4124806Z",
+  "baseline_revision": "fdb96008160f692d37daac3133d4881c4100177c",
+  "scope": "Test-only deterministic lifecycle amendment; unchanged production code. Final exact-source hosted and signed/public acceptance remain separate.",
+  "source_manifest": [
+    {
+      "path": "apps/api/internal/httpapi/product_stream_budget_test.go",
+      "sha256": "2f937316228da77e900f5ab6cdd779665208194d14bb1ca8557e2943e526e48b"
+    },
+    {
+      "path": "apps/api/internal/realtime/hub.go",
+      "sha256": "a8be9c01254e9c440f4d71f39e867cebf1cebcdb31fd9c2ffa4ca04f2b1d393a"
+    },
+    {
+      "path": "apps/api/internal/realtime/hub_test.go",
+      "sha256": "3ca58a84e84ee9456dde080231c1551e99755e4a1c8692f97bfcf27763e05d20"
+    }
+  ],
+  "linux": {
+    "go": "1.26.9",
+    "architecture": "linux/amd64",
+    "gcc": "13.3.0",
+    "processors": 2,
+    "race_detector": true,
+    "uncached": true,
+    "postgres_environment": "unset; no SQL acceptance inferred",
+    "focused": {
+      "exit_code": 0,
+      "http_seconds": 18.246,
+      "realtime_seconds": 2.043,
+      "transcript_sha256": "b119f69ef7d07ef429eb3f544ead304b6f3e7957f5342826c71b4457c9421ec5"
+    },
+    "complete_http_realtime": {
+      "exit_code": 0,
+      "http_seconds": 29.022,
+      "realtime_seconds": 2.039,
+      "transcript_sha256": "b06466a74fb42c45a2001ad3e096e1ec45600dc9bad72d67f45e8efb935e32e6"
+    }
+  },
+  "windows_api": {
+    "command": "npm.cmd run test:api",
+    "exit_code": 0,
+    "real_postgres": "17.11 with native tools enabled; cached package results retain scope",
+    "transcript_sha256": "596f6bb79f86165b676849d255f0bd475b8d60d2b43495cb14ce822fb55e0ac7",
+    "domain_coverage": 80.6,
+    "alerting_coverage": 82.6
+  },
+  "assertions": {
+    "full_http_maximum_persian_payloads": "preserved",
+    "lifecycle_domain_valid_overflow": "100 fields of 2622 ASCII characters; encoded length explicitly greater than 256 KiB",
+    "unchanged_poll": "completion proven by next-read barrier before silence check",
+    "frame_wait_seconds": 3,
+    "poll_milliseconds": 100,
+    "silence_milliseconds": 350,
+    "production_limits": "unchanged"
+  },
+  "retained_failures": [
+    {
+      "name": "linux-race-focused-a",
+      "exit_code": 1,
+      "reason": "Old lifecycle test exceeded wait while mapping two large snapshots; no detector data race",
+      "transcript_sha256": "64fb7a000e8a22dcd81f49ec5859a185659667cac39cf88391ce9f3c6dd887cd"
+    },
+    {
+      "name": "linux-race-budget-timing-b",
+      "exit_code": 1,
+      "reason": "Instrumented old fixture reproduces 2090ms and 2255ms snapshot builds across generation change",
+      "transcript_sha256": "da76e2afab1fa51f5cbdd46f2c89f47073eccce2f687782caa552fff3394232a"
+    }
+  ],
+  "review_score": 9
+}

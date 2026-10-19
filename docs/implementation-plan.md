@@ -19,6 +19,15 @@ pending. No new tag/publication or customer deployment is claimed yet.
 | Environment integration       | Three real same-route filter-preservation tests failed the first implementation; corrected chooser preserves search/route filters and clears dependent selection/cursors. All 18 environment tests pass; the later three fixed-window refresh regressions and related 46-test suite also pass.                                                                                                                                                                                  |
 | Complete local/browser/hosted | Replacement full local F passes exit 0: 530 web/53 files, 40 client/2 files, 29 release-policy checks, all Go/native checks, 738 locale messages and 235 schemas. Implementation manifest unchanged during F. Browser B passes 14 cases before the final Helm/hub amendment. First-candidate main 39230365227 failed code/Helm; its signed trial 39230384305 passed packaging but is unaccepted. Exact replacement-source hosted/browser and release acceptance remain pending. |
 
+The later deterministic lifecycle amendment changes only the test fixture.
+The [amendment receipt](evidence/1.0.3/lifecycle-race.json) records all Windows
+API checks passing with real PostgreSQL/native tools enabled and uncached Linux
+detector checks: focused HTTP/realtime **18.246s / 2.043s**, complete packages
+**29.022s / 2.039s**. Linux SQL environment is unset; no SQL proof follows from
+that detector run. Full local F and browser B retain their earlier scope.
+The two original timing failures stay failed. Review returns to **9/10**;
+exact replacement-source full hosted and artifact acceptance remain pending.
+
 Unrelated untracked user artifacts remain outside changes and release payloads.
 No checksum, ownership, scan, assertion or coverage gate is weakened.
 
