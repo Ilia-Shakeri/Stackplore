@@ -4,10 +4,7 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-Active corrective source is **1.0.3**, schema **17**. The
-[fresh audit](docs/evidence/1.0.3/fresh-audit.md) records the corrections and
-retained first-candidate CI failures. Complete replacement local, exact-source
-hosted and signed-artifact acceptance remain required before release.
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](docs/evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 
 The historical accepted corrective release is **1.0.2**, immutable `v1.0.2` at
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**

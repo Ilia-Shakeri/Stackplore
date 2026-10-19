@@ -1,16 +1,13 @@
 # Architecture
 
-The current implementation is the **1.0.3 candidate**, schema **17**. Fresh
-focused local checks cover the corrected boundaries below. Candidate full-gate,
-exact-source CI, signed artifacts and independent consumer acceptance must be
-recorded separately in the [active plan](implementation-plan.md).
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 
 Historical **1.0.2**, immutable `v1.0.2` at
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, passed its local, exact-source
 main/tag, signed release and independent archive gates. Failed attempts retain
 their original outcomes in its
 [published proof](evidence/1.0.2/published-release.json); that receipt does not
-certify this candidate.
+certify this source.
 
 The immutable 1.0.1 source and its [published receipt](evidence/1.0.1/published-release.json)
 retain their original results and scope. Those older checks do not certify a different source. Customer production and air-gapped installation require separate
@@ -99,13 +96,18 @@ Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and
 `pg_restore` clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](../deploy/postgres-image.json) pins the upstream base
-and the `stackplore-postgres:1.0.3` candidate derivative. It rebuilds unchanged
+and the released `stackplore-postgres:1.0.3` derivative. It rebuilds unchanged
 official gosu 1.19 with Go 1.26.9 while retaining the PostgreSQL engine and
 entrypoint. Actual helper/engine/root-drop behavior, complete scans, bound SPDX
 and independent archive SQL startup passed for historical 1.0.1 and 1.0.2.
-Those source-bound receipts cannot certify the 1.0.3 candidate. A 1.0.3 release
-requires its own exact image scans, signed SBOM and independently loaded
-database Docker-save archive, plus native archive recovery proof.
+Those historical source-bound receipts do not certify 1.0.3. Its
+[public receipt](evidence/1.0.3/published-release.json), release `417182030` at
+source `656581cf05d4774358d5644a6e1af3c69a210f81`, binds the independently loaded
+public database archive to successful isolated SQL startup, PostgreSQL 17.11,
+gosu 1.19/Go 1.26.9, root-drop checks, complete strict scans and signed SPDX.
+Actual Windows native archive recovery is bound to the same accepted release.
+Each release still requires its own exact image scans, signed SBOM, independently
+loaded database Docker-save archive and native archive recovery proof.
 Existing 17.x minor-update guidance follows upstream and requires
 operator maintenance and validated backup/restore; no specific 17.6-to-17.11
 runtime experiment is claimed. Startup:
@@ -294,8 +296,9 @@ probes, a complete image vulnerability scan and an SPDX package inventory bound
 to that identity. Compose/CI first build owned patched database fixtures; Helm
 continues to use external PostgreSQL under the server/client policy. The historical 1.0.1
 main/tag/trial/public/archive gates passed. Historical 1.0.2 trial and public
-archive proof also passed. Current 1.0.3 acceptance needs fresh source-bound
-receipts. A scan of the
+archive proof also passed. Corrective 1.0.3 has its own accepted
+[source-bound public receipt](evidence/1.0.3/published-release.json), including
+independent execution of its actual public database archive. A scan of the
 application image alone does not prove the database image.
 
 Both code/deploy jobs passed for the 0.1.0 and 0.2.0 tagged revisions, including

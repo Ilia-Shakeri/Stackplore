@@ -1,10 +1,10 @@
 # Deployment
 
-Active target **1.0.3** is in final verification. Image commands below target this version; the **1.0.2** acceptance and receipts below are historical. [Active evidence](../evidence/1.0.3/README.md).
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](../evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical 1.0.2 acceptance and receipts below retain their original scope.
 
 ## Historical release proof
 
-Current source target: **1.0.2**, immutable `v1.0.2` at `376ed03`, schema 17.
+Historical source target: **1.0.2**, immutable `v1.0.2` at `376ed03`, schema 17.
 All six exact main/tag jobs passed, including Compose restart, external-TLS
 Helm and both providers. Signed trial and actual trial native/database archives
 passed; signed publication, all 39 public files and independent public archive

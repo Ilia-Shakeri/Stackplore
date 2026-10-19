@@ -1,6 +1,6 @@
 # Release artifacts and verification
 
-Active target **1.0.3** is in final verification. Image commands below target this version; the **1.0.2** acceptance and receipts below are historical. [Active evidence](../evidence/1.0.3/README.md).
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](../evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical 1.0.2 acceptance and receipts below retain their original scope.
 
 ## Historical release proof
 
@@ -14,7 +14,7 @@ keeps publication closed.
 
 Release notes link project guides and runbooks to their immutable source
 revision, rather than a moving branch. Keep those source-bound links when
-copying notes or consuming an older archive. Current release acceptance is
+copying notes or consuming an older archive. Historical 1.0.2 release acceptance is
 tracked in [1.0.2 evidence](../evidence/1.0.2/README.md). Immutable `v1.0.2`
 at `376ed03` passes exact main/tag CI and signed trial with independent actual
 archive recovery; signed publication and independent public/archive verification

@@ -1,9 +1,6 @@
 # Version and release procedure
 
-Active correction: **1.0.3**, schema **17**, baseline 089727f.
-The 2026-10-19 review reopened nine verified bugs and two missing interface
-requirements. Fixes and focused tests are implemented; final local/browser/hosted
-gates remain pending. [Current audit](evidence/1.0.3/fresh-audit.md).
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 Historical released source and receipts below retain their original scope.
 
 ## Historical 1.0.2 acceptance
@@ -100,10 +97,12 @@ SBOM, signed artifact provenance, checksums, supported-version policy and final
 independent review. Screenshots must come from the running final demo. Workflow
 definitions and local scanner receipts do not replace exact-tag package, image
 scan, signing and consumer-verification evidence. Do not label a 0.x development
-checkpoint or the withheld 1.0.0 tag as a completed corrective release. Current
-review initially reopened at 8/10 for the fresh findings. Raise it only after corrections,
-full PostgreSQL/browser gates, exact hosted proof and independent review; final
-signed/public archive acceptance remains separately required.
+checkpoint or the withheld 1.0.0 tag as a completed corrective release. The
+1.0.3 review reopened at 8/10, then returned to 9/10 after corrections, full
+PostgreSQL/browser and exact main/tag gates, signed trial/publication and actual
+independent public archive acceptance. [Final review](evidence/1.0.3/final-review.md).
+The documentation follow-up still requires all six checks on its own commit;
+final binding belongs to commit checks and the release body.
 
 Historical corrective 1.0.2: immutable source `376ed03` passed six-job exact main/tag
 CI, the strict signed trial and independent actual trial archive recovery.

@@ -110,3 +110,52 @@ All Windows API/native/core-coverage checks pass. The
 negative outcomes. Reviewed code/test quality returns to **9/10**.
 Full local F and browser B keep their earlier source scope;
 replacement exact-source full hosted and signed/public gates remain required.
+
+## Exact-source hosted and trial results
+
+The second candidate's main `39233787971` failed only the lifecycle events test
+at its first 3-second overflow wait; its other five jobs passed. This is the
+same expensive fixture boundary reproduced by local timing instrumentation,
+not an additional producer or authority failure. Its signed trial
+`39233804624` passed packaging but remains unaccepted for delivery.
+
+The replacement source is `656581cf05d4774358d5644a6e1af3c69a210f81`, frozen
+under annotated `v1.0.3`. Main `39235362032` and tag `39238088634` each passed
+all six jobs on their first attempts. Those runs include full verification,
+the complete detector/real PostgreSQL gate, live Docker/Kubernetes providers,
+actual Compose installation and external-TLS Helm installation. Public
+package/publication workflow `39238088607` also passed both jobs.
+
+The [actual main browser artifact](main-browser.json) independently validates
+14 sole-attempt cases, 64 route/profile journeys, four environment-selection
+journeys and 24 PNG headers. Four final-artifact images were visually reviewed.
+The 80-read workload retained eight parallel reads, ten rounds and 600-ms
+spacing; all responses were valid, with 45-ms p95 in this disposable fixture.
+This is measured fixture evidence, not a customer capacity claim.
+
+The [independent signed trial](consumer-trial.json), run `39235380836`, verifies
+all 39 files, 30 manifest entries, 31 provenance subjects, seven SPDX
+attestations and eight clean strict vulnerability reports. Actual Windows
+archive execution proves schema 17, native backup/restore, revoked restored
+sessions/pre-auth state, durable acknowledgement/replay and ownership-loss
+shutdown. The actual trial database archive independently passes isolated SQL,
+engine/helper/root-drop and cleanup checks. Public bytes require their own
+independent receipt; trial execution alone does not certify them.
+
+## Final public acceptance
+
+Public release `417182030`, published `2026-10-19T10:51:50Z`, passes
+[independent public consumption](published-release.json). All 39 assets,
+30 checksums, 31 provenance subjects, seven SPDX attestations, eight strict
+clean scans and the explicit wrong-source rejection pass. The public Windows
+archive exactly matches the runtime-tested trial. Its different public database
+archive was independently loaded and executed with successful SQL and owned
+cleanup. The initial public TLS-connection failure remains retained; the normal
+TLS retry passed without bypassing verification. Its original inner cause is
+unknown and is not inferred from the successful retry.
+
+All nine stages are complete in the [final review](final-review.md)'s scope;
+code, architecture and observed delivery quality score **9/10**. Final
+documentation/evidence follow-up requires its own six-job main CI before
+handoff; the final binding is recorded by commit checks and the release body.
+Customer deployment and cross-built-platform execution remain separate.

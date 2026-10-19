@@ -1,11 +1,8 @@
 # Alerts, live changes and outbound delivery
 
-[فارسی](alerts-notifications.fa.md). This describes the **1.0.3 candidate** in
-current source. Its corrections are implemented; candidate verification and
-publication remain separate gates. It is not a published or accepted 1.0.3
-release. The [evidence plan](implementation-plan.md) records executed checks;
-[accepted 1.0.2 proof](evidence/1.0.2/published-release.json) remains historical
-evidence for immutable source `376ed03`, not proof for this candidate or a
+[فارسی](alerts-notifications.fa.md). Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
+Historical [accepted 1.0.2 proof](evidence/1.0.2/published-release.json) remains historical
+evidence for immutable source `376ed03`, not proof for this source or a
 customer receiver.
 
 ## New rule defaults and read recovery

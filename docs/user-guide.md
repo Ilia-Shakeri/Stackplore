@@ -1,10 +1,9 @@
 # Current user guide
 
-This describes the **1.0.3 candidate** in current source. Its corrections are
-implemented; candidate verification and publication remain separate gates.
-It is not a published or accepted 1.0.3 release. Accepted 1.0.2 stays immutable
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
+Accepted 1.0.2 stays immutable
 at `376ed03`, ledger 17; its [published proof](evidence/1.0.2/published-release.json)
-is historical evidence for that release. It does not certify this candidate or
+is historical evidence for that release. It does not certify this source or
 a customer production/offline installation.
 [راهنمای فارسی](user-guide.fa.md).
 

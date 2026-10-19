@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "version": "1.0.3",
+  "revision": "656581cf05d4774358d5644a6e1af3c69a210f81",
+  "observed_at_utc": "2026-10-19T10:59:01.073414Z",
+  "main_ci_run": 39235362032,
+  "main_ci_jobs": 6,
+  "main_ci_conclusion": "success",
+  "release_run": 39238088607,
+  "checked_manifest_entries": 30,
+  "manifest_sha256": "5f67f8cfc7236b2e808c3b87864fb38ebc169466d6e5c93a2d890999238f8bdd",
+  "provenance_subjects_verified": 31,
+  "sbom_attestations_verified": 7,
+  "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/tags/v1.0.3",
+  "required_source_ref": "refs/tags/v1.0.3",
+  "deny_self_hosted_runners": true,
+  "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+  "windows_archive_sha256": "66787ccdb48bd19900da24b6036eedd95087cca5e6a0a4899e77cecff7086e1e",
+  "database_archive": {
+    "schema_version": 1,
+    "observed_at": "2026-10-19T10:57:41.162Z",
+    "version": "1.0.3",
+    "revision": "656581cf05d4774358d5644a6e1af3c69a210f81",
+    "scope": "Independently verified published database Docker-save archive loaded on local Linux amd64; owned isolated container only",
+    "archive_sha256": "a9fbec264f7e01440a7130d46dd0a3c4bcd0fb0d8a94cdbea8f859a258bbf869",
+    "metadata_sha256": "f427afc80ce665af166ec5838bfbbe22b437762c0bfc3434917c2cd17c1951c5",
+    "image": "stackplore-postgres:1.0.3",
+    "config_digest": "sha256:5cd71d3dd8a14c79f9a5eae234b8cffeb8259d7a88530c4371ef57f48d13610d",
+    "postgres": "17.11",
+    "gosu": "1.19",
+    "go": "1.26.9",
+    "root_drop_uid": 70,
+    "root_drop_gid": 70,
+    "postgres_server_uid": 70,
+    "server_version_num": 170011,
+    "sql_query": "passed",
+    "network": "none",
+    "read_only": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "temporary_data": "owned tmpfs only; no persistent or customer database",
+    "copyright_sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd",
+    "cleanup": "owned label checked; container and anonymous volumes removed by exit trap"
+  },
+  "database_proof_sha256": "113c7bb4fad5d216e3bc893dbde96cf358fd6782e712989dbf4e470298b7161b",
+  "database_log_sha256": "aab395910a1d6b8da8a707c7772298724e786c5c15731007b9af983a78772ec3",
+  "linux_native_smoke": {
+    "file": "native-smoke.json",
+    "sha256": "5c62c087362319dacfd85217d4736d02807a761c6d89ed85ff843358d1736378",
+    "revision": "656581cf05d4774358d5644a6e1af3c69a210f81",
+    "platform": "linux/amd64",
+    "modes": [
+      "guest",
+      "normal"
+    ],
+    "graceful_shutdown": true,
+    "disposable_databases_removed": true
+  },
+  "strict_scans": [
+    {
+      "file": "dependency-scan.json",
+      "go_executables": 0,
+      "os_results": 0,
+      "packages": 467,
+      "high_critical": 0,
+      "sha256": "7cf3f1b6a8f5a4442f618b130d43e5e67681256b77a6c1905d23abc429fcd7ed"
+    },
+    {
+      "file": "image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 91,
+      "high_critical": 0,
+      "sha256": "056fa522efa50d4a389ade00f3fd767109af19d37155649f6099d272c886df68"
+    },
+    {
+      "file": "database-image-scan.json",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 49,
+      "high_critical": 0,
+      "sha256": "3bd4342f4c4c1523d45885b8ac00bd678c5598022e1972dd87647e65985a4bd1"
+    },
+    {
+      "file": "stackplore_1.0.3_linux_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0,
+      "sha256": "0a1943c66bb777194dec6fc0f8e4383377faffaf84f813a55658cc56eec576fd"
+    },
+    {
+      "file": "stackplore_1.0.3_linux_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0,
+      "sha256": "8a417485f8aa3bbe41b0342773aa52cad54271991dca6942edb4126837f3a219"
+    },
+    {
+      "file": "stackplore_1.0.3_windows_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 94,
+      "high_critical": 0,
+      "sha256": "c9210fbecfb609641bcb07a7ecc749352e05a1bc1f9fc59e25919b105caa3cdd"
+    },
+    {
+      "file": "stackplore_1.0.3_darwin_amd64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0,
+      "sha256": "d2fa6c4159019b3ba917733ae6bb88e3413b675088a8989f04529b6db106303d"
+    },
+    {
+      "file": "stackplore_1.0.3_darwin_arm64.scan.json",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0,
+      "sha256": "623c5967a91c43a095821cb50371941ab08d51b7d8b8b7361772037da093a987"
+    }
+  ],
+  "source_inventory": {
+    "packages": 470,
+    "npm_purls": 393,
+    "go_purls": 74
+  },
+  "secret_scan": {
+    "file": "secret-scan.json",
+    "findings": 0,
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "package_job": 118011975469,
+  "windows_archive_matches_runtime_tested_trial": true,
+  "trial_run": 39235380836,
+  "trial_windows_archive_sha256": "66787ccdb48bd19900da24b6036eedd95087cca5e6a0a4899e77cecff7086e1e",
+  "database_archive_matches_trial": false,
+  "trial_database_archive_sha256": "87ea7331497cbc84f7ba212ade22e48787c48a13632568ead0b4822e7b20f419",
+  "trial_context_sha256": "85d7e135f37701df08c9c5d4d4e29c6f9c951859786484ddcfa3d67c7f988ed2",
+  "windows_runtime": {
+    "archive_sha256": "66787ccdb48bd19900da24b6036eedd95087cca5e6a0a4899e77cecff7086e1e",
+    "proof": {
+      "platform": "windows/amd64",
+      "source_disabled": true,
+      "revision": "656581cf05d4774358d5644a6e1af3c69a210f81",
+      "migration_entries": 17,
+      "version": "1.0.3",
+      "restored_sessions": 0,
+      "proof_case": "triala",
+      "durable_sse_replay_after_restart": true,
+      "source_version": 2,
+      "binary_sha256": {
+        "stackplore-operator.exe": "fd9b03aeab751ab7b6ef0152b74916b3c8ed8d8231f5960394257a71043c219d",
+        "stackplore-server.exe": "75df70786c0141b64fc6dfd4fe054aeeddc335585a6c012cde1f9a0eac38a8b6",
+        "stackplore-storage.exe": "bedd2b32411b65b4f5a3189d926e63f77ce6fb1a88b2d24959e9402526882376"
+      },
+      "native_tools": {
+        "pg_dump": "pg_dump (PostgreSQL) 17.11",
+        "pg_restore": "pg_restore (PostgreSQL) 17.11"
+      },
+      "durable_alert_acknowledgement": true,
+      "observed_at": "2026-10-19T10:26:48.2257035Z",
+      "owned_database_cleanup": "owner checked and absence verified",
+      "restored_preauth_challenges": 0,
+      "schema_version": 1,
+      "restore_generation": 1,
+      "metric_samples": 972,
+      "ownership_loss_nonzero_shutdown": true,
+      "fresh_login": true,
+      "resources": 9,
+      "native_backup_restore": true
+    },
+    "proof_sha256": "eda57f6560362d2b4373e6b5a9c5ec26ca104f39361e6a71a8783f4ff40a7a8b",
+    "log_sha256": "34ef9941f7998c0ed1579c784534b56f8af1037195d495de65d644a0f52d1bb4"
+  },
+  "windows_runtime_source": "actual trial and public archive SHA256 match",
+  "tag": "v1.0.3",
+  "tag_ci_run": 39238088634,
+  "all_six_tag_jobs": "success",
+  "publish_job": 118019458409,
+  "package_and_publish": "success",
+  "release_id": 417182030,
+  "published_at_utc": "2026-10-19T10:51:50Z",
+  "release": "https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v1.0.3",
+  "downloaded_public_assets": 39,
+  "scope": "Exact tagged public assets independently fetched and cryptographically verified. Windows recovery is bound to these actual archive bytes; the public database archive has independent isolated SQL/runtime proof. Linux amd64 guest/normal smoke validated from the signed package evidence. Linux arm64 and macOS outputs are cross-built and scanned only. Customer production, ingress/TLS, receiver reachability, capacity and backup destinations require operator evidence.",
+  "independently_validated_core_sha256": "7845f2834288f9fe0ea7dd9c83330f7b6528fac6fb11033db52cd584c2a10b26",
+  "consumer_verifier": {
+    "version": "2.102.0",
+    "platform": "windows_amd64",
+    "archive_sha256": "ae64e556ecc240b200f7eba60d550e4bb60d78e860e69dd88c449405b86067f4",
+    "binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "checksum_source": "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_checksums.txt",
+    "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "status": "passed",
+    "observed_at_utc": "2026-10-19T10:13:42.1090449Z"
+  },
+  "negative_source_identity_check": {
+    "status": "passed",
+    "negative_exit": 1,
+    "wrong_source_rejected": true,
+    "source_ref": "refs/tags/v1.0.3",
+    "expected_rejected_digest": "0000000000000000000000000000000000000000",
+    "actual_source": "656581cf05d4774358d5644a6e1af3c69a210f81",
+    "raw_log_sha256": "fde02dc7b814dd45084bb458bd8144a98e34e5e50ad925eeec2c0aa0b20412f3",
+    "positive_verification_sha256": "5385a83d761370b8687dea315e66e9fa5ba8a35199e8de0142cc69c2017ba271",
+    "verifier_binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c"
+  },
+  "review_score": 9,
+  "completed_roadmap_stages": 9,
+  "first_failed_attempts": "First candidate main failed code/Helm; second main failed the heavy lifecycle fixture; both signed trials remain unaccepted. Old-code negatives, private extraction-variable and tool-preflight failures, and first public TLS-connection failure remain retained. Normal-TLS retry succeeded without a bypass; the first TLS failure has no retained inner cause.",
+  "maintainer_followup": "Final documentation/evidence follow-up is separate from immutable release source. All six main jobs on its final review commit must pass before handoff; the exact final run/revision binding belongs to commit checks and the reconciled release body."
+}

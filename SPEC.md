@@ -4,7 +4,7 @@
 - **Tagline:** Explore every service in your stack.
 - **Target release:** 1.0.3
 - **Specification status:** Accepted for implementation
-- **Implementation status:** Corrective 1.0.3 is implemented and awaiting final verification, ledger 17. The 2026-10-19 review reopened nine bugs and two missing interface controls; [current evidence](docs/evidence/1.0.3/fresh-audit.md) records reproductions and corrections. Historical immutable [1.0.2 acceptance](docs/evidence/1.0.2/published-release.json) retains its source and limits. The accepted 1.0 product and security scope remains authoritative.
+- **Implementation status:** Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](docs/evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical immutable [1.0.2 acceptance](docs/evidence/1.0.2/published-release.json) retains its source and limits. The accepted 1.0 product and security scope remains authoritative.
 
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
 Deferred features are explicitly listed in section 14. Delivery order and

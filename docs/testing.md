@@ -8,10 +8,7 @@ release workflows have additional commands and real-runtime gates.
 Run the smallest regression for a change, then the full gate for a milestone.
 Do not weaken tests or hide skips to claim completion.
 
-The current source is the **1.0.3 candidate**, schema **17**. Fresh focused local
-proof is described below; the complete candidate gate, exact-source hosted CI,
-signed trial/public assets and independent archive runtime acceptance must have
-their own receipts. Historical 1.0.2 or 1.0.1 results do not certify this source.
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical 1.0.2 or 1.0.1 results do not certify this source.
 
 The public-worker update test's maintainer follow-up treats its extra script GET
 as a bounded control read: status/MIME, at most 64 KiB and one marker are checked;
@@ -96,7 +93,7 @@ Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
 defines the approved digest. Corrective proof needs real database execution,
 readiness/ledger checks and native backup/empty-target restore, plus exact
 database base/derivative and engine/helper metadata, root-drop behavior, full
-image scan and matching SPDX inventory. The candidate `stackplore-postgres:1.0.3`
+image scan and matching SPDX inventory. The released `stackplore-postgres:1.0.3`
 rebuilds unchanged official gosu 1.19 with Go 1.26.9 on the same pinned upstream
 17.11 base, retaining its engine and entrypoint. Build owned patched fixtures
 before Compose/CI tests; Helm remains external-PostgreSQL based. Require actual

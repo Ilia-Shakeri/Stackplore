@@ -1,0 +1,348 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "version": "1.0.3",
+  "revision": "656581cf05d4774358d5644a6e1af3c69a210f81",
+  "observed_at_utc": "2026-10-19T10:57:31.4528709Z",
+  "scope": "Actual completed hosted workflow/job metadata. Independent artifact/runtime acceptance is recorded separately.",
+  "accepted": {
+    "main": {
+      "id": 39235362032,
+      "sha": "656581cf05d4774358d5644a6e1af3c69a210f81",
+      "branch": "main",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118003007810,
+          "name": "docker-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118003008018,
+          "name": "compose-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118003008033,
+          "name": "kubernetes-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118003008040,
+          "name": "helm-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118003008076,
+          "name": "code",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118003008166,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    },
+    "tag": {
+      "id": 39238088634,
+      "sha": "656581cf05d4774358d5644a6e1af3c69a210f81",
+      "branch": "v1.0.3",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118011976271,
+          "name": "docker-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118011976545,
+          "name": "code",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118011976596,
+          "name": "helm-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118011976648,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118011976662,
+          "name": "kubernetes-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118011976780,
+          "name": "compose-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    },
+    "trial": {
+      "id": 39235380836,
+      "sha": "656581cf05d4774358d5644a6e1af3c69a210f81",
+      "branch": "main",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118003075819,
+          "name": "package",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118006187377,
+          "name": "publish",
+          "status": "completed",
+          "conclusion": "skipped",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    },
+    "public": {
+      "id": 39238088607,
+      "sha": "656581cf05d4774358d5644a6e1af3c69a210f81",
+      "branch": "v1.0.3",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118011975469,
+          "name": "package",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118019458409,
+          "name": "publish",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    }
+  },
+  "retained_prior_candidates": [
+    {
+      "id": 39230365227,
+      "sha": "1a3d79638faf86615b2ea2c540282edd32d421d4",
+      "branch": "main",
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "id": 117986581421,
+          "name": "kubernetes-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117986581626,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117986581640,
+          "name": "compose-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117986581729,
+          "name": "code",
+          "status": "completed",
+          "conclusion": "failure",
+          "active_steps": [],
+          "failed_steps": [
+            "Run Go concurrency gate"
+          ]
+        },
+        {
+          "id": 117986581766,
+          "name": "helm-install",
+          "status": "completed",
+          "conclusion": "failure",
+          "active_steps": [],
+          "failed_steps": [
+            "Validate long chart names against the Kubernetes API"
+          ]
+        },
+        {
+          "id": 117986581791,
+          "name": "docker-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39230384305,
+      "sha": "1a3d79638faf86615b2ea2c540282edd32d421d4",
+      "branch": "main",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 117986651421,
+          "name": "package",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117989816625,
+          "name": "publish",
+          "status": "completed",
+          "conclusion": "skipped",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39233787971,
+      "sha": "fdb96008160f692d37daac3133d4881c4100177c",
+      "branch": "main",
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "id": 117997832445,
+          "name": "code",
+          "status": "completed",
+          "conclusion": "failure",
+          "active_steps": [],
+          "failed_steps": [
+            "Run Go concurrency gate"
+          ]
+        },
+        {
+          "id": 117997832690,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117997832749,
+          "name": "helm-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117997832755,
+          "name": "compose-install",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117997832849,
+          "name": "kubernetes-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 117997832870,
+          "name": "docker-provider",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39233804624,
+      "sha": "fdb96008160f692d37daac3133d4881c4100177c",
+      "branch": "main",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 117997893714,
+          "name": "package",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": [],
+          "failed_steps": []
+        },
+        {
+          "id": 118001010713,
+          "name": "publish",
+          "status": "completed",
+          "conclusion": "skipped",
+          "active_steps": [],
+          "failed_steps": []
+        }
+      ]
+    }
+  ],
+  "prior_trial_scope": "Successful prior signed trial packages remain unaccepted because their required main gates failed; they were never tagged or published as 1.0.3.",
+  "limits": "Hosted success alone does not establish independent public archive or customer installation acceptance."
+}

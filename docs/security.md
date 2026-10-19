@@ -1,13 +1,9 @@
 # Security Model
 
-Status: **1.0.3 candidate**, ledger 17. The current source corrects effective
-retention policy and transient stream replay revocation; fresh focused local
-regressions cover those boundaries. Complete candidate verification, exact-source
-CI and independent signed-archive acceptance remain separately recorded in the
-[active plan](implementation-plan.md). Historical immutable `v1.0.2`, source
+Status: Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical immutable `v1.0.2`, source
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, keeps its own accepted
 [published proof](evidence/1.0.2/published-release.json) and failed-attempt history;
-it does not certify the candidate.
+it does not certify the current source.
 
 ## Assets
 

@@ -24,7 +24,14 @@
   Quote dynamic YAML strings and strictly decode 23 render profiles through the
   Kubernetes type system, including numeric and boolean-like names/references.
 - Schema remains 17. Focused proof is recorded in the [fresh audit](docs/evidence/1.0.3/fresh-audit.md).
-  Final local/browser/hosted and release acceptance remain pending.
+  Immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81` passes
+  six-job main/tag CI, signed trial/publication and independent public acceptance:
+  39 assets, 30 manifest entries, 31 provenance subjects, seven SPDX attestations,
+  eight clean strict scans, actual Windows recovery and independent public
+  database archive execution. All nine stages are complete within the
+  [recorded runtime limits](docs/evidence/1.0.3/published-release.json);
+  [final review](docs/evidence/1.0.3/final-review.md) is 9/10. Prior failures remain
+  failed. Final documentation follow-up has its own required six-job main gate.
 
 ## [1.0.2] - 2026-10-18
 

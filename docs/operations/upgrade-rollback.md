@@ -14,8 +14,7 @@ names that previously exceeded the Service limit now use stable hashed API names
 Deployment, Service and Ingress references agree. The chart does not rename the
 runtime PVC. Compare the rendered upgrade before applying it to an installation.
 Recheck source permissions, stream denial/recovery and effective alert defaults.
-Candidate verification is in [1.0.3 evidence](../evidence/1.0.3/README.md);
-customer upgrade and rollback still need the installation's own acceptance.
+Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](../evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 
 The 0.x baseline has no supported automatic upgrade from old development
 SQLite data. PostgreSQL is the only runtime store. Keep any earlier development
@@ -204,8 +203,10 @@ data or archives as part of the application restore command.
 Restores revoke sessions and pre-auth state; users must sign in again. The
 operator owns archive encryption/retention, secret changes and target cleanup.
 Every target upgrade/rollback rehearsal is recorded separately from local tests.
-Current 1.0.2 release acceptance is recorded in the [active plan](../implementation-plan.md)
+Historical 1.0.2 release acceptance is recorded in the [active plan](../implementation-plan.md)
 and [public proof](../evidence/1.0.2/published-release.json).
+Corrective 1.0.3 has its own [public proof](../evidence/1.0.3/published-release.json)
+and retains ledger 17; each customer upgrade still needs its own rehearsal.
 Project acceptance does not authorize or prove an unrequested customer rollout.
 For recovery from a suspected compromise, preserve evidence and use
 [incident response](incident-response.md).

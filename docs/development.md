@@ -1,9 +1,6 @@
 # Development
 
-Current work: **1.0.3 candidate**, schema **17**. Focused local checks cover
-effective retention policy, guarded application transactions and transient
-stream authority. Full changed-tree verification and exact-source CI/release
-acceptance remain separate gates in the [active plan](implementation-plan.md).
+Current released baseline: Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 Historical [1.0.2 proof](evidence/1.0.2/published-release.json) binds immutable
 source `376ed0379900ab870dd8eb8af6b55ef3e5ec389b` and retains failures and retry
 outcomes; it does not certify 1.0.3. Its separate browser fixture diagnostic keeps

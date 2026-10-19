@@ -1,8 +1,11 @@
 # Application settings and browser preferences
 
-[فارسی](settings.fa.md). This guide describes the 1.0.3 candidate behavior. The
-[active plan](implementation-plan.md) records verification and publication;
-the presence of this guide is not a passing runtime or release gate.
+[فارسی](settings.fa.md). This guide describes published and independently accepted
+**1.0.3**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`,
+ledger 17. The [public receipt](evidence/1.0.3/published-release.json) records
+release `417182030`; the [active plan](implementation-plan.md) records its checks.
+This guide and project acceptance do not replace a customer's own runtime and
+deployment verification.
 
 ## Who can use each page
 
@@ -48,15 +51,15 @@ export and do not travel between devices or accounts.
 
 ## Effective application policy
 
-| Setting | Default | Accepted whole-number range |
-| --- | --- | --- |
-| Metric retention, hours | 168 | 1–8760 |
-| Health history retention, hours | 720 | 1–8760 |
-| Event history retention, hours | 720 | 1–8760 |
-| Terminal notification delivery retention, hours | 720 | 1–8760 |
-| Log lines per request | 200 | 10–200 |
-| Default alert window, seconds | 300 | 60–86400 |
-| Default alert pending period, seconds | 0 | 0–3600 |
+| Setting                                         | Default | Accepted whole-number range |
+| ----------------------------------------------- | ------- | --------------------------- |
+| Metric retention, hours                         | 168     | 1–8760                      |
+| Health history retention, hours                 | 720     | 1–8760                      |
+| Event history retention, hours                  | 720     | 1–8760                      |
+| Terminal notification delivery retention, hours | 720     | 1–8760                      |
+| Log lines per request                           | 200     | 10–200                      |
+| Default alert window, seconds                   | 300     | 60–86400                    |
+| Default alert pending period, seconds           | 0       | 0–3600                      |
 
 Deployment mutation flags are read-only on this page. Enabling an application
 flag alone never grants provider write authority or bypasses an action preview.

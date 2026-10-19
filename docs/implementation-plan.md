@@ -1,35 +1,41 @@
 # Stackplore active implementation evidence
 
-## Active corrective audit — 1.0.3 — 2026-10-19
+## Accepted corrective audit — 1.0.3 — 2026-10-19
 
-Baseline 089727fdfac0fa0bacb15c520212c3fbd37bd8b1; schema **17**.
-The [fresh audit](evidence/1.0.3/fresh-audit.md) records nine reproduced bugs and
-two required controls. The old accepted source and receipts retain their scope.
-Initial score **8/10**. First-candidate CI reopened the correction loop; its
-failures retain their outcomes. Replacement code review is **9/10** and complete
-local F passes; exact replacement-source hosted and artifact acceptance remain
-pending. No new tag/publication or customer deployment is claimed yet.
+Immutable v1.0.3 is **656581cf05d4774358d5644a6e1af3c69a210f81**, schema **17**.
+The [fresh audit](evidence/1.0.3/fresh-audit.md) records nine defect areas,
+two required controls and every reopened correction loop. The
+[final review](evidence/1.0.3/final-review.md) is **9/10**; all **nine stages**
+are complete within the recorded scope. Earlier releases and failures retain
+their own sources and results.
 
-| Gate                          | Command and honest result                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Retention/settings            | Real PostgreSQL 17.11 focused A and C passed; C includes policy reload and all seven settings. B failed a test fixture column name and remains failed. All owned databases were removed and absence checked.                                                                                                                                                                                                                                                                    |
-| Authority/replay              | go -C apps/api test ./internal/httpapi ./internal/realtime -count=1 passed focused final packages, with 40 denial/recovery/control HTTP subcases. Before-fix negative probes remain failed.                                                                                                                                                                                                                                                                                     |
-| Frontend boundaries           | Actual browser-client composition reproduced Matrix, code-point and body-budget defects before fixes. Focused corrected parsing/default/retry tests are passing; full local E now passes all 530 web tests.                                                                                                                                                                                                                                                                     |
-| Helm                          | node scripts/check-helm-contracts.mjs passed 23 typed real render profiles, including numeric/boolean-like names, references and namespaces. helm lint deploy/helm/stackplore --strict passed one chart. Server API validation/install remain hosted gates.                                                                                                                                                                                                                     |
-| Environment integration       | Three real same-route filter-preservation tests failed the first implementation; corrected chooser preserves search/route filters and clears dependent selection/cursors. All 18 environment tests pass; the later three fixed-window refresh regressions and related 46-test suite also pass.                                                                                                                                                                                  |
-| Complete local/browser/hosted | Replacement full local F passes exit 0: 530 web/53 files, 40 client/2 files, 29 release-policy checks, all Go/native checks, 738 locale messages and 235 schemas. Implementation manifest unchanged during F. Browser B passes 14 cases before the final Helm/hub amendment. First-candidate main 39230365227 failed code/Helm; its signed trial 39230384305 passed packaging but is unaccepted. Exact replacement-source hosted/browser and release acceptance remain pending. |
+| Gate                           | Exact command, outcome and scope                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Retention/settings             | Real PostgreSQL 17.11 focused A/C and full SQL gates pass; all seven settings, shared-lock ordering and per-batch reload are covered. The wrong-column fixture B remains failed.                                                                                                                                                                                                                              |
+| Authority and bounded streams  | Initial/queued/replay denial and replacement ownership pass. Revocation commits before cancellation. Native oversized pages produce bounded resets/refetches. Complete Linux HTTP/realtime detector checks pass uncached in 29.022s/2.039s; the fixture amendment preserves all production limits and maximum-payload HTTP tests.                                                                             |
+| Interface                      | Matrix composition, code points, 16 MiB production response budget, settings-derived alert drafts, nine retry views, source-bound environment navigation and three fixed-window refresh regressions pass. Locale parity is 738 messages; OpenAPI checks cover 235 bounded schemas.                                                                                                                            |
+| Complete local                 | Full local F (npm.cmd run verify) passes 530 web/53 files, 40 client/2 files, 29 release checks, all Go/native tests and builds with unchanged implementation manifest. F precedes the final test-only lifecycle amendment; later complete Windows API/core checks and uncached Linux detector proof pass separately. [F](evidence/1.0.3/local-gate-f.json), [amendment](evidence/1.0.3/lifecycle-race.json). |
+| Exact hosted main/tag          | Main 39235362032 and tag 39238088634 each pass all six jobs on their first attempts: full verification, real PostgreSQL/detector, actual Docker/Kubernetes providers, Compose and external-TLS Helm. The chart also passes 23 typed local render profiles and strict lint. [Run metadata](evidence/1.0.3/release-gates.json).                                                                                 |
+| Exact production browser       | Actual main artifact independently validates 14 sole-attempt cases, 64 journeys/eight profiles, four environment journeys and 24 PNG signatures; four final images visually reviewed. All 80 measured reads pass with unchanged 8/10/600-ms bounds and fixture p95 45ms. [Proof](evidence/1.0.3/main-browser.json). Local browser B remains earlier-scope evidence.                                           |
+| Signed trial                   | 39235380836 passes. All 39 files/30 checksums/31 provenance subjects/seven SPDX attestations/eight strict scans verify; actual Windows backup/restore/replay/ownership and independent trial database archive execution pass. [Trial](evidence/1.0.3/consumer-trial.json).                                                                                                                                    |
+| Public publication/consumption | 39238088607 passes package and publication. Stable release 417182030 was published 2026-10-19T10:51:50Z. All 39 public files and signatures verify; the explicit wrong-source digest is rejected. Public Windows bytes match the actual tested trial; the different public database archive independently passes isolated SQL/runtime and cleanup. [Public receipt](evidence/1.0.3/published-release.json).   |
+| Retained failures              | Main 39230365227 failed code/Helm; main 39233787971 failed only the heavy lifecycle fixture. Their signed trials passed but remain unaccepted. Old-code negatives, fixture/tool-preflight/extraction failures and the first public TLS-connection failure keep their outcomes; the normal-TLS retry succeeded without a bypass.                                                                               |
 
-The later deterministic lifecycle amendment changes only the test fixture.
-The [amendment receipt](evidence/1.0.3/lifecycle-race.json) records all Windows
-API checks passing with real PostgreSQL/native tools enabled and uncached Linux
-detector checks: focused HTTP/realtime **18.246s / 2.043s**, complete packages
-**29.022s / 2.039s**. Linux SQL environment is unset; no SQL proof follows from
-that detector run. Full local F and browser B retain their earlier scope.
-The two original timing failures stay failed. Review returns to **9/10**;
-exact replacement-source full hosted and artifact acceptance remain pending.
+The final documentation/evidence follow-up is separate from frozen release
+source. All six main jobs on the commit containing this review must pass before
+handoff; its exact final revision/run binding belongs to commit checks and the
+reconciled release body. No recursive receipt commit is required.
 
-Unrelated untracked user artifacts remain outside changes and release payloads.
-No checksum, ownership, scan, assertion or coverage gate is weakened.
+Unrelated untracked user artifacts remain untouched and outside commits and
+release payloads. The owned local PostgreSQL fixture was stopped after public
+runtime acceptance; its PID/listener absence was verified. No checksum, scan,
+ownership, assertion, coverage or production timeout was weakened.
+
+Customer rollout, provider rights, ingress/TLS, receiver delivery, capacity and
+backup destinations require the installation's own proof. Windows amd64 and
+Linux amd64 have the recorded runtime evidence; macOS/Linux arm64 outputs are
+cross-built and scanned only. Public acceptance does not certify a customer
+deployment.
 
 ## Fresh corrective audit — 1.0.2 — 2026-10-18
 

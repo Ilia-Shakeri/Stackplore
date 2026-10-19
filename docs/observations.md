@@ -1,9 +1,12 @@
 # Durable observations and source settings
 
-This reference describes the **1.0.3 candidate**, ledger 17. Fresh local focused
-checks cover its retention and stream-authority corrections; complete candidate
-and release acceptance remain separately recorded in the
-[active plan](implementation-plan.md). The historical
+This reference describes published and independently accepted **1.0.3**, immutable
+`v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`, ledger 17.
+The [public receipt](evidence/1.0.3/published-release.json) binds release
+`417182030` to its exact source, signed artifacts and independent runtime checks.
+The [active plan](implementation-plan.md) records retention and stream-authority
+verification. Customer installation and provider permissions need separate
+operator proof. The historical
 [1.0.2 audit](evidence/1.0.2/fresh-audit.md) and
 [published receipt](evidence/1.0.2/published-release.json) retain their exact
 source and proof limits. [فارسی](observations.fa.md), [architecture](architecture.md).
