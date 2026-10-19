@@ -1,11 +1,16 @@
 {
   "schema_version": 1,
   "version": "1.0.3",
-  "baseline_revision": "089727fdfac0fa0bacb15c520212c3fbd37bd8b1",
-  "scope": "Precommit production interface snapshot after environment chooser and boundary corrections, before the later native oversized-stream and fixed-window refresh amendments. Exact final-source hosted browser acceptance remains separate.",
+  "baseline_revision": "1a3d79638faf86615b2ea2c540282edd32d421d4",
+  "scope": "Local browser B after oversized-stream and fixed-window refresh corrections, before subsequent Helm typing and hub cancellation-order corrections. Exact final-source hosted browser acceptance remains separate.",
   "command": "npm.cmd run build; node scripts/browser-gate.mjs",
   "exit_code": 0,
-  "transcript_sha256": "853a6b2e2518158540d3f9187215fa4ea7be13803da816f3266b6a7e45aae3ec",
+  "transcript_sha256": "00717194bae89267fd397d4137e84720251c3ed039c12dbadafb656f756ba955",
+  "prior_attempt": {
+    "name": "A",
+    "scope": "Fourteen passing cases before the final stream/window amendments; private transcript and complete image snapshot retained.",
+    "transcript_sha256": "853a6b2e2518158540d3f9187215fa4ea7be13803da816f3266b6a7e45aae3ec"
+  },
   "fixture": "Three disposable loopback PostgreSQL 17.11 databases and synthetic guest data; owned application processes and databases cleaned by gate finally blocks.",
   "checks": {
     "guest_cases": 12,
@@ -34,5 +39,5 @@
     "default_guest_concurrent_read_limits": "unchanged and passed",
     "normal_setup_recent_auth_roles_history_logout": "passed in English and Persian"
   },
-  "limits": "Local synthetic browser acceptance does not prove target Docker/Kubernetes rights, customer installation, outbound receiver delivery, every native platform, or final-source hosted release acceptance. The later stream-size and fixed-window fixes have separate regression and exact-source CI gates."
+  "limits": "Local synthetic browser acceptance does not prove target Docker/Kubernetes rights, customer installation, outbound receiver delivery, every native platform, or final-source hosted release acceptance. Later Helm typing and hub cancellation-order fixes require their own complete local and exact-source hosted gates."
 }

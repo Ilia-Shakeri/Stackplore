@@ -6,11 +6,16 @@ The historical 1.0.2 acceptance did not catch these defects; its immutable sourc
 tag and receipts keep their original results. The active correction is **1.0.3**.
 
 - [Fresh audit and correction loop](fresh-audit.md)
-- [Complete local E gate and source manifest](local-gate.json)
+- [Replacement complete local F gate and source manifest](local-gate-f.json)
+- [Earlier complete local E gate](local-gate.json)
 - [Production browser snapshot and limits](browser-gate.json)
 - [Active execution ledger](../../implementation-plan.md)
 - [Historical 1.0.2 public proof](../1.0.2/published-release.json)
 
-Candidate changes are implemented. Focused regression tests are recorded in the
-fresh audit; complete local E passes (530 web, 40 client, all Go/native checks). Browser A passes 14 pre-amendment cases. Exact final-source hosted, signed and public acceptance remain pending.
+Candidate changes are implemented. Complete local F passes after first-candidate
+CI corrections: 530 web tests, 40 client tests and all Go/native checks, with an
+unchanged implementation manifest throughout the gate. Local browser B passes
+14 cases before the final Helm/hub amendment. First-candidate main CI failed;
+its successful signed trial is unaccepted. Exact replacement-source hosted,
+signed and public acceptance remain pending.
 No candidate version number alone establishes release or customer acceptance.

@@ -201,9 +201,7 @@ func (feed *managedFeed) invalidateLocked() {
 	if feed.manager.feeds[feed.key] == feed {
 		delete(feed.manager.feeds, feed.key)
 	}
-	feed.cancel()
 	feed.hub.mu.Lock()
-	defer feed.hub.mu.Unlock()
 	feed.hub.revoked.Store(true)
 	feed.hub.replay = nil
 	if !feed.hub.closed {
@@ -221,6 +219,10 @@ func (feed *managedFeed) invalidateLocked() {
 			delete(feed.hub.subscribers, id)
 		}
 	}
+	feed.hub.mu.Unlock()
+	// A canceled producer may close the hub immediately, so commit revocation
+	// and discard queued data before allowing its cancellation path to run.
+	feed.cancel()
 }
 
 func (feed *managedFeed) release() {

@@ -22,7 +22,7 @@ const findGoFiles = (directory) =>
     })
     .sort();
 
-const files = findGoFiles(apiRoot);
+const files = [...findGoFiles(apiRoot), ...findGoFiles(resolve(root, 'scripts'))];
 const unformatted = [];
 // Keep each command below the Windows process argument limit as the tree grows.
 for (let offset = 0; offset < files.length; offset += 32) {

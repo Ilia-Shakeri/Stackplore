@@ -6,7 +6,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ $reader }}
+  name: {{ $reader | quote }}
   namespace: {{ . | quote }}
   labels:
     {{- include "stackplore.labels" $root | nindent 4 }}
@@ -36,25 +36,25 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ $reader }}
+  name: {{ $reader | quote }}
   namespace: {{ . | quote }}
   labels:
     {{- include "stackplore.labels" $root | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ $reader }}
+  name: {{ $reader | quote }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "stackplore.fullname" $root }}
-    namespace: {{ $root.Release.Namespace }}
+    name: {{ include "stackplore.fullname" $root | quote }}
+    namespace: {{ $root.Release.Namespace | quote }}
 {{- end }}
 {{- if .Values.api.kubernetes.clusterObservation }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ $reader }}
+  name: {{ $reader | quote }}
   labels:
     {{- include "stackplore.labels" . | nindent 4 }}
 rules:
@@ -69,16 +69,16 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ $reader }}
+  name: {{ $reader | quote }}
   labels:
     {{- include "stackplore.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $reader }}
+  name: {{ $reader | quote }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "stackplore.fullname" . }}
-    namespace: {{ .Release.Namespace }}
+    name: {{ include "stackplore.fullname" . | quote }}
+    namespace: {{ .Release.Namespace | quote }}
 {{- end }}
 {{- end }}

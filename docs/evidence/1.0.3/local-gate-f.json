@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "version": "1.0.3",
+  "observed_at_utc": "2026-10-19T09:55:28.510Z",
+  "scope": "Complete precommit local gate F after the first candidate CI exposed Helm YAML typing and cancellation-order defects; implementation, configuration and test source stayed unchanged during the gate. Exact-source hosted and signed artifact acceptance remains separate.",
+  "baseline_revision": "1a3d79638faf86615b2ea2c540282edd32d421d4",
+  "command": "npm.cmd run verify",
+  "exit_code": 0,
+  "transcript_sha256": "12c52703a8ab6a970d02b1661f44d6fddd0ac5c4f749f26ec8042093acb9bac2",
+  "implementation_manifest_sha256": "b3746911f503caa2d5a71f93d05863212e9e7db03297bdce2fa1efbb558c06c9",
+  "implementation_manifest": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "10ed50edf59732f3993a368fbf8fad8587880b4905daa4e26b0ed3a07625e042"
+    },
+    {
+      "path": "apps/api/internal/httpapi/product_stream_budget_test.go",
+      "sha256": "7f5957505f26cc945693963a61d8671f297ba409290ff84caf5fd748ece91edc"
+    },
+    {
+      "path": "apps/api/internal/realtime/hub_test.go",
+      "sha256": "3ca58a84e84ee9456dde080231c1551e99755e4a1c8692f97bfcf27763e05d20"
+    },
+    {
+      "path": "apps/api/internal/realtime/hub.go",
+      "sha256": "a8be9c01254e9c440f4d71f39e867cebf1cebcdb31fd9c2ffa4ca04f2b1d393a"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/_helpers.tpl",
+      "sha256": "47ad33d4f0d618123029b85c95f7a1da2d56c3c899ce3cc281f2b4ecee942fdb"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/api-deployment.yaml",
+      "sha256": "bf79293d6e9bf4539fb325679e9f4fc451e9f38173a501f711f8e76cc6ed6d2f"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/api-pvc.yaml",
+      "sha256": "0e79ba1fe0bbf4a2658bd75b3d777e8a2ce93960391572e839c2a22c60f14e3e"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/api-service.yaml",
+      "sha256": "60111e3155ff52def77752f6de70043bb63034b5e247fd1fdd17095538041953"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/cluster-reader.yaml",
+      "sha256": "de405b5694f14268976fe178b25ca7a440a0029d4da68daf022f744f8ccf1e97"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/ingress.yaml",
+      "sha256": "caad2961a4168b7905117b24340fd758e2b0f978964c2e4304c417713e647c8a"
+    },
+    {
+      "path": "deploy/helm/stackplore/templates/serviceaccount.yaml",
+      "sha256": "3a635d461b1905e277f60648bd69a1fe2a811060667aa3f4684c2f4e15b7fe0a"
+    },
+    {
+      "path": "scripts/check-helm-contracts.mjs",
+      "sha256": "fce1af48287961c999e72be059f4aae1aaf39ba69d68cdda5e08570ac694d086"
+    },
+    {
+      "path": "scripts/check-helm-types.go",
+      "sha256": "90db95f6644f3a8a932689b60df844369abe58e13125b8dbde982e042cb6e31c"
+    },
+    {
+      "path": "scripts/gofmt.mjs",
+      "sha256": "7edd0ca5df8acfa3d548b2973c68e87482c2b10db30ad59905451658f0b92f7b"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "node": "24.18.0",
+    "go": "1.26.9",
+    "postgres": "17.11",
+    "native_tools_enabled": true,
+    "module_checksum_verification": "normal",
+    "web_pool": "default threads; one worker; unchanged coverage and assertions"
+  },
+  "checks": {
+    "format": "passed",
+    "documentation_links": 932,
+    "locale_messages": 738,
+    "bounded_contract_schemas": 235,
+    "lint": "passed",
+    "typecheck": "passed",
+    "runtime_image_policy": "passed",
+    "contract_drift": "passed",
+    "release_policy_tests": 29,
+    "go_tests": "all packages passed; real owned PostgreSQL URL and native tools enabled; cached package results retain their honest scope",
+    "fresh_sql_proof": "Gate C executed the complete PostgreSQL package in 150.222s and PostgreSQL operations in 36.779s; unchanged SQL source plus separate focused A/C retention/settings fixtures and native cleanup proof retained.",
+    "http_stream_budget_authority_proof": "Whole HTTP/realtime packages passed uncached in 22.687s/1.659s after committing queued revocation before cancellation; deterministic old-code negative and fixed-code barrier probes retained. Large fixtures use the actual production request timeout; production limits and observation bounds remain unchanged.",
+    "domain_statement_coverage": 80.6,
+    "alerting_statement_coverage": 82.6,
+    "client_tests": 40,
+    "client_files": 2,
+    "web_tests": 530,
+    "web_files": 53,
+    "web_coverage": {
+      "statements": 83.81,
+      "branches": 80.33,
+      "functions": 88.41,
+      "lines": 85.36
+    },
+    "production_build": "web production assets embedded and Go build passed",
+    "helm": "23 real typed naming/reference/volume/namespace render profiles and strict one-chart lint passed separately; strict Kubernetes object/reference validation and positive/negative peer probes passed; actual server/install remains exact-source CI"
+  },
+  "retained_failed_attempts": [
+    "A: legacy Windows PowerShell converted an npm stderr warning into NativeCommandError; empty transcript retained, no code pass claimed.",
+    "B: three actual lint errors; corrected without disabling rules.",
+    "C: one of 527 web tests timed out at the unchanged 15-second cap; repeated accessibility-tree scans in the 1,000-option fixture were replaced with native option checks; assertions, pages and limits preserved.",
+    "D: 527 web tests passed with global coverage, then the build found a boolean literal type in the new three-case refresh test being added during that intermediate run; corrected fixture retained strict typing.",
+    "Focused one-file coverage run passed all 18 tests but exited 1 on unchanged global coverage floors; only complete gates E/F supply global coverage acceptance.",
+    "Negative probes, initial bulk-stream fixture 500 and corrected real HTTP failure, retention fixture column error, and first environment matcher/static errors remain separate failed outcomes."
+  ],
+  "limits": "No customer rollout, every native platform, external receiver delivery, exact-source hosted jobs, signing/publication or independent public archive acceptance follows from this local receipt."
+}

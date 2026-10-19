@@ -100,6 +100,7 @@ func (provider *streamBudgetProvider) ReadLogs(ctx context.Context, query domain
 func streamBudgetServer(t *testing.T, provider *streamBudgetProvider) *httptest.Server {
 	t.Helper()
 	handler, _, _ := makeHandler(t, func(options *Options) {
+		options.RequestTimeout = 15 * time.Second
 		options.MaximumResponseBody = 16 * 1024 * 1024
 		options.ProductProviders = []ProductProvider{provider}
 		options.Authentication = &testAuthentication{authenticateFunc: func(context.Context, string) (auth.Authentication, error) {
@@ -120,7 +121,6 @@ func assertStreamBudgetReset(t *testing.T, stream *authorityHTTPStream, expected
 }
 
 func TestStreamBudgetLegalBulkEventsUseBoundedResetAndREST(t *testing.T) {
-	t.Parallel()
 	provider := &streamBudgetProvider{Provider: demo.MustNew(), large: true}
 	server := streamBudgetServer(t, provider)
 	request, err := http.NewRequest(http.MethodGet, server.URL+"/api/v1/events?limit=100", nil)
@@ -152,7 +152,6 @@ func TestStreamBudgetLegalBulkEventsUseBoundedResetAndREST(t *testing.T) {
 }
 
 func TestStreamBudgetLegalBulkLogsUseBoundedReset(t *testing.T) {
-	t.Parallel()
 	provider := &streamBudgetProvider{Provider: demo.MustNew(), large: true}
 	server := streamBudgetServer(t, provider)
 	stream := startAuthorityHTTPStream(t, server, streamLogs, "")
@@ -181,7 +180,6 @@ func streamBudgetFrame(t *testing.T, subscription *realtime.Subscription) realti
 func TestStreamBudgetPollOverflowChangesRecoveryAndDenial(t *testing.T) {
 	for _, topic := range []streamTopic{streamEvents, streamLogs} {
 		t.Run(string(topic), func(t *testing.T) {
-			t.Parallel()
 			provider := &streamBudgetProvider{Provider: demo.MustNew()}
 			initial, err := buildStreamSnapshot(context.Background(), topic, provider)
 			if err != nil {

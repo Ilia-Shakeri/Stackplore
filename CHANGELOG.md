@@ -6,6 +6,8 @@
   policy lock; preserve protected history and validate all settings transactions.
 - Revoke denied native SSE replay and active feeds, including poll-time denial;
   return the documented typed 403 before subscription and permit clean recovery.
+  Commit revocation, replay removal and queued-frame cleanup before producer
+  cancellation can close subscribers; preserve replacement-feed ownership.
 - Replace oversized native snapshots with a bounded reset and REST refetch;
   preserve the 256 KiB frame cap, change detection, replay limits and recovery.
 - Refresh event/log pages after stream changes even when explicit time bounds or
@@ -19,6 +21,8 @@
   keyboard/focus support and filter-preserving source-bound navigation.
 - Bound long Helm API names with stable hashes and alphabetic prefixes, preserve existing valid Service
   and PVC identities, and check rendered references plus server dry-run in CI.
+  Quote dynamic YAML strings and strictly decode 23 render profiles through the
+  Kubernetes type system, including numeric and boolean-like names/references.
 - Schema remains 17. Focused proof is recorded in the [fresh audit](docs/evidence/1.0.3/fresh-audit.md).
   Final local/browser/hosted and release acceptance remain pending.
 

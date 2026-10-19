@@ -37,9 +37,47 @@ The pre-fix full gate B passed, demonstrating that the old suite missed these
 boundaries. Its SHA-256 is
 b9c226f612b41f2c5dd38bd6458ed0132ad54ef977ac43731689c5a131e25abe;
 the earlier cold-cache failure remains failed. A pre-fix passing suite does not
-certify these new changes. The [complete local E receipt](local-gate.json) and [browser snapshot](browser-gate.json) record
-their own source scope, exact commands, failures and results. Browser A precedes the last stream/window amendments; exact final-source hosted browser acceptance remains a separate required gate.
+certify these new changes. The [earlier local E receipt](local-gate.json),
+[replacement local F receipt](local-gate-f.json) and
+[browser B snapshot](browser-gate.json) record their own source scope, commands,
+failures and results. Browser B precedes the final Helm/hub corrections; exact
+replacement-source hosted browser acceptance remains a separate required gate.
 
 Hosted Compose, external-TLS Helm, live provider, race, packaging/signing and
 public-archive execution need fresh exact-source proof. Customer installation,
 credentials, receiver delivery, ingress and capacity remain operator-specific.
+
+## First candidate failures and correction
+
+Candidate `1a3d79638faf86615b2ea2c540282edd32d421d4` was pushed after full local E.
+Main CI `39230365227` failed its code and Helm-install jobs; its other four jobs
+passed. The separate signed trial `39230384305` passed packaging and correctly
+skipped publication. That trial is not accepted for release: the required main
+gate failed. No tag or public 1.0.3 release was created for that candidate.
+
+The code job reported three assertion failures during the concurrency gate,
+without a detector data-race report. A deterministic cancellation barrier then
+reproduced a semantic ordering defect: cancellation could close a subscriber
+before the hub committed revocation and drained its queue. The score reopened
+at **8/10**. The correction commits revocation, replay removal and all queued
+subscription closures under the hub lock, releases that lock, then cancels the
+producer. Manager-to-hub lock order and replacement-feed ownership stay intact.
+The old-code barrier test failed; the corrected test and complete Windows HTTP
+and realtime packages passed uncached in **22.687s / 1.659s**. The large-payload
+fixtures now use the actual production 15-second request timeout and serialize
+their heavy setup. Production deadlines and the existing 3-second, 100-ms and
+350-ms test bounds remain unchanged. Replacement full local F passes with
+unchanged source: 530 web tests across 53 files, 40 client tests, all Go/native
+checks and unchanged coverage floors. Linux detector proof and the replacement
+hosted/artifact gates are still required.
+
+The Helm-install job caught numeric YAML labels that a DNS-only local check had
+missed. All dynamic string names, labels, selectors and object references are
+quoted, including the complete PVC identity and ingress class. A bounded strict
+Kubernetes typed decoder now checks every rendered object and cross-object
+reference. **23** real chart profiles and strict Helm lint pass locally. Separate
+peer probes include **16** typed positive/negative fixtures and **11** namespace
+argument/reference fixtures. Those probes caught and corrected the initially
+missed numeric ingress class. Source review found no additional defect in these
+corrections. Actual server validation and external-TLS installation remain
+required hosted gates; the earlier failed run keeps its failure.

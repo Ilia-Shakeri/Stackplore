@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "stackplore.fullname" . }}
+  name: {{ include "stackplore.fullname" . | quote }}
   labels:
     {{- include "stackplore.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -11,12 +11,12 @@ metadata:
   {{- end }}
 spec:
   {{- with .Values.ingress.className }}
-  ingressClassName: {{ . }}
+  ingressClassName: {{ . | quote }}
   {{- end }}
   {{- if .Values.ingress.tls.enabled }}
   tls:
     - hosts: [{{ .Values.ingress.host | quote }}]
-      secretName: {{ .Values.ingress.tls.secretName }}
+      secretName: {{ .Values.ingress.tls.secretName | quote }}
   {{- end }}
   rules:
     - host: {{ .Values.ingress.host | quote }}
@@ -26,7 +26,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "stackplore.apiName" . }}
+                name: {{ include "stackplore.apiName" . | quote }}
                 port:
                   name: http
 {{- end }}

@@ -4,7 +4,12 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
-The accepted corrective release is **1.0.2**, immutable `v1.0.2` at
+Active corrective source is **1.0.3**, schema **17**. The
+[fresh audit](docs/evidence/1.0.3/fresh-audit.md) records the corrections and
+retained first-candidate CI failures. Complete replacement local, exact-source
+hosted and signed-artifact acceptance remain required before release.
+
+The historical accepted corrective release is **1.0.2**, immutable `v1.0.2` at
 `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema **17**. All **nine stages**
 are complete; architecture/code and release review score **9/10**. Full local D,
 all six exact-source main/tag jobs, signed trial/publication and independent

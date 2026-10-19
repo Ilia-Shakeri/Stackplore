@@ -206,6 +206,57 @@ func TestManagerInvalidationDiscardsQueuedReplayAndFencesOldProducer(t *testing.
 	}
 }
 
+func TestManagerRevocationCommitsQueuedStateBeforeProducerCancellation(t *testing.T) {
+	manager := testManager(t, 2, 2)
+	t.Cleanup(manager.Close)
+	started := make(chan struct{})
+	canceled := make(chan struct{})
+	subscription, err := manager.Subscribe("health/source", 0, func(ctx context.Context, publish func(string, []byte) error) error {
+		if err := publish("health.snapshot.v1", []byte(`{"state":"ready"}`)); err != nil {
+			return err
+		}
+		close(started)
+		<-ctx.Done()
+		close(canceled)
+		return ctx.Err()
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(subscription.Close)
+	<-started
+	feed := manager.feeds["health/source"]
+	feed.hub.mu.Lock()
+	invalidated := make(chan struct{})
+	go func() {
+		manager.Invalidate("health/source")
+		close(invalidated)
+	}()
+	var cancellationObserved bool
+	select {
+	case <-canceled:
+		cancellationObserved = true
+	case <-time.After(time.Second):
+	}
+	feed.hub.mu.Unlock()
+	select {
+	case <-invalidated:
+	case <-time.After(time.Second):
+		t.Fatal("invalidation did not complete after releasing the hub")
+	}
+	if cancellationObserved {
+		t.Fatal("producer cancellation preceded the locked revocation and queue commit")
+	}
+	select {
+	case <-canceled:
+	case <-time.After(time.Second):
+		t.Fatal("revoked producer was not canceled after committing queued state")
+	}
+	if _, open := <-subscription.C; open || !subscription.Revoked() {
+		t.Fatal("revoked subscription did not close")
+	}
+}
+
 func testManager(t *testing.T, replay, queue int) *Manager {
 	t.Helper()
 	manager, err := NewManager(ManagerOptions{
