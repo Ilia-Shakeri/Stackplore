@@ -1,3 +1,7 @@
+> **UNACCEPTED development source — schema 18.** This branch is isolated preparation, identified by its own commit; it is not the released `v2.0.0-alpha.0` source at `eb86ab7554db555f023c1de72c3119acf101226a` (schema 17). Normal startup automatically applies migration 18 even while the new capability is disabled. Use only a fresh disposable test database. Do not point this source at an accepted or customer schema-17 database. Returning an older binary requires its verified backup/restore procedure. Existing receipts do not accept this branch. Real processor/profile and stage exit gates remain open. The configured HTTP log path now delegates to the shared policy; this branch also changes an existing path.
+
+> **شاخهٔ توسعه، نپذیرفته — طرح پایگاه ۱۸.** این کد، آماده‌سازی جدا با کامیت خودش است؛ منبع منتشرشدهٔ `v2.0.0-alpha.0` همان `eb86ab7554db555f023c1de72c3119acf101226a` و طرح ۱۷ است. شروع عادی این شاخه، مهاجرت ۱۸ را خودکار اجرا کند؛ خاموشی قابلیت مانع آن نیست. فقط پایگاه تازه و دورریختنیِ تست به کار رود. به پایگاه پذیرفته یا مشتری با طرح ۱۷ وصل نشود. بازگشت باینری قدیمی، روش پشتیبان/بازیابی تأییدشده لازم دارد. رسید قدیمی، پذیرش این شاخه نیست. گیت پردازندهٔ واقعی و پایان گام‌ها باز است. مسیر HTTP گزارش نیز از سیاست مشترک استفاده کند؛ پس یک مسیر موجود هم تغییر کرده است.
+
 # Version 2 implementation ledger
 
 Started: **2026-10-19**. Authorized scope: implement the complete
