@@ -56,8 +56,16 @@ See the [detailed audit](fresh-audit.md) for the failing-before and passing-afte
 - The public database archive was independently loaded and queried under isolated Linux amd64, PostgreSQL 17.11, gosu 1.19, Go 1.26.9; root dropped to UID/GID 70, networking was disabled and cleanup was owner checked. Archive SHA-256: `a9fbec264f7e01440a7130d46dd0a3c4bcd0fb0d8a94cdbea8f859a258bbf869`. Its bytes differ from the separately tested trial database archive; the public runtime proof is independent either way. Linux amd64 guest/normal native smoke also passed with disposable database cleanup.
 - Main browser artifact **12178634390**, ZIP **23730383** bytes, SHA-256 `3a4031077f8cdbbe1e4be250d23981cd31f857225f8689294ede086b5638e892`: three actual hidden reports passed **12 + 1 + 1** cases on sole attempts. Eight profiles measured 64 routes and eight palette journeys; four EN/FA light-profile environment journeys each used two reads, with two mobile drawer checks. Twenty-four PNG headers were verified; four exact final-artifact screenshots were visually reviewed. Fixed load: 80 reads, eight parallel, ten rounds, 600ms spacing; all 80 responses/envelopes passed. Setup refill waits remain outside measured load time. Observed duration 6005ms, median 30ms and p95 45ms describe this disposable fixture, not customer capacity.
 
-Receipt SHA-256 values at review generation: public `b49aff5eaf19cf25b07723ba7ddf0b82279731a7f6228855a329bfe95eca76e4`;
+Original Windows CRLF proof-file SHA-256 values at review generation: public `b49aff5eaf19cf25b07723ba7ddf0b82279731a7f6228855a329bfe95eca76e4`;
 trial `d036bb2f6703dbe1463cc2be230dfbd4684300506aaf09b77907f9b5720c74f3`; browser `16978f24a612b1ce01fba5f365922c9f96860f95718eb163e08e1b03165f1d21`.
+
+Git stores those JSON documents with LF endings. Their exact committed-byte
+SHA-256 values are public `e88aec0f75e5111c81a462bb9e6ff7bca583c5430b837adcb47488bcae5ebcfe`,
+trial `ad2eb589721c643fad507b71c5fcec12918971192f0aba90a9b3b44765e9e92a`
+and browser `7e5b02b9b93b7fd40b2cc2f97da1de392d52552212922ecc5836901b0ac096cf`.
+Normalized JSON text is identical; this distinction changes no signed release
+asset, artifact archive or signature. Both original proof bytes and committed
+document bytes have explicit scopes.
 
 ## Handoff boundary
 
