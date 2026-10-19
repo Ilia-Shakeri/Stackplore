@@ -60,6 +60,43 @@ test('PostgreSQL policy accepts 17.11 and later minor versions unchanged', () =>
   }
 });
 
+test('runtime image policy accepts canonical stable, alpha, beta and candidate tags', () => {
+  for (const version of ['0.1.0', '2.0.0', '2.0.0-alpha.1', '2.0.0-beta.2', '2.0.0-rc.3']) {
+    const pin = { ...policy(), runtime_image: `stackplore-postgres:${version}` };
+    assert.equal(validatePostgresImagePolicy(pin), pin);
+    assert.equal(validateRuntimeImageReferences(pin, sources(pin)), pin);
+  }
+});
+
+test('runtime image policy rejects noncanonical or unsafe prerelease tags', () => {
+  for (const version of [
+    '02.0.0-alpha.1',
+    '2.00.0-beta.1',
+    '2.0.00-rc.1',
+    '2.0.0-alpha.01',
+    '2.0.0-beta.-1',
+    '2.0.0-rc',
+    '2.0.0-alpha.',
+    '2.0.0-alpha.1.extra',
+    '2.0.0-preview.1',
+    '2.0.0-ALPHA.1',
+    '2.0.0-rc.1+build',
+    '2.0.0-rc.1/other',
+    '2.0.0-rc.1\n',
+    '2.0.0\n',
+  ]) {
+    assert.throws(
+      () =>
+        validatePostgresImagePolicy({
+          ...policy(),
+          runtime_image: `stackplore-postgres:${version}`,
+        }),
+      /runtime_image/u,
+      version,
+    );
+  }
+});
+
 test('PostgreSQL policy rejects vulnerable versions, major drift, and noncanonical versions', () => {
   for (const version of ['17.6', '17.10', '16.11', '18.11', '17.011', '17.11.1', '17.11\n']) {
     assert.throws(() => validatePostgresImagePolicy(policy(version)), /policy failed: version/u);

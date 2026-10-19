@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "corpus_id": "stackplore-v2-evaluation",
+  "revision": "seed-1",
+  "status": "seed",
+  "corpus_file": "corpus.seed.json",
+  "sha256": "d38336e65471844def1c8de2c271842604f9557346da7dd50fe8c7cf75849860",
+  "target": {
+    "paired_scenarios": 200,
+    "adversarial_cases": 1000
+  },
+  "split": {
+    "algorithm": "cause-family-sha256-v1",
+    "salt": "stackplore-v2-corpus-v1",
+    "percentages": {
+      "development": 60,
+      "validation": 20,
+      "holdout": 20
+    }
+  },
+  "review": {
+    "status": "pending",
+    "authors": ["seed-editor"],
+    "reviewers": [],
+    "receipt": null
+  }
+}

@@ -19,6 +19,7 @@ import {
 } from './release-scan.mjs';
 
 const script = path.join(import.meta.dirname, 'release.mjs');
+const checkpointVersions = ['2.0.0-alpha.1', '2.0.0-beta.2', '2.0.0-rc.3', '2.0.0'];
 
 test('published notes pin repository document links to the exact source revision', () => {
   const revision = 'a'.repeat(40);
@@ -38,6 +39,21 @@ test('published notes pin repository document links to the exact source revision
   assert.ok(notes.includes('](https://example.org/page)'));
   assert.ok(!notes.includes('Earlier text'));
   assert.throws(() => releaseNotes(changelog, '1.2.4', 'example/project', revision), /missing/);
+});
+
+test('checkpoint notes select the exact prerelease section and immutable source links', () => {
+  const revision = 'b'.repeat(40);
+  const changelog = checkpointVersions
+    .map((version) => `## [${version}]\n\n${version} [Scope](docs/v2/scope.md).\n`)
+    .join('\n');
+  for (const version of checkpointVersions) {
+    const notes = releaseNotes(changelog, version, 'example/project', revision);
+    assert.ok(notes.startsWith(`## [${version}]\n`));
+    assert.equal((notes.match(/^## \[/gmu) ?? []).length, 1);
+    assert.ok(
+      notes.includes(`https://github.com/example/project/blob/${revision}/docs/v2/scope.md`),
+    );
+  }
 });
 
 test('legal inventory retains notices and excludes similarly named source files', () => {
@@ -61,12 +77,19 @@ test('legal inventory retains notices and excludes similarly named source files'
   }
 });
 
-const fixture = async (context) => {
+const fixture = async (context, { version = '1.2.3' } = {}) => {
   const root = await mkdtemp(path.join(tmpdir(), 'stackplore-release-test-'));
-  context.after(() => rm(root, { recursive: true, force: true }));
-  await writeFile(path.join(root, 'package.json'), '{"version":"1.2.3"}');
+  context.after(() => {
+    assert.equal(path.dirname(path.resolve(root)), path.resolve(tmpdir()));
+    assert.match(path.basename(root), /^stackplore-release-test-[a-z0-9]+$/iu);
+    return rm(root, { recursive: true, force: true });
+  });
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ version }));
   await mkdir(path.join(root, 'deploy'));
-  await writeFile(path.join(root, 'deploy/postgres-image.json'), JSON.stringify(databasePin));
+  await writeFile(
+    path.join(root, 'deploy/postgres-image.json'),
+    JSON.stringify({ ...databasePin, runtime_image: `stackplore-postgres:${version}` }),
+  );
   const directory = path.join(root, 'stackplore-release');
   await mkdir(directory);
   const run = (command, extra = {}, hook) =>
@@ -143,8 +166,67 @@ test('metadata records exact source and supported build targets without credenti
   assert.doesNotMatch(raw, /fixture-value-never-recorded/);
 });
 
-const verificationFixture = async (context, { moved = false, missing = false } = {}) => {
-  const fixtureData = await fixture(context);
+test('checkpoint versions traverse the actual manifest checker and reject a stable-image mismatch', async (context) => {
+  const source = await readFile(path.join(import.meta.dirname, 'check-version.mjs'), 'utf8');
+  for (const version of checkpointVersions) {
+    const { root } = await fixture(context, { version });
+    await Promise.all(
+      [
+        'scripts',
+        'apps/api/internal/config',
+        'apps/web',
+        'packages/ui',
+        'packages/api-client',
+        'contracts',
+        'deploy/helm/stackplore',
+      ].map((directory) => mkdir(path.join(root, directory), { recursive: true })),
+    );
+    await Promise.all([
+      writeFile(path.join(root, 'scripts/check-version.mjs'), source),
+      writeFile(
+        path.join(root, 'apps/api/internal/config/audit_policy.go'),
+        `package config\nconst ApplicationVersion = "${version}"\n`,
+      ),
+      ...['apps/web', 'packages/ui', 'packages/api-client'].map((directory) =>
+        writeFile(path.join(root, directory, 'package.json'), JSON.stringify({ version })),
+      ),
+      writeFile(path.join(root, 'contracts/openapi.yaml'), `info:\n  version: ${version}\n`),
+      writeFile(
+        path.join(root, 'deploy/helm/stackplore/Chart.yaml'),
+        `version: ${version}\nappVersion: '${version}'\n`,
+      ),
+      writeFile(
+        path.join(root, 'deploy/helm/stackplore/values.yaml'),
+        `api:\n  image:\n    tag: '${version}'\n`,
+      ),
+      writeFile(path.join(root, 'CHANGELOG.md'), `## [${version}]\n`),
+    ]);
+    const run = () =>
+      spawnSync(process.execPath, ['scripts/check-version.mjs'], {
+        cwd: root,
+        encoding: 'utf8',
+        timeout: 10_000,
+        windowsHide: true,
+      });
+    const accepted = run();
+    assert.equal(accepted.status, 0, `${version}: ${accepted.stderr}`);
+    if (version.includes('-')) {
+      await writeFile(
+        path.join(root, 'deploy/postgres-image.json'),
+        JSON.stringify({ ...databasePin, runtime_image: 'stackplore-postgres:2.0.0' }),
+      );
+      const mismatch = run();
+      assert.notEqual(mismatch.status, 0);
+      assert.match(mismatch.stderr, /Database runtime image version drift/u);
+    }
+  }
+});
+
+const verificationFixture = async (
+  context,
+  { moved = false, missing = false, version = '1.2.3' } = {},
+) => {
+  const fixtureData = await fixture(context, { version });
   const hook = path.join(fixtureData.root, 'mock-github.mjs');
   await writeFile(
     hook,
@@ -153,11 +235,11 @@ const verificationFixture = async (context, { moved = false, missing = false } =
     globalThis.fetch = async (url) => {
       const path = new URL(url).pathname;
       let result;
-      if (path.endsWith('/git/ref/tags/v1.2.3')) result = {object:{type:'tag',sha:'2'.repeat(40)}};
+      if (path.endsWith('/git/ref/tags/v${version}')) result = {object:{type:'tag',sha:'2'.repeat(40)}};
       else if (path.endsWith('/git/tags/'+'2'.repeat(40))) result = {object:{type:'commit',sha:'${moved ? '3' : '1'}'.repeat(40)}};
       else if (path.endsWith('/actions/workflows/ci.yml/runs')) result = {workflow_runs:[
         {id:4,head_sha:'1'.repeat(40),head_branch:'main',status:'completed',conclusion:'success'},
-        {id:5,head_sha:'1'.repeat(40),head_branch:'v1.2.3',status:'completed',conclusion:'success',html_url:'https://github.com/example/project/actions/runs/5'}
+        {id:5,head_sha:'1'.repeat(40),head_branch:'v${version}',status:'completed',conclusion:'success',html_url:'https://github.com/example/project/actions/runs/5'}
       ]};
       else {
         assert.ok(path.endsWith('/actions/runs/5/jobs'), 'must use exact tag run');
@@ -725,8 +807,8 @@ test('source-built gosu retains its versionless main PURL while Go dependencies 
   }
 });
 
-const completeReleaseFixture = async (context) => {
-  const data = await verificationFixture(context);
+const completeReleaseFixture = async (context, { version = '1.2.3' } = {}) => {
+  const data = await verificationFixture(context, { version });
   const expected = [
     'SHA256SUMS',
     'provenance.sigstore.json',
@@ -737,21 +819,21 @@ const completeReleaseFixture = async (context) => {
     'database-image-scan.json',
     'database.spdx.json',
     'database-image.json',
-    'stackplore_1.2.3_postgres_image.tar.gz',
+    `stackplore_${version}_postgres_image.tar.gz`,
     'postgres-image-sbom.sigstore.json',
     'secret-scan.json',
     'image-id.txt',
     'source.spdx.json',
-    'stackplore-1.2.3.tgz',
-    'stackplore_1.2.3_source.tar.gz',
-    'stackplore_1.2.3_image.tar.gz',
-    'stackplore_1.2.3_image.spdx.json',
+    `stackplore-${version}.tgz`,
+    `stackplore_${version}_source.tar.gz`,
+    `stackplore_${version}_image.tar.gz`,
+    `stackplore_${version}_image.spdx.json`,
     'image-sbom.sigstore.json',
     ...['linux_amd64', 'linux_arm64', 'windows_amd64', 'darwin_amd64', 'darwin_arm64'].flatMap(
       (target) => [
-        `stackplore_1.2.3_${target}.tar.gz`,
-        `stackplore_1.2.3_${target}.scan.json`,
-        `stackplore_1.2.3_${target}.spdx.json`,
+        `stackplore_${version}_${target}.tar.gz`,
+        `stackplore_${version}_${target}.scan.json`,
+        `stackplore_${version}_${target}.spdx.json`,
         `${target.replace('_', '-')}-sbom.sigstore.json`,
       ],
     ),
@@ -762,21 +844,31 @@ const completeReleaseFixture = async (context) => {
   await Promise.all(
     expected.map((name) => writeFile(path.join(data.directory, name), 'fixture payload')),
   );
-  await writeFile(path.join(data.root, 'deploy/postgres-image.json'), JSON.stringify(databasePin));
+  const pin = { ...databasePin, runtime_image: `stackplore-postgres:${version}` };
+  const runtime = [{ ...databaseRuntimeInspection[0], RepoTags: [pin.runtime_image] }];
+  const report = { ...databaseReport(), ArtifactName: pin.runtime_image };
+  const inventory = globalThis.structuredClone(databaseInventory);
+  inventory.name = pin.runtime_image;
+  inventory.packages[0].name = pin.runtime_image;
+  inventory.packages[0].annotations[1].comment = `Reference: ${pin.runtime_image}`;
+  await writeFile(path.join(data.root, 'deploy/postgres-image.json'), JSON.stringify(pin));
   await writeFile(
     path.join(data.directory, 'database-image.json'),
-    JSON.stringify(databaseMetadata()),
+    JSON.stringify(
+      createDatabaseImageMetadata(
+        pin,
+        databaseInspection,
+        databaseIndex,
+        runtime,
+        'postgres (PostgreSQL) 17.11\n',
+        '1.19 (go1.26.9 on linux/amd64; gc)\n',
+      ),
+    ),
   );
-  await writeFile(
-    path.join(data.directory, 'database-image-scan.json'),
-    JSON.stringify(databaseReport()),
-  );
-  await writeFile(
-    path.join(data.directory, 'database.spdx.json'),
-    JSON.stringify(databaseInventory),
-  );
-  await writeFile(path.join(data.root, 'CHANGELOG.md'), '## [1.2.3]\n\nRelease fixture.\n');
-  assert.equal(data.run('metadata', { GITHUB_REF: 'refs/tags/v1.2.3' }).status, 0);
+  await writeFile(path.join(data.directory, 'database-image-scan.json'), JSON.stringify(report));
+  await writeFile(path.join(data.directory, 'database.spdx.json'), JSON.stringify(inventory));
+  await writeFile(path.join(data.root, 'CHANGELOG.md'), `## [${version}]\n\nRelease fixture.\n`);
+  assert.equal(data.run('metadata', { GITHUB_REF: `refs/tags/v${version}` }).status, 0);
   assert.equal(data.run('checksums').status, 0);
   const hook = `${await readFile(data.hook, 'utf8')}
     import { appendFile } from 'node:fs/promises';
@@ -788,10 +880,14 @@ const completeReleaseFixture = async (context) => {
         await appendFile(${JSON.stringify(path.join(data.root, 'uploads.jsonl'))}, JSON.stringify(target.searchParams.get('name'))+'\\n');
         return new Response('{}', {status:201});
       }
-      if (target.pathname.endsWith('/releases')) return Response.json(options.method === 'POST' ? {
-        id:6, upload_url:'https://uploads.github.com/repos/example/project/releases/6/assets{?name,label}',
-        html_url:'https://github.com/example/project/releases/tag/v1.2.3'
-      } : []);
+      if (target.pathname.endsWith('/releases')) {
+        if (options.method !== 'POST') return Response.json([]);
+        await appendFile(${JSON.stringify(path.join(data.root, 'creation.jsonl'))}, options.body+'\\n');
+        return Response.json({
+          id:6, upload_url:'https://uploads.github.com/repos/example/project/releases/6/assets{?name,label}',
+          html_url:'https://github.com/example/project/releases/tag/v${version}'
+        });
+      }
       if (target.pathname.endsWith('/releases/6')) {
         assert.equal(options.method, 'PATCH'); assert.deepEqual(JSON.parse(options.body), {draft:false});
         return Response.json({});
@@ -814,6 +910,76 @@ test('publication accepts exactly 39 assets with all database receipts and archi
   assert.deepEqual(uploaded.sort(), expected.sort());
   const manifest = await readFile(path.join(root, 'stackplore-release/SHA256SUMS'), 'utf8');
   assert.equal(manifest.trim().split('\n').length, 30);
+});
+
+test('alpha, beta and candidate publication preserve exact asset names and stay prereleases', async (context) => {
+  for (const version of checkpointVersions) {
+    const { root, directory, run, hook, expected } = await completeReleaseFixture(context, {
+      version,
+    });
+    const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: `v${version}` }, hook);
+    assert.equal(result.status, 0, `${version}: ${result.stderr}`);
+    const uploaded = (await readFile(path.join(root, 'uploads.jsonl'), 'utf8'))
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    assert.deepEqual(uploaded.sort(), [...expected].sort());
+    const creations = (await readFile(path.join(root, 'creation.jsonl'), 'utf8'))
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    assert.equal(creations.length, 1);
+    assert.equal(creations[0].tag_name, `v${version}`);
+    assert.equal(creations[0].target_commitish, '1'.repeat(40));
+    assert.equal(creations[0].draft, true);
+    assert.equal(creations[0].prerelease, version.includes('-'));
+    const metadata = JSON.parse(await readFile(path.join(directory, 'release.json'), 'utf8'));
+    assert.equal(metadata.version, version);
+    assert.equal(metadata.ref, `refs/tags/v${version}`);
+    assert.deepEqual(
+      metadata.images.map(({ image, archive }) => ({ image, archive })),
+      [
+        { image: `stackplore-api:${version}`, archive: `stackplore_${version}_image.tar.gz` },
+        {
+          image: `stackplore-postgres:${version}`,
+          archive: `stackplore_${version}_postgres_image.tar.gz`,
+        },
+      ],
+    );
+    const manifest = await readFile(path.join(directory, 'SHA256SUMS'), 'utf8');
+    assert.equal(manifest.trim().split('\n').length, 30);
+    assert.ok(manifest.includes(`  stackplore-${version}.tgz\n`));
+    assert.ok(manifest.includes(`  stackplore_${version}_windows_amd64.tar.gz\n`));
+  }
+});
+
+test('candidate publication refuses mixed version names and mismatched stable tags before upload', async (context) => {
+  const version = '2.0.0-rc.1';
+  for (const mismatch of ['artifact', 'metadata', 'tag']) {
+    const { root, directory, run, hook } = await completeReleaseFixture(context, { version });
+    if (mismatch === 'artifact') {
+      await rm(path.join(directory, `stackplore-${version}.tgz`));
+      await writeFile(path.join(directory, 'stackplore-2.0.0.tgz'), 'wrong checkpoint');
+      assert.equal(run('checksums').status, 0);
+    } else if (mismatch === 'metadata') {
+      const metadata = JSON.parse(await readFile(path.join(directory, 'release.json'), 'utf8'));
+      metadata.version = '2.0.0';
+      await writeFile(path.join(directory, 'release.json'), JSON.stringify(metadata));
+      assert.equal(run('checksums').status, 0);
+    }
+    const result = run(
+      'publish',
+      { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: mismatch === 'tag' ? 'v2.0.0' : `v${version}` },
+      hook,
+    );
+    assert.notEqual(result.status, 0);
+    assert.match(
+      result.stderr,
+      /required release artifact|exact tagged source|matching version tag/u,
+    );
+    await assert.rejects(readFile(path.join(root, 'creation.jsonl')), { code: 'ENOENT' });
+    await assert.rejects(readFile(path.join(root, 'uploads.jsonl')), { code: 'ENOENT' });
+  }
 });
 
 test('publication rejects missing, tampered or mismatched database evidence before upload', async (context) => {

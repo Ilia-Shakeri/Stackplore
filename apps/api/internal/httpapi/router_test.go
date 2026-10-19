@@ -508,14 +508,24 @@ func TestEmbeddedWebHeadersSurviveCompleteBoundary(t *testing.T) {
 	t.Parallel()
 	handler, _, _ := makeHandler(t, func(options *Options) {
 		options.WebAssets = fstest.MapFS{
-			"index.html":         {Data: []byte("<!doctype html><main>Stackplore</main>")},
-			"assets/app-abcd.js": {Data: []byte("export const ready = true;")},
+			"index.html":                      {Data: []byte("<!doctype html><main>Stackplore</main>")},
+			"assets/app-abcd.js":              {Data: []byte("export const ready = true;")},
+			"offline.html":                    {Data: []byte("<!doctype html><main>Offline</main>")},
+			"offline.css":                     {Data: []byte(":root { color-scheme: light; }")},
+			"offline.js":                      {Data: []byte("export const offline = true;")},
+			"brand/stackplore-favicon-64.png": {Data: []byte("public icon")},
+			"brand/stackplore-mark-96.webp":   {Data: []byte("public mark")},
 		}
 	})
 	for _, test := range []struct{ path, mime, cache string }{
 		{"/", "text/html", "no-store"},
 		{"/settings/application", "text/html", "no-store"},
 		{"/assets/app-abcd.js", "javascript", "public, max-age=31536000, immutable"},
+		{"/offline.html", "text/html", "public, max-age=0, must-revalidate"},
+		{"/offline.css", "text/css", "public, max-age=0, must-revalidate"},
+		{"/offline.js", "javascript", "public, max-age=0, must-revalidate"},
+		{"/brand/stackplore-favicon-64.png", "image/png", "public, max-age=0, must-revalidate"},
+		{"/brand/stackplore-mark-96.webp", "image/webp", "no-store"},
 	} {
 		request := makeRequest(http.MethodGet, test.path, "198.51.100.10:4000")
 		request.Header.Set("Accept", "text/html")

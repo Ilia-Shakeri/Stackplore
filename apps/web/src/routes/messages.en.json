@@ -5,7 +5,7 @@
     "one": "{count} interface language is ready.",
     "other": "{count} interface languages are ready."
   },
-  "route.about.statusBody": "Explore operator-configured sources through inventory, health, topology, logs, metrics, events, and alerts. Connection status shows which observations are available. Guarded infrastructure actions remain planned.",
+  "route.about.statusBody": "Explore operator-configured sources through inventory, health, topology, logs, metrics, events, and alerts. Connection status shows which observations are available. Supported guarded actions require operator enablement, permission, and explicit confirmation.",
   "route.about.statusTitle": "Infrastructure exploration",
   "route.about.title": "About",
   "route.alerts.description": "Current local alert state derived from observed evidence.",

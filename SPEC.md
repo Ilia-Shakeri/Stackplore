@@ -2,11 +2,13 @@
 
 - **Product:** Stackplore
 - **Tagline:** Explore every service in your stack.
-- **Target release:** 1.0.3
+- **Target release:** 2.0.0; current shipped stable baseline 1.0.3
 - **Specification status:** Accepted for implementation
 - **Implementation status:** Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](docs/evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical immutable [1.0.2 acceptance](docs/evidence/1.0.2/published-release.json) retains its source and limits. The accepted 1.0 product and security scope remains authoritative.
 
 This document defines the accepted behavior and quality bar for Stackplore 1.0.
+The additive version 2 design is accepted for implementation in section 15;
+its unimplemented behavior does not change the shipped 1.0 acceptance above.
 Deferred features are explicitly listed in section 14. Delivery order and
 current stage status live in [PLAN.md](PLAN.md) and the [evidence plan](docs/implementation-plan.md). Engineering rules live in
 [PROJECT_GUIDE.md](PROJECT_GUIDE.md).
@@ -1011,3 +1013,57 @@ Possible later work includes:
 
 Deferred work must not weaken the first release boundaries or appear as shipped
 functionality before implementation and validation.
+
+## 15. Smart Assistant and Smart Analysis — accepted version 2 design
+
+Status: **accepted for implementation, not shipped**, 2026-10-19. Follow
+[ADR-0014](docs/adr/0014-read-only-helper-scope-and-boundaries.md),
+[ADR-0015](docs/adr/0015-helper-durable-runtime-and-volatile-context.md),
+[ADR-0016](docs/adr/0016-helper-authority-and-egress-policy.md), and the
+[stage ledger](docs/v2/implementation.md). Existing section 1–14 acceptance
+remains the stable 1.0 baseline; this section adds the future 2.0 boundary.
+
+The helper starts only on an authenticated user's request. It explains scoped
+observations, cites server-issued evidence, identifies missing data, performs
+bounded read-only investigations, and produces qualified incident hypotheses.
+Facts, hypotheses, contradictory evidence, unknowns, stale/partial data and
+synthetic observations remain distinct in both English and Persian.
+
+Keep one Go runtime and PostgreSQL. Additive canonical HTTP resources stay
+under `/api/v1/assistant` and `/api/v1/analysis` when their implementation stage
+lands. Do not publish speculative routes in OpenAPI. Existing installation-wide
+roles stay unchanged; conversations and runs have separate owner checks.
+
+Disable the feature and external transmission by default. Public guests cannot
+start paid or remote work. The ordinary v1 product remains usable during helper
+outages, quota exhaustion or disabled mode. Only operator-bound profiles and
+fixed typed read tools are allowed; never add shell, exec, SQL, arbitrary URLs,
+host paths, Secret values, provider write access or executable extensions.
+
+Apply shared effective log/privacy policy before every context projection,
+tool response or egress. The default remote mode accepts approved structured
+intents and allowlisted fields only, never free-form prompts, log bodies or
+arbitrary runbook text. Local free-form context remains bounded and volatile.
+No raw conversation, model response, tool/log body or hidden reasoning is
+stored in database, telemetry or audit. No private helper data enters PWA caches.
+
+Persist typed runs, steps, ownership, generation, status, safe evidence
+references and usage reservations. Fence leases and publication after current
+authority, source, policy or restore-generation changes. Do not hold database
+transactions across network calls. Unknown charges survive ordinary retention,
+quota resets and restore; paid work after restore remains closed until usage is
+reconciled or conservatively reserved. Never automatically resend an uncertain
+dispatch. Lost volatile text requires explicit re-entry.
+
+Enforce independent concurrency, queue, call, time, byte, token and retention
+caps from ADR-0015. Verify the full formatted input token count before dispatch;
+post-generation usage and byte estimates are insufficient. Validate output
+schema and evidence IDs before publication; raw token streams and generated
+links/actions never directly drive the interface or infrastructure.
+
+Every profile requires real protocol, privacy, quality and cancellation proof.
+Every stage requires focused regression tests and the full local gate, plus
+real PostgreSQL/browser/network/provider/deployment evidence for each claimed
+boundary. Release 2.0 requires all stages 0–10 and the held-out quality/security,
+capacity, upgrade/restore and independently verified stable-artifact gates.
+Guarded-action proposal handoff belongs to optional 2.1 and does not block 2.0.

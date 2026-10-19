@@ -28,7 +28,7 @@ function publicShellVersion(): Plugin {
         'offline.html',
         'offline.css',
         'offline.js',
-        'brand/stackplore-favicon.svg',
+        'brand/stackplore-favicon-64.png',
       ]) {
         digest.update(await readFile(new URL(`./public/${name}`, import.meta.url)));
       }

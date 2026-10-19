@@ -390,6 +390,34 @@ for (const locale of ['en', 'fa']) {
         await palette.getByRole('combobox').press('Enter');
         await expect(page).toHaveURL(/\/about(?:\?|$)/u);
         await expect(page.getByRole('main')).toBeFocused();
+        const introduction = page.locator('.about-hero__image');
+        await expect(introduction).toHaveAttribute('src', `/brand/stackplore-intro-${theme}.webp`);
+        await introduction.scrollIntoViewIfNeeded();
+        await expect
+          .poll(() =>
+            introduction.evaluate(
+              (element) =>
+                element instanceof HTMLImageElement &&
+                element.complete &&
+                element.naturalWidth === 960 &&
+                element.naturalHeight === 640,
+            ),
+          )
+          .toBe(true);
+        const brandMark = page.locator('.brand-logo__mark').first();
+        await expect(brandMark).toHaveAttribute('src', '/brand/stackplore-mark-96.webp');
+        await expect
+          .poll(() =>
+            brandMark.evaluate(
+              (element) =>
+                element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0,
+            ),
+          )
+          .toBe(true);
+        await page.screenshot({
+          path: `${evidence}/screenshots/about-${locale}-${String(width)}-${theme}.png`,
+          fullPage: true,
+        });
         await page.keyboard.press('Control+k');
         await expect(palette).toBeVisible();
         await page.keyboard.press('Escape');
@@ -444,20 +472,38 @@ test('worker caches only public shell and offline navigation reveals no infrastr
     return paths.sort();
   });
   expect(paths).toEqual([
-    '/brand/stackplore-favicon.svg',
+    '/brand/stackplore-favicon-64.png',
     '/offline.css',
     '/offline.html',
     '/offline.js',
   ]);
-  await context.setOffline(true);
-  await page.goto('/resources');
-  await expect(page.getByRole('heading', { name: 'You are offline' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'اتصال شبکه قطع است' })).toBeVisible();
-  expect(await page.locator('body').innerText()).not.toContain('Checkout');
-  await page.getByRole('button').focus();
-  await expect(page.getByRole('button')).toBeFocused();
-  await context.setOffline(false);
-  await receipt('offline', { publicPaths: paths, keyboardRetry: true, privateContentAbsent: true });
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme === 'light' ? 'dark' : 'light' });
+    await page.evaluate((selected) => {
+      localStorage.setItem('stackplore.theme', selected);
+    }, theme);
+    await context.setOffline(true);
+    await page.goto('/resources');
+    await expect(page.getByRole('heading', { name: 'You are offline' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'اتصال شبکه قطع است' })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    await expect(page.locator('html')).toHaveCSS(
+      'background-color',
+      theme === 'dark' ? 'rgb(6, 17, 31)' : 'rgb(244, 248, 253)',
+    );
+    expect(await page.locator('body').innerText()).not.toContain('Checkout');
+    await page.getByRole('button').focus();
+    await expect(page.getByRole('button')).toBeFocused();
+    await context.setOffline(false);
+    await page.reload();
+    await expect(page.locator('main h1')).toBeVisible();
+  }
+  await receipt('offline', {
+    publicPaths: paths,
+    keyboardRetry: true,
+    privateContentAbsent: true,
+    selectedThemeOverridesDevice: ['light', 'dark'],
+  });
 });
 
 test('regular browser profile reports no installability errors', async ({ browserName }, info) => {
@@ -653,7 +699,7 @@ test('public worker update waits for acceptance and preserves private cache excl
     return paths.sort();
   });
   expect(paths).toEqual([
-    '/brand/stackplore-favicon.svg',
+    '/brand/stackplore-favicon-64.png',
     '/offline.css',
     '/offline.html',
     '/offline.js',

@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-alpha.0",
+  "observed_at_utc": "2026-10-19T13:12:19.376Z",
+  "status": "local_checks_passed",
+  "source_tree": "ee35c24874c0b81e596dcb1c790c78f358329e1b",
+  "baseline_commit": "c018cf09c20456d27dfa6daa3f74e342fe46e27e",
+  "schema": 17,
+  "platform": "Windows amd64",
+  "tools": {
+    "node": "24.18.0",
+    "go": "1.26.9",
+    "postgres": "17.11"
+  },
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "log_sha256": "0d61854c89fda328cbe4b147d9b6403502db7c8f488ea234f7e7768daff6fc44",
+    "web": {
+      "files": 54,
+      "passed": 544,
+      "statements_percent": 83.86,
+      "branches_percent": 80.38
+    },
+    "client": {
+      "files": 2,
+      "passed": 40
+    },
+    "release_tooling_passed": 35,
+    "corpus_checker_passed": 11,
+    "real_postgres": {
+      "repository_seconds": 135.219,
+      "native_operations_seconds": 43.082,
+      "native_tools_opt_in": true
+    }
+  },
+  "browser": {
+    "command": "node scripts/browser-gate.mjs",
+    "exit_code": 0,
+    "log_sha256": "f249a59e74c1dc0874d3bcc007075e5c0949ffd0f1112215109f1a5a3b4a769c",
+    "cases": [
+      {
+        "mode": "guest",
+        "cases": 12,
+        "passed": 12,
+        "skipped": 0,
+        "retries": 0,
+        "raw_report_sha256": "0cb1f52774def2464ddd40db247aa889aa7c87e242410ccb9e5bfc60e12c0455"
+      },
+      {
+        "mode": "normal-en",
+        "cases": 1,
+        "passed": 1,
+        "skipped": 0,
+        "retries": 0,
+        "raw_report_sha256": "3467c158f2b3f6899cc942880c39b557773f9c10acfd9164bb9c3c90f43717fa"
+      },
+      {
+        "mode": "normal-fa",
+        "cases": 1,
+        "passed": 1,
+        "skipped": 0,
+        "retries": 0,
+        "raw_report_sha256": "19a6ba3919da84326c57e25d8f0f96a116b1c3074bb2edeb4b642e28aae661f4"
+      }
+    ],
+    "profiles": [
+      {
+        "id": "en-360-light",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "en-360-dark",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "en-1280-light",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "en-1280-dark",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "fa-360-light",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "fa-360-dark",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "fa-1280-light",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      },
+      {
+        "id": "fa-1280-dark",
+        "chromium": "155.0.8059.80",
+        "routes": 8
+      }
+    ],
+    "route_measurements": 64,
+    "bounded_reads": {
+      "scope": "Disposable synthetic guest fixture; default read rate; local observations only.",
+      "requests": 80,
+      "parallel": 8,
+      "rounds": 10,
+      "minimumRoundSpacingMs": 600,
+      "setupRateBucketRefillMs": 2500,
+      "setupNavigationRefills": 4,
+      "setupNavigationRefillMs": 2500,
+      "setupExcludedFromReadTiming": true,
+      "initialRateBucketRefillMs": 2500,
+      "maximumOfferedReadsPerSecond": 13.34,
+      "elapsedMs": 6065,
+      "medianMs": 29,
+      "p95Ms": 100,
+      "successfulResponses": 80,
+      "envelopesValidated": true
+    },
+    "offline": {
+      "publicPaths": [
+        "/brand/stackplore-favicon-64.png",
+        "/offline.css",
+        "/offline.html",
+        "/offline.js"
+      ],
+      "keyboardRetry": true,
+      "privateContentAbsent": true,
+      "selectedThemeOverridesDevice": ["light", "dark"]
+    },
+    "installability": {
+      "errors": [],
+      "chromiumProtocolChecked": true,
+      "regularProfile": true,
+      "httpFailures": []
+    },
+    "measurements_sha256": "79dabd0fc3865337365e36f2a3e782eb051c48b5654ee134ab8226ba3a3b845b",
+    "raw_measurements_sha256": "e69e400984c849be7bf2206a982a78cf8747f041dc5e0c7de5f8a83dd968dd88",
+    "screenshots": [
+      {
+        "name": "about-en-1280-dark.png",
+        "bytes": 170347,
+        "sha256": "0c516b06cae0dfae421f7e3ad705bee022c870365107d12327b5571d311ad011",
+        "width": 1280,
+        "height": 900
+      },
+      {
+        "name": "about-en-1280-light.png",
+        "bytes": 150113,
+        "sha256": "667fd24ee4fad681f9b0d4994a6b6a37eb90289f96a94c8357c187df10865291",
+        "width": 1280,
+        "height": 900
+      },
+      {
+        "name": "about-en-360-dark.png",
+        "bytes": 134231,
+        "sha256": "c3fa3df8262faa2a3a2e6be8fb70b9802d032f2ebc51255c2d28bec7dc0eeb65",
+        "width": 360,
+        "height": 1261
+      },
+      {
+        "name": "about-en-360-light.png",
+        "bytes": 120533,
+        "sha256": "25922dbe5e4d074efa36050f627eafae41bd9f467eaa6ff5e33c4dc0093aa0d8",
+        "width": 360,
+        "height": 1261
+      },
+      {
+        "name": "about-fa-1280-dark.png",
+        "bytes": 164847,
+        "sha256": "d5779b896ef5f60b7b10059a0d51769f677f58ab092fab3fd097f76da8c00aa5",
+        "width": 1280,
+        "height": 900
+      },
+      {
+        "name": "about-fa-1280-light.png",
+        "bytes": 143311,
+        "sha256": "8729b26be14a2cb9d7b1ce4a93d25c4041d14d45b4cb8ad5606b83fcf6d28c02",
+        "width": 1280,
+        "height": 900
+      },
+      {
+        "name": "about-fa-360-dark.png",
+        "bytes": 128775,
+        "sha256": "68d4943c88ef79503301c0abdeab9f9d4ee22ef06dda6e74877c020235f618da",
+        "width": 360,
+        "height": 1167
+      },
+      {
+        "name": "about-fa-360-light.png",
+        "bytes": 112957,
+        "sha256": "9da22a5bdeeb7102f32c466bca0877cda286bcf08d82d7700012ce6a80b6dd30",
+        "width": 360,
+        "height": 1167
+      },
+      {
+        "name": "command-palette-en-1280-dark.png",
+        "bytes": 192724,
+        "sha256": "bebe678a16c1bbf1959df05e44c2f988bf99c7aa4cc551c0b07326a9679def2b",
+        "width": 1280,
+        "height": 1725
+      },
+      {
+        "name": "command-palette-en-1280-light.png",
+        "bytes": 210480,
+        "sha256": "798092ed583eaeac1445c844c2d647a7802cf5783a4f2c95c4cc89f1da7f12e7",
+        "width": 1280,
+        "height": 1725
+      },
+      {
+        "name": "command-palette-en-360-dark.png",
+        "bytes": 136747,
+        "sha256": "8bc4ee6ef51bf18116499823302d025f7bfea022b2990fd954701a51cf483f34",
+        "width": 360,
+        "height": 2728
+      },
+      {
+        "name": "command-palette-en-360-light.png",
+        "bytes": 141735,
+        "sha256": "70acc854d631aa2368d45b9653c976838201a81f5d03c9eee1ce32dbb9eb3718",
+        "width": 360,
+        "height": 2728
+      },
+      {
+        "name": "command-palette-fa-1280-dark.png",
+        "bytes": 177060,
+        "sha256": "7525faef8875bad264cd135cf0e9083a26ad0bcf84cd0deadfc1ddd2d383d2aa",
+        "width": 1280,
+        "height": 1742
+      },
+      {
+        "name": "command-palette-fa-1280-light.png",
+        "bytes": 193760,
+        "sha256": "4946c5d5c3025e8200ef661b5a991655a11774dc769d22e828b76f93e3e5fd27",
+        "width": 1280,
+        "height": 1742
+      },
+      {
+        "name": "command-palette-fa-360-dark.png",
+        "bytes": 126983,
+        "sha256": "893667d8c2ebb4978420c422e39330927afb45d6a8de8aea73698125e4c7ca85",
+        "width": 360,
+        "height": 2444
+      },
+      {
+        "name": "command-palette-fa-360-light.png",
+        "bytes": 130854,
+        "sha256": "03263feeb6d24170fe2a1a5049588d3f0521ebf10d14b0c57bed977e3aa28732",
+        "width": 360,
+        "height": 2444
+      },
+      {
+        "name": "overview-en-1280-dark.png",
+        "bytes": 309547,
+        "sha256": "6c5de3036f9f9b67952e8ac5409d8a64cf0b737edba3a3b2859064329206f57e",
+        "width": 1280,
+        "height": 2901
+      },
+      {
+        "name": "overview-en-1280-light.png",
+        "bytes": 307894,
+        "sha256": "d539117452d91c49632be685afef799f4cb9179dfbc0fc673adc7c67732f3e78",
+        "width": 1280,
+        "height": 2901
+      },
+      {
+        "name": "overview-en-360-dark.png",
+        "bytes": 305588,
+        "sha256": "c9cf6f4ac484f0f7c7137dba1547c50866ee80a7b5b34538b59053d9dc08418d",
+        "width": 360,
+        "height": 4967
+      },
+      {
+        "name": "overview-en-360-light.png",
+        "bytes": 303834,
+        "sha256": "04fef60dc32fc52f50b4b570b0d7df55b63d238b4d14a81795fc45ff487be719",
+        "width": 360,
+        "height": 4967
+      },
+      {
+        "name": "overview-fa-1280-dark.png",
+        "bytes": 294466,
+        "sha256": "42593f95900dc5886d247132ae538e6756a82112d74ea12fd608ad0745d5bf3a",
+        "width": 1280,
+        "height": 2899
+      },
+      {
+        "name": "overview-fa-1280-light.png",
+        "bytes": 290208,
+        "sha256": "b1dda4115b70c12698f63383c2219d759924698fabaa92224c714aaf5a6419d5",
+        "width": 1280,
+        "height": 2899
+      },
+      {
+        "name": "overview-fa-360-dark.png",
+        "bytes": 296719,
+        "sha256": "ffdefda6790ecd5951701f76ba1c13a3bbf42a50241a386ca4fd99b9b3a50b97",
+        "width": 360,
+        "height": 4745
+      },
+      {
+        "name": "overview-fa-360-light.png",
+        "bytes": 291693,
+        "sha256": "7b44dcde1554d31332abc5d0f03b367141bb1c8d25c1d2311c80cad06b84ced7",
+        "width": 360,
+        "height": 4745
+      },
+      {
+        "name": "topology-en-1280-dark.png",
+        "bytes": 361895,
+        "sha256": "8eac04cc84f08c3f7014be3b26a1d42305c5b60626e930da9d94cf67f72d4704",
+        "width": 1280,
+        "height": 4488
+      },
+      {
+        "name": "topology-en-1280-light.png",
+        "bytes": 358957,
+        "sha256": "8b8891a2db91ddbcbd6ff9679a005697872dc2fe25ab6422c173a73b2ad12cd4",
+        "width": 1280,
+        "height": 4488
+      },
+      {
+        "name": "topology-en-360-dark.png",
+        "bytes": 295674,
+        "sha256": "76012d4512816cadaeec96912861d828b14fa22f232f8679396ec68b0c0df9d6",
+        "width": 360,
+        "height": 5925
+      },
+      {
+        "name": "topology-en-360-light.png",
+        "bytes": 294157,
+        "sha256": "a6958eff27b8e3939b829efc7d22aff0b44814bf0a9f2909958e9c1e7956321c",
+        "width": 360,
+        "height": 5925
+      },
+      {
+        "name": "topology-fa-1280-dark.png",
+        "bytes": 325197,
+        "sha256": "ee094dbe6e999a44bad9bb61fa16c8dc84e0a983dc1830e39cc1326bed65b702",
+        "width": 1280,
+        "height": 4524
+      },
+      {
+        "name": "topology-fa-1280-light.png",
+        "bytes": 319473,
+        "sha256": "36c8283a9e96cba47f0d787a1a01f7c53a398cb8f2abed41b5a6bb02a0a09ff9",
+        "width": 1280,
+        "height": 4524
+      },
+      {
+        "name": "topology-fa-360-dark.png",
+        "bytes": 258174,
+        "sha256": "35696127ca020b6ba27bc683e4fa279d80bf60f0c1450ee5792384acf1ff32e1",
+        "width": 360,
+        "height": 5538
+      },
+      {
+        "name": "topology-fa-360-light.png",
+        "bytes": 254927,
+        "sha256": "7d4565669794dae55a5245fbe5c19f4e5ebf26d02de190633e20571bbf3b38b5",
+        "width": 360,
+        "height": 5538
+      }
+    ],
+    "visual_review": ["about-en-1280-light.png", "about-en-1280-dark.png", "about-fa-360-dark.png"]
+  },
+  "brand": {
+    "assets": 12,
+    "original_bytes": 3629894,
+    "delivered_bytes": 525385,
+    "reduction_percent": 85.5,
+    "original_files_unchanged": true
+  },
+  "consumer": {
+    "regression_checks": 29,
+    "valid_fixtures": 1,
+    "invalid_fixtures_rejected": 28,
+    "sha256": "6d6530f885d7da263d76e679156c7fee4824086efb8068da5302bcd9d465f202",
+    "test_sha256": "14ea963bf7dcbe0e1449e82ac967a0cfa220bb0c6c3ccb762e6c12f2a8e02353",
+    "actual_local_archive_sha256": "79b4a2381133c94137add27442ca8b3e7512f0600ff7734f9bfa306cff6c3b6d",
+    "scope": "Archive structure was checked separately from the actual local browser execution."
+  },
+  "follow_up_changes": [
+    "Documentation and public evidence recorded after the frozen gate.",
+    "Consumer diagnostic wording now describes archive assertions without claiming hosted execution; its native 29-case regression and actual local archive check pass."
+  ],
+  "review": {
+    "score": 9,
+    "scope": "Supplied artwork, coherent palette, accessible existing product journeys and stage-0 design checkpoint."
+  },
+  "pending": [
+    "Exact committed-source hosted CI and signed artifact paths.",
+    "Actual real-processor profile acceptance for stage 1; no compatible running process is available.",
+    "Later v2 preparation and schema 18 are excluded from this source tree and local milestone proof."
+  ],
+  "limits": "Disposable local fixtures. No customer deployment, real-processor compatibility, answer quality or production capacity acceptance is implied."
+}

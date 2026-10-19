@@ -177,7 +177,7 @@ database, backup and provider probes; project acceptance does not deploy it.
 
 The production service worker caches exactly four public offline-shell files:
 `/offline.html`, `/offline.css`, `/offline.js` and
-`/brand/stackplore-favicon.svg`. It never caches app HTML, API/authentication,
+`/brand/stackplore-favicon-64.png`. It never caches app HTML, API/authentication,
 provider/log data, health probes or metrics. Offline navigation uses the public
 offline page. A waiting update activates/reloads only after the user's action.
 

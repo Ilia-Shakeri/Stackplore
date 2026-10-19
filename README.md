@@ -1,3 +1,5 @@
+<img src="apps/web/public/brand/stackplore-mark-192.webp" width="96" height="96" alt="Stackplore" />
+
 # Stackplore
 
 **Explore every service in your stack.**
@@ -5,6 +7,10 @@
 [فارسی](README.fa.md)
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
+
+Development is now **2.0.0-alpha.0**: accepted design and supplied branding;
+new runtime capabilities remain unshipped. Follow the [active stage ledger](docs/v2/implementation.md)
+for current tests and open gates. The stable release below retains its original scope.
 
 > **Status:** Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](docs/evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical immutable [1.0.2 proof](docs/evidence/1.0.2/published-release.json) keeps its original source and limits.
 

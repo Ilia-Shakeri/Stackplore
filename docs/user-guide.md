@@ -129,7 +129,7 @@ the default. The browser cannot create a provider profile or edit raw credential
 
 On HTTPS or another secure browser context, the production build can register an
 installable public offline shell. It caches only `/offline.html`, `/offline.css`,
-`/offline.js` and `/brand/stackplore-favicon.svg`. It does not cache application
+`/offline.js` and `/brand/stackplore-favicon-64.png`. It does not cache application
 HTML, API responses, logs, account data, health probes or metrics. Offline
 navigation shows the public offline page; it does not offer old private data.
 A waiting worker shows an update action and reloads after the user chooses it.

@@ -91,6 +91,49 @@ The backend follows inward dependencies:
 
 Domain code does not import HTTP, PostgreSQL, Docker, Kubernetes, or UI packages. Stable resource and relationship IDs are digests of normalized identity fields, not display names.
 
+## Accepted version 2 target design
+
+Roadmap stage 0 accepts [helper scope](adr/0014-read-only-helper-scope-and-boundaries.md),
+[durable runtime and volatile context](adr/0015-helper-durable-runtime-and-volatile-context.md),
+and [shared authority/privacy and inference egress](adr/0016-helper-authority-and-egress-policy.md).
+These records define future implementation. The published 1.0.3 runtime does
+not gain a helper, profile, schema migration or new HTTP route from this documentation.
+
+The target keeps one modular Go service and PostgreSQL. Helper jobs and HTTP
+handlers call typed use cases through domain-owned inference, evidence,
+policy and repository ports. The registry receives normalized read ports;
+it does not receive operation services, shell/exec, arbitrary network clients,
+SQL or file access. Existing guarded v1 actions retain their separate gates.
+
+Additive `/api/v1/assistant` and `/api/v1/analysis` operations enter OpenAPI only
+when implemented and tested. The feature and external transmission start off;
+public guest mode cannot use paid or external inference. Source/environment
+selection remains query scope under installation-wide roles, while conversation
+metadata is owner-private. No new tenant or per-source access model is implied.
+
+PostgreSQL will hold bounded typed goals, states, evidence references, leases,
+fencing generations, usage reservations and safe events. Question/answer text,
+raw tool payloads and log bodies remain bounded volatile context by default.
+Lost free-form input becomes interrupted. Unknown paid dispatches are never
+resent automatically; their minimal usage ledger survives normal retention,
+quota reset and restore until reconciled or conservatively settled. An old
+backup can miss later charges, so paid admission stays blocked after restore
+until the affected exposure is resolved. Streams replay authorized safe status,
+not an archive of conversation text.
+
+Before helper log reads are reachable, effective log limits and additional
+redaction move from the HTTP wrapper into a shared use-case policy. Local
+free-form input is bounded; default remote mode uses only approved structured
+templates and an explicit typed field inventory. A reviewed operator profile
+binds exact network destinations and credentials references. Its internal
+address support does not relax notification guards. Current authority is
+checked before every step, output and replay; revoked queued output is fenced
+before producer cancellation.
+
+The [version 2 roadmap](roadmap-v2.md) owns delivery order and the active plan
+owns implementation state. Each stage still needs its focused tests, full
+local gate and separately named real integration and release evidence.
+
 ## Persistence
 
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and

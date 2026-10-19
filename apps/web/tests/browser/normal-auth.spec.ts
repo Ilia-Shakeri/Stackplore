@@ -185,7 +185,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
       return paths.sort();
     });
     expect(cachePaths).toEqual([
-      '/brand/stackplore-favicon.svg',
+      '/brand/stackplore-favicon-64.png',
       '/offline.css',
       '/offline.html',
       '/offline.js',

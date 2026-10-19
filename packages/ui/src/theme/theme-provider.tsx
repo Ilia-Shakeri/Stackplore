@@ -100,7 +100,7 @@ export function ThemeProvider({
       themeColor.name = 'theme-color';
       document.head.append(themeColor);
     }
-    themeColor.content = resolvedTheme === 'dark' ? '#0b101b' : '#f7f8fb';
+    themeColor.content = resolvedTheme === 'dark' ? '#06111f' : '#f4f8fd';
   }, [resolvedTheme, theme]);
 
   const setTheme = useCallback(

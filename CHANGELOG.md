@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.0.0-alpha.0] - 2026-10-19
+
+- Accept the read-only version 2 target design, authority/privacy boundaries,
+  durable metadata and volatile text lifecycle in ADRs 0014–0016.
+- Add a bilingual execution roadmap, staged evidence ledger, threat matrix and
+  bounded corpus checker with an explicitly incomplete synthetic seed.
+- Accept only canonical alpha/beta/rc checkpoint database image tags and test
+  prerelease manifest, publication, chart and archive bindings.
+- Apply the supplied project artwork across navigation, introduction, browser,
+  installed application and public offline shell. Twelve optimized derivatives
+  total 525,385 bytes, 85.5% below the three sources. Align accessible light/dark
+  blue/cyan tokens and browser theme colors; keep offline storage public-only.
+- Helper runtime, real processor quality and all later stage gates remain
+  pending; this checkpoint does not enable a new user-facing capability.
+
 ## [1.0.3] - 2026-10-19
 
 - Apply effective PostgreSQL retention settings per bounded batch under a shared

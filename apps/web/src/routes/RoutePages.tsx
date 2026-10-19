@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { useTheme } from '@stackplore/ui';
 import { lazy, Suspense, type ReactNode } from 'react';
 
 import type * as ProductPageExports from '../features/product/ProductPages';
@@ -288,13 +289,25 @@ export function PreferencesSettingsPage() {
 
 export function AboutPage() {
   const { t, tPlural } = useLocale();
+  const { resolvedTheme } = useTheme();
 
   return (
     <div className="route-page">
-      <header className="route-page__header">
-        <p className="route-page__eyebrow">{t('route.about.eyebrow')}</p>
-        <h1>{t('route.about.title')}</h1>
-        <p>{t('route.about.description')}</p>
+      <header className="route-page__header about-hero">
+        <div className="about-hero__copy">
+          <p className="route-page__eyebrow">{t('route.about.eyebrow')}</p>
+          <h1>{t('route.about.title')}</h1>
+          <p>{t('route.about.description')}</p>
+        </div>
+        <img
+          className="about-hero__image"
+          src={`/brand/stackplore-intro-${resolvedTheme}.webp`}
+          width="960"
+          height="640"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
       </header>
 
       <section className="planned-state" aria-labelledby="about-status-title">

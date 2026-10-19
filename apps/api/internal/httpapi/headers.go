@@ -70,7 +70,7 @@ func applyFixedHeaders(header http.Header, path string, status int, requestID st
 		header.Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 		if strings.HasPrefix(path, "/assets/") {
 			header.Set("Cache-Control", "public, max-age=31536000, immutable")
-		} else if path == "/offline.html" || path == "/offline.css" || path == "/offline.js" || path == "/brand/stackplore-favicon.svg" {
+		} else if path == "/offline.html" || path == "/offline.css" || path == "/offline.js" || path == "/brand/stackplore-favicon-64.png" {
 			header.Set("Cache-Control", "public, max-age=0, must-revalidate")
 		} else if path == "/sw.js" || path == "/manifest.webmanifest" {
 			header.Set("Cache-Control", "no-cache")

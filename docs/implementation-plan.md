@@ -1,5 +1,12 @@
 # Stackplore active implementation evidence
 
+## Version 2 work started — 2026-10-19
+
+Stage-by-stage implementation, versioning, commits and pushes are authorized.
+The [version 2 ledger](v2/implementation.md) owns new commands, failures,
+source bindings and pending gates. Accepted design is separate from delivered
+runtime. Existing 1.0 evidence below remains historical and immutable.
+
 ## Accepted corrective audit — 1.0.3 — 2026-10-19
 
 Immutable v1.0.3 is **656581cf05d4774358d5644a6e1af3c69a210f81**, schema **17**.

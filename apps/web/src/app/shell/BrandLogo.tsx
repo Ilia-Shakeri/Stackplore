@@ -20,10 +20,12 @@ export function BrandLogo({ compact = false }: BrandLogoProps) {
     >
       <img
         className="brand-logo__mark"
-        src="/brand/stackplore-mark.svg"
+        src="/brand/stackplore-mark-96.webp"
+        srcSet="/brand/stackplore-mark-96.webp 1x, /brand/stackplore-mark-192.webp 2x"
         width="36"
         height="36"
         alt=""
+        decoding="async"
       />
       <bdi className="brand-logo__word" dir="ltr" lang="en" hidden={compact}>
         Stackplore

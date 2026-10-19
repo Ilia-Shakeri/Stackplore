@@ -1,0 +1,913 @@
+{
+  "version": "2.0.0-alpha.0",
+  "startedAt": "2026-10-19T13:03:41.630Z",
+  "fixture": "Disposable loopback PostgreSQL and synthetic guest data.",
+  "en-360-light": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 965,
+        "domContentLoadedMs": 122,
+        "loadMs": 122,
+        "assetCount": 26,
+        "assetTransferBytes": 907852,
+        "assetEncodedBytes": 900052,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 527,
+        "domContentLoadedMs": 53,
+        "loadMs": 54,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 420,
+        "domContentLoadedMs": 33,
+        "loadMs": 33,
+        "assetCount": 15,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 844558,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 406,
+        "domContentLoadedMs": 32,
+        "loadMs": 32,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 833975,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 413,
+        "domContentLoadedMs": 31,
+        "loadMs": 31,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828634,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 397,
+        "domContentLoadedMs": 28,
+        "loadMs": 28,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828370,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 414,
+        "domContentLoadedMs": 30,
+        "loadMs": 30,
+        "assetCount": 13,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828498,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 390,
+        "domContentLoadedMs": 29,
+        "loadMs": 29,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "environmentSelector": {
+      "lazyReads": true,
+      "environmentReads": 2,
+      "sourceBound": true,
+      "keyboard": true,
+      "focusReturn": true,
+      "accessibility": true,
+      "viewport": true,
+      "mobileDrawer": true
+    },
+    "httpFailures": []
+  },
+  "en-360-dark": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 930,
+        "domContentLoadedMs": 65,
+        "loadMs": 67,
+        "assetCount": 26,
+        "assetTransferBytes": 907852,
+        "assetEncodedBytes": 900052,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 405,
+        "domContentLoadedMs": 38,
+        "loadMs": 39,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 714,
+        "domContentLoadedMs": 26,
+        "loadMs": 27,
+        "assetCount": 15,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 844558,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 410,
+        "domContentLoadedMs": 30,
+        "loadMs": 30,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 833975,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 410,
+        "domContentLoadedMs": 29,
+        "loadMs": 29,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828634,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 402,
+        "domContentLoadedMs": 30,
+        "loadMs": 30,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828370,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 390,
+        "domContentLoadedMs": 30,
+        "loadMs": 30,
+        "assetCount": 13,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828498,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 410,
+        "domContentLoadedMs": 26,
+        "loadMs": 26,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "httpFailures": []
+  },
+  "en-1280-light": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 597,
+        "domContentLoadedMs": 57,
+        "loadMs": 57,
+        "assetCount": 26,
+        "assetTransferBytes": 907852,
+        "assetEncodedBytes": 900052,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 428,
+        "domContentLoadedMs": 35,
+        "loadMs": 35,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 715,
+        "domContentLoadedMs": 26,
+        "loadMs": 27,
+        "assetCount": 15,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 844558,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 416,
+        "domContentLoadedMs": 36,
+        "loadMs": 36,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 833975,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 436,
+        "domContentLoadedMs": 41,
+        "loadMs": 42,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828634,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 407,
+        "domContentLoadedMs": 35,
+        "loadMs": 36,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828370,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 404,
+        "domContentLoadedMs": 29,
+        "loadMs": 29,
+        "assetCount": 13,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828498,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 388,
+        "domContentLoadedMs": 33,
+        "loadMs": 34,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "environmentSelector": {
+      "lazyReads": true,
+      "environmentReads": 2,
+      "sourceBound": true,
+      "keyboard": true,
+      "focusReturn": true,
+      "accessibility": true,
+      "viewport": true,
+      "mobileDrawer": false
+    },
+    "httpFailures": []
+  },
+  "en-1280-dark": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 893,
+        "domContentLoadedMs": 69,
+        "loadMs": 69,
+        "assetCount": 26,
+        "assetTransferBytes": 907852,
+        "assetEncodedBytes": 900052,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 591,
+        "domContentLoadedMs": 68,
+        "loadMs": 68,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 535,
+        "domContentLoadedMs": 67,
+        "loadMs": 67,
+        "assetCount": 15,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 844558,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 578,
+        "domContentLoadedMs": 69,
+        "loadMs": 70,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 833975,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 602,
+        "domContentLoadedMs": 99,
+        "loadMs": 99,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828634,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 607,
+        "domContentLoadedMs": 96,
+        "loadMs": 96,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828370,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 557,
+        "domContentLoadedMs": 77,
+        "loadMs": 78,
+        "assetCount": 13,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 828498,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 649,
+        "domContentLoadedMs": 67,
+        "loadMs": 67,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 831278,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "httpFailures": []
+  },
+  "fa-360-light": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 1196,
+        "domContentLoadedMs": 81,
+        "loadMs": 81,
+        "assetCount": 26,
+        "assetTransferBytes": 894120,
+        "assetEncodedBytes": 886320,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 478,
+        "domContentLoadedMs": 55,
+        "loadMs": 55,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 817546,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 1201,
+        "domContentLoadedMs": 32,
+        "loadMs": 33,
+        "assetCount": 15,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 830826,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 457,
+        "domContentLoadedMs": 38,
+        "loadMs": 38,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 820243,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 416,
+        "domContentLoadedMs": 36,
+        "loadMs": 37,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 814902,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 408,
+        "domContentLoadedMs": 42,
+        "loadMs": 42,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 814638,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 420,
+        "domContentLoadedMs": 34,
+        "loadMs": 34,
+        "assetCount": 13,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 814766,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 411,
+        "domContentLoadedMs": 46,
+        "loadMs": 46,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 817546,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "environmentSelector": {
+      "lazyReads": true,
+      "environmentReads": 2,
+      "sourceBound": true,
+      "keyboard": true,
+      "focusReturn": true,
+      "accessibility": true,
+      "viewport": true,
+      "mobileDrawer": true
+    },
+    "httpFailures": []
+  },
+  "fa-360-dark": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 979,
+        "domContentLoadedMs": 67,
+        "loadMs": 69,
+        "assetCount": 26,
+        "assetTransferBytes": 894120,
+        "assetEncodedBytes": 886320,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 475,
+        "domContentLoadedMs": 57,
+        "loadMs": 57,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 817546,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 781,
+        "domContentLoadedMs": 49,
+        "loadMs": 49,
+        "assetCount": 15,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 830826,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 423,
+        "domContentLoadedMs": 38,
+        "loadMs": 38,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 820243,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 436,
+        "domContentLoadedMs": 41,
+        "loadMs": 41,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 814902,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 423,
+        "domContentLoadedMs": 38,
+        "loadMs": 38,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 814638,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 429,
+        "domContentLoadedMs": 39,
+        "loadMs": 39,
+        "assetCount": 13,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 814766,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 413,
+        "domContentLoadedMs": 33,
+        "loadMs": 34,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 817546,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "httpFailures": []
+  },
+  "fa-1280-light": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 995,
+        "domContentLoadedMs": 70,
+        "loadMs": 71,
+        "assetCount": 27,
+        "assetTransferBytes": 942676,
+        "assetEncodedBytes": 934576,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 459,
+        "domContentLoadedMs": 47,
+        "loadMs": 48,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 865802,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 732,
+        "domContentLoadedMs": 35,
+        "loadMs": 36,
+        "assetCount": 16,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 879082,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 463,
+        "domContentLoadedMs": 52,
+        "loadMs": 54,
+        "assetCount": 16,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 868499,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 446,
+        "domContentLoadedMs": 52,
+        "loadMs": 52,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 863158,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 432,
+        "domContentLoadedMs": 40,
+        "loadMs": 42,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 862894,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 430,
+        "domContentLoadedMs": 47,
+        "loadMs": 47,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 863022,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 429,
+        "domContentLoadedMs": 34,
+        "loadMs": 34,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 865802,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "environmentSelector": {
+      "lazyReads": true,
+      "environmentReads": 2,
+      "sourceBound": true,
+      "keyboard": true,
+      "focusReturn": true,
+      "accessibility": true,
+      "viewport": true,
+      "mobileDrawer": false
+    },
+    "httpFailures": []
+  },
+  "fa-1280-dark": {
+    "scope": "Loopback disposable synthetic guest fixture; local observations only.",
+    "version": "2.0.0-alpha.0",
+    "chromium": "155.0.8059.80",
+    "measurements": [
+      {
+        "route": "/overview",
+        "routeReadyMs": 981,
+        "domContentLoadedMs": 68,
+        "loadMs": 69,
+        "assetCount": 27,
+        "assetTransferBytes": 942676,
+        "assetEncodedBytes": 934576,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/resources",
+        "routeReadyMs": 581,
+        "domContentLoadedMs": 58,
+        "loadMs": 60,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 865802,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/topology",
+        "routeReadyMs": 764,
+        "domContentLoadedMs": 43,
+        "loadMs": 43,
+        "assetCount": 16,
+        "assetTransferBytes": 20234,
+        "assetEncodedBytes": 879082,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/logs",
+        "routeReadyMs": 432,
+        "domContentLoadedMs": 38,
+        "loadMs": 38,
+        "assetCount": 16,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 868499,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/events",
+        "routeReadyMs": 455,
+        "domContentLoadedMs": 48,
+        "loadMs": 49,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 863158,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/alerts",
+        "routeReadyMs": 466,
+        "domContentLoadedMs": 47,
+        "loadMs": 47,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 862894,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/notifications",
+        "routeReadyMs": 481,
+        "domContentLoadedMs": 58,
+        "loadMs": 58,
+        "assetCount": 14,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 863022,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      },
+      {
+        "route": "/search",
+        "routeReadyMs": 433,
+        "domContentLoadedMs": 33,
+        "loadMs": 33,
+        "assetCount": 15,
+        "assetTransferBytes": 0,
+        "assetEncodedBytes": 865802,
+        "reducedMotion": true,
+        "normalMotionDuration": "1ms"
+      }
+    ],
+    "commandPalette": {
+      "keyboard": true,
+      "accessibility": true,
+      "viewport": true,
+      "fixedNavigation": true,
+      "focusReturn": true
+    },
+    "httpFailures": []
+  },
+  "offline": {
+    "publicPaths": [
+      "/brand/stackplore-favicon-64.png",
+      "/offline.css",
+      "/offline.html",
+      "/offline.js"
+    ],
+    "keyboardRetry": true,
+    "privateContentAbsent": true,
+    "selectedThemeOverridesDevice": ["light", "dark"]
+  },
+  "installability": {
+    "errors": [],
+    "chromiumProtocolChecked": true,
+    "regularProfile": true,
+    "httpFailures": []
+  },
+  "concurrentReads": {
+    "scope": "Disposable synthetic guest fixture; default read rate; local observations only.",
+    "requests": 80,
+    "parallel": 8,
+    "rounds": 10,
+    "minimumRoundSpacingMs": 600,
+    "setupRateBucketRefillMs": 2500,
+    "setupNavigationRefills": 4,
+    "setupNavigationRefillMs": 2500,
+    "setupExcludedFromReadTiming": true,
+    "initialRateBucketRefillMs": 2500,
+    "maximumOfferedReadsPerSecond": 13.34,
+    "elapsedMs": 6065,
+    "medianMs": 29,
+    "p95Ms": 100,
+    "successfulResponses": 80,
+    "envelopesValidated": true
+  },
+  "update": {
+    "explicitAcceptance": true,
+    "publicPaths": [
+      "/brand/stackplore-favicon-64.png",
+      "/offline.css",
+      "/offline.html",
+      "/offline.js"
+    ]
+  }
+}

@@ -140,7 +140,7 @@ describe('public offline shell privacy', () => {
 
   it('precaches only named public files and sends no credentials', async () => {
     const worker = createWorker();
-    const types = ['text/html', 'text/css', 'application/javascript', 'image/svg+xml'];
+    const types = ['text/html', 'text/css', 'application/javascript', 'image/png'];
     worker.fetch.mockImplementation(() =>
       Promise.resolve(
         new Response('public shell', { headers: { 'Content-Type': types.shift() ?? '' } }),
@@ -152,7 +152,7 @@ describe('public offline shell privacy', () => {
       '/offline.html',
       '/offline.css',
       '/offline.js',
-      '/brand/stackplore-favicon.svg',
+      '/brand/stackplore-favicon-64.png',
     ]);
     expect(worker.fetch.mock.calls.every(([request]) => request.credentials === 'omit')).toBe(true);
     expect(worker.put).toHaveBeenCalledTimes(4);
@@ -174,5 +174,46 @@ describe('public offline shell privacy', () => {
     expect(offlineSource).toContain(`'sha256-${hash}'`);
     expect(offlineSource).toContain(`integrity="sha256-${hash}"`);
     expect(Object.keys(fa).sort()).toEqual(Object.keys(en).sort());
+  });
+
+  it.each([
+    ['light', true, 'light'],
+    ['dark', false, 'dark'],
+    ['system', true, 'dark'],
+    ['system', false, 'light'],
+    ['invalid', true, 'dark'],
+    [null, false, 'light'],
+  ])('offline preference %s overrides device dark=%s', (stored, deviceDark, expected) => {
+    const dataset: Record<string, string> = {};
+    runInNewContext(offlineScript, {
+      globalThis: {
+        localStorage: { getItem: () => stored },
+        matchMedia: () => ({ matches: deviceDark }),
+        document: { documentElement: { dataset }, getElementById: () => null },
+      },
+    });
+    expect(dataset.theme).toBe(expected);
+  });
+
+  it('offline theme tolerates blocked storage and preserves keyboard retry', () => {
+    const dataset: Record<string, string> = {};
+    const reload = vi.fn();
+    const addEventListener = vi.fn<(_event: string, _handler: () => void) => void>();
+    runInNewContext(offlineScript, {
+      globalThis: {
+        localStorage: {
+          getItem: () => {
+            throw new Error('blocked');
+          },
+        },
+        matchMedia: () => ({ matches: true }),
+        document: { documentElement: { dataset }, getElementById: () => ({ addEventListener }) },
+        location: { reload },
+      },
+    });
+    expect(dataset.theme).toBe('dark');
+    expect(addEventListener.mock.calls[0]?.[0]).toBe('click');
+    addEventListener.mock.calls[0]?.[1]();
+    expect(reload).toHaveBeenCalledOnce();
   });
 });

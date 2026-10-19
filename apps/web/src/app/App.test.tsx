@@ -33,6 +33,16 @@ describe('application shell', () => {
     renderRoute('/about');
     const navigationLabel = locale === 'fa' ? 'باز کردن ناوبری' : 'Open navigation';
     const trigger = await screen.findByRole('button', { name: navigationLabel });
+    const hero = document.querySelector<HTMLImageElement>('.about-hero__image');
+    expect(hero?.getAttribute('src')).toBe(`/brand/stackplore-intro-${theme}.webp`);
+    expect(hero?.getAttribute('width')).toBe('960');
+    expect(hero?.getAttribute('height')).toBe('640');
+    expect(hero?.getAttribute('alt')).toBe('');
+    const mark = document.querySelector<HTMLImageElement>('.brand-logo__mark');
+    expect(mark?.getAttribute('src')).toBe('/brand/stackplore-mark-96.webp');
+    expect(mark?.getAttribute('srcset')).toContain('/brand/stackplore-mark-192.webp 2x');
+    expect(mark?.getAttribute('width')).toBe('36');
+    expect(mark?.getAttribute('height')).toBe('36');
     const search = screen.getByRole('searchbox', {
       name: locale === 'fa' ? 'جست‌وجوی منابع' : 'Search resources',
     });
@@ -55,6 +65,9 @@ describe('application shell', () => {
     });
     await user.selectOptions(themeControl, theme === 'light' ? 'dark' : 'light');
     expect(document.documentElement.dataset.theme).toBe(theme === 'light' ? 'dark' : 'light');
+    expect(hero?.getAttribute('src')).toBe(
+      `/brand/stackplore-intro-${theme === 'light' ? 'dark' : 'light'}.webp`,
+    );
     expect(
       screen.getByRole<HTMLSelectElement>('combobox', {
         name: locale === 'fa' ? 'زبان' : 'Language',

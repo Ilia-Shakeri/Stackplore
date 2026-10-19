@@ -20,5 +20,5 @@
   root.style.colorScheme = resolved;
 
   const themeColor = globalThis.document.querySelector('meta[name="theme-color"]');
-  themeColor?.setAttribute('content', resolved === 'dark' ? '#0b101b' : '#f7f8fb');
+  themeColor?.setAttribute('content', resolved === 'dark' ? '#06111f' : '#f4f8fd');
 })();

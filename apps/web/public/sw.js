@@ -4,7 +4,7 @@ const shellPaths = new Map([
   ['/offline.html', 'text/html'],
   ['/offline.css', 'text/css'],
   ['/offline.js', 'javascript'],
-  ['/brand/stackplore-favicon.svg', 'image/svg+xml'],
+  ['/brand/stackplore-favicon-64.png', 'image/png'],
 ]);
 
 globalThis.addEventListener('install', (event) => {

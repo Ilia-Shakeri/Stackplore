@@ -1,9 +1,14 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+  --offline-background: #f4f8fd;
+  --offline-text: #071c35;
+  --offline-surface: #ffffff;
+  --offline-primary: #075ad4;
+  --offline-on-primary: #ffffff;
   font-family: system-ui, sans-serif;
   line-height: 1.6;
-  background: #f7f8fb;
-  color: #172033;
+  background: var(--offline-background);
+  color: var(--offline-text);
 }
 body {
   margin: 0;
@@ -16,9 +21,12 @@ main {
   padding: clamp(1rem, 5vw, 2.5rem);
   border: 1px solid #8b95a5;
   border-radius: 1rem;
-  background: #ffffff;
+  background: var(--offline-surface);
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -31,31 +39,32 @@ section + section {
 }
 button {
   padding: 0.75rem 1rem;
-  border: 2px solid #123993;
+  border: 2px solid var(--offline-primary);
   border-radius: 0.5rem;
-  background: #123993;
-  color: #ffffff;
+  background: var(--offline-primary);
+  color: var(--offline-on-primary);
   font: inherit;
   cursor: pointer;
 }
 button:focus-visible {
-  outline: 3px solid #172033;
+  outline: 3px solid var(--offline-text);
   outline-offset: 4px;
 }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --offline-background: #06111f;
+  --offline-text: #eef8ff;
+  --offline-surface: #0b1a2d;
+  --offline-primary: #43bcff;
+  --offline-on-primary: #071424;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
-    background: #0b101b;
-    color: #e7ebf3;
-  }
-  main {
-    background: #141d2e;
-  }
-  button {
-    background: #bcd0ff;
-    border-color: #bcd0ff;
-    color: #112754;
-  }
-  button:focus-visible {
-    outline-color: #e7ebf3;
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --offline-background: #06111f;
+    --offline-text: #eef8ff;
+    --offline-surface: #0b1a2d;
+    --offline-primary: #43bcff;
+    --offline-on-primary: #071424;
   }
 }

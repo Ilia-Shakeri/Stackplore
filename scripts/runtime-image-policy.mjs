@@ -54,12 +54,13 @@ export function validatePostgresImagePolicy(policy) {
   if (policy.minimum_native_tools !== MINIMUM_POSTGRES_VERSION) {
     fail(`minimum_native_tools must be ${MINIMUM_POSTGRES_VERSION}`);
   }
-  if (
-    typeof policy.runtime_image !== 'string' ||
-    !/^stackplore-postgres:(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/u.test(
-      policy.runtime_image,
-    )
-  )
+  const runtimeMatch =
+    typeof policy.runtime_image === 'string'
+      ? /^stackplore-postgres:(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9]\d*))?$/u.exec(
+          policy.runtime_image,
+        )
+      : null;
+  if (!runtimeMatch || runtimeMatch[0] !== policy.runtime_image)
     fail('runtime_image must be a versioned Stackplore PostgreSQL image');
   if (policy.gosu_version !== '1.19' || policy.gosu_build_go !== '1.26.9')
     fail('gosu must be version 1.19 rebuilt with Go 1.26.9');

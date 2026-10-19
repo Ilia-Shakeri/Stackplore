@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-19",
+  "source": "User-supplied project artwork",
+  "processing": "Transparent bounds crop, proportional Lanczos resize, WebP quality 85/88 and optimized PNG/JPEG; original source files unchanged.",
+  "sources": [
+    {
+      "name": "Stackplore Neon Data Emblem.png",
+      "bytes": 1659836,
+      "sha256": "6fac12eeaca538e8e357fdf6741687ee215b57c7679cb4a382964929d18a430b",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "name": "Stackplore Neon Orb Logo.png",
+      "bytes": 1296186,
+      "sha256": "1b12eadb2aae1a24b5bb1d5fec6ddfe6999d0cb83df116772fcf0ae19026760f",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "name": "Stackplore-Logo-Without-Background.png",
+      "bytes": 673872,
+      "sha256": "9156a467a6e5ea87620f8a5a79e3a6b99cae8f5f3408c1809979aee515a42d4d",
+      "width": 1536,
+      "height": 1023
+    }
+  ],
+  "outputs": [
+    {
+      "name": "stackplore-mark-96.webp",
+      "bytes": 4092,
+      "sha256": "fc4d2ebb68e4178f8504c3b30953695d94a7cbe90a49bc7dee4aa2ef6bdf9143",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "name": "stackplore-mark-192.webp",
+      "bytes": 9706,
+      "sha256": "16b36249c7000b6d58ac1441956a3c28a6ef2a33624b505f9b4bf319286d663f",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "name": "stackplore-mark-512.webp",
+      "bytes": 33412,
+      "sha256": "c4fc7e5e1215d47cec806ad78d671bea3395a40a59e5131bb06036fda356489e",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "stackplore-favicon-32.png",
+      "bytes": 2193,
+      "sha256": "57c46ab84dd19d7e80c8eb9cd2ef2107d71e6c1ccd653d6745af037951287634",
+      "width": 32,
+      "height": 32
+    },
+    {
+      "name": "stackplore-favicon-64.png",
+      "bytes": 6667,
+      "sha256": "0835f95c5e93e4e340e401220b31c0997005f50a9da0f9a2d1d854d89eccfc73",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "name": "stackplore-apple-touch.png",
+      "bytes": 30743,
+      "sha256": "aa452bfb0ac347687676b65dfd6f966157859f7079bee6c6076044cea8105e8f",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "name": "stackplore-pwa-192.png",
+      "bytes": 31836,
+      "sha256": "7b5bcbbdcd709112786359c4513c5c0c2c916ffad8a1b0de9cbdd2a3e9586513",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "name": "stackplore-pwa-512.png",
+      "bytes": 162009,
+      "sha256": "2f88315d304dd704531d8a0685dada871b9696e575e2f3537b9aa146ea73ef04",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "stackplore-maskable-512.png",
+      "bytes": 91058,
+      "sha256": "2e0374315de646ab2bdb8d9f64c26fc0bf5fbd3ed0a92dac2c63017f2986acf4",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "stackplore-intro-dark.webp",
+      "bytes": 48420,
+      "sha256": "acc78c3be81619ab37b8515e816f9909b71a976b2480b0f744b97f7d9475552b",
+      "width": 960,
+      "height": 640
+    },
+    {
+      "name": "stackplore-intro-light.webp",
+      "bytes": 31300,
+      "sha256": "477fd4c46a7fafe2e86fd82d52c1cc21a83f5ae0b1e9315967ef1493490ab21d",
+      "width": 960,
+      "height": 640
+    },
+    {
+      "name": "stackplore-social-preview.jpg",
+      "bytes": 73949,
+      "sha256": "9b6ca0582bd554f034f6c46a534dcfc9e3f6e4b64252f812469427468b9c74d5",
+      "width": 1200,
+      "height": 630
+    }
+  ],
+  "original_total_bytes": 3629894,
+  "optimized_total_bytes": 525385,
+  "maskable_safe_artwork_fraction": 0.6
+}

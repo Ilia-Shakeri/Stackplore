@@ -166,12 +166,18 @@ describe('theme state', () => {
     expect(screen.getByTestId('theme-value').textContent).toBe('dark:dark');
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(document.documentElement.dataset.themePreference).toBe('dark');
+    expect(document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content).toBe(
+      '#06111f',
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'Use light' }));
 
     expect(globalThis.localStorage.getItem('test.theme')).toBe('light');
     expect(screen.getByTestId('theme-value').textContent).toBe('light:light');
     expect(document.documentElement.dataset.theme).toBe('light');
+    expect(document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content).toBe(
+      '#f4f8fd',
+    );
   });
 
   it('resolves the system preference', () => {
