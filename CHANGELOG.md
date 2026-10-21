@@ -38,6 +38,13 @@
   exact-source export; [preparation status](docs/v2/preparation-status.md) keeps
   this boundary separate. Version-2 stages 1–10 remain incomplete.
 
+- Correct the offline browser fixture's repeated online navigation bursts after
+  follow-up CI `39562252755` recorded setup 429 and 13/14 passing cases. Reuse the
+  existing bounded default-peer refill before three reloads and require no public
+  HTTP failures; preserve server limits, test counts, all assertions and no-retry
+  behavior. The failed source and artifact keep their
+  [diagnostic receipt](docs/evidence/2.0.0-alpha.0/follow-up-browser-failure.json).
+
 ## [1.0.3] - 2026-10-19
 
 - Apply effective PostgreSQL retention settings per bounded batch under a shared

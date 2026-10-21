@@ -136,6 +136,27 @@ was 3.7 GiB, available memory about 2 GiB of 15.6 GiB.
   Archive fixtures test the consumer only; actual browser and hosted source
   identity still require their own receipts.
 
+## Follow-up browser fixture failure
+
+The docs-only follow-up source `3b80e3840d13d75e89f62c2d0ba2b81f2d540383`
+failed [CI 39562252755](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39562252755)
+only in the production browser step. Full verification, Go concurrency and the
+five other jobs passed; **13/14** browser cases passed. The
+[diagnostic receipt](../evidence/2.0.0-alpha.0/follow-up-browser-failure.json)
+binds the exact failed source and artifact without returning private payloads.
+Guest case 9 failed at the final online reload with setup **429**. Repeated
+navigation bursts shared the unchanged default 40-token / 20-request-per-second
+peer bucket. The fixture correction applies its existing 2,500 ms refill before
+the controlled reload and both online resumes, preserves every assertion and
+adds an explicit no-HTTP-failure check. No test retry, rate increase, timeout
+increase or skip was added. Fresh exact-source CI and browser acceptance must
+prove this correction; the failed attempt remains failed.
+
+پیگیری `3b80e38` در مرورگر شکست؛ **۱۳ از ۱۴** تست پاس. گیت کامل، رقابت و
+پنج کار دیگر پاس بودند. setup در بازگشت آنلاینِ تست آفلاین **۴۲۹** داد.
+سه مکثِ موجود ۲۵۰۰ms و شرط نبود خطای HTTP افزوده شد؛ نرخ و همهٔ شرط‌ها حفظ.
+رسید شکست باقی؛ منبع اصلاح‌شده، پذیرش تازهٔ CI و مرورگر لازم دارد.
+
 ## Current acceptance and unresolved gates
 
 Corrected frozen attempt E, tree

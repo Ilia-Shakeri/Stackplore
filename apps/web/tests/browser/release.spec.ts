@@ -449,6 +449,7 @@ test('worker caches only public shell and offline navigation reveals no infrastr
   page,
   context,
 }) => {
+  let onlineNavigationRefills = 0;
   await page.goto('/overview');
   await expect(page.locator('main h1')).toBeVisible();
   expect((await page.request.get('/sw.js')).status()).toBe(200);
@@ -459,6 +460,8 @@ test('worker caches only public shell and offline navigation reveals no infrastr
       { timeout: 15_000 },
     )
     .toBe('activated');
+  await refillDefaultPeerBucket();
+  onlineNavigationRefills++;
   await page.reload();
   await expect
     .poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
@@ -494,15 +497,22 @@ test('worker caches only public shell and offline navigation reveals no infrastr
     expect(await page.locator('body').innerText()).not.toContain('Checkout');
     await page.getByRole('button').focus();
     await expect(page.getByRole('button')).toBeFocused();
+    await refillDefaultPeerBucket();
+    onlineNavigationRefills++;
     await context.setOffline(false);
     await page.reload();
     await expect(page.locator('main h1')).toBeVisible();
   }
+  const httpFailures = responseFailures.get(page) ?? [];
+  expect(httpFailures).toEqual([]);
   await receipt('offline', {
     publicPaths: paths,
     keyboardRetry: true,
     privateContentAbsent: true,
     selectedThemeOverridesDevice: ['light', 'dark'],
+    onlineNavigationRefills,
+    onlineNavigationRefillMs: defaultPeerBucketRefillMs,
+    httpFailures,
   });
 });
 

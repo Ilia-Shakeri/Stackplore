@@ -105,6 +105,30 @@ permissions. This helper correction left product code unchanged. The failed
 attempt and diagnostics retain their original result; only the later complete
 runtime attempt establishes passing execution.
 
+## Follow-up browser fixture correction
+
+The documentation follow-up `3b80e3840d13d75e89f62c2d0ba2b81f2d540383`
+failed [CI 39562252755](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39562252755)
+in the production browser step: **13/14** cases passed. Full verification,
+Go concurrency and all five other jobs passed. The
+[source-bound diagnostic receipt](follow-up-browser-failure.json) retains that
+failed outcome, artifact digest and sanitized public HTTP status.
+
+The guest offline test's repeated online reloads exhausted the default shared
+loopback request bucket; setup returned **429** and the final heading was absent.
+The fixture now uses its existing **2,500 ms** refill before the controlled reload
+and each of the two online resumes, and asserts no public HTTP failures. This
+separates three navigation bursts under the unchanged **20 requests/s, burst 40**
+limits. It adds no test retry, timeout increase, skipped case or removed assertion.
+The corrected source needs its own passing CI/browser receipt. Immutable alpha.0
+receipts above keep their exact source and original scope.
+
+پیگیری سند در منبع `3b80e38`، تست مرورگر را با **۱۳ از ۱۴** پاس شکست داد؛
+گیت کامل، رقابت و پنج کار دیگر پاس بودند. در بازگشت‌های سریع آنلاینِ تست
+آفلاین، مسیر setup پاسخ **۴۲۹** داد. سه مکثِ موجود ۲۵۰۰ms و شرط نبود خطای
+HTTP اضافه شد؛ نرخ سرور، تعداد تست و همهٔ شرط‌ها حفظ شدند. رسید شکست باقی؛
+پذیرش اصلاح، CI و رسید مرورگرِ منبع تازه لازم دارد.
+
 ## Unaccepted preparation and remaining scope
 
 [Draft PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1),
