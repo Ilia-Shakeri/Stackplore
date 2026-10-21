@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "recorded_at_utc": "2026-10-21T10:56:20.2027950Z",
+  "command": "node --test scripts/release.test.mjs scripts/runtime-images.test.mjs",
+  "tests": 48,
+  "passed": 48,
+  "failed": 0,
+  "skipped": 0,
+  "duration_ms": 69008.3867,
+  "exec_session": 50086,
+  "final_output_chunk": "856ce1",
+  "source": [
+    {
+      "path": "scripts/release.mjs",
+      "sha256": "8add30e014cac67a2a5cb623aba49fb7dfd383f2ae94ff25dd8167254f45628c"
+    },
+    {
+      "path": "scripts/release.test.mjs",
+      "sha256": "a0d9a4c2488a398a78aad90f9f381565647513610ad7a6768ccf7e3b60c63d4c"
+    }
+  ],
+  "prettier": "passed",
+  "eslint": "passed",
+  "eslint_exec_session": 44842,
+  "eslint_exit_code": 0,
+  "scope": "Summary transcribed from tool output after the run; raw stdout was not saved to disk. Synthetic Node release and runtime-image policy tests only. No actual CI, publication, browser, provider or deployment proof."
+}

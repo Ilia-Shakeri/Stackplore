@@ -25,15 +25,28 @@ with absence verified. **Stage 0 is accepted within the recorded scope.**
 [Alpha.0 evidence](docs/evidence/2.0.0-alpha.0/README.md) retains failed consumer
 attempts and separates each runtime claim.
 
-Stages **1–10 remain incomplete**. Draft
+Stage 1 now has an actual native local protocol proof: startup and both English
+and Persian typed requests pass. The bounded gateway candidate is
+**2.0.0-alpha.1**, with public dispatch absent and schema **17** in its isolated
+source. Its [candidate receipt](docs/evidence/2.0.0-alpha.1/README.md) separates
+that result from hosted and publication gates. Full local gate C passes on
+tree `695c705a379ae46f3eb570009efab10654ae6f85`: 544 web, 40 client, 48 release
+and 11 corpus tests, cached Go checks and production build. The unchanged
+PostgreSQL/native checks actually passed in attempt B; both earlier full-gate
+failures remain recorded. Final receipt/document edits need exact-commit CI.
+The earlier launch
+rejection remains historical; the maintainer explicitly authorized the new
+installation/startup on 2026-10-21. The current CI definition adds a seventh,
+Windows pure-tool job; historical alpha.0 checks remain six jobs.
+
+Stages **1–10 remain incomplete** until their own full gates pass. Draft
 [PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1),
 `e660e16bd0b3c56f0096bb43b5688195135892b1`, contains unaccepted stage-1–3
-preparation, not a delivered milestone. The maintainer has no compatible running
-processor; automatic review rejected the candidate launch. Scoped code/SQL and
-draft CI cannot replace that real-profile gate.
+preparation, not a delivered milestone. Its earlier code/SQL and draft CI do not
+accept the newer gateway files or replace later stage gates.
 
-**Checkout boundary:** cleanup was also review-rejected. Two existing modified
-files and untracked preparation, including migration 18, remain. Normal startup
+**Checkout boundary:** cleanup was also review-rejected. Modified and untracked
+preparation, including migration 18, remains. Normal startup
 applies schema **18** even with the capability disabled. The branch name and
 alpha.0 version label do not make this checkout clean schema-17 source. Use a
 verified release or a clean exact-source export for alpha.0; retained preparation

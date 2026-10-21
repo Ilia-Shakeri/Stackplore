@@ -35,6 +35,24 @@ function Same-Names($Actual,$Expected,[string]$Reason) {
   Require ($a.Count -eq $b.Count) $Reason
   for($i=0;$i -lt $a.Count;$i++){Require ($a[$i] -ceq $b[$i]) $Reason}
 }
+function Required-CIJobs([string]$ProductVersion) {
+  Require ($ProductVersion -cmatch '\A2\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9][0-9]*))?\z') 'CI job policy requires a canonical product version'
+  $required=@('code','deploy','compose-install','helm-install','docker-provider','kubernetes-provider')
+  # Preserve the immutable six-job alpha.0 checkpoint; every later source adds the host tool gate.
+  if($ProductVersion -cne '2.0.0-alpha.0'){$required+='processor-tool'}
+  return $required
+}
+function Check-CIJobs($Listing,[string]$ProductVersion,[bool]$Diagnostic) {
+  $required=@(Required-CIJobs $ProductVersion)
+  $actual=@($Listing.jobs)
+  Require ((Is-Count $Listing.total_count 100) -and $Listing.total_count -eq $required.Count -and $actual.Count -eq $required.Count) 'Final CI job inventory differs from the versioned gate policy'
+  Same-Names @($actual | ForEach-Object {$_.name}) $required 'Final CI required job names differ'
+  foreach($job in $actual){
+    Require ($job.status -ceq 'completed') 'Final CI contains an incomplete job'
+    $expected=if($Diagnostic -and $job.name -ceq 'code'){'failure'}else{'success'}
+    Require ($job.conclusion -ceq $expected) 'Final CI job conclusion differs from the authorized diagnostic or success state'
+  }
+}
 function Read-Bounded($Stream,[long]$Maximum,[Threading.CancellationToken]$Cancellation) {
   $memory=[IO.MemoryStream]::new()
   $buffer=[byte[]]::new(65536)
@@ -259,9 +277,7 @@ try {
   $run=Api-Json "actions/runs/$RunId"
   Require ($run.id -eq $RunId -and $run.head_sha -ceq $Revision -and $run.head_branch -ceq 'main' -and $run.path -ceq '.github/workflows/ci.yml' -and $run.status -ceq 'completed' -and $run.conclusion -ceq $ExpectedConclusion) 'Final CI identity or conclusion does not match the authorized source'
   $jobs=Api-Json "actions/runs/$RunId/jobs?per_page=100"
-  Require ($jobs.total_count -eq 6 -and @($jobs.jobs | Where-Object {$_.status -cne 'completed'}).Count -eq 0) 'Final CI does not contain six completed jobs'
-  Same-Names @($jobs.jobs | ForEach-Object {$_.name}) @('code','deploy','compose-install','helm-install','docker-provider','kubernetes-provider') 'Final CI required job names differ'
-  foreach($job in $jobs.jobs){$expected=if($diagnostic -and $job.name -ceq 'code'){'failure'}else{'success'};Require ($job.conclusion -ceq $expected) 'Final CI job conclusion differs from the authorized diagnostic or success state'}
+  Check-CIJobs $jobs $Version $diagnostic
   $listing=Api-Json "actions/runs/$RunId/artifacts?per_page=100"
   Require ($listing.total_count -ge 1 -and $listing.total_count -le 100 -and @($listing.artifacts).Count -eq $listing.total_count) 'Artifact list exceeds one bounded complete page'
   $artifacts=@($listing.artifacts | Where-Object {$_.name -ceq 'browser-evidence'})

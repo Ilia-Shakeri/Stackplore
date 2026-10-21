@@ -25,7 +25,7 @@ remain their actual UTC dates; this reconciliation does not redate them.
 | Stage | Target                 | State                        | Acceptance still required                                  |
 | ----- | ---------------------- | ---------------------------- | ---------------------------------------------------------- |
 | 0     | `2.0.0-alpha.0`        | Accepted in recorded scope   | No helper runtime, customer installation or capacity claim |
-| 1     | `2.0.0-alpha.1`        | Unaccepted draft preparation | Compatible running processor and real pinned profile proof |
+| 1     | `2.0.0-alpha.1`        | Full local candidate passes  | Seven exact-commit hosted jobs and checkpoint publication  |
 | 2     | `2.0.0-alpha.2`        | Unaccepted draft preparation | Complete lifecycle, quota, lease and recovery acceptance   |
 | 3     | `2.0.0-alpha.3`        | Unaccepted draft preparation | Complete shared privacy and evidence-tool acceptance       |
 | 4     | `2.0.0-alpha.4`        | Not delivered                | Bilingual grounded conversation                            |
@@ -47,10 +47,11 @@ Stages **1–10 are not complete**. The
 [PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1) to
 `e660e16bd0b3c56f0096bb43b5688195135892b1`; it is not part of alpha.0.
 Its scoped real SQL/use-case checks and six-job draft verification are evidence
-for preparation, not a replacement for the unavailable real-profile gate.
+for that preparation, not acceptance of newer source or later stages. The
+new local profile proof below is separately bound to its gateway/tool files.
 
 **Local checkout boundary:** automatic review rejected cleanup with only
-`blocked by policy`. Two existing modified files and untracked preparation,
+`blocked by policy`. Modified existing files and untracked preparation,
 including migration 18, remain. Normal startup applies schema **18** even with
 the capability disabled. This checkout is not clean schema-17 alpha.0 source.
 Use the verified release or a clean exact-source export for alpha.0; retained
@@ -232,18 +233,124 @@ and cleanup described above. Neither command accepts the mixed local product
 checkout or a real processor profile. The failed application/database attempts
 remain in the public receipt; the successful commands do not relabel them.
 
-The maintainer confirmed that no compatible local processor is running.
-Stage 1's real-profile test was explicitly skipped. A candidate's downloaded
+At the earlier checkpoint, no compatible local processor was running.
+Stage 1's real-profile test was explicitly skipped. That candidate's downloaded
 bytes and checksum were verified, but automatic review rejected launch with
 only `blocked by policy`. No alternate launch was attempted. Independent
 preparation and its synthetic/real-SQL checks do not close this predecessor
 gate. The required pinned identity, exact pre-dispatch counting, bounded
 execution and held-out quality still need their own real proof.
 
-The initial 53–88 person-day estimate remains provisional. Current machine
-memory and the real-profile execution gate prevent a justified capacity or
-quality claim. Do not close stage 1 using a mock, byte estimate or one successful
-network response. Stages 1–10 and stable 2.0.0 remain incomplete.
+The initial 53–88 person-day estimate remains provisional. Those earlier checks
+did not establish a capacity or quality claim. The new controlled protocol proof
+below still does not prove grounding quality or maximum-load capacity. Stages
+1–10 and stable 2.0.0 remain incomplete until their own gates pass.
+
+## Stage 1 — authorized local installation and protocol proof
+
+On 2026-10-21 the maintainer explicitly requested installation and startup of
+the required local service. A new invocation of the reviewed native operator
+tool succeeded. This is a distinct authorized attempt; the earlier automatic
+review rejection remains recorded with its original outcome.
+
+The official CPU archive pin and all 51 installed files match. The official
+Qwen3-0.6B Q8_0 model at revision `23749fefcc72300e3a2ad315e1317431b06b590a`
+was downloaded and its exact 639,446,688 bytes, full SHA-256 and GGUF header
+verified. The native tool then started one loopback-only process with fixed
+20,480 context, one slot, two CPU threads, quantized KV, no offload, raw logging,
+prompt caching, writable properties, execution tools or dynamic model loading.
+Actual build, model alias, template, context and slot pins passed before ready.
+The operator-owned service remains running for later local checks; its private
+ownership receipt and model/runtime binaries stay outside the repository.
+
+| Exact procedure                                                                                                                           | Actual result                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `pwsh -NoProfile -File scripts/local-processor.test.ps1`                                                                                  | 125 pure checks pass; these checks launch nothing                                                  |
+| `scripts/local-processor.ps1 -Action Check` with the private verified inputs                                                              | Archive, all 51 members and model pass                                                             |
+| `scripts/local-processor.ps1 -Action Start` with a fresh private receipt                                                                  | Ready; exact ownership and literal loopback listener pass                                          |
+| `go -C apps/api test ./internal/provider/inference -run '^TestPinnedLocalRuntimeIntegration$' -count=1 -v` with explicit pinned variables | Both cases actually run, zero skips; English 104/27 tokens in 2,358 ms, Persian 132/40 in 5,229 ms |
+| `go -C apps/api test ./internal/inference ./internal/provider/inference -count=1 -cover`                                                  | Pass; 95.4% / 90.2% statement coverage, no branch-coverage claim                                   |
+
+The [minimal receipt](../evidence/2.0.0-alpha.1/gateway-profile.json) binds the
+ten tested source files and exact pins without exposing raw prompts, answers,
+paths or credentials. The [candidate index](../evidence/2.0.0-alpha.1/README.md)
+records limitations. These literal no-evidence probes establish protocol and
+locale obedience only, not incident reasoning or held-out quality.
+
+Candidate version **2.0.0-alpha.1** adds the neutral gateway, local adapter,
+operator tool and bilingual profile documentation. Public dispatch is absent;
+schema 18 and all unaccepted runtime/privacy preparation stay outside this
+candidate. A clean staged-source export is required for its full local gate.
+The CI definition adds a separate Windows pure-tool job, bringing the candidate
+to seven jobs; historical six-job receipts remain unchanged. Full verification,
+exact-source hosted acceptance and publication are still separate gates.
+
+Scoped review loop: **8 → fix → 9/10**. Independent review closed duplicate and
+case-fold JSON fields, UTF-8/depth limits, context/slot identity, opened-file
+size races, exact browser-origin policy and process/receipt ownership. It found
+no remaining verified defect in this slice. That score does not accept later
+runtime, privacy, quality, deployment or stable-release stages.
+
+### Full local gate A — failed, retained
+
+The isolated candidate tree `0ef4c3b42e00be5609b68cb3c06c825ca19b2233`
+failed `npm.cmd run verify` in PostgreSQL tests. The unchanged representative
+query-plan fixture exhausted its 90-second context while seeding measured
+events for 20,000 rows. The package subsequently reached its ten-minute deadline
+while an upgrade subtest's cleanup was active. This did not reach client/web
+tests or the production build. The
+[failed receipt](../evidence/2.0.0-alpha.1/local-gate-failure-a.json) keeps the
+exact log digest, source and original deadlines.
+
+For diagnosis, the ownership-checked stop command stopped only the new local
+processor; its listener absence was verified. Other team compilation and SQL
+tests were paused. The exact unchanged focused performance test then passed in
+**6.47 seconds**, including both 1,000/20,000-row workloads and every original
+sample, index and page assertion. Resource contention is plausible but these
+combined host changes do not establish a unique cause. No product code,
+fixture, workload or timeout was changed. Full gate B is a separate attempt on
+the same frozen tree; the first failure remains failed. The processor is to be
+restarted with a new ownership receipt after the isolated heavy gate, before
+final local handoff. Concurrent capacity remains a later measured gate.
+
+### Full local gate B — failed, retained
+
+The same frozen tree passed real PostgreSQL/native recovery checks (PostgreSQL
+package 479.238 s; some unchanged Go packages cached) and 40 client tests. The
+web suite failed with 492/495 passing cases, three existing lookup/test-bound
+failures and a threads-worker startup timeout before a further file ran. The
+production build was not reached. The
+[separate receipt](../evidence/2.0.0-alpha.1/local-gate-failure-b.json) binds
+the failed log and the subsequent unchanged three-file focused probe: **80/80
+pass, 59.09 s**, without coverage. No test, timeout or product implementation was
+changed. That focused pass does not replace the failed complete command.
+
+Source review also found the release checker still listed six required jobs.
+It now requires the exact seven completed successful jobs with no duplicates or
+extras. Focused release/runtime-image checks pass **48/48**, no skips; format and
+lint pass. The recorded result was transcribed from tool output, with no raw
+stdout file retained. A new full gate includes these release-check source edits;
+hosted and publication acceptance remain open.
+
+### Full local gate C — passed
+
+`npm.cmd run verify` passes, exit **0**, on isolated staged tree
+`695c705a379ae46f3eb570009efab10654ae6f85`. All **45 changed staged files**
+matched exported bytes, and migration 18 was absent. It includes the corrected
+seven-job publication gate. Results: **48 release/runtime-image, 11 corpus,
+40 client and 544 web tests pass**, plus notices, locale parity, contract/type
+drift, lint, strict types, coverage floors and production web/embed/Go build.
+Web duration **227.98 s**, branch coverage **80.33%**; build **14.87 s**.
+
+Go/PostgreSQL/native results include cached success. The actual unchanged
+PostgreSQL package passed in gate B in **479.238 s**; C does not claim a second
+SQL execution. Both earlier complete commands remain failed. The
+[receipt](../evidence/2.0.0-alpha.1/local-gate.json) records log digest,
+source/cache/isolation boundaries and limitations. Subsequent receipt/document
+edits need the exact commit's hosted full gate. The processor stays stopped for
+heavy isolated tests and must be restarted with a fresh owned receipt before
+final local handoff. Stage 1 still awaits hosted/tag/publication acceptance;
+answer quality and later stages remain open.
 
 ## فارسی — وضعیت اجرا
 
@@ -259,12 +366,14 @@ checksum، ۳۱ موضوع منشأ و ۷ گواهی SBOM** پاس شدند. آ�
 رسیدهای UTC قبلی تاریخ خود را نگه می‌دارند؛ این متن در ۲۰۲۶-۱۰-۲۱ تطبیق شد.
 
 پیش‌نویس PR 1 فقط آماده‌سازی نپذیرفتهٔ گام‌های ۱ تا ۳ است؛ در alpha.0 نیست.
-دو فایل تغییرکرده و فایل‌های ثبت‌نشده در درخت محلی ماندند؛ حذف در بررسی
+فایل‌های تغییرکرده و فایل‌های ثبت‌نشده در درخت محلی ماندند؛ حذف در بررسی
 خودکار رد شد. اجرای این درخت، مهاجرت **۱۸** را حتی با قابلیت خاموش اعمال
 کند. برای alpha.0 بستهٔ تأییدشده یا خروجی پاکِ منبع دقیق لازم؛ آماده‌سازی فقط
 روی پایگاه تازهٔ دورریختنی با طرح ۱۸ باشد.
 
-کاربر، نبود پردازندهٔ سازگار در حال اجرا را گفت. تست واقعی صریحاً اجرا نشد؛
-راه‌اندازی نامزد در بررسی خودکار رد شد؛ دلیل فقط `blocked by policy`.
-روش دیگر اجرا نشد. گام‌های **۱ تا ۱۰**، کیفیت پاسخ و نسخهٔ پایدار ۲ بازند؛
-تست کد و پایگاه یا پیش‌نویس سبز، گیت پردازنده را نبندد.
+در تلاش پیشین، پردازنده نبود و راه‌اندازی در بررسی خودکار رد شد؛ دلیل فقط
+`blocked by policy`. آن نتیجه حفظ شد. در ۲۰۲۶-۱۰-۲۱، کاربر نصب و شروع را صریح
+خواست؛ تلاش تازهٔ راه‌انداز سنجیده پاس شد. هر ۵۱ فایل و مدل، هویت و پورت
+محلی درست؛ دو درخواست بستهٔ واقعی فارسی/انگلیسی نیز پاس، بی‌skip.
+نامزد `alpha.1` به گیت کامل منبع پاک، هفت کار CI و پذیرش نسخه نیاز دارد.
+گام‌های **۱ تا ۱۰**، کیفیت پاسخ و نسخهٔ پایدار ۲ هنوز بسته نشده‌اند.

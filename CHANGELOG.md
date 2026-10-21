@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.0-alpha.1] - 2026-10-21
+
+- Add the operator-bound local gateway with exact pre-dispatch token counting,
+  one-use dispatch, pinned process identity, bounded network decoding and closed
+  cited sections. Keep product dispatch disabled until durable admission and
+  shared evidence privacy pass their own stages.
+- Add the Windows operator's default-check launcher, explicit start/stop,
+  complete pinned archive/install verification, approved model hashing, hidden
+  loopback-only startup, bounded status probes and owned-process cleanup.
+  Provide both operator guides and a dedicated Windows pure-check CI job.
+- Require all seven exact-tag jobs for publication and later-checkpoint browser
+  acceptance, rejecting missing, extra, duplicate, incomplete or failed jobs.
+  Preserve alpha.0's historical six-job browser policy.
+- Record actual synthetic English/Persian protocol probes using the pinned
+  Qwen3-0.6B-Q8_0 profile. Compatibility does not establish factual grounding,
+  held-out quality, workload capacity or completion of stages 2–10. Remote and
+  paid profiles remain unsupported.
+
 ## [2.0.0-alpha.0] - 2026-10-19
 
 - Accept the read-only version 2 target design, authority/privacy boundaries,

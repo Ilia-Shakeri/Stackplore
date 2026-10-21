@@ -224,9 +224,19 @@ test('checkpoint versions traverse the actual manifest checker and reject a stab
 
 const verificationFixture = async (
   context,
-  { moved = false, missing = false, version = '1.2.3' } = {},
+  { moved = false, missing = false, version = '1.2.3', listing } = {},
 ) => {
   const fixtureData = await fixture(context, { version });
+  const jobs = [
+    'code',
+    'deploy',
+    'compose-install',
+    'helm-install',
+    'docker-provider',
+    ...(missing ? [] : ['kubernetes-provider']),
+    'processor-tool',
+  ].map((name) => ({ name, status: 'completed', conclusion: 'success' }));
+  const jobListing = listing ?? { total_count: jobs.length, jobs };
   const hook = path.join(fixtureData.root, 'mock-github.mjs');
   await writeFile(
     hook,
@@ -243,7 +253,7 @@ const verificationFixture = async (
       ]};
       else {
         assert.ok(path.endsWith('/actions/runs/5/jobs'), 'must use exact tag run');
-        result = {jobs:${JSON.stringify(['code', 'deploy', 'compose-install', 'helm-install', 'docker-provider', ...(missing ? [] : ['kubernetes-provider'])])}.map(name=>({name,conclusion:'success'}))};
+        result = ${JSON.stringify(jobListing)};
       }
       return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});
     };
@@ -265,6 +275,122 @@ test('moved annotated tag and missing exact-tag provider check keep publication 
     const result = run('check-ci', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, options.moved ? /no longer identifies/ : /required exact-tag/);
+  }
+});
+
+test('current checkpoint accepts exactly seven unique completed successful jobs', async (context) => {
+  const version = '2.0.0-alpha.1';
+  const complete = () => ({
+    total_count: 7,
+    jobs: [
+      'processor-tool',
+      'kubernetes-provider',
+      'docker-provider',
+      'helm-install',
+      'compose-install',
+      'deploy',
+      'code',
+    ].map((name) => ({ name, status: 'completed', conclusion: 'success' })),
+  });
+  const cases = [
+    ['complete-reordered', true, () => {}],
+    [
+      'missing-processor-tool',
+      false,
+      (listing) => {
+        listing.jobs.shift();
+        listing.total_count--;
+      },
+    ],
+    [
+      'duplicate-name',
+      false,
+      (listing) => {
+        listing.jobs[1].name = 'processor-tool';
+      },
+    ],
+    [
+      'extra-job',
+      false,
+      (listing) => {
+        listing.jobs.push({ name: 'unreviewed', status: 'completed', conclusion: 'success' });
+        listing.total_count++;
+      },
+    ],
+    [
+      'unlisted-extra',
+      false,
+      (listing) => {
+        listing.total_count++;
+      },
+    ],
+    [
+      'skipped-processor-tool',
+      false,
+      (listing) => {
+        listing.jobs[0].conclusion = 'skipped';
+      },
+    ],
+    [
+      'failed-processor-tool',
+      false,
+      (listing) => {
+        listing.jobs[0].conclusion = 'failure';
+      },
+    ],
+    [
+      'incomplete-processor-tool',
+      false,
+      (listing) => {
+        listing.jobs[0].status = 'in_progress';
+      },
+    ],
+    [
+      'missing-status',
+      false,
+      (listing) => {
+        delete listing.jobs[0].status;
+      },
+    ],
+    [
+      'wrong-case',
+      false,
+      (listing) => {
+        listing.jobs[0].name = 'Processor-tool';
+      },
+    ],
+    [
+      'missing-total',
+      false,
+      (listing) => {
+        delete listing.total_count;
+      },
+    ],
+    [
+      'string-total',
+      false,
+      (listing) => {
+        listing.total_count = '7';
+      },
+    ],
+  ];
+  for (const [name, accepted, mutate] of cases) {
+    await context.test(name, async (context) => {
+      const listing = complete();
+      mutate(listing);
+      const { run, hook } = await verificationFixture(context, { version, listing });
+      const result = run(
+        'check-ci',
+        { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: `v${version}` },
+        hook,
+      );
+      if (accepted) {
+        assert.equal(result.status, 0, result.stderr);
+      } else {
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /required exact-tag verification job did not pass/u);
+      }
+    });
   }
 });
 

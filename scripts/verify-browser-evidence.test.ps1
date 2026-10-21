@@ -14,6 +14,84 @@ $screenPrefix="docs/evidence/$version/screenshots/"
 $marker='synthetic-untrusted-text-must-stay-private'
 
 function Assert([bool]$Condition,[string]$Reason) {if(-not $Condition){throw $Reason}}
+
+# Load only the pure policy functions. The consumer entry point, credential and network paths never run.
+$policyTokens=$null;$policyErrors=$null
+$policyAST=[Management.Automation.Language.Parser]::ParseFile($consumer,[ref]$policyTokens,[ref]$policyErrors)
+Assert ($policyErrors.Count -eq 0) 'Consumer source has syntax errors'
+$policyDefinitions=@()
+foreach($helper in @('Require','Is-Number','Is-Count','Same-Names','Required-CIJobs','Check-CIJobs')){
+  $definitions=@($policyAST.FindAll({param($node)$node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $helper},$true))
+  Assert ($definitions.Count -eq 1) ('Missing or duplicate pure policy helper: '+$helper)
+  $policyDefinitions+=$definitions[0].Extent.Text
+}
+. ([scriptblock]::Create(($policyDefinitions -join "`n")))
+$jobPassed=@()
+function New-CIJobListing([bool]$Modern) {
+  $names=@('code','deploy','compose-install','helm-install','docker-provider','kubernetes-provider')
+  if($Modern){$names+='processor-tool'}
+  return @{total_count=$names.Count;jobs=@($names | ForEach-Object {@{name=$_;status='completed';conclusion='success'}})}
+}
+function Check-CIJobCase([string]$Name,$Listing,[string]$ProductVersion,[bool]$Diagnostic,[bool]$Expected) {
+  $accepted=$true
+  try {Check-CIJobs $Listing $ProductVersion $Diagnostic} catch {$accepted=$false}
+  Assert ($accepted -eq $Expected) ('CI job policy mismatch: '+$Name)
+  $script:jobPassed+=@{case=$Name;status='passed';expected_acceptance=$Expected}
+}
+
+$legacyNames=@(Required-CIJobs '2.0.0-alpha.0')
+Assert ($legacyNames.Count -eq 6 -and -not ($legacyNames -ccontains 'processor-tool')) 'Immutable alpha.0 must keep exactly six jobs'
+foreach($policyVersion in @('2.0.0-alpha.1','2.0.0-alpha.2','2.0.0-alpha.10','2.0.0-beta.0','2.0.0-rc.1','2.0.0','2.0.1','2.1.0-alpha.0','2.10.30')){
+  $modernNames=@(Required-CIJobs $policyVersion)
+  Assert ($modernNames.Count -eq 7 -and ($modernNames -ccontains 'processor-tool')) 'Later checkpoints require the host tool gate'
+  Check-CIJobCase ('version-'+$policyVersion) (New-CIJobListing $true) $policyVersion $false $true
+}
+foreach($invalidVersion in @('1.0.3','3.0.0','v2.0.0','2.00.0-alpha.0','2.0.0-alpha.01','2.0.0-beta.01','2.0.0-rc.01','2.0.0-alpha.-1','2.0.0-dev.1','2.0.0-alpha.0+meta',' 2.0.0',"2.0.0-alpha.0`n")){
+  Check-CIJobCase ('invalid-version-'+$jobPassed.Count) (New-CIJobListing $true) $invalidVersion $false $false
+}
+foreach($modern in @($false,$true)){
+  $policyVersion=if($modern){'2.0.0-alpha.1'}else{'2.0.0-alpha.0'}
+  $label=if($modern){'modern'}else{'legacy'}
+  Check-CIJobCase ($label+'-success') (New-CIJobListing $modern) $policyVersion $false $true
+  $listing=New-CIJobListing $modern;$listing.jobs=@($listing.jobs | Sort-Object {$_.name} -Descending)
+  Check-CIJobCase ($label+'-order-independent') $listing $policyVersion $false $true
+  $listing=New-CIJobListing $modern;$listing.jobs[0].conclusion='failure'
+  Check-CIJobCase ($label+'-code-failure-diagnostic') $listing $policyVersion $true $true
+  Check-CIJobCase ($label+'-success-not-diagnostic') (New-CIJobListing $modern) $policyVersion $true $false
+  $listing=New-CIJobListing $modern;$listing.jobs[0].conclusion='failure'
+  Check-CIJobCase ($label+'-code-failure-not-success') $listing $policyVersion $false $false
+  foreach($state in @('queued','in_progress','waiting','COMPLETED',$null)){
+    $listing=New-CIJobListing $modern;$listing.jobs[0].status=$state
+    Check-CIJobCase ($label+'-incomplete-'+$jobPassed.Count) $listing $policyVersion $false $false
+  }
+  foreach($conclusion in @('failure','cancelled','skipped','neutral','timed_out','SUCCESS',$null)){
+    $listing=New-CIJobListing $modern;$listing.jobs[1].conclusion=$conclusion
+    Check-CIJobCase ($label+'-non-code-outcome-'+$jobPassed.Count) $listing $policyVersion $false $false
+    $listing.jobs[0].conclusion='failure'
+    Check-CIJobCase ($label+'-diagnostic-other-outcome-'+$jobPassed.Count) $listing $policyVersion $true $false
+  }
+  $listing=New-CIJobListing $modern;$listing.jobs[1].name=$listing.jobs[0].name
+  Check-CIJobCase ($label+'-duplicate-substitution') $listing $policyVersion $false $false
+  $listing=New-CIJobListing $modern;$listing.jobs[0].name='Code'
+  Check-CIJobCase ($label+'-name-case-alias') $listing $policyVersion $false $false
+  $listing=New-CIJobListing $modern;$listing.jobs=@($listing.jobs[1..($listing.jobs.Count-1)])
+  Check-CIJobCase ($label+'-truncated-api-page') $listing $policyVersion $false $false
+  $listing=New-CIJobListing $modern;$listing.jobs+=@{name='extra';status='completed';conclusion='success'}
+  Check-CIJobCase ($label+'-extra-unlisted-job') $listing $policyVersion $false $false
+  $listing=New-CIJobListing $modern;$listing.jobs=@($listing.jobs[1..($listing.jobs.Count-1)]);$listing.total_count=$listing.jobs.Count
+  Check-CIJobCase ($label+'-missing-job') $listing $policyVersion $false $false
+  $listing=New-CIJobListing $modern;$listing.jobs+=@{name='extra';status='completed';conclusion='success'};$listing.total_count=$listing.jobs.Count
+  Check-CIJobCase ($label+'-extra-counted-job') $listing $policyVersion $false $false
+  foreach($count in @('7',-1,101,6.5,$null,$true)){
+    $listing=New-CIJobListing $modern;$listing.total_count=$count
+    Check-CIJobCase ($label+'-invalid-total-'+$jobPassed.Count) $listing $policyVersion $false $false
+  }
+}
+Check-CIJobCase 'legacy-rejects-new-gate' (New-CIJobListing $true) '2.0.0-alpha.0' $false $false
+Check-CIJobCase 'modern-requires-new-gate' (New-CIJobListing $false) '2.0.0-alpha.1' $false $false
+$listing=New-CIJobListing $true;$listing.jobs[-1].conclusion='failure';$listing.jobs[0].conclusion='failure'
+Check-CIJobCase 'diagnostic-rejects-processor-tool-failure' $listing '2.0.0-alpha.1' $true $false
+
 function New-Report([int]$Count) {
   $cases=@()
   for($i=0;$i -lt $Count;$i++){
@@ -128,7 +206,7 @@ foreach($case in $cases){
   }
   $passed+=@{case=$case.Name;status='passed';expected_acceptance=[bool]$case.Expected}
 }
-$result=[ordered]@{schema_version=1;status='passed';observed_at_utc=[DateTime]::UtcNow.ToString('o');checks=$passed.Count;valid_archives=1;invalid_archives=($passed.Count-1);consumer_sha256=(Get-FileHash -LiteralPath $consumer -Algorithm SHA256).Hash.ToLowerInvariant();test_sha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant();cases=$passed;scope='Synthetic local ZIP regression only. No network, credential read, browser execution, CI artifact, customer deployment or release acceptance is proved.'}
+$result=[ordered]@{schema_version=1;status='passed';observed_at_utc=[DateTime]::UtcNow.ToString('o');checks=$passed.Count;job_policy_checks=$jobPassed.Count;valid_archives=1;invalid_archives=($passed.Count-1);consumer_sha256=(Get-FileHash -LiteralPath $consumer -Algorithm SHA256).Hash.ToLowerInvariant();test_sha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant();cases=$passed;job_policy_cases=$jobPassed;scope='Synthetic local ZIP and pure versioned CI job-policy regression only. No network, credential read, browser execution, CI artifact, customer deployment or release acceptance is proved.'}
 $resultPath=Join-Path $workRoot 'summary.json'
 [IO.File]::WriteAllText($resultPath,($result | ConvertTo-Json -Depth 8)+"`n",$utf8)
-[ordered]@{status=$result.status;checks=$result.checks;valid_archives=$result.valid_archives;invalid_archives=$result.invalid_archives;receipt=$resultPath;scope=$result.scope} | ConvertTo-Json -Compress
+[ordered]@{status=$result.status;checks=$result.checks;job_policy_checks=$result.job_policy_checks;valid_archives=$result.valid_archives;invalid_archives=$result.invalid_archives;receipt=$resultPath;scope=$result.scope} | ConvertTo-Json -Compress

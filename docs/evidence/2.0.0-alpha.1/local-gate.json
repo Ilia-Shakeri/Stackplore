@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-alpha.1",
+  "observed_at_utc": "2026-10-21T11:20:34.257Z",
+  "source_tree": "695c705a379ae46f3eb570009efab10654ae6f85",
+  "database_schema": 17,
+  "status": "passed",
+  "command": "npm.cmd run verify",
+  "exit_code": 0,
+  "log_sha256": "8e957aebbc510d20ad852c4287fbe304c3809f6de7c5c106c4e221ea65f6e2a7",
+  "source_boundary": "All 45 staged changed files matched the isolated source export before execution; no migration 18 or stage-2/3 source was present. Subsequent receipt/document-only edits are outside this tree and need the exact commit hosted gate.",
+  "tools": {
+    "node": "24.18.0",
+    "go": "1.26.9",
+    "package_manager": "pnpm@11.17.0",
+    "postgres": "17.11"
+  },
+  "checks": {
+    "format": true,
+    "documents": true,
+    "version": true,
+    "runtime_images": true,
+    "linked_module_notices": true,
+    "locale_parity": true,
+    "contracts_and_generated_types": true,
+    "corpus_seed_policy": true,
+    "brand": true,
+    "lint": true,
+    "strict_types": true,
+    "release_runtime_image_tests": 48,
+    "corpus_tests": 11,
+    "go_tests": true,
+    "client_tests": 40,
+    "web_tests": 544,
+    "web_coverage_thresholds": true,
+    "production_web_embedding_and_go_build": true
+  },
+  "database": {
+    "native_tools_opt_in": true,
+    "fixture_loopback_only": true,
+    "cached": true,
+    "actual_prior_pass": "local-gate-failure-b.json",
+    "actual_prior_postgres_package_seconds": 479.238,
+    "caveat": "Cached success is not a new SQL execution. Gate B actually passed the unchanged Go/PostgreSQL/native tests but failed later web checks."
+  },
+  "host_isolation": {
+    "owned_processor_stopped": true,
+    "team_test_and_compilation_paused": true,
+    "unrelated_user_processes_stopped": false
+  },
+  "previous_failed_attempts": ["local-gate-failure-a.json", "local-gate-failure-b.json"],
+  "limits": [
+    "The seeded corpus remains incomplete and unreviewed.",
+    "This does not prove real browser/container/provider acceptance or hosted CI.",
+    "The local profile has only controlled typed bilingual protocol proof, not grounded quality or simultaneous database/processor capacity.",
+    "A version tag and publication require their own exact-source passing gates."
+  ]
+}

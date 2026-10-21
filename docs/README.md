@@ -10,7 +10,10 @@ consumer checks. The [active ledger](v2/implementation.md) tracks the remaining
 stages; [unaccepted preparation](v2/preparation-status.md) has a different source
 and automatically applies schema 18. The retained development working tree must
 use disposable data; use the verified release or a clean exact-source export for
-alpha.0 execution. Stage 1 still lacks a running compatible local processor.
+alpha.0 execution. The alpha.1 candidate now has actual bilingual local-profile
+protocol proof; its [evidence](evidence/2.0.0-alpha.1/README.md) distinguishes
+that proof, temporary resource isolation, failed full gates and remaining
+checkpoint acceptance.
 
 نسخهٔ `alpha.0` فقط گام صفر است؛ پایان نسخهٔ ۲ نیست. رسیدها و کد آماده‌سازی
 جدا هستند. درخت کار، مهاجرت ۱۸ دارد؛ فقط دادهٔ تست به آن وصل شود.
@@ -41,6 +44,7 @@ outcomes alongside real passing subchecks. [Final review](evidence/1.0.1/final-r
 | Product scope and completion rules                         | [Specification](../SPEC.md)                                                                                                                                                                                                                           |
 | Current gaps and review coverage                           | [Codebase audit](codebase-audit.md)                                                                                                                                                                                                                   |
 | Version 2 design, stages and actual gate status            | [Roadmap](roadmap-v2.md), [نقشهٔ نسخهٔ ۲](roadmap-v2.fa.md), [active ledger](v2/implementation.md); accepted design is separate from shipped behavior                                                                                                 |
+| Native local processor and stage-1 protocol proof          | [Operator guide](v2/local-processor.md), [راهنمای محلی](v2/local-processor.fa.md), [gateway contract](v2/local-profile.md), [candidate evidence](evidence/2.0.0-alpha.1/README.md)                                                                    |
 | Current user journeys                                      | [User guide](user-guide.md), [راهنمای کاربر](user-guide.fa.md)                                                                                                                                                                                        |
 | Paginated exploration, time correlation, logs and topology | [Exploration](exploration.md), [بررسی مشاهده‌ها](exploration.fa.md)                                                                                                                                                                                   |
 | Deterministic scenario and isolated guest mode             | [Demonstration](demo.md), [نمونه و مهمان](demo.fa.md)                                                                                                                                                                                                 |

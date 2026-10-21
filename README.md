@@ -26,11 +26,18 @@ version-2 stages **1–10 remain incomplete** and new runtime capabilities remai
 The separate [unaccepted preparation](docs/v2/preparation-status.md), draft PR
 [1](https://github.com/Ilia-Shakeri/Stackplore/pull/1) at
 `e660e16bd0b3c56f0096bb43b5688195135892b1`, contains stage-1–3 preparation.
-No compatible local processor is running; its candidate launch was rejected by
-automatic review. Passing draft checks do not close stage 1 or accept answer quality.
+A newer **alpha.1 candidate** now has verified native local processor startup
+and passing English/Persian typed protocol probes. It exposes no product
+dispatch route. [Candidate evidence](docs/evidence/2.0.0-alpha.1/README.md)
+separates this proof from full/hosted/release gates and answer quality. The
+earlier rejected launch and draft source retain their original outcomes. Full
+local gate C passes: 544 web and 40 client tests, cached Go checks with the
+actual unchanged PostgreSQL/native pass retained from attempt B, and production
+build. Both failed full attempts remain recorded. Exact-commit hosted and
+checkpoint publication gates remain open.
 
-**Local checkout warning, 2026-10-21:** two modified existing files and the
-untracked preparation, including migration 18, remain after automatic review
+**Local checkout warning, 2026-10-21:** modified and untracked preparation,
+including migration 18, remains after automatic review
 rejected their removal. This checkout is not clean alpha.0 source. Normal startup
 automatically applies schema **18**, even when the new capability is disabled.
 Use the verified release or a clean exact-source export of `eb86ab7` for alpha.0;

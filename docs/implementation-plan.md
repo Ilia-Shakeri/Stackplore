@@ -26,11 +26,20 @@ local/hosted/browser/consumer proof and retained failures separate.
 
 The [separate preparation status](v2/preparation-status.md) identifies unaccepted
 draft PR 1 at `e660e16bd0b3c56f0096bb43b5688195135892b1`, covering preparation
-for stages 1–3. No compatible processor is running, and automatic review rejected
-the candidate launch. Its tests do not accept stage 1, answer quality or later
-stage exits. Version-2 stages **1–10 are not complete**.
+for stages 1–3. A new explicitly authorized native startup and bilingual typed
+protocol probes now pass for the alpha.1 candidate; see its
+[source-bound receipt](evidence/2.0.0-alpha.1/README.md). The old rejected launch
+and draft checks retain their historical scope. Full local gate C passes on
+tree `695c705a379ae46f3eb570009efab10654ae6f85`, including 544 web, 40 client,
+48 release and 11 corpus tests, cached Go checks and production build. Actual
+unchanged PostgreSQL/native execution passed in attempt B. The
+[local receipt](evidence/2.0.0-alpha.1/local-gate.json) retains these cache/source
+boundaries and both earlier failed complete attempts. Final receipt/document
+edits, seven exact-commit hosted jobs and publication remain separate.
+Version-2 stages **1–10 are
+not complete**; this protocol proof does not establish answer quality.
 
-The local checkout retains two modified existing files and untracked preparation
+The local checkout retains modified existing files and untracked preparation
 after cleanup was review-rejected. Its migration 18 applies automatically on
 normal startup even when the capability is disabled. For accepted alpha.0
 execution use a verified archive or clean exact-source export; retained

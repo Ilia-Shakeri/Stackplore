@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-alpha.1",
+  "observed_at_utc": "2026-10-21T10:57:16.663Z",
+  "source_tree": "0ef4c3b42e00be5609b68cb3c06c825ca19b2233",
+  "database_schema": 17,
+  "command": "npm.cmd run verify",
+  "exit_code": 1,
+  "status": "failed",
+  "log_sha256": "df3f0378f9f73ac09a84c2aa830590d4cf77f066187a5b422c6399930a0c72be",
+  "database": {
+    "postgresql": "17.11",
+    "native_recovery_tools_enabled": true,
+    "package_seconds": 479.238,
+    "status": "passed",
+    "other_go_packages_include_cached_results": true
+  },
+  "client": {
+    "passed": 40
+  },
+  "web": {
+    "status": "failed",
+    "files_passed": 51,
+    "files_failed": 2,
+    "tests_passed": 492,
+    "tests_failed": 3,
+    "tests_run": 495,
+    "unhandled_errors": 1,
+    "duration_seconds": 595.63,
+    "failures": [
+      "EnvironmentSelector: Environment combobox absent within the existing query bound",
+      "user-admin-flow: 103-account English case exceeded existing 15000ms",
+      "user-admin-flow: 103-account Persian case exceeded existing 15000ms"
+    ],
+    "unhandled_error": "product-api: threads worker startup response timed out",
+    "all_planned_tests_reached": false
+  },
+  "production_build_reached": false,
+  "unchanged_focused_probe": {
+    "command": "corepack pnpm --filter @stackplore/web exec vitest run src/app/shell/EnvironmentSelector.test.tsx src/features/users/user-admin-flow.test.tsx src/features/product/product-api.test.ts --reporter=verbose",
+    "exit_code": 0,
+    "files_passed": 3,
+    "tests_passed": 80,
+    "duration_seconds": 59.09,
+    "log_sha256": "1736162712dbff6ee7462557d05b8a81dfc052e40245ecc14c4d2400b3ce9ecf",
+    "code_or_assertion_or_timeout_changed": false,
+    "coverage_enabled": false
+  },
+  "isolation": {
+    "owned_processor_stopped": true,
+    "team_go_and_database_compilation_paused": true,
+    "concurrent_team_node_release_tests": true,
+    "foreign_processes_stopped": false
+  },
+  "conclusion": "This complete command failed. All three unchanged files subsequently passed their focused probe. These observations do not establish a product defect or a unique host-resource cause, and the focused probe does not replace coverage or the complete gate. Preserve original timeouts and assertions; run a new complete gate."
+}

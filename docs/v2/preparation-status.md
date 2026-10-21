@@ -3,7 +3,7 @@
 The unaccepted [draft change](https://github.com/Ilia-Shakeri/Stackplore/pull/1)
 backs up prepared code at
 `e660e16bd0b3c56f0096bb43b5688195135892b1`, branch `prep-v2-runtime`.
-It is not integrated into main or the immutable `v2.0.0-alpha.0` source
+The draft as a whole is not integrated into main or the immutable `v2.0.0-alpha.0` source
 `eb86ab7554db555f023c1de72c3119acf101226a`.
 
 **The draft automatically applies schema 18 on normal startup.** Disabled
@@ -34,21 +34,25 @@ equal to the preparation commit's tree. Its merge commit is
 `a194ff7fdcb625d9cb75dc3ac223779d285b9567`, with base `eb86ab7` and head
 `e660e16`. This is draft verification, not promotion or real-profile proof.
 
-The maintainer's local checkout still contains the prepared files, including
-`apps/api/postgresmigrations/000018_assistant_runtime.sql` and the two modified
-existing files. After verifying a remote backup, automatic review rejected
+The maintainer's local checkout still contains prepared files, including
+`apps/api/postgresmigrations/000018_assistant_runtime.sql`, modified existing
+files and newer unaccepted stage-2/3 preparation. After verifying a remote backup, automatic review rejected
 removing that local preparation with only `blocked by policy`; no alternative
 removal was attempted. The working tree is therefore **not a clean schema-17
 alpha.0 source**. Its branch name alone does not exclude the untracked migration.
 Use the verified release or a clean exact-source export for alpha.0 execution;
 keep this retained preparation on disposable schema-18 test data only.
 
-The real local processor test was explicitly skipped. The maintainer confirmed
-that no compatible process is already running. Automatic review rejected the
-candidate launch with only `blocked by policy`; no alternative launch was used.
-The stage-1 profile, answer quality, all subsequent stage exits and final version
-2 acceptance remain open. This draft has no milestone tag or release and must
-not inherit alpha.0's receipts.
+At that draft checkpoint the real local processor test was explicitly skipped.
+No compatible process was running. Automatic review rejected its candidate
+launch with only `blocked by policy`; no alternative launch was used then.
+On 2026-10-21 a newly authorized startup and bilingual typed protocol probes
+passed for the separate [alpha.1 candidate](../evidence/2.0.0-alpha.1/README.md).
+Its newer gateway files have their own source manifest; the draft's 132 results
+do not transfer to those files or subsequent changes. Full stage-1 verification,
+answer quality, later stage exits and final version-2 acceptance remain open.
+This draft itself has no milestone tag or release and must not inherit another
+source's receipts.
 
 ## فارسی
 
@@ -64,14 +68,19 @@ not inherit alpha.0's receipts.
 یکسان سنجیده شد؛ این‌ها پذیرش پردازنده یا پایان گیت بازیابی نیستند.
 
 شش گیت پیش‌نویس هم پاس؛ درخت merge تست‌شده با کامیت آماده‌سازی یکسان بود.
-فایل‌های محلی، از جمله مهاجرت ۱۸ و دو فایل تغییرکرده، باقی‌اند. حذف آن‌ها
+فایل‌های محلی، از جمله مهاجرت ۱۸ و فایل‌های تغییرکرده، باقی‌اند. حذف آن‌ها
 بعد از تأیید پوشِ نسخهٔ پشتیبان در بررسی خودکار رد شد؛ دلیل فقط
 `blocked by policy`. روش حذف دیگر اجرا نشد. نام شاخه، فایل untracked را
 کنار نگذارد؛ درخت کار فعلی، منبع پاکِ `alpha.0` با طرح ۱۷ نیست. اجرای آن
 نسخه از بستهٔ تأییدشده یا خروجی پاکِ منبع دقیق باشد؛ آماده‌سازی فقط روی
 دادهٔ دورریختنیِ تست با طرح ۱۸ اجرا شود.
 
-تست پردازندهٔ واقعی اجرا نشد. کاربر، نبود سرویس سازگار را گفت. راه‌اندازی
-نامزد در بررسی خودکار رد شد؛ دلیل فقط `blocked by policy`. دور زدن اجرا نشد.
-گام ۱، گام‌های بعد، کیفیت جواب و پایان نسخهٔ ۲ بازند. پیش‌نویس، تگ یا انتشار
-مرحله‌ای ندارد؛ رسید `alpha.0` را به خود نسبت ندهد.
+در تلاش پیشین سرویس نبود و شروع رد شد؛ آن نتیجه حفظ شود. در ۲۰۲۶-۱۰-۲۱،
+درخواست صریح نصب و شروع تازه، به تست واقعی دو زبان برای نامزد جداگانهٔ
+`alpha.1` رسید. فایل‌های تازهٔ درگاه، رسید خود را دارند؛ تست ۱۳۲تاییِ منبع
+قدیمی، آن‌ها و کار تازهٔ گام‌های بعد را نپذیرد. گیت کامل و نسخهٔ نهایی بازند.
+
+در همان پیش‌نویس تاریخی، تست پردازندهٔ واقعی اجرا نشد و راه‌اندازی رد شد؛
+دلیل فقط `blocked by policy` بود. آن نتیجه با تست تازهٔ نامزد `alpha.1`
+عوض یا دوباره نام‌گذاری نشود. کیفیت جواب و پایان نسخهٔ ۲ بازند. خودِ آن
+پیش‌نویس تگ یا انتشار مرحله‌ای ندارد؛ رسید `alpha.0` را به خود نسبت ندهد.

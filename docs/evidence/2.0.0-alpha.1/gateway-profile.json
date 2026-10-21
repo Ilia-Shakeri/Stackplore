@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-alpha.1",
+  "observed_at_utc": "2026-10-21T09:43:03.506Z",
+  "status": "local_protocol_passed",
+  "baseline_commit": "5d450683719fbe0dc0c9c5b1cf7403627aa96a89",
+  "scope": "Actual disposable native local profile compatibility only; no product dispatch, answer quality, maximum-load capacity, hosted CI or release acceptance.",
+  "source_files": [
+    {
+      "path": "apps/api/internal/inference/gateway.go",
+      "sha256": "584c69546cc9666b48adeba7fccbb42c98d2000410fdc7899fb9f6bb2a01cb0f"
+    },
+    {
+      "path": "apps/api/internal/inference/gateway_test.go",
+      "sha256": "4432b59b4f3533a042524dde2f970c3a7ed707a8c38a1e66a2929549538bbae9"
+    },
+    {
+      "path": "apps/api/internal/inference/types.go",
+      "sha256": "c2fc8a1dcc29de8cea90b86621a9a39a780fb675fd967c729e6825ec126290c6"
+    },
+    {
+      "path": "apps/api/internal/provider/inference/local.go",
+      "sha256": "baf9fffcc3cc5c6594f2ceaea0a3dd5b12a0ade6f50e9ff93664717b8cdca190"
+    },
+    {
+      "path": "apps/api/internal/provider/inference/local_test.go",
+      "sha256": "6ae0e4948d802cd78146b1279bd7c0e628498c23b814152a2a3be89b46d9ed82"
+    },
+    {
+      "path": "apps/api/internal/provider/inference/local_integration_test.go",
+      "sha256": "44bdfbc330065a7b545a60be3f0b1be4f408dfe10348ee58af08060daccd3731"
+    },
+    {
+      "path": "apps/api/internal/provider/inference/profile.go",
+      "sha256": "4d962a451fba8b2c065072f18ad9c2aa9308e4084a0b76b750e1d32b429bcad2"
+    },
+    {
+      "path": "apps/api/internal/provider/inference/transport.go",
+      "sha256": "fd9b03c19edbbfbadeab050f4e40f7b2050068c70c4d84316356545b92be465e"
+    },
+    {
+      "path": "scripts/local-processor.ps1",
+      "sha256": "acc5aaad35b38e4e2f0db89311637edd71ef43e491e21effaba55e26bc2f1061"
+    },
+    {
+      "path": "scripts/local-processor.test.ps1",
+      "sha256": "a1cd6db6ddad119f10d1aa28d7430116766fe1064e2bbb3ac8fff127cd66f052"
+    }
+  ],
+  "source_manifest_sha256": "6e832a63c6edba32a5d90a6d175f4cc2d69e0598c7e59770d9158332fb8fb50f",
+  "host": {
+    "os": "Windows amd64",
+    "processor": "13th Gen Intel Core i5-1334U",
+    "physical_cores": 10,
+    "logical_processors": 12,
+    "total_memory_mib": 16009,
+    "free_memory_before_start_mib": 5028
+  },
+  "runtime": {
+    "official_source": "https://github.com/ggml-org/llama.cpp/releases/tag/b11729",
+    "source_commit": "412a363c655b479279d3050d0d1c67a5733697b4",
+    "build": "b11729-412a363c6",
+    "archive_sha256": "aef737d26bffd08ceeb7be75f045bdef6d1ecc3187e0f4a1a3b0d878a03d2550",
+    "installed_files": 51,
+    "inventory_sha256": "bd3c318066445d55fd1fc1bae4b8f1cdcdf636381c8fdf416511f1a0033282d0",
+    "executable_sha256": "e90d1fd76030e9e877b7df45b59e85f9f076ee8c6dce044e469b6f91a411bfc9",
+    "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+    "context_tokens": 20480,
+    "slots": 1,
+    "threads": 2,
+    "kv_type": "q8_0",
+    "gpu_layers": 0,
+    "loopback_only": true,
+    "public_listener": false,
+    "credentials": "none; trusted host operator profile",
+    "startup": "passed",
+    "process_persisted_after_launcher_exit": true
+  },
+  "model": {
+    "repository": "Qwen/Qwen3-0.6B-GGUF",
+    "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+    "file": "Qwen3-0.6B-Q8_0.gguf",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "bytes": 639446688,
+    "license": "Apache-2.0",
+    "purpose": "Controlled protocol and locale probe only"
+  },
+  "integration": {
+    "command": "go -C apps/api test ./internal/provider/inference -run '^TestPinnedLocalRuntimeIntegration$' -count=1 -v",
+    "exit_code": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "id": "empty_evidence_en",
+        "locale": "en",
+        "input_tokens": 104,
+        "output_tokens": 27,
+        "elapsed_ms": 2358,
+        "outcome": "pass"
+      },
+      {
+        "id": "empty_evidence_fa",
+        "locale": "fa",
+        "input_tokens": 132,
+        "output_tokens": 40,
+        "elapsed_ms": 5229,
+        "outcome": "pass"
+      }
+    ],
+    "raw_log_sha256": "6574407b9d28b444dc245a623e16e2f4a5caa0bc964dc3d09fa6c86988c1bcc4",
+    "reused_preparation_rejected": true
+  },
+  "unit": {
+    "command": "go -C apps/api test ./internal/inference ./internal/provider/inference -count=1 -cover",
+    "exit_code": 0,
+    "statements_percent": {
+      "port": 95.4,
+      "adapter": 90.2
+    },
+    "branch_coverage_proved": false,
+    "raw_log_sha256": "f986ce139be4e33cd92c95ec69ad0b09e1c2eb7a1c86b20575361f716afb53f6"
+  },
+  "launcher_pure": {
+    "command": "pwsh -NoProfile -File scripts/local-processor.test.ps1",
+    "exit_code": 0,
+    "checks": 125
+  },
+  "memory_sample": {
+    "sampled_at_utc": "2026-10-21T09:41:41.2577797Z",
+    "working_set_mib": 1875.27,
+    "private_memory_mib": 1330.38,
+    "scope": "One post-probe process sample; not a peak or approved capacity limit"
+  },
+  "privacy": {
+    "raw_prompt_or_answer_published": false,
+    "private_path_or_process_receipt_published": false,
+    "model_or_runtime_binary_committed": false
+  },
+  "limitations": [
+    "User-facing dispatch remains absent until durable admission and shared privacy gates pass.",
+    "Controlled literal no-evidence probes do not prove infrastructure reasoning or Persian grounding quality.",
+    "Input/output maximums are safety bounds, not hardware latency or throughput guarantees.",
+    "Earlier automatic-review launch rejection remains a rejected attempt; this new explicitly authorized invocation succeeded.",
+    "Full exact-source gate, hosted checks and version publication remain separate."
+  ]
+}

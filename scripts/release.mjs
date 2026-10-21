@@ -59,6 +59,7 @@ const awaitVerification = async () => {
     throw new Error('Published tag no longer identifies this source revision.');
   }
   const required = [
+    'processor-tool',
     'code',
     'deploy',
     'compose-install',
@@ -78,8 +79,15 @@ const awaitVerification = async () => {
       if (run.conclusion !== 'success') throw new Error('Exact tag verification failed.');
       const result = await request(`actions/runs/${run.id}/jobs?per_page=100`, { signal });
       if (
-        !required.every((name) =>
-          result.jobs.some((job) => job.name === name && job.conclusion === 'success'),
+        !Array.isArray(result?.jobs) ||
+        result.total_count !== required.length ||
+        result.jobs.length !== required.length ||
+        new Set(result.jobs.map((job) => job?.name)).size !== required.length ||
+        !result.jobs.every(
+          (job) =>
+            required.includes(job?.name) &&
+            job.status === 'completed' &&
+            job.conclusion === 'success',
         )
       ) {
         throw new Error('A required exact-tag verification job did not pass.');

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-alpha.1",
+  "observed_at_utc": "2026-10-21T10:24:10.966Z",
+  "source_tree": "0ef4c3b42e00be5609b68cb3c06c825ca19b2233",
+  "database_schema": 17,
+  "failed_attempt": {
+    "command": "npm.cmd run verify",
+    "exit_code": 1,
+    "status": "failed",
+    "log_sha256": "651f66df856950168bbe13b074e9252a6c4cdc8bdec8e5b7c2b6bea1819f251d",
+    "stage": "Go PostgreSQL tests",
+    "first_failure": "TestReleaseRepresentativeKeysetPlansOnRealPostgreSQL: seed measured events",
+    "fixture_deadline_seconds": 90,
+    "package_deadline_seconds": 600,
+    "following_timeout": "TestReleaseUpgradeFromShippedPrefixesPreservesDataAndImmutableLedger/14 cleanup was active when the package deadline elapsed",
+    "client_and_web_tests_reached": false,
+    "production_build_reached": false
+  },
+  "isolated_probe": {
+    "command": "go -C apps/api test ./internal/postgres -run '^TestReleaseRepresentativeKeysetPlansOnRealPostgreSQL$' -count=1 -v",
+    "exit_code": 0,
+    "test_seconds": 6.47,
+    "package_seconds": 9.926,
+    "log_sha256": "c1334f037e44fab77321ddb33ef3480ded8454f99a1cf3de8b1f54d9c8101525",
+    "fixture_deadline_seconds": 90,
+    "workload_rows": [1000, 20000],
+    "samples": 5,
+    "warmup": 1,
+    "lookahead_limit": 51,
+    "code_or_assertion_or_timeout_changed": false
+  },
+  "isolation": {
+    "owned_processor_stopped": true,
+    "owned_process_stop_identity_verified": true,
+    "loopback_listener_absence_verified": true,
+    "other_team_compile_and_database_tests_paused": true,
+    "free_memory_after_stop_mib": 5032,
+    "foreign_processes_stopped": false
+  },
+  "conclusion": "The unchanged focused fixture passed after resource isolation. Resource contention is plausible; no single cause is established. The first full gate remains failed; a new full gate is required. This does not prove concurrent processor/database capacity or throughput."
+}
