@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "accepted": false,
+  "milestone_closed": false,
+  "branch": "prep-v2-runtime",
+  "revision": "e660e16bd0b3c56f0096bb43b5688195135892b1",
+  "draft_pull_request": "https://github.com/Ilia-Shakeri/Stackplore/pull/1",
+  "automatic_schema": 18,
+  "application_profile_enabled": false,
+  "public_helper_route": false,
+  "source_binding": {
+    "status": "passed",
+    "revision": "e660e16bd0b3c56f0096bb43b5688195135892b1",
+    "exact_tested_source_files": 34,
+    "manifest_sha256": "4d990879c1753acf93ae9b461b3fa7425bd972b705019e835fa5c1617edba3e1",
+    "scope": "Exact byte comparison of committed preparation code with final concurrency-test source manifest; not stage acceptance"
+  },
+  "concurrency": {
+    "scope": "Six full package test suites plus focused real PostgreSQL/runtime-service/upgrade tests; synthetic backend only",
+    "exit": 0,
+    "go": "go version go1.26.9 linux/amd64",
+    "postgres": "postgres (PostgreSQL) 17.11",
+    "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "testPassEvents": 132,
+    "failures": 0,
+    "skipped": ["TestPinnedLocalRuntimeIntegration"],
+    "packages": [
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant",
+        "seconds": 1.098
+      },
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice",
+        "seconds": 4.389
+      },
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder",
+        "seconds": 1.229
+      },
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference",
+        "seconds": 1.147
+      },
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference",
+        "seconds": 2.141
+      },
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy",
+        "seconds": 1.226
+      },
+      {
+        "name": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+        "seconds": 31.715
+      }
+    ],
+    "sourceEqual": true,
+    "sourceFiles": 34,
+    "beforeManifestSHA256": "4d990879c1753acf93ae9b461b3fa7425bd972b705019e835fa5c1617edba3e1",
+    "afterManifestSHA256": "4d990879c1753acf93ae9b461b3fa7425bd972b705019e835fa5c1617edba3e1",
+    "ownedContainerRemoved": "stackplore-v2-runtime-race-20261019",
+    "ownedVolumeRemoved": "stackplore-v2-runtime-race-20261019"
+  },
+  "log_sha256": {
+    "packages": "4132262e8ca1de98c50a2ee356efa32dd7d3f1f05d52f7c57978f929663f99d3",
+    "postgres": "c8256afbe43499b08f8c133380e857ba7a640fa3c56eb85eb1e23ec16079fa0b"
+  },
+  "real_profile": {
+    "status": "unavailable",
+    "test": "TestPinnedLocalRuntimeIntegration",
+    "outcome": "skipped",
+    "existing_compatible_service": false,
+    "launch_review": "blocked by policy",
+    "alternative_launch_used": false
+  },
+  "hosted_ci": {
+    "id": 39262991115,
+    "sha": "e660e16bd0b3c56f0096bb43b5688195135892b1",
+    "branch": "prep-v2-runtime",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 118095219090,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118095219110,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118095219263,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118095219470,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118095219498,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118095219632,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  },
+  "limits": [
+    "Prepared development source only; automatic schema18 migration requires a fresh disposable database.",
+    "No alpha.0 acceptance receipt applies to this different source.",
+    "Passing code/SQL checks do not establish real processor compatibility, answer quality or stage exit acceptance."
+  ],
+  "hosted_checkout": {
+    "status": "passed",
+    "draft": true,
+    "head": "e660e16bd0b3c56f0096bb43b5688195135892b1",
+    "base": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "checkout_merge": "a194ff7fdcb625d9cb75dc3ac223779d285b9567",
+    "checkout_tree": "8756d6a8b8e7db57234b1f85b2eeee1f665c0d56",
+    "prepared_tree_equal": true
+  },
+  "workspace_handoff": {
+    "clean_alpha0_source": false,
+    "automatic_schema18_migration_retained": true,
+    "tracked_preparation_changes_retained": 2,
+    "new_preparation_files_retained": 35,
+    "remote_backup_revision": "e660e16bd0b3c56f0096bb43b5688195135892b1",
+    "cleanup_review": "blocked by policy",
+    "cleanup_executed": false,
+    "alternative_removal_attempted": false,
+    "unrelated_user_artifacts_touched": false,
+    "execution_scope": "Retained preparation only on disposable schema18 test data; accepted alpha0 execution uses verified archive or clean exact-source export"
+  }
+}

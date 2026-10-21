@@ -1,12 +1,44 @@
 # Stackplore delivery plan
 
-## Active version 2 implementation — 2026-10-19
+## Active version 2 implementation — 2026-10-21
 
 The maintainer authorized all stages, tests, documentation, checkpoint versions,
 commits and pushes on 2026-10-19. This explicit authorization supersedes the
 default no-push repository rule for this delivery. Preserve every existing tag
 and all unrelated user work. Stage 0 starts at `2.0.0-alpha.0`; stable 1.0.3 and
 its schema-17 acceptance remain immutable. No helper runtime is shipped yet.
+
+Published stage-0 checkpoint **2.0.0-alpha.0**, schema **17**, is immutable at
+`eb86ab7554db555f023c1de72c3119acf101226a`. Main CI
+[39258522963](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39258522963)
+and tag CI [39262174884](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39262174884)
+pass all six jobs; release run
+[39262174841](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39262174841)
+published prerelease [417357745](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.0).
+[Public acceptance](docs/evidence/2.0.0-alpha.0/published-release.json) binds
+39 files, 30 checksums, 31 provenance subjects, seven SBOM attestations and eight
+strict scans with zero HIGH/CRITICAL findings. Public Windows bytes match the
+actual recovery-tested trial. Application-image load/identity passed without
+starting a container; the different public PostgreSQL archive independently
+passed engine/helper/root-drop, bounded isolated SQL and six-container cleanup
+with absence verified. **Stage 0 is accepted within the recorded scope.**
+[Alpha.0 evidence](docs/evidence/2.0.0-alpha.0/README.md) retains failed consumer
+attempts and separates each runtime claim.
+
+Stages **1–10 remain incomplete**. Draft
+[PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1),
+`e660e16bd0b3c56f0096bb43b5688195135892b1`, contains unaccepted stage-1–3
+preparation, not a delivered milestone. The maintainer has no compatible running
+processor; automatic review rejected the candidate launch. Scoped code/SQL and
+draft CI cannot replace that real-profile gate.
+
+**Checkout boundary:** cleanup was also review-rejected. Two existing modified
+files and untracked preparation, including migration 18, remain. Normal startup
+applies schema **18** even with the capability disabled. The branch name and
+alpha.0 version label do not make this checkout clean schema-17 source. Use a
+verified release or a clean exact-source export for alpha.0; retained preparation
+uses a fresh disposable schema-18 database only. See the
+[separate preparation status](docs/v2/preparation-status.md).
 
 Follow the [version 2 roadmap](docs/roadmap-v2.md) ([فارسی](docs/roadmap-v2.fa.md)),
 the [active stage ledger](docs/v2/implementation.md), and accepted ADRs 0014–0016.

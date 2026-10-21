@@ -1,11 +1,41 @@
 # Stackplore active implementation evidence
 
-## Version 2 work started — 2026-10-19
+## Version 2 status — 2026-10-21
 
 Stage-by-stage implementation, versioning, commits and pushes are authorized.
 The [version 2 ledger](v2/implementation.md) owns new commands, failures,
 source bindings and pending gates. Accepted design is separate from delivered
 runtime. Existing 1.0 evidence below remains historical and immutable.
+
+Stage-0 **2.0.0-alpha.0** is published, schema **17**, immutable
+`eb86ab7554db555f023c1de72c3119acf101226a`. Its exact main verification
+[39258522963](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39258522963)
+and tag verification [39262174884](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39262174884)
+pass all six jobs. Signed trial `39258604051` and publication
+[39262174841](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39262174841)
+pass; prerelease [417357745](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.0)
+exists. [Public acceptance](evidence/2.0.0-alpha.0/published-release.json) verifies
+39 files, 30 checksums, 31 provenance subjects, seven SBOM attestations and eight
+strict scans with zero HIGH/CRITICAL findings. Public Windows bytes match the
+actual recovery-tested trial. Public application archive load/identity passed
+without starting the container. The separate public PostgreSQL archive passed
+engine/helper/root-drop, isolated read-only bounded SQL and owner-checked
+six-container cleanup/absence verification. **Stage 0 is accepted within this
+recorded scope.** The [evidence index](evidence/2.0.0-alpha.0/README.md) keeps
+local/hosted/browser/consumer proof and retained failures separate.
+
+The [separate preparation status](v2/preparation-status.md) identifies unaccepted
+draft PR 1 at `e660e16bd0b3c56f0096bb43b5688195135892b1`, covering preparation
+for stages 1–3. No compatible processor is running, and automatic review rejected
+the candidate launch. Its tests do not accept stage 1, answer quality or later
+stage exits. Version-2 stages **1–10 are not complete**.
+
+The local checkout retains two modified existing files and untracked preparation
+after cleanup was review-rejected. Its migration 18 applies automatically on
+normal startup even when the capability is disabled. For accepted alpha.0
+execution use a verified archive or clean exact-source export; retained
+preparation must use a fresh disposable schema-18 test database. Alpha.0's
+schema-17 receipts do not accept this mixed working tree.
 
 ## Accepted corrective audit — 1.0.3 — 2026-10-19
 

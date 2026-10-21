@@ -3,6 +3,18 @@
 Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 Historical released source and receipts below retain their original scope.
 
+The version-2 stage-zero prerelease is **2.0.0-alpha.0**, immutable source
+`eb86ab7554db555f023c1de72c3119acf101226a`, schema **17**. Its
+[evidence](evidence/2.0.0-alpha.0/README.md) separates local, hosted and public
+consumer checks. The [active ledger](v2/implementation.md) tracks the remaining
+stages; [unaccepted preparation](v2/preparation-status.md) has a different source
+and automatically applies schema 18. The retained development working tree must
+use disposable data; use the verified release or a clean exact-source export for
+alpha.0 execution. Stage 1 still lacks a running compatible local processor.
+
+نسخهٔ `alpha.0` فقط گام صفر است؛ پایان نسخهٔ ۲ نیست. رسیدها و کد آماده‌سازی
+جدا هستند. درخت کار، مهاجرت ۱۸ دارد؛ فقط دادهٔ تست به آن وصل شود.
+
 ## Historical 1.0.2 acceptance
 
 Start with the [English overview](../README.md) or [Persian overview](../README.fa.md).
@@ -44,7 +56,9 @@ outcomes alongside real passing subchecks. [Final review](evidence/1.0.1/final-r
 | Application settings, data cleanup and browser preferences | [Settings](settings.md), [تنظیمات](settings.fa.md)                                                                                                                                                                                                    |
 | Alert evidence, durable streams and outbound delivery      | [Alerts and notifications](alerts-notifications.md), [هشدار و اعلان](alerts-notifications.fa.md)                                                                                                                                                      |
 | Proof levels and test gates                                | [Testing](testing.md)                                                                                                                                                                                                                                 |
-| Accepted corrective release                                | [1.0.2 public proof](evidence/1.0.2/published-release.json), [evidence](evidence/1.0.2/README.md), [fresh audit](evidence/1.0.2/fresh-audit.md)                                                                                                       |
+| Accepted stable correction                                 | [1.0.3 public proof](evidence/1.0.3/published-release.json), [evidence](evidence/1.0.3/README.md)                                                                                                                                                     |
+| Version-2 stage-zero prerelease                            | [alpha.0 evidence](evidence/2.0.0-alpha.0/README.md), [active ledger](v2/implementation.md), [separate preparation](v2/preparation-status.md)                                                                                                         |
+| Historical accepted correction                             | [1.0.2 public proof](evidence/1.0.2/published-release.json), [evidence](evidence/1.0.2/README.md), [fresh audit](evidence/1.0.2/fresh-audit.md)                                                                                                       |
 | Historical accepted correction                             | [1.0.1 release](evidence/1.0.1/README.md), [review](evidence/1.0.1/final-review.md), [rejected image receipt](evidence/1.0.1/failed-database-image.json)                                                                                              |
 | Historical checkpoint receipts                             | [0.4 evidence](evidence/0.4.0/README.md), [0.5 evidence](evidence/0.5.0/README.md), [superseded 0.9 evidence](evidence/0.9.0/README.md), [withheld 1.0.0](evidence/1.0.0/README.md), [canceled publication](evidence/1.0.0/publication-withheld.json) |
 | Approved PostgreSQL server/client baseline                 | [Database image policy](../deploy/postgres-image.json), [patch-upgrade guidance](operations/upgrade-rollback.md#postgresql-17-patch-baseline), [راهنمای ارتقای وصله](operations/upgrade-rollback.fa.md)                                               |

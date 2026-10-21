@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-alpha.0",
+  "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+  "observed_at_utc": "2026-10-19T13:41:41.072Z",
+  "main_ci": {
+    "id": 39258522963,
+    "sha": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "branch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 118079838994,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118079839321,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118079839470,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118079839675,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118079839768,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118079839895,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  },
+  "signed_trial": {
+    "id": 39258604051,
+    "sha": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "branch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 118080109637,
+        "name": "package",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118083273886,
+        "name": "publish",
+        "status": "completed",
+        "conclusion": "skipped",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  },
+  "browser_receipt": "main-browser.json",
+  "browser_receipt_sha256": "dfb3a794b654fcb8b22c1a3f48f328b6aab28f43c66094203614f2ab1b9c7902",
+  "scope": "Exact-source main verification and signed main trial. Tag CI, public publication and public consumption remain separate gates."
+}

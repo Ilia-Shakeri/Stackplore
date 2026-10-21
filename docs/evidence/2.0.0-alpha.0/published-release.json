@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "version": "2.0.0-alpha.0",
+  "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+  "source_ref": "refs/tags/v2.0.0-alpha.0",
+  "follow_up_calendar_date": "2026-10-21",
+  "release": {
+    "id": 417357745,
+    "url": "https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.0",
+    "published_at_utc": "2026-10-19T13:59:27Z",
+    "tag": "v2.0.0-alpha.0",
+    "annotated_tag_object": "cc8a7fbfa9c0277edb12481a4d364641d83ead4b",
+    "peeled_revision": "eb86ab7554db555f023c1de72c3119acf101226a"
+  },
+  "tag_ci": {
+    "id": 39262174884,
+    "sha": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "branch": "v2.0.0-alpha.0",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 118092413039,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118092413100,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118092413137,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118092413199,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118092413226,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118092413457,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  },
+  "release_workflow": {
+    "id": 39262174841,
+    "sha": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "branch": "v2.0.0-alpha.0",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 118092383369,
+        "name": "package",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 118101385569,
+        "name": "publish",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  },
+  "download": {
+    "status": "download_and_checksum_passed",
+    "scope": "Public asset download, API identity and checksums only; signature and application acceptance remain separate.",
+    "tag": "v2.0.0-alpha.0",
+    "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "version": "2.0.0-alpha.0",
+    "release_id": 417357745,
+    "published_at": "2026-10-19T13:59:27Z",
+    "downloaded_assets": 39,
+    "checked_files": 30,
+    "consumer_script_sha256": "155d3f17cec8a4e914b4ebb8d61ec2fe657b87cec01016f1e4c1b180251bdd22"
+  },
+  "signatures": {
+    "schema_version": 2,
+    "status": "passed",
+    "observed_at_utc": "2026-10-19T14:01:27.3077971Z",
+    "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "source_ref": "refs/tags/v2.0.0-alpha.0",
+    "version": "2.0.0-alpha.0",
+    "release_assets": 39,
+    "checked_manifest_entries": 30,
+    "provenance_subjects": 31,
+    "sbom_attestations": 7,
+    "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/tags/v2.0.0-alpha.0",
+    "deny_self_hosted_runners": true,
+    "consumer_script_sha256": "f1d4eaf1d624824516e518d75af15a350686880c99185ecf43c54730bc40f0d0",
+    "verifier_version": "2.102.0",
+    "verifier_binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "manifest_sha256": "daea874c99697c275a72f57757f4eeed635c8f36c8f739527acf40868e296136",
+    "scope": "Checksums and signed provenance/SPDX verification only. Release archives were not extracted or executed. No runtime, browser, migration or deployment acceptance is proved."
+  },
+  "full_signature_receipt_sha256": "6ab8ceb5e41fef7723d7e5b66d980bd79f19da6de2b1e21b2f2387dee72febd1",
+  "strict_scans": [
+    {
+      "file": "dependency-scan.json",
+      "sha256": "a69875234002622ba2bc3a237d76baba33fa39b5d20836a7a55bcda4889e79f3",
+      "go_executables": 0,
+      "os_results": 0,
+      "packages": 467,
+      "high_critical": 0
+    },
+    {
+      "file": "image-scan.json",
+      "sha256": "a77f61b7c2418a267f22dbf6ae06751411ed52d044066a233cca19ef51f70737",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 91,
+      "high_critical": 0
+    },
+    {
+      "file": "database-image-scan.json",
+      "sha256": "6849255bb22e3b9a62a8905679ba3f0abec33069017799405d4a67c4b32735d0",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 49,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_linux_amd64.scan.json",
+      "sha256": "dcde4c82efcd00c78868f5ebb48e7c877784a9170aae8c924981a152da321c29",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_linux_arm64.scan.json",
+      "sha256": "0d08a8a6bd27aaec9a5ece8a3b08b92beb4cedd5ea327bc75f010959f7554ab5",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_windows_amd64.scan.json",
+      "sha256": "bdf9076668b2422eec50dfd18c5b22adac1393c77140462b29a6d3b1204dac06",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 94,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_darwin_amd64.scan.json",
+      "sha256": "70253afbcb7afd991f983d984730205290dab6769db922bc1f9c8f3c64d4cbfc",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_darwin_arm64.scan.json",
+      "sha256": "9b91ef933b517b2c765c6c8baba78cb68a8b598f3a343f0d6eb54cc7c7b86c18",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0
+    }
+  ],
+  "secret_scan": {
+    "file": "secret-scan.json",
+    "findings": 0,
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "linux_native_smoke": {
+    "file": "native-smoke.json",
+    "sha256": "7ae458267e394cee7f6abca1bf76bebe4beb46f7081218d14637a8c6a6c698bc",
+    "report": {
+      "schema": 1,
+      "version": "2.0.0-alpha.0",
+      "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+      "platform": "linux/amd64",
+      "archive": "stackplore_2.0.0-alpha.0_linux_amd64.tar.gz",
+      "startedAt": "2026-10-19T13:57:13.912Z",
+      "completedAt": "2026-10-19T13:57:16.941Z",
+      "toolUsageChecks": [
+        "storage-rejects-missing-arguments",
+        "operator-rejects-missing-arguments"
+      ],
+      "modes": [
+        {
+          "mode": "guest",
+          "checks": [
+            "readiness",
+            "liveness",
+            "embedded-ui",
+            "spa-fallback",
+            "guest-sources",
+            "guest-resources",
+            "guest-no-cookie",
+            "guest-private-denied",
+            "guest-operation-denied"
+          ],
+          "resourceCount": 9,
+          "gracefulShutdown": true,
+          "disposableDatabaseRemoved": true
+        },
+        {
+          "mode": "normal",
+          "checks": [
+            "readiness",
+            "liveness",
+            "embedded-ui",
+            "spa-fallback",
+            "setup-preflight",
+            "initial-admin",
+            "authenticated-session",
+            "version",
+            "all-operation-gates-disabled"
+          ],
+          "resourceCount": 0,
+          "gracefulShutdown": true,
+          "disposableDatabaseRemoved": true
+        }
+      ],
+      "limits": [
+        "No native execution of other cross-built targets.",
+        "Backup/restore is a separate recovery gate."
+      ]
+    }
+  },
+  "windows_native": {
+    "status": "passed",
+    "windows_archive_sha256": "c247c5354898eda67b2ca346c220122ed3e06b2fd8c71a02aecbb389f9729cc0",
+    "matches_actual_recovery_tested_trial": true,
+    "trial_run": 39258604051,
+    "public_release_run": 39262174841,
+    "trial_receipt": "consumer-trial.json",
+    "trial_receipt_sha256": "4ba1b99c22e56fbc9c737abc80b118dc08e50240a57723b3ab6b8a4495439f5f",
+    "scope": "The public Windows archive is byte-identical to the independently accepted main-trial archive. Actual backup/restore, session revocation, operator recovery and owned cleanup are recorded by that separate trial receipt."
+  },
+  "app_image": {
+    "receipt": {
+      "schema_version": 1,
+      "status": "passed",
+      "version": "2.0.0-alpha.0",
+      "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+      "source_ref": "refs/tags/v2.0.0-alpha.0",
+      "observed_at_unix": 1792566660,
+      "image": "stackplore-api:2.0.0-alpha.0",
+      "configuration_id": "sha256:dd92449f88dfac9ef71ce5e4b50e14e8405052e5b654d81f50099ea18b344a40",
+      "oci_manifest_id": "sha256:326063a438831b1e40c088bdc239e5736c8fb74f3b17aef507fee314ec402ea8",
+      "runtime_image_id": "sha256:326063a438831b1e40c088bdc239e5736c8fb74f3b17aef507fee314ec402ea8",
+      "runtime_identity_kind": "oci_manifest",
+      "platform": "linux/amd64",
+      "user": "10001:10001",
+      "archive_sha256": "5ddd4e29a4d12e1f6fa5228af926a70610ab77e520208721152aefc4d2e17938",
+      "manifest_sha256": "daea874c99697c275a72f57757f4eeed635c8f36c8f739527acf40868e296136",
+      "verification_receipt_sha256": "6ab8ceb5e41fef7723d7e5b66d980bd79f19da6de2b1e21b2f2387dee72febd1",
+      "consumer_script_sha256": "d515f171cae92edba27d9086d72bf2ba95075c704d43b60dd910cd1b5df5693a",
+      "docker_binary_sha256": "7ed12b00293d64742419a6601ae97960a367a0ce97c88b06e3278cc0a409557b",
+      "docker_endpoint": "unix:///var/run/docker.sock",
+      "prior_tag_state": "same_identity",
+      "loaded": true,
+      "container_started": false,
+      "archive_entries": 18,
+      "decoded_bytes": 49379328,
+      "layers": 5,
+      "legacy_compatibility_documents": 5,
+      "scope": "Actual local archive load and image identity only. No container, application, migration, integration or deployment execution is proved. Signature trust comes from the separately verified receipt."
+    },
+    "receipt_sha256": "25b472a418b63879c46c8997769c7580e4cb3d49722967286b1e12dee895c8c5",
+    "helper_pure_tests": 18,
+    "helper_review_score": 9,
+    "test_sha256": "5359b14159e547a41ab80e219b3e8cc5df33007edea5a807505093220363e269",
+    "retained_failed_attempts": [
+      {
+        "exit_code": 1,
+        "check": "unreferenced_blob",
+        "image_loaded": false,
+        "container_started": false,
+        "log_sha256": "4548b42c992643092a0570832b101bbd01274e377ae499b495cd4db345f6838f",
+        "helper_sha256": "bced257f2a9257f2bf12724eab5153f18341c9da8fee1dfb7796b08b694b0b3b",
+        "diagnosis": "The first consumer did not derive the five exact legacy compatibility documents. It rejected the archive before loading. The corrected preflight derives and validates their complete values and hash-named blobs."
+      },
+      {
+        "exit_code": 1,
+        "check": "loaded_image_identity",
+        "image_loaded": true,
+        "container_started": false,
+        "log_sha256": "8a827dd663ed7382ba35c8516629268f4bd6db62c8670adf7a8dc5f91baa8d50",
+        "helper_sha256": "f41abefe4e46f6d0ea6312387b04d62784871d0e5768819013e6acd9e662eb63",
+        "diagnosis": "The second consumer expected the configuration digest as the daemon image ID. The local containerd image store reports the exact archive OCI manifest digest. The corrected consumer validates either exact graph-bound representation together with full execution configuration, descriptor and layer identity."
+      }
+    ]
+  },
+  "database_image": {
+    "receipt": {
+      "schema_version": 2,
+      "status": "passed",
+      "observed_at": "2026-10-21T07:22:03Z",
+      "version": "2.0.0-alpha.0",
+      "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+      "source_ref": "refs/tags/v2.0.0-alpha.0",
+      "scope": "Independently verified published database Docker-save archive loaded on local Linux amd64; owned isolated containers only",
+      "archive_sha256": "634dee23b9f4b080b46f1caae1b918f8affb17405fbacb10b21bd15f41daee4d",
+      "metadata_sha256": "e097c8a26740162e84e82fc8d8c9fbad7c3df58e665c10124692348fb10309f2",
+      "manifest_sha256": "daea874c99697c275a72f57757f4eeed635c8f36c8f739527acf40868e296136",
+      "full_verification_receipt_sha256": "6ab8ceb5e41fef7723d7e5b66d980bd79f19da6de2b1e21b2f2387dee72febd1",
+      "consumer_script_sha256": "b3fdf2b36757ed40c6d71a614ec7f02f5ce9bb3484c9504ae9cbefc6cd8721b9",
+      "docker_cli_sha256": "7ed12b00293d64742419a6601ae97960a367a0ce97c88b06e3278cc0a409557b",
+      "copyright_sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd",
+      "image": "stackplore-postgres:2.0.0-alpha.0",
+      "config_digest": "sha256:39a4ca67ae662aade5af9482796a1e6ad39c3d18e357c272c21f1cce7b4dcd42",
+      "loaded_image_id": "sha256:7c626c5bb5a43b3b51a543825838b33da05ccbed70be8a49a9b85ef16bcbd283",
+      "image_store_identity": "oci-manifest",
+      "postgres": "17.11",
+      "gosu": "1.19",
+      "go": "1.26.9",
+      "root_drop_uid": 70,
+      "root_drop_gid": 70,
+      "postgres_server_uid": 70,
+      "server_version_num": 170011,
+      "sql_query": "passed",
+      "sql_transaction": "create/insert/select/rollback",
+      "network": "none",
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "root_drop_probe_added_caps": ["SETUID", "SETGID"],
+      "temporary_data": "owned size-bounded tmpfs only; no persistent or customer database",
+      "cleanup": "owned labels checked; all containers and anonymous volumes removed and absence verified",
+      "containers": 6,
+      "docker_endpoint": "unix:///var/run/docker.sock",
+      "image_cache": "loaded image retained; no retag, image deletion or prune",
+      "scan": {
+        "packages": 49,
+        "os_results": 1,
+        "go_executables": 1,
+        "high_critical": 0
+      },
+      "archive_shape": {
+        "entries": 34,
+        "payload_bytes": 302871415,
+        "decoded_bytes": 302892544,
+        "layers": 13,
+        "legacy_compatibility_documents": 13,
+        "compressed_layer_diff_ids": 0,
+        "oci_manifest_descriptor": {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:7c626c5bb5a43b3b51a543825838b33da05ccbed70be8a49a9b85ef16bcbd283",
+          "size": 2216,
+          "annotations": {
+            "io.containerd.image.name": "docker.io/library/stackplore-postgres:2.0.0-alpha.0",
+            "org.opencontainers.image.ref.name": "2.0.0-alpha.0"
+          }
+        }
+      }
+    },
+    "receipt_sha256": "d742ad5afaa9edbaedd173231b6c31c175677c04556bcb7356fe806ec643c37b",
+    "test_sha256": "607cca8853b670f338e9c6c977baf9ca6a7dbe093086a8d468af80fd529b6cf0",
+    "helper_pure_tests": 28,
+    "helper_review_score": 9,
+    "retained_failed_attempt": {
+      "exit_code": 1,
+      "check": "created_container_isolation",
+      "helper_sha256": "a597861c3101037e1dc0376e4dcfcbc3447132bbec02cf0ab9b8e568e4d178a1",
+      "error_log_sha256": "e47ea4a08b1270cb753fae32023fa0dac69d4c74f23861e5d92ea24d56d987f7",
+      "precise_failed_probe": "not classified by the initial attempt",
+      "diagnosis": "A separate stopped root-drop container reproduced the gate: this daemon returns CAP_SETUID and CAP_SETGID for the two requested permissions. The corrected consumer accepts only either complete exact known pair, rejecting duplicates, mixed forms and additional permissions. No program was started by either diagnostic.",
+      "cleanup": "The failed consumer ran its owner-checked finally cleanup without a cleanup error; each separate stopped diagnostic then independently verified its own single container absent."
+    },
+    "create_only_diagnostics": [
+      {
+        "receipt_sha256": "3d723d8113c273405b91b73fb7f77db9a2e9d02bb124027ef072d2e21b0a05e7",
+        "helper_sha256": "5e4907d25c3f2f32494ad3f7a3ba89d9c197f4f839c9007d9a2aec08fd571803",
+        "record": {
+          "schema_version": 1,
+          "status": "diagnostic_only",
+          "runtime_acceptance": false,
+          "scope": "One owned stopped container only; safe field allowlist; no program or database run",
+          "source_ref": "refs/tags/v2.0.0-alpha.0",
+          "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+          "version": "2.0.0-alpha.0",
+          "helper_sha256": "a597861c3101037e1dc0376e4dcfcbc3447132bbec02cf0ab9b8e568e4d178a1",
+          "archive_sha256": "634dee23b9f4b080b46f1caae1b918f8affb17405fbacb10b21bd15f41daee4d",
+          "config_digest": "sha256:39a4ca67ae662aade5af9482796a1e6ad39c3d18e357c272c21f1cce7b4dcd42",
+          "runtime_image_id": "sha256:7c626c5bb5a43b3b51a543825838b33da05ccbed70be8a49a9b85ef16bcbd283",
+          "docker_endpoint": "unix:///var/run/docker.sock",
+          "container_started": false,
+          "strict_create_gate": "passed",
+          "owned_identity_verified": true,
+          "safe_observed_fields": {
+            "NetworkMode": "none",
+            "ReadonlyRootfs": true,
+            "Privileged": false,
+            "CapDrop": ["ALL"],
+            "CapAdd": null,
+            "Binds": null,
+            "SecurityOpt": ["no-new-privileges"],
+            "Tmpfs": {
+              "/tmp": "uid=70,gid=70,mode=1777,size=32m",
+              "/var/lib/postgresql/data": "uid=70,gid=70,mode=0700,size=128m",
+              "/var/run/postgresql": "uid=70,gid=70,mode=3777,size=16m"
+            },
+            "unrecognized_tmpfs_destinations": 0,
+            "Memory": 536870912,
+            "NanoCpus": 1000000000,
+            "PidsLimit": 128,
+            "Mounts": [],
+            "User": "70:70"
+          },
+          "cleanup": {
+            "owned_names": 1,
+            "all_removed_and_absence_verified": true
+          }
+        }
+      },
+      {
+        "receipt_sha256": "c3310c05616ca03241494e0d52f96b33421c92a50725ab337907ef0006ff8d9a",
+        "helper_sha256": "75ec4cef4b52ac5f0fc30c766a58dd07a5181ed151d7486a6a805a9924eb5c45",
+        "record": {
+          "schema_version": 1,
+          "status": "diagnostic_only",
+          "runtime_acceptance": false,
+          "scope": "One owned stopped root-drop container only; safe field allowlist; no program or database run",
+          "source_ref": "refs/tags/v2.0.0-alpha.0",
+          "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+          "version": "2.0.0-alpha.0",
+          "helper_sha256": "a597861c3101037e1dc0376e4dcfcbc3447132bbec02cf0ab9b8e568e4d178a1",
+          "archive_sha256": "634dee23b9f4b080b46f1caae1b918f8affb17405fbacb10b21bd15f41daee4d",
+          "config_digest": "sha256:39a4ca67ae662aade5af9482796a1e6ad39c3d18e357c272c21f1cce7b4dcd42",
+          "runtime_image_id": "sha256:7c626c5bb5a43b3b51a543825838b33da05ccbed70be8a49a9b85ef16bcbd283",
+          "docker_endpoint": "unix:///var/run/docker.sock",
+          "container_started": false,
+          "strict_create_gate": "created_container_isolation",
+          "owned_identity_verified": true,
+          "safe_observed_fields": {
+            "NetworkMode": "none",
+            "ReadonlyRootfs": true,
+            "Privileged": false,
+            "CapDrop": ["ALL"],
+            "CapAdd": ["CAP_SETGID", "CAP_SETUID"],
+            "Binds": null,
+            "SecurityOpt": ["no-new-privileges"],
+            "Tmpfs": {
+              "/tmp": "uid=70,gid=70,mode=1777,size=32m",
+              "/var/lib/postgresql/data": "uid=70,gid=70,mode=0700,size=128m",
+              "/var/run/postgresql": "uid=70,gid=70,mode=3777,size=16m"
+            },
+            "unrecognized_tmpfs_destinations": 0,
+            "Memory": 536870912,
+            "NanoCpus": 1000000000,
+            "PidsLimit": 128,
+            "Mounts": [],
+            "User": "0:0"
+          },
+          "cleanup": {
+            "owned_names": 1,
+            "all_removed_and_absence_verified": true
+          }
+        }
+      }
+    ]
+  },
+  "limits": [
+    "This receipt accepts only the immutable stage-zero alpha.0 source and its observed consumption scopes; version 2 stages 1 through 10 are incomplete.",
+    "The application image was loaded and its exact identity inspected locally; no local application container execution is claimed by that check.",
+    "Other cross-built native targets were scanned, not executed. No customer deployment or real local processor acceptance is claimed.",
+    "The retained development working tree includes unaccepted automatic schema18 preparation; use the verified release or a clean exact-source export for schema17 alpha.0 execution.",
+    "Strict scans establish the signed reports at their recorded time, not absence of all defects or future advisories."
+  ]
+}

@@ -3,6 +3,19 @@
 Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 Historical released source and receipts below retain their original scope.
 
+The version-2 stage-zero prerelease **2.0.0-alpha.0** is published at immutable
+source `eb86ab7554db555f023c1de72c3119acf101226a`, schema **17**. See its
+[evidence](evidence/2.0.0-alpha.0/README.md) and [active ledger](v2/implementation.md)
+for exact-source verification and consumer scopes. This prerelease does not close
+version-2 stages 1 through 10. The [separate draft](v2/preparation-status.md) is
+unaccepted and automatically migrates schema 18; it has no milestone tag or
+release and cannot inherit alpha.0's receipts. The retained working tree includes
+that preparation: use only a fresh disposable database there, and use the verified
+release or a clean exact-source export to execute schema-17 alpha.0.
+
+انتشار `alpha.0` پایان نسخهٔ ۲ نیست. پیش‌نویس، رسید و پایگاه تست جدا دارد؛
+مهاجرت ۱۸ در درخت کار باقی است. تگ ثابت و دادهٔ پذیرفته با آن قاطی نشوند.
+
 ## Historical 1.0.2 acceptance
 
 Each roadmap stage has its own checked development version. Root/workspace

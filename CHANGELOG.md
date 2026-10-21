@@ -14,6 +14,29 @@
   blue/cyan tokens and browser theme colors; keep offline storage public-only.
 - Helper runtime, real processor quality and all later stage gates remain
   pending; this checkpoint does not enable a new user-facing capability.
+- Publish immutable `v2.0.0-alpha.0` at
+  `eb86ab7554db555f023c1de72c3119acf101226a`, schema 17. Exact main CI
+  `39258522963` and tag CI `39262174884` pass all six jobs; release
+  `39262174841` publishes prerelease `417357745`. The
+  [evidence index](docs/evidence/2.0.0-alpha.0/README.md) distinguishes signed
+  consumer checks and actual archive results. These original UTC release facts
+  keep their 2026-10-19 date.
+- Accept stage 0 within the [public receipt's recorded scope](docs/evidence/2.0.0-alpha.0/published-release.json):
+  all 39 files/30 checksums/31 provenance subjects/seven SBOM attestations,
+  eight strict scans with zero HIGH/CRITICAL findings, public Windows bytes
+  identical to the recovery-tested trial, application-image load/identity only
+  without container execution, and actual isolated public PostgreSQL archive
+  engine/helper/root-drop/SQL/owned-cleanup proof. Keep consumer failures and
+  create-only diagnostics separate; helper corrections did not change product
+  code. Actual follow-up database proof is dated 2026-10-21, not backdated.
+- Documentation reconciliation on 2026-10-21 records unaccepted stage-1–3
+  preparation in draft PR 1 at `e660e16bd0b3c56f0096bb43b5688195135892b1`,
+  the unavailable running processor and review-rejected candidate launch.
+  Cleanup was also review-rejected: two existing modifications and untracked
+  preparation remain locally. Their automatic schema-18 migration runs even
+  while the capability is disabled. Use verified alpha.0 archives or a clean
+  exact-source export; [preparation status](docs/v2/preparation-status.md) keeps
+  this boundary separate. Version-2 stages 1–10 remain incomplete.
 
 ## [1.0.3] - 2026-10-19
 

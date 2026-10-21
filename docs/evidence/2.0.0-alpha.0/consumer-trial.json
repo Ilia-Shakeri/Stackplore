@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "version": "2.0.0-alpha.0",
+  "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+  "observed_at_utc": "2026-10-19T13:41:41.082Z",
+  "trial_run": 39258604051,
+  "download": {
+    "status": "download_and_checksum_passed",
+    "scope": "Artifact download, API identity and checksums only; signature and application acceptance remain separate.",
+    "run": 39258604051,
+    "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "version": "2.0.0-alpha.0",
+    "artifact_id": 12190135509,
+    "artifact_sha256": "9fffd0924d25f22185850d5cf73b675efa821d9bbe98d3ebcb13f6663294fd1d",
+    "checked_files": 30,
+    "consumer_script_sha256": "155d3f17cec8a4e914b4ebb8d61ec2fe657b87cec01016f1e4c1b180251bdd22"
+  },
+  "signatures": {
+    "schema_version": 2,
+    "status": "passed",
+    "observed_at_utc": "2026-10-19T13:29:36.9839648Z",
+    "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+    "source_ref": "refs/heads/main",
+    "version": "2.0.0-alpha.0",
+    "release_assets": 39,
+    "checked_manifest_entries": 30,
+    "provenance_subjects": 31,
+    "sbom_attestations": 7,
+    "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/heads/main",
+    "deny_self_hosted_runners": true,
+    "consumer_script_sha256": "f1d4eaf1d624824516e518d75af15a350686880c99185ecf43c54730bc40f0d0",
+    "verifier_version": "2.102.0",
+    "verifier_binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "manifest_sha256": "c775eda0a5aa9e3e5e40ed3aed25c57c554b33f298c1fbdb0c9348f0c81624d8",
+    "scope": "Checksums and signed provenance/SPDX verification only. Release archives were not extracted or executed. No runtime, browser, migration or deployment acceptance is proved."
+  },
+  "strict_scans": [
+    {
+      "file": "dependency-scan.json",
+      "sha256": "16cd5eec87b2ea6e850e97d837bdf60874bfb40766910ba191aa89adf4747fc9",
+      "go_executables": 0,
+      "os_results": 0,
+      "packages": 467,
+      "high_critical": 0
+    },
+    {
+      "file": "image-scan.json",
+      "sha256": "fd1899b7bd54dad804a2aed56a8b78655b2b5123d32ce2dc72787490b9319023",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 91,
+      "high_critical": 0
+    },
+    {
+      "file": "database-image-scan.json",
+      "sha256": "42e5e28e8d35f2953e3829b565d8e8f01586dbe7faeb82e7ee6832d918aabb56",
+      "go_executables": 1,
+      "os_results": 1,
+      "packages": 49,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_linux_amd64.scan.json",
+      "sha256": "aeaf48b386d4150f43b1591ebb76f1980ab68bdada4ed74d70e59b2e1c255f98",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_linux_arm64.scan.json",
+      "sha256": "812ed628a36c32e69cd8798c0b15d745de78e1e5f53cdc2fbe3bc7de4c7e2812",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_windows_amd64.scan.json",
+      "sha256": "287b8a3019e020399d90a926729d85a2920d5f185557a965fb7e4fac6173ab2b",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 94,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_darwin_amd64.scan.json",
+      "sha256": "0820d3ea2aa0ea61a2c06727fd93d3a97dd0c8bd09441971682f77f62cd303e6",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 93,
+      "high_critical": 0
+    },
+    {
+      "file": "stackplore_2.0.0-alpha.0_darwin_arm64.scan.json",
+      "sha256": "3ae5bfff4da8a54779daf00c6bffa15c0efc3746be80d0276ee34684fd2d4933",
+      "go_executables": 3,
+      "os_results": 0,
+      "packages": 91,
+      "high_critical": 0
+    }
+  ],
+  "secret_scan": {
+    "file": "secret-scan.json",
+    "findings": 0,
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "linux_native_smoke": {
+    "file": "native-smoke.json",
+    "sha256": "e82161f2fb5e4c4e4b8c71ead9b32b593c9471d77c72021fa07a255c010e7022",
+    "report": {
+      "schema": 1,
+      "version": "2.0.0-alpha.0",
+      "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+      "platform": "linux/amd64",
+      "archive": "stackplore_2.0.0-alpha.0_linux_amd64.tar.gz",
+      "startedAt": "2026-10-19T13:20:58.275Z",
+      "completedAt": "2026-10-19T13:21:00.416Z",
+      "toolUsageChecks": [
+        "storage-rejects-missing-arguments",
+        "operator-rejects-missing-arguments"
+      ],
+      "modes": [
+        {
+          "mode": "guest",
+          "checks": [
+            "readiness",
+            "liveness",
+            "embedded-ui",
+            "spa-fallback",
+            "guest-sources",
+            "guest-resources",
+            "guest-no-cookie",
+            "guest-private-denied",
+            "guest-operation-denied"
+          ],
+          "resourceCount": 9,
+          "gracefulShutdown": true,
+          "disposableDatabaseRemoved": true
+        },
+        {
+          "mode": "normal",
+          "checks": [
+            "readiness",
+            "liveness",
+            "embedded-ui",
+            "spa-fallback",
+            "setup-preflight",
+            "initial-admin",
+            "authenticated-session",
+            "version",
+            "all-operation-gates-disabled"
+          ],
+          "resourceCount": 0,
+          "gracefulShutdown": true,
+          "disposableDatabaseRemoved": true
+        }
+      ],
+      "limits": [
+        "No native execution of other cross-built targets.",
+        "Backup/restore is a separate recovery gate."
+      ]
+    }
+  },
+  "windows_runtime": {
+    "archive_sha256": "c247c5354898eda67b2ca346c220122ed3e06b2fd8c71a02aecbb389f9729cc0",
+    "extraction_consumer_sha256": "99f569103aa7073c16bc868395bb63ffdc2f9dc094072de2bfde792ba423d726",
+    "extracted_entries": 367,
+    "regular_files": 194,
+    "license_files": 191,
+    "proof": {
+      "operator_revokes_sessions": true,
+      "native_backup_restore": true,
+      "restored_preauth_challenges": 0,
+      "source_version": 2,
+      "durable_alert_acknowledgement": true,
+      "metric_samples": 972,
+      "ownership_loss_nonzero_shutdown": true,
+      "owned_database_cleanup": "exact random names, marker and owner checked; absence verified",
+      "operator_recovery": true,
+      "version": "2.0.0-alpha.0",
+      "migration_entries": 17,
+      "operator_revoked_session_records": 1,
+      "fresh_login": true,
+      "durable_sse_replay_after_restart": true,
+      "operator_active_sessions": 0,
+      "revision": "eb86ab7554db555f023c1de72c3119acf101226a",
+      "restore_generation": 1,
+      "maximum_migration": 17,
+      "observed_at": "2026-10-19T13:40:22.6578212Z",
+      "proof_case": "trialbeta",
+      "native_tools": {
+        "pg_restore": "pg_restore (PostgreSQL) 17.11",
+        "pg_dump": "pg_dump (PostgreSQL) 17.11",
+        "psql": "psql (PostgreSQL) 17.11",
+        "createdb": "createdb (PostgreSQL) 17.11"
+      },
+      "restored_sessions": 0,
+      "source_disabled": true,
+      "binary_sha256": {
+        "stackplore-storage.exe": "ee8704e1b14b7a6014d3a6cafff4e68e19c3cac992662758352874fc4b599cdf",
+        "stackplore-operator.exe": "e7a0bd2358a821c6b1fe241309074c3a50ca647cecf8e4dc66a740994adcf536",
+        "stackplore-server.exe": "403984b1de0e38a78592bd8e7cad9665d1ea5ea7f351e55c5f34a9c20a5751d3"
+      },
+      "schema_version": 1,
+      "operator_fresh_login": true,
+      "resources": 9,
+      "platform": "windows/amd64"
+    },
+    "proof_sha256": "a2c97300831f829cfb8a0a94d4aad1157826a110b67013ab7b82c7c246861ebd",
+    "log_sha256": "23e663c37abde1511ba545ef96e7c4d66d80eb5bc07170e8e2269a352907e89a",
+    "helper_sha256": "37ba6d49864aad584e5f3dda17e24959019172b441421a806d918565badd9615",
+    "helper_review": {
+      "score": 9,
+      "scope": "Bounded readers, cluster identity, owned process/database cleanup and native archive acceptance only"
+    },
+    "retained_failed_attempt": {
+      "exit_code": 1,
+      "phase": "operator_recovery",
+      "helper_sha256": "5cec57e78ed053e86614eb12b63cad09a8b7b42c261bbe74baad2c05a47d4c82",
+      "log_sha256": "3bf416ab97a5d8f8ba8f8446016405927ee39d886a1a228decd3bccd64f7e0ff",
+      "diagnosis": "The added harness expected revoked session rows to be deleted. The repository retains them with a revocation marker. The corrected retry requires zero active and one retained revoked row, while preserving the immediate-restore zero-session assertion. The first attempt did not classify a more precise subphase.",
+      "cleanup": "The two exact randomized database names and the signed server process were independently verified absent after the failed attempt."
+    },
+    "fixture_shutdown": "The owned loopback PostgreSQL 17.11 instance was stopped after acceptance; its PID file was verified absent and data retained."
+  },
+  "scope": "Independent download/checksum/signature verification of the completed main trial and actual Windows archive recovery/operator acceptance. Native Linux execution is reported by the signed trial receipt. Public assets, tag acceptance and real processor acceptance remain separate gates."
+}
