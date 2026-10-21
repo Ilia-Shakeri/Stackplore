@@ -470,7 +470,7 @@ const databasePin = {
   gosu_version: '1.19',
   gosu_source_commit: 'd'.repeat(40),
   gosu_source_sha256: 'f'.repeat(64),
-  gosu_build_go: '1.26.9',
+  gosu_build_go: '1.26.10',
 };
 const databaseInventory = {
   spdxVersion: 'SPDX-2.3',
@@ -512,8 +512,8 @@ const databaseInventory = {
     {
       name: 'stdlib',
       SPDXID: 'SPDXRef-Package-stdlib',
-      versionInfo: 'v1.26.9',
-      externalRefs: [{ referenceType: 'purl', referenceLocator: 'pkg:golang/stdlib@v1.26.9' }],
+      versionInfo: 'v1.26.10',
+      externalRefs: [{ referenceType: 'purl', referenceLocator: 'pkg:golang/stdlib@v1.26.10' }],
     },
   ],
   relationships: [
@@ -570,7 +570,7 @@ const databaseMetadata = ({
   index = databaseIndex,
   runtime = databaseRuntimeInspection,
   probe = 'postgres (PostgreSQL) 17.11\n',
-  gosuProbe = '1.19 (go1.26.9 on linux/amd64; gc)\n',
+  gosuProbe = '1.19 (go1.26.10 on linux/amd64; gc)\n',
 } = {}) => createDatabaseImageMetadata(databasePin, inspection, index, runtime, probe, gosuProbe);
 const databaseReport = () => ({
   ArtifactName: databasePin.runtime_image,
@@ -586,7 +586,7 @@ const databaseReport = () => ({
       Type: 'gobinary',
       Target: 'usr/local/bin/gosu',
       Packages: [
-        { Name: 'stdlib', Version: 'v1.26.9', Identifier: { PURL: 'pkg:golang/stdlib@v1.26.9' } },
+        { Name: 'stdlib', Version: 'v1.26.10', Identifier: { PURL: 'pkg:golang/stdlib@v1.26.10' } },
       ],
     },
   ],
@@ -704,8 +704,9 @@ test('database receipt binds the pulled upstream index, platform and actual comp
 test('database derivative requires the approved gosu source, compiler and actual binary inventory', () => {
   for (const gosuProbe of [
     '1.19 (go1.24.6 on linux/amd64; gc)',
-    '1.18 (go1.26.9 on linux/amd64; gc)',
-    '1.19 (go1.26.9 on linux/arm64; gc)',
+    '1.19 (go1.26.9 on linux/amd64; gc)',
+    '1.18 (go1.26.10 on linux/amd64; gc)',
+    '1.19 (go1.26.10 on linux/arm64; gc)',
   ]) {
     assert.throws(() => databaseMetadata({ gosuProbe }), /approved engine version/);
   }
@@ -719,6 +720,9 @@ test('database derivative requires the approved gosu source, compiler and actual
   for (const alter of [
     (metadata) => {
       metadata.gosu_probe.go_version = '1.24.6';
+    },
+    (metadata) => {
+      metadata.gosu_probe.go_version = '1.26.9';
     },
     (metadata) => {
       metadata.gosu_probe.network = 'default';
@@ -987,7 +991,7 @@ const completeReleaseFixture = async (context, { version = '1.2.3' } = {}) => {
         databaseIndex,
         runtime,
         'postgres (PostgreSQL) 17.11\n',
-        '1.19 (go1.26.9 on linux/amd64; gc)\n',
+        '1.19 (go1.26.10 on linux/amd64; gc)\n',
       ),
     ),
   );

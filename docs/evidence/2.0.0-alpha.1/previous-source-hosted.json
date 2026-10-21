@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "status": "passed-for-previous-source-only",
+  "revision": "f1ae80391aca646fca89fed7a5ecf79271999c97",
+  "version": "2.0.0-alpha.1",
+  "ci_run": 39591527591,
+  "ci_url": "https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39591527591",
+  "exact_jobs": [
+    "code",
+    "docker-provider",
+    "kubernetes-provider",
+    "deploy",
+    "compose-install",
+    "processor-tool",
+    "helm-install"
+  ],
+  "all_jobs_completed_successfully": true,
+  "browser": {
+    "schema_version": 2,
+    "status": "passed",
+    "version": "2.0.0-alpha.1",
+    "observed_at_utc": "2026-10-21T12:11:15.8274725Z",
+    "revision": "f1ae80391aca646fca89fed7a5ecf79271999c97",
+    "ci_run": 39591527591,
+    "ci_conclusion": "success",
+    "artifact_id": 12342574562,
+    "artifact_name": "browser-evidence",
+    "artifact_bytes": 37116301,
+    "artifact_sha256": "a21bd2f99c51d7baf5ef0166f0b4d263bf5b7a99a25102a5361afdc431009b7b",
+    "selected_reports": [
+      {
+        "mode": "guest",
+        "entry": ".tmp/browser-results.json",
+        "cases": 12,
+        "passed": 12,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "report_error_count": 0,
+        "case_statuses": [
+          {
+            "case": 1,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 2,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 3,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 4,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 5,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 6,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 7,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 8,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 9,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 10,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 11,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          },
+          {
+            "case": 12,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          }
+        ],
+        "bytes": 18804,
+        "sha256": "ddbcb90ebcc08f7243dacd03d67c559337264cea4f98ba67b4ecfe2f746b99bb"
+      },
+      {
+        "mode": "normal-en",
+        "entry": ".tmp/browser-results-normal-en.json",
+        "cases": 1,
+        "passed": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "report_error_count": 0,
+        "case_statuses": [
+          {
+            "case": 1,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          }
+        ],
+        "bytes": 6895,
+        "sha256": "59add259f27e51cfb45c461f419ce6524c6a2855b49784ce354dd44a18c75971"
+      },
+      {
+        "mode": "normal-fa",
+        "entry": ".tmp/browser-results-normal-fa.json",
+        "cases": 1,
+        "passed": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "report_error_count": 0,
+        "case_statuses": [
+          {
+            "case": 1,
+            "status": "passed",
+            "classification": "none",
+            "attempts": 1,
+            "error_count": 0
+          }
+        ],
+        "bytes": 6895,
+        "sha256": "88408e70eaa1f32f02865f0b71e66318615fde8b0af9cff478627cac79ff348a"
+      }
+    ],
+    "total_browser_cases": 14,
+    "passed_browser_cases": 14,
+    "public_worker_control_read": {
+      "deadline_ms": 15000,
+      "maximum_attempts": 4,
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "mime": "text/javascript",
+          "bytes": 2575,
+          "cache_markers": 1
+        }
+      ]
+    },
+    "public_http_statuses": [],
+    "browser_measurements": {
+      "entry": "docs/evidence/2.0.0-alpha.1/browser-measurements.json",
+      "sha256": "d16b1e84b9ba37487f61264340b8da43cb1d319b337bf501a993f34b6ce2edee",
+      "profiles": 8,
+      "routes_per_profile": 8,
+      "route_measurements": 64,
+      "command_palette_profiles": 8,
+      "environment_selector_profiles": [
+        {
+          "profile": "en-360-light",
+          "environment_reads": 2,
+          "lazy_reads": true,
+          "source_bound": true,
+          "keyboard": true,
+          "focus_return": true,
+          "accessibility": true,
+          "viewport": true,
+          "mobile_drawer": true
+        },
+        {
+          "profile": "en-1280-light",
+          "environment_reads": 2,
+          "lazy_reads": true,
+          "source_bound": true,
+          "keyboard": true,
+          "focus_return": true,
+          "accessibility": true,
+          "viewport": true,
+          "mobile_drawer": false
+        },
+        {
+          "profile": "fa-360-light",
+          "environment_reads": 2,
+          "lazy_reads": true,
+          "source_bound": true,
+          "keyboard": true,
+          "focus_return": true,
+          "accessibility": true,
+          "viewport": true,
+          "mobile_drawer": true
+        },
+        {
+          "profile": "fa-1280-light",
+          "environment_reads": 2,
+          "lazy_reads": true,
+          "source_bound": true,
+          "keyboard": true,
+          "focus_return": true,
+          "accessibility": true,
+          "viewport": true,
+          "mobile_drawer": false
+        }
+      ],
+      "offline_selected_theme_overrides_device": [
+        "light",
+        "dark"
+      ],
+      "screenshot_png_entries": 32,
+      "screenshot_png_headers_checked": true,
+      "scope": "Browser fixture measurements declared in this archive; no customer deployment or capacity claim."
+    },
+    "bounded_load_read": {
+      "entry": "docs/evidence/2.0.0-alpha.1/browser-measurements.json",
+      "sha256": "d16b1e84b9ba37487f61264340b8da43cb1d319b337bf501a993f34b6ce2edee",
+      "requests": 80,
+      "parallel": 8,
+      "rounds": 10,
+      "minimum_round_spacing_ms": 600,
+      "setup_navigation_refills": 4,
+      "setup_refill_ms": 2500,
+      "setup_excluded_from_read_timing": true,
+      "successful_responses": 80,
+      "envelopes_validated": true,
+      "elapsed_ms": 6006,
+      "median_ms": 31,
+      "p95_ms": 65,
+      "public_worker_update_acceptance": true,
+      "public_cache_entries": 4,
+      "scope": "Bounded fixture observations declared in this archive; no production capacity claim."
+    },
+    "scope": "Read-only CI artifact retrieval with normal TLS. Exactly 32 current-version PNG signatures and selected bounded JSON reports checked without extraction or execution. Normal-mode payloads and credentials are not returned. Disposable fixture observations do not prove customer deployment or production capacity."
+  },
+  "source_correction_accepted": false,
+  "scope": "The seven hosted jobs and independently read browser artifact accept this previous source only. The later security correction requires new local, hosted, scan and release evidence."
+}

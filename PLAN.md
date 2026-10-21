@@ -39,6 +39,15 @@ rejection remains historical; the maintainer explicitly authorized the new
 installation/startup on 2026-10-21. The current CI definition adds a seventh,
 Windows pure-tool job; historical alpha.0 checks remain six jobs.
 
+
+The previous alpha.1 source `f1ae80391aca646fca89fed7a5ecf79271999c97`
+passed seven hosted jobs and fourteen actual browser cases, but signed trial
+`39592142674` failed on CVE-2026-111943 in the Go 1.26.9 standard library
+embedded in gosu. No alpha.1 tag was created. The Go 1.26.10 source correction
+requires fresh local, hosted and artifact acceptance;
+[retained failure and toolchain proof](docs/evidence/2.0.0-alpha.1/README.md#go-security-correction--2026-10-21). Earlier compiler results do
+not accept the correction.
+
 Stages **1–10 remain incomplete** until their own full gates pass. Draft
 [PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1),
 `e660e16bd0b3c56f0096bb43b5688195135892b1`, contains unaccepted stage-1–3

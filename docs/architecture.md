@@ -139,9 +139,9 @@ local gate and separately named real integration and release evidence.
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and
 `pg_restore` clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](../deploy/postgres-image.json) pins the upstream base
-and the released `stackplore-postgres:1.0.3` derivative. It rebuilds unchanged
-official gosu 1.19 with Go 1.26.9 while retaining the PostgreSQL engine and
-entrypoint. Actual helper/engine/root-drop behavior, complete scans, bound SPDX
+and the current versioned `stackplore-postgres` derivative. Current builds require
+unchanged official gosu 1.19 with Go 1.26.10, retaining the PostgreSQL engine and
+entrypoint. The fresh security-patch source still requires its own build and scan proof. Actual helper/engine/root-drop behavior, complete scans, bound SPDX
 and independent archive SQL startup passed for historical 1.0.1 and 1.0.2.
 Those historical source-bound receipts do not certify 1.0.3. Its
 [public receipt](evidence/1.0.3/published-release.json), release `417182030` at

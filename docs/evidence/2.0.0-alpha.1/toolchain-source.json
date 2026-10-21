@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "locally-built-official-source-sdk",
+  "version": "go version go1.26.10 windows/amd64",
+  "source_commit": "4e8c85f5319d999bfd7617fdc191631e5634e3c5",
+  "source_tree": "97163680e63d27814cbf1598877afe3d983f57ec",
+  "source_fsck_full_strict_exit_code": 0,
+  "source_tracked_changes_after_build": [],
+  "sdk_sha256": "08b315b66569d20aa66772cc3fffadf175ef49ef281db2bae4b49a27d3ae768a",
+  "build_exit_code": 0,
+  "build_duration_seconds": 334.359,
+  "bootstrap_version": "go1.26.9 windows/amd64",
+  "bootstrap_sha256": "5b25a4a434c7bbba11112a94c3fa9c1502c0f377bd971705ee8e07b8e3c12620",
+  "stdout_sha256": "a514c89dd49596e2d7ee69aa02982371196ee11980c208d51e66ef1a37217597",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sdk_receipt_sha256": "6a60ff936b96e87901a930e7ec5e902d2ed9a6b7cd4b67205d464b718dd71c5b",
+  "official_binary_archive_verified": false,
+  "binary_download_attempts": [
+    {
+      "origin": "https://dl.google.com/go/",
+      "file": "go1.26.10.windows-amd64.zip",
+      "outcome": "HTTP 404"
+    },
+    {
+      "origin": "https://go.dev/dl/",
+      "file": "go1.26.10.windows-amd64.zip",
+      "outcome": "HTTP 404"
+    }
+  ],
+  "source_url": "https://github.com/golang/go/tree/4e8c85f5319d999bfd7617fdc191631e5634e3c5",
+  "build_instructions": "https://go.dev/doc/install/source",
+  "scope": "Actual local Windows SDK built from the verified official Go source. This is not official binary-archive verification, project-test acceptance, container-image pull or vulnerability-scan acceptance."
+}

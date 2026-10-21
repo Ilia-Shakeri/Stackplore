@@ -71,9 +71,9 @@ not implicit: the workflow packages a Linux amd64 Docker-save archive.
    exact-tag verification jobs and all scans/signing; failed uploads remain drafts.
 
 The canonical [PostgreSQL image policy](../deploy/postgres-image.json) is a
-separate release boundary. The reviewed runtime `stackplore-postgres:1.0.3`
+separate release boundary. The current runtime named by `deploy/postgres-image.json`
 uses the same digest-pinned upstream PostgreSQL 17.11 base and rebuilds unchanged
-official gosu 1.19 with Go 1.26.9. Engine and entrypoint are retained. Actual
+official gosu 1.19 with Go 1.26.10. Engine and entrypoint are retained. Actual
 build, helper/engine versions and root-drop behavior must be checked, followed
 by a full image scan with all base findings still blocking. Compose/CI build
 owned patched fixtures; Helm retains its external database policy.

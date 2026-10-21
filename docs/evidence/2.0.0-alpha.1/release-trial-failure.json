@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "release-trial-failure",
+  "version": "2.0.0-alpha.1",
+  "source_revision": "f1ae80391aca646fca89fed7a5ecf79271999c97",
+  "run_id": 39592142674,
+  "run_url": "https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39592142674",
+  "conclusion": "failure",
+  "alpha1_tag_created": false,
+  "blocking_gate": "database-image-vulnerability-scan",
+  "report_name": "database-image-scan.json",
+  "report_sha256": "854ac947b5f62be14d1c8957ad4eff158c9f5549c9689f9c0bae7750bdf32226",
+  "findings": [
+    {
+      "target": "usr/local/bin/gosu",
+      "type": "gobinary",
+      "id": "CVE-2026-111943",
+      "package": "stdlib",
+      "installed": "v1.26.9",
+      "fixed": "1.26.10, 1.27.3",
+      "severity": "HIGH"
+    }
+  ],
+  "scope": "Scanner proves vulnerable standard-library component presence in gosu; exploit reachability through this helper was not demonstrated.",
+  "suppression_used": false,
+  "fresh_patch_acceptance": false
+}

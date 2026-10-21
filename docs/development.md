@@ -13,7 +13,7 @@ special-name tests require disposable database-creation rights and
 
 - Node.js `24.18.0` from `.node-version`
 - pnpm `11.17.0` through Corepack
-- Go `1.26.9` from `apps/api/go.mod`
+- Go `1.26.10` from `apps/api/go.mod`
 - PostgreSQL `17.11` or a later `17.x` patch for the server and native clients
   (`psql`, `pg_dump`, `pg_restore`) in the supported live persistence matrix
 
@@ -30,10 +30,10 @@ Bootstrap checks the pinned tools and installs the locked workspace. It does not
 ## Local PostgreSQL
 
 The corrective Compose profile builds two Linux images: the application from
-`deploy/Dockerfile.api` and `stackplore-postgres:1.0.3` from
+`deploy/Dockerfile.api` and the versioned database image from
 `deploy/Dockerfile.postgres`. The [database policy](../deploy/postgres-image.json)
 pins the upstream PostgreSQL 17.11 base and unchanged gosu 1.19 source, rebuilt
-with Go 1.26.9. The upstream database entrypoint initializes as needed before
+with Go 1.26.10. The upstream database entrypoint initializes as needed before
 gosu drops to the database user. The application remains non-root. Building
 from source fetches pinned images/source and locked modules; an offline operator
 must instead verify/load both release archives and select their exact tags with

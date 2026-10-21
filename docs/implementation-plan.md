@@ -39,6 +39,15 @@ edits, seven exact-commit hosted jobs and publication remain separate.
 Version-2 stages **1–10 are
 not complete**; this protocol proof does not establish answer quality.
 
+
+The previous alpha.1 source `f1ae80391aca646fca89fed7a5ecf79271999c97`
+passed seven hosted jobs and fourteen actual browser cases, but signed trial
+`39592142674` failed on CVE-2026-111943 in the Go 1.26.9 standard library
+embedded in gosu. No alpha.1 tag was created. The Go 1.26.10 source correction
+requires fresh local, hosted and artifact acceptance;
+[retained failure and toolchain proof](evidence/2.0.0-alpha.1/README.md#go-security-correction--2026-10-21). Earlier compiler results do
+not accept the correction.
+
 The local checkout retains modified existing files and untracked preparation
 after cleanup was review-rejected. Its migration 18 applies automatically on
 normal startup even when the capability is disabled. For accepted alpha.0

@@ -154,7 +154,7 @@ if (command === 'check-ci') {
         tools: {
           node: '24.18.0',
           pnpm: '11.17.0',
-          go: '1.26.9',
+          go: '1.26.10',
           helm: '3.17.3',
           trivy: '0.76.0',
           gitleaks: '8.30.1',

@@ -27,7 +27,7 @@ const policy = (version = '17.11') => ({
   gosu_version: '1.19',
   gosu_source_commit: 'c'.repeat(40),
   gosu_source_sha256: 'd'.repeat(64),
-  gosu_build_go: '1.26.9',
+  gosu_build_go: '1.26.10',
 });
 
 const dockerfile = (pin) => `FROM ${GOSU_BUILD_IMAGE} AS gosu-build
@@ -127,6 +127,7 @@ test('PostgreSQL policy rejects wrong fields, numeric version, image, platform, 
     { gosu_source_commit: 'c'.repeat(39) },
     { gosu_source_sha256: 'd'.repeat(63) },
     { gosu_build_go: '1.24.6' },
+    { gosu_build_go: '1.26.9' },
     { unknown_field: true },
   ]) {
     assert.throws(() => validatePostgresImagePolicy({ ...pin, ...patch }), /policy failed/u);
@@ -192,7 +193,8 @@ test('runtime Dockerfile rejects unpinned, missing, or drifted base and helper b
     dockerfile(pin).replace(GOSU_BUILD_IMAGE, 'golang:1.24.6-alpine'),
     dockerfile(pin).replace(pin.gosu_source_commit, 'e'.repeat(40)),
     dockerfile(pin).replace(pin.gosu_source_sha256, 'f'.repeat(64)),
-    dockerfile(pin).replace('go1.26.9', 'go1.24.6'),
+    dockerfile(pin).replace('go1.26.10', 'go1.24.6'),
+    dockerfile(pin).replace('go1.26.10', 'go1.26.9'),
     dockerfile(pin).replace('const Version = "1.19"', 'const Version = "1.18"'),
     dockerfile(pin).replace('CGO_ENABLED=0', 'CGO_ENABLED=1'),
     dockerfile(pin).replace('/usr/local/bin/gosu', '/usr/local/bin/other'),

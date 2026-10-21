@@ -111,3 +111,32 @@ stable-release acceptance is implied here.
 با طرح ۱۷ سنجیده شد. Go و پایگاه از کش پاس شدند؛ اجرای واقعیِ بی‌تغییر در
 گیت B بود، نه اجرای تازه در C. رسید و سند پس از گیت، CI منبع نهایی خواهند.
 پوشش شاخهٔ وب ۸۰٫۳۳٪؛ کیفیت پاسخ یا کل نسخهٔ ۲ ثابت نشد.
+
+## Go security correction — 2026-10-21
+
+Previous source `f1ae80391aca646fca89fed7a5ecf79271999c97` passed all seven
+hosted jobs and **14/14** browser cases, with no case retry;
+[previous-source receipt](previous-source-hosted.json). Its signed
+[trial 39592142674](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39592142674)
+then failed the database-image vulnerability gate. The
+[failed scan receipt](release-trial-failure.json) records **CVE-2026-111943**,
+HIGH, in the Go 1.26.9 standard library embedded in `gosu`. Component presence
+is proven; exploit reachability through this helper was not demonstrated.
+Publication was skipped and no alpha.1 tag was created. No finding was suppressed.
+
+The correction pins Go **1.26.10** in the module, bootstrap, CI, application and
+database-helper builds, release metadata and policy fixtures. Both attempted
+official Windows binary downloads returned **404**. A Windows SDK was instead
+built from the verified official tagged source in **334.359 s**, exit **0**;
+[toolchain receipt](toolchain-source.json). Full source integrity and actual
+`go version` passed; official binary-archive acceptance remains false. Historical
+Go 1.26.9 receipts retain their original compiler and scope.
+
+The new source still needs its own full local gate, exact-commit seven-job CI,
+strict signed trial, independent artifact verification and checkpoint publication.
+Earlier passes do not transfer to the correction. Stage 1 remains a candidate.
+
+نشر نامزد در اسکن شکست؛ کتابخانهٔ Go 1.26.9 در `gosu` ایراد HIGH داشت.
+تگ ساخته نشد؛ خطا پنهان نشد. منبع پیشین هفت کار CI و ۱۴ تست مرورگر پاس داشت؛
+این پاس برای اصلاح تازه نیست. Go 1.26.10 از منبع رسمیِ سنجیده روی ویندوز
+ساخته شد؛ دانلود ZIP رسمی ۴۰۴ داد. گیت کامل، اسکن و نشرِ منبع تازه هنوز لازم.

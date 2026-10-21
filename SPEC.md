@@ -833,10 +833,11 @@ The current runtime uses only PostgreSQL for the API, account recovery and
 native backup/restore. Server and native `psql`, `pg_dump` and `pg_restore`
 clients require 17.11 or a later patch within major 17. The canonical
 [database image policy](deploy/postgres-image.json) pins the upstream base and
-defines the reviewed `stackplore-postgres:1.0.3` derivative. Unchanged official
-gosu 1.19 is rebuilt from pinned source with Go 1.26.9; the PostgreSQL engine and
-entrypoint are retained. Exact-source trial and independent archive checks
-proved the actual build, engine/helper versions, root-drop and non-root SQL startup. Release gates require exact
+defines the current versioned `stackplore-postgres` derivative. Unchanged official
+gosu 1.19 must be rebuilt from pinned source with Go 1.26.10; the PostgreSQL engine
+and entrypoint are retained. Earlier exact-source trial and independent archive
+checks retain their original compiler, source and vulnerability-database scope;
+they do not certify this security patch. Release gates require exact
 base/derivative identity, a complete image vulnerability scan and bound SPDX
 inventory in addition to application/native/source/history scans. All findings
 remain blocking; no base exception or suppression is permitted. Compose/CI must

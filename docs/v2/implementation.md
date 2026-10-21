@@ -20,12 +20,21 @@ The [evidence index](../evidence/2.0.0-alpha.0/README.md) separates
 local, hosted, native and public archive results. Its immutable receipt dates
 remain their actual UTC dates; this reconciliation does not redate them.
 
+
+The previous alpha.1 source `f1ae80391aca646fca89fed7a5ecf79271999c97`
+passed seven hosted jobs and fourteen actual browser cases, but signed trial
+`39592142674` failed on CVE-2026-111943 in the Go 1.26.9 standard library
+embedded in gosu. No alpha.1 tag was created. The Go 1.26.10 source correction
+requires fresh local, hosted and artifact acceptance;
+[retained failure and toolchain proof](../evidence/2.0.0-alpha.1/README.md#go-security-correction--2026-10-21). Earlier compiler results do
+not accept the correction.
+
 ## Stage status
 
 | Stage | Target                 | State                        | Acceptance still required                                  |
 | ----- | ---------------------- | ---------------------------- | ---------------------------------------------------------- |
 | 0     | `2.0.0-alpha.0`        | Accepted in recorded scope   | No helper runtime, customer installation or capacity claim |
-| 1     | `2.0.0-alpha.1`        | Full local candidate passes  | Seven exact-commit hosted jobs and checkpoint publication  |
+| 1     | `2.0.0-alpha.1`        | Security correction pending  | Fresh full gate, seven hosted jobs, strict scans and publication  |
 | 2     | `2.0.0-alpha.2`        | Unaccepted draft preparation | Complete lifecycle, quota, lease and recovery acceptance   |
 | 3     | `2.0.0-alpha.3`        | Unaccepted draft preparation | Complete shared privacy and evidence-tool acceptance       |
 | 4     | `2.0.0-alpha.4`        | Not delivered                | Bilingual grounded conversation                            |
@@ -72,7 +81,7 @@ binary requires the verified backup/restore procedure.
 
 ## Historical local commands and honest outcomes
 
-Pinned Windows tools: Node 24.18.0, Go 1.26.9; use `npm.cmd`. Native PostgreSQL
+Pinned Windows tools for the historical runs below: Node 24.18.0, Go 1.26.9; use `npm.cmd`. Native PostgreSQL
 17 fixture is a new owned loopback instance on port 55474 in a dedicated D-drive
 scratch directory. Existing database files and unrelated `artifacts/` are
 untouched. Heavy temporary output uses the D drive; initial C-drive free space

@@ -84,9 +84,15 @@ provider permissions, receiver reachability, backup destination and capacity
 must be verified in that environment using the supplied runbooks. Disposable
 fixture evidence does not certify a customer's production installation.
 
+Current alpha.1 security-patch source requires Go 1.26.10 for application and
+helper builds. Trial `39592142674` failed on CVE-2026-111943; the older alpha.0
+compiler and receipts above remain historical. A new complete build, strict
+scan, signed trial and independent archive acceptance are required. See
+[security status](SECURITY.md#current-compiler-security-patch).
+
 ## Development
 
-Use Node.js `24.18.0`, pnpm `11.17.0`, and Go `1.26.9`:
+Use Node.js `24.18.0`, pnpm `11.17.0`, and Go `1.26.10`:
 
 For accepted alpha.0 behavior, use a clean exact-source export or verified
 release. The retained local preparation warning above applies before any start,

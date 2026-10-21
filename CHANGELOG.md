@@ -2,6 +2,11 @@
 
 ## [2.0.0-alpha.1] - 2026-10-21
 
+- Pin Go 1.26.10 for application and gosu builds after the candidate database
+  scan found CVE-2026-111943 in the older standard library. Reject the older
+  compiler in helper metadata and build policy. Keep the failed trial evidence;
+  this source correction alone does not establish scan or release acceptance.
+
 - Add the operator-bound local gateway with exact pre-dispatch token counting,
   one-use dispatch, pinned process identity, bounded network decoding and closed
   cited sections. Keep product dispatch disabled until durable admission and

@@ -12,24 +12,24 @@ The Go service runtime links the modules below. License copies match the
 pinned module versions. Development-only transitive test tools are not shipped
 in the service binary. Font notices remain below.
 
-| Module | Version | License | Copy |
-| --- | --- | --- | --- |
-| `github.com/go-chi/chi/v5` | `5.3.1` | MIT | [License](apps/api/licenses/chi-LICENSE.txt) |
-| `github.com/moby/moby/client` | `0.6.2` | Apache-2.0 | [Exact module license](apps/api/licenses/moby-client-LICENSE.txt), [module source](https://pkg.go.dev/github.com/moby/moby/client@v0.6.2) |
-| `github.com/moby/moby/api` | `1.56.1` | Apache-2.0 | [Exact module license](apps/api/licenses/moby-api-LICENSE.txt), [module source](https://pkg.go.dev/github.com/moby/moby/api@v1.56.1) |
-| `github.com/containerd/errdefs` | `1.0.0` | Apache-2.0 | [Exact module license](apps/api/licenses/containerd-errdefs-LICENSE.txt) |
-| `k8s.io/api` | `0.37.1` | Apache-2.0 | [Exact module license](apps/api/licenses/kubernetes-api-LICENSE.txt) |
-| `k8s.io/apimachinery` | `0.37.1` | Apache-2.0 | [Exact module license](apps/api/licenses/kubernetes-apimachinery-LICENSE.txt) |
-| `k8s.io/client-go` | `0.37.1` | Apache-2.0 | [Exact module license](apps/api/licenses/kubernetes-client-go-LICENSE.txt) |
-| `k8s.io/metrics` | `0.37.1` | Apache-2.0 | [Exact module license](apps/api/licenses/kubernetes-metrics-LICENSE.txt) |
-| `github.com/jackc/pgx/v5` | `5.10.0` | MIT | [License](apps/api/licenses/pgx-LICENSE.txt) |
-| `github.com/jackc/pgpassfile` | `1.0.0` | MIT | [License](apps/api/licenses/pgpassfile-LICENSE.txt) |
-| `github.com/jackc/pgservicefile` | `5a60cdf6a761` | MIT | [License](apps/api/licenses/pgservicefile-LICENSE.txt) |
-| `github.com/jackc/puddle/v2` | `2.2.2` | MIT | [License](apps/api/licenses/puddle-LICENSE.txt) |
-| `golang.org/x/crypto` | `0.57.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt) |
-| `golang.org/x/sys` | `0.48.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt) |
-| `golang.org/x/sync` | `0.23.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-sync-LICENSE.txt) |
-| `golang.org/x/text` | `0.42.0` | BSD 3-Clause | [License](apps/api/licenses/golang-x-text-LICENSE.txt) |
+| Module                           | Version        | License      | Copy                                                                                                                                      |
+| -------------------------------- | -------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `github.com/go-chi/chi/v5`       | `5.3.1`        | MIT          | [License](apps/api/licenses/chi-LICENSE.txt)                                                                                              |
+| `github.com/moby/moby/client`    | `0.6.2`        | Apache-2.0   | [Exact module license](apps/api/licenses/moby-client-LICENSE.txt), [module source](https://pkg.go.dev/github.com/moby/moby/client@v0.6.2) |
+| `github.com/moby/moby/api`       | `1.56.1`       | Apache-2.0   | [Exact module license](apps/api/licenses/moby-api-LICENSE.txt), [module source](https://pkg.go.dev/github.com/moby/moby/api@v1.56.1)      |
+| `github.com/containerd/errdefs`  | `1.0.0`        | Apache-2.0   | [Exact module license](apps/api/licenses/containerd-errdefs-LICENSE.txt)                                                                  |
+| `k8s.io/api`                     | `0.37.1`       | Apache-2.0   | [Exact module license](apps/api/licenses/kubernetes-api-LICENSE.txt)                                                                      |
+| `k8s.io/apimachinery`            | `0.37.1`       | Apache-2.0   | [Exact module license](apps/api/licenses/kubernetes-apimachinery-LICENSE.txt)                                                             |
+| `k8s.io/client-go`               | `0.37.1`       | Apache-2.0   | [Exact module license](apps/api/licenses/kubernetes-client-go-LICENSE.txt)                                                                |
+| `k8s.io/metrics`                 | `0.37.1`       | Apache-2.0   | [Exact module license](apps/api/licenses/kubernetes-metrics-LICENSE.txt)                                                                  |
+| `github.com/jackc/pgx/v5`        | `5.10.0`       | MIT          | [License](apps/api/licenses/pgx-LICENSE.txt)                                                                                              |
+| `github.com/jackc/pgpassfile`    | `1.0.0`        | MIT          | [License](apps/api/licenses/pgpassfile-LICENSE.txt)                                                                                       |
+| `github.com/jackc/pgservicefile` | `5a60cdf6a761` | MIT          | [License](apps/api/licenses/pgservicefile-LICENSE.txt)                                                                                    |
+| `github.com/jackc/puddle/v2`     | `2.2.2`        | MIT          | [License](apps/api/licenses/puddle-LICENSE.txt)                                                                                           |
+| `golang.org/x/crypto`            | `0.57.0`       | BSD 3-Clause | [License](apps/api/licenses/golang-x-crypto-BSD-3-Clause.txt)                                                                             |
+| `golang.org/x/sys`               | `0.48.0`       | BSD 3-Clause | [License](apps/api/licenses/golang-x-sys-BSD-3-Clause.txt)                                                                                |
+| `golang.org/x/sync`              | `0.23.0`       | BSD 3-Clause | [License](apps/api/licenses/golang-x-sync-LICENSE.txt)                                                                                    |
+| `golang.org/x/text`              | `0.42.0`       | BSD 3-Clause | [License](apps/api/licenses/golang-x-text-LICENSE.txt)                                                                                    |
 
 ## Complete linked Go module inventory
 
@@ -42,8 +42,8 @@ byte-for-byte copies of the pinned upstream module's LICENSE, NOTICE, COPYING,
 COPYRIGHT and PATENTS materials, including nested materials and LICENSES
 directories. Existing direct-dependency copies above remain available.
 
-The manifest also records the exact root LICENSE from the pinned Go `1.26.9`
-distribution for the linked standard library, copied as
+The manifest records the exact root LICENSE from the distribution named by its
+`toolchain.version`, copied for the linked standard library as
 [Go distribution license](apps/api/licenses/modules/go-toolchain/LICENSE).
 This inventory covers external Go modules for those command builds and that
 Go distribution license. Tests, JavaScript packages, fonts and container images
@@ -65,7 +65,7 @@ its SHA-256 entries identify the exact legal file bytes.
 The separate `stackplore-postgres` Linux amd64 image derives from the official
 PostgreSQL 17.11 Alpine image fixed in [database policy](deploy/postgres-image.json).
 It preserves that engine and entrypoint and rebuilds the unchanged `gosu` 1.19
-source with Go 1.26.9 to replace its vulnerable older standard library.
+source with Go 1.26.10 to replace its vulnerable older standard library.
 
 The [PostgreSQL COPYRIGHT](deploy/licenses/postgresql/COPYRIGHT) is an exact copy
 from [REL_17_11](https://github.com/postgres/postgres/blob/REL_17_11/COPYRIGHT),

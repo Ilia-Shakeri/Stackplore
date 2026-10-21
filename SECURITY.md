@@ -1,8 +1,36 @@
 # Security Policy
 
+## Current compiler security patch
+
+Current source pins Go 1.26.10 for the application and rebuilt gosu 1.19.
+[GO-2026-6809](https://pkg.go.dev/vuln/GO-2026-6809), alias CVE-2026-111943,
+adds a crypto/x509 denylist for distrusted intermediate certificates; the
+[official advisory](https://raw.githubusercontent.com/golang/vulndb/master/data/osv/GO-2026-6809.json)
+fixes Go 1.26 at 1.26.10 and Go 1.27 at 1.27.3. The scanner found the older
+standard library in the candidate gosu binary. This is component-presence proof,
+not a claim of demonstrated reachability through the helper.
+
+The alpha.1 signed trial `39592142674` failed its strict database image scan.
+No alpha.1 tag was created for that attempt. Preserve its failure. The patch
+requires verified tool archives, regenerated legal inventory, a new complete
+local gate, exact-source CI, fresh complete scans, signed trial and independent
+archive checks before acceptance. Historical scans below retain their original
+source, compiler and vulnerability-database dates. No finding is suppressed.
+
 ## Project status
 
-The maintained release line is **1.0.x**. Corrective target **1.0.2** is immutable
+The maintained stable release line is **1.0.x**. Latest published stable **1.0.3**
+is immutable at `656581cf05d4774358d5644a6e1af3c69a210f81`, schema 17. Its
+[public receipt](docs/evidence/1.0.3/published-release.json) and
+[review](docs/evidence/1.0.3/final-review.md) record the accepted corrective scope.
+Those source-bound checks are historical snapshots and do not establish absence
+of vulnerabilities disclosed later. The compiler correction described above is
+still an unpublished alpha.1 candidate; it does not change downloaded stable
+archives or their compiler.
+
+## Historical 1.0.2 correction
+
+Corrective **1.0.2** is immutable
 `v1.0.2` at `376ed0379900ab870dd8eb8af6b55ef3e5ec389b`, schema 17. Code
 and release review are **9/10**; all nine stages are complete after actual public
 publication and independent archive verification.

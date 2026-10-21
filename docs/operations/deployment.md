@@ -23,7 +23,7 @@ binds to `127.0.0.1`, keeps PostgreSQL and the local digest key in named volumes
 and reports ready only after the API and database are ready.
 
 The [database policy](../../deploy/postgres-image.json) pins the PostgreSQL 17.11
-upstream base and unchanged gosu 1.19 source rebuilt with Go 1.26.9. The database
+upstream base and unchanged gosu 1.19 source rebuilt with Go 1.26.10. The database
 keeps the upstream entrypoint: initialization may start as root before gosu drops
 to the database user. The Go application remains non-root. Source builds fetch
 pinned base images, checksum-pinned helper source and locked dependencies; they

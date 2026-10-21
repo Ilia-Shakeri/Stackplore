@@ -93,11 +93,11 @@ Use PostgreSQL server and native `psql`, `pg_dump` and `pg_restore` clients at
 defines the approved digest. Corrective proof needs real database execution,
 readiness/ledger checks and native backup/empty-target restore, plus exact
 database base/derivative and engine/helper metadata, root-drop behavior, full
-image scan and matching SPDX inventory. The released `stackplore-postgres:1.0.3`
-rebuilds unchanged official gosu 1.19 with Go 1.26.9 on the same pinned upstream
+image scan and matching SPDX inventory. The current versioned `stackplore-postgres`
+source requires unchanged official gosu 1.19 with Go 1.26.10 on the same pinned upstream
 17.11 base, retaining its engine and entrypoint. Build owned patched fixtures
 before Compose/CI tests; Helm remains external-PostgreSQL based. Require actual
-postgres 17.11, gosu 1.19/Go 1.26.9 and root-to-database-user probes. All image
+postgres 17.11, gosu 1.19/Go 1.26.10 and root-to-database-user probes. All image
 findings remain blocking, including those inherited from the base.
 Retain observed tool/engine versions and identity in each receipt. The
 [existing-installation minor-update guidance](operations/upgrade-rollback.md#postgresql-17-patch-baseline)
