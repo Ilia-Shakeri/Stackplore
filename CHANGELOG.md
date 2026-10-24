@@ -1,6 +1,10 @@
 # Changelog
 
-## [2.0.0-alpha.1] - 2026-10-21
+## [2.0.0-alpha.1] - Unreleased
+
+- Apply exact security patches to Vite, Vitest/coverage, brace-expansion and
+  undici. Retain failed dependency scan diagnostics without weakening gates.
+  Current package audit passes with zero findings; checkpoint release pending.
 
 - Pin Go 1.26.10 for application and gosu builds after the candidate database
   scan found CVE-2026-111943 in the older standard library. Reject the older

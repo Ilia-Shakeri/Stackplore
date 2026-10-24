@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "kind": "dependency-correction-candidate",
+  "previous_revision": "e041fe50ba8cd7bac811c051b0252156e8a7c7b6",
+  "previous_main_ci": {
+    "run": 39599655166,
+    "conclusion": "success",
+    "jobs": 7
+  },
+  "previous_trial": {
+    "run": 39600402038,
+    "conclusion": "failure",
+    "failed_step": "Reject dependency vulnerabilities and leaked secrets",
+    "publication": "skipped",
+    "exact_scanner_findings_available": false,
+    "failed_log_sha256": "068d3211a71f0cdeda2f983da34497d6fa7289c0b6b9f458ac7e487c4e77b36f"
+  },
+  "audit": {
+    "tool": "pnpm 11.17.0 audit --json",
+    "includes_development_dependencies": true,
+    "before": {
+      "info": 0,
+      "low": 1,
+      "moderate": 9,
+      "high": 2,
+      "critical": 0
+    },
+    "after": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    },
+    "after_exit_code": 0,
+    "before_sha256": "d4d64e72e0523755b20881213d7f245235ceb8217e15a7932b45779e523ba782",
+    "after_sha256": "b7ed94c8bcf34e2d70b6eeca21570be8aef8687dd938f13752cbe4d33a7f0777"
+  },
+  "patches": [
+    {
+      "package": "vite",
+      "from": "8.1.5",
+      "to": "8.1.6"
+    },
+    {
+      "package": "vitest and matching coverage/mocker packages",
+      "from": "4.1.10",
+      "to": "4.1.12"
+    },
+    {
+      "package": "brace-expansion",
+      "from": "5.0.11",
+      "to": "5.0.12"
+    },
+    {
+      "package": "undici",
+      "from": "8.10.2",
+      "to": "8.12.2"
+    }
+  ],
+  "advisories": [
+    {
+      "package": "vitest",
+      "severity": "moderate",
+      "vulnerable": ">=2.1.0 <4.1.11",
+      "patched": ">=4.1.11",
+      "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
+    },
+    {
+      "package": "@vitest/mocker",
+      "severity": "moderate",
+      "vulnerable": ">=2.1.0 <4.1.11",
+      "patched": ">=4.1.11",
+      "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
+    },
+    {
+      "package": "brace-expansion",
+      "severity": "moderate",
+      "vulnerable": ">=4.0.0 <5.0.12",
+      "patched": ">=5.0.12",
+      "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr"
+    },
+    {
+      "package": "vite",
+      "severity": "moderate",
+      "vulnerable": ">=8.0.0 <=8.1.5",
+      "patched": ">=8.1.6",
+      "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv"
+    },
+    {
+      "package": "vite",
+      "severity": "moderate",
+      "vulnerable": ">=8.0.0 <=8.1.5",
+      "patched": ">=8.1.6",
+      "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw"
+    },
+    {
+      "package": "vite",
+      "severity": "high",
+      "vulnerable": ">=8.0.0 <=8.1.5",
+      "patched": ">=8.1.6",
+      "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm"
+    },
+    {
+      "package": "vite",
+      "severity": "low",
+      "vulnerable": ">=8.0.0 <=8.1.5",
+      "patched": ">=8.1.6",
+      "url": "https://github.com/advisories/GHSA-9jrq-w75r-8gcw"
+    },
+    {
+      "package": "vite",
+      "severity": "moderate",
+      "vulnerable": ">=8.0.0 <=8.1.5",
+      "patched": ">=8.1.6",
+      "url": "https://github.com/advisories/GHSA-rq7h-c2jc-7f22"
+    },
+    {
+      "package": "@vitest/mocker",
+      "severity": "moderate",
+      "vulnerable": ">=2.1.0-beta.7 <4.1.12",
+      "patched": ">=4.1.12",
+      "url": "https://github.com/advisories/GHSA-qxg6-89mg-rqv8"
+    },
+    {
+      "package": "undici",
+      "severity": "moderate",
+      "vulnerable": ">=8.0.0 <8.12.2",
+      "patched": ">=8.12.2",
+      "url": "https://github.com/advisories/GHSA-4qv8-2p9j-2685"
+    },
+    {
+      "package": "undici",
+      "severity": "moderate",
+      "vulnerable": ">=8.0.0 <8.12.2",
+      "patched": ">=8.12.2",
+      "url": "https://github.com/advisories/GHSA-f72v-6w45-q472"
+    },
+    {
+      "package": "undici",
+      "severity": "high",
+      "vulnerable": ">=8.0.0 <8.12.2",
+      "patched": ">=8.12.2",
+      "url": "https://github.com/advisories/GHSA-xjj6-f33q-929c"
+    }
+  ],
+  "installation": {
+    "packages": 342,
+    "reused": 330,
+    "downloaded": 12,
+    "frozen_lockfile": true,
+    "external_dependency_links": false
+  },
+  "legal_inventory": {
+    "production_packages": 63,
+    "exact_upstream_files": 63,
+    "result": "pass"
+  },
+  "suppression_used": false,
+  "full_gate": "pending",
+  "hosted_gate": "pending",
+  "signed_scan": "pending",
+  "publication": "pending",
+  "scope": "Independent current package audit proves the listed lockfile findings and their remediation. It cannot reconstruct the unavailable previous scanner JSON, establish exploit reachability or replace the strict signed release scan."
+}

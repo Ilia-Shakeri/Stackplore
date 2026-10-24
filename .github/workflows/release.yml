@@ -85,6 +85,16 @@ jobs:
           trivy fs --scanners vuln --include-dev-deps --severity HIGH,CRITICAL --exit-code 1 --skip-dirs node_modules --skip-dirs .git --format json --output "$STACKPLORE_RELEASE_DIR/dependency-scan.json" .
           trivy fs --scanners vuln --include-dev-deps --skip-dirs node_modules --skip-dirs .git --format spdx-json --output "$STACKPLORE_RELEASE_DIR/source.spdx.json" .
           gitleaks git --redact=100 --no-banner --log-opts='--all' --gitleaks-ignore-path scripts/release-gitleaks.ignore --report-format json --report-path "$STACKPLORE_RELEASE_DIR/secret-scan.json" .
+      - name: Retain dependency diagnostics after a failed security gate
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: stackplore-dependency-diagnostics-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/stackplore-release/dependency-scan.json
+            ${{ runner.temp }}/stackplore-release/source.spdx.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Create payload and scan checksums
         run: node scripts/release.mjs checksums
       - name: Sign provenance for payloads, checksums, SBOMs and scan reports

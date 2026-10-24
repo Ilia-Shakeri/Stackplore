@@ -1,5 +1,11 @@
 # Stackplore delivery plan
 
+Current correction, **2026-10-24**: the previous source passed seven hosted
+jobs but its signed trial failed the dependency gate. Exact package patches
+now pass an independent audit with zero findings; fresh full-source and signed
+release gates remain open. [Current correction evidence](docs/evidence/2.0.0-alpha.1/README.md#dependency-correction--2026-10-24).
+
+
 ## Active version 2 implementation — 2026-10-21
 
 The maintainer authorized all stages, tests, documentation, checkpoint versions,

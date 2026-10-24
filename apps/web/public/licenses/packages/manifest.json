@@ -6,7 +6,7 @@
     "packages/ui",
     "packages/api-client"
   ],
-  "lockfile_sha256": "17563e4e6622992d07f2a6ca58cef9bc9e653d3063eabef88419ad27a258c111",
+  "lockfile_sha256": "bb70b154e60e0eb5e16aad0678fbcb07804208b4bb077d4b1a5f56d7365055fd",
   "packages": [
     {
       "identity": "@floating-ui/core@1.8.0",

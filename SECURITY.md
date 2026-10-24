@@ -1,5 +1,13 @@
 # Security Policy
 
+## Current dependency correction
+
+The unpublished alpha.1 candidate applies exact patched build/test dependency
+versions after a failed signed dependency gate. The separate current package
+audit reports no findings; [evidence and limits](docs/evidence/2.0.0-alpha.1/dependency-correction.json).
+A fresh strict signed scan and complete source-bound gates must pass before a
+tag or publication. Historical releases and scanner outcomes remain unchanged.
+
 ## Current compiler security patch
 
 Current source pins Go 1.26.10 for the application and rebuilt gosu 1.19.

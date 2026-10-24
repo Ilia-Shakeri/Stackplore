@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_revision": "e041fe50ba8cd7bac811c051b0252156e8a7c7b6",
+  "tree": "c57718093b3df5bf13ea03af1fcbc1d6e9f4b5b6",
+  "status": "unfinished-without-final-exit-receipt",
+  "complete_gate_accepted": false,
+  "log_sha256": "a78a04684cea26cedde0849d8a544849a768af89c31ab58a0df19905506e6b8c",
+  "actual_postgres_seconds": 122.329,
+  "actual_postgresops_seconds": 81.547,
+  "client_tests": 40,
+  "last_reached": "web coverage tests",
+  "production_build_reached": false,
+  "scope": "The retained log proves completed component checks only. There is no final exit receipt and no remaining owned test process when work resumed; this attempt does not count as a full local pass."
+}

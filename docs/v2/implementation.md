@@ -1,5 +1,11 @@
 # Version 2 implementation ledger
 
+Current correction, **2026-10-24**: the previous source passed seven hosted
+jobs but its signed trial failed the dependency gate. Exact package patches
+now pass an independent audit with zero findings; fresh full-source and signed
+release gates remain open. [Current correction evidence](../evidence/2.0.0-alpha.1/README.md#dependency-correction--2026-10-24).
+
+
 Started: **2026-10-19**. Authorized scope: implement the complete
 [roadmap](../roadmap-v2.md) ([فارسی](../roadmap-v2.fa.md)), test each stage,
 update documents, version, commit and push. Stable 1.0.3 remains independently

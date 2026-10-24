@@ -1,5 +1,11 @@
 # Stackplore active implementation evidence
 
+Current correction, **2026-10-24**: the previous source passed seven hosted
+jobs but its signed trial failed the dependency gate. Exact package patches
+now pass an independent audit with zero findings; fresh full-source and signed
+release gates remain open. [Current correction evidence](evidence/2.0.0-alpha.1/README.md#dependency-correction--2026-10-24).
+
+
 ## Version 2 status — 2026-10-21
 
 Stage-by-stage implementation, versioning, commits and pushes are authorized.

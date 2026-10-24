@@ -3,11 +3,11 @@ packages:
   - packages/*
 overrides:
   seroval: 1.6.3
-  brace-expansion@5.0.8: 5.0.11
+  brace-expansion@5.0.8: 5.0.12
   js-yaml@4.2.0: 4.3.2
   nanoid@3.3.16: 3.3.18
   shell-quote@1.9.0: 1.11.0
   source-map-js@1.2.1: 1.2.2
-  undici@8.9.0: 8.10.2
+  undici@8.9.0: 8.12.2
 minimumReleaseAgeExclude:
   - '@redocly/cli@2.43.2'

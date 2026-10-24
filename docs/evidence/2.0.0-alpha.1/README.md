@@ -140,3 +140,37 @@ Earlier passes do not transfer to the correction. Stage 1 remains a candidate.
 تگ ساخته نشد؛ خطا پنهان نشد. منبع پیشین هفت کار CI و ۱۴ تست مرورگر پاس داشت؛
 این پاس برای اصلاح تازه نیست. Go 1.26.10 از منبع رسمیِ سنجیده روی ویندوز
 ساخته شد؛ دانلود ZIP رسمی ۴۰۴ داد. گیت کامل، اسکن و نشرِ منبع تازه هنوز لازم.
+
+## Dependency correction — 2026-10-24
+
+Source `e041fe50ba8cd7bac811c051b0252156e8a7c7b6` passed all seven main
+[CI jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39599655166),
+including the complete hosted gate, concurrency, actual browser, provider,
+Compose and Helm jobs. Its
+[trial 39600402038](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39600402038)
+passed the rebuilt database and native/image package gates, then failed the
+dependency gate. No tag or publication followed. The scanner JSON was not
+retained by that workflow; do not infer its exact findings from a later audit.
+
+A separate current locked-package audit found **2 high, 9 moderate and 1 low**
+findings. Exact patch updates to Vite 8.1.6, Vitest and matching coverage packages
+4.1.12, brace-expansion 5.0.12 and undici 8.12.2 reduce the new audit to **zero
+findings at every severity**, with no suppression. The frozen installation uses
+342 packages (330 reused, 12 downloaded); all 63 production legal files match.
+[Dependency receipt](dependency-correction.json) retains affected package ranges,
+advisory links and raw audit digests. This audit does not replace Trivy or
+secret scanning. The workflow now retains dependency JSON/SPDX after a failed
+security gate for seven days; secret reports are excluded from this diagnostic
+artifact. Existing severity limits and failure propagation remain unchanged.
+
+The previous native Go10 gate has no final exit receipt and is
+[unfinished](interrupted-go10-gate.json). Its PostgreSQL, native-tool and client
+component passes retain their scope; web output alone is not a complete pass.
+A fresh complete local gate and exact-source hosted, signed-scan and checkpoint
+acceptance remain required for this dependency correction. Stage 1 remains open.
+
+هفت کار CI منبع پیشین پاس؛ نشر در اسکن وابستگی شکست و تگ ساخته نشد.
+گزارش دقیق آن اسکن حفظ نشده بود؛ اکنون رسید وابستگی در شکست حفظ شود.
+بررسی جدا ۱۲ ایراد یافت؛ بسته‌ها با نسخهٔ دقیق آپدیت شدند. اسکن بستهٔ تازه
+صفر ایراد دارد؛ جای اسکن سختِ نشر را نگیرد. گیت محلیِ قبلی خروجی نهایی ندارد؛
+پاس کامل حساب نشود. تست کامل و CI و اسکن و نشرِ منبع تازه هنوز لازم‌اند.
