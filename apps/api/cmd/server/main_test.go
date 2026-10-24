@@ -626,6 +626,14 @@ func (database *fakeDatabase) Health(context.Context) error {
 	return nil
 }
 
+func (*fakeDatabase) RecoverAssistant(ctx context.Context, _ time.Time, _ int) (int, error) {
+	return 0, ctx.Err()
+}
+
+func (*fakeDatabase) PruneAssistant(ctx context.Context, _ time.Time, _ int) (int, error) {
+	return 0, ctx.Err()
+}
+
 func (database *fakeDatabase) ClaimDueAlertEvaluations(context.Context, time.Time, int) ([]alerting.EvaluationTask, error) {
 	return nil, nil
 }

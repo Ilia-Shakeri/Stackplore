@@ -42,9 +42,23 @@ or use a different target as a workaround. Passwords remain outside command
 arguments. The 1.0.2 regression uses unique owned databases and actual native
 backup/empty-target restore; it is not a customer restore receipt.
 
-This build expects ledger **17**. Restore an older archive using its matching
-storage release, verify that target, then perform the controlled forward upgrade.
-Historical 1.0.1 receipts continue to describe ledger 16.
+Stable 1.0.3 and the alpha.0/alpha.1 checkpoints expect ledger **17**. The
+stage-2 candidate adds ledger **18** even when helper dispatch is disabled;
+its [runtime guide](../v2/runtime.md) and [active ledger](../v2/implementation.md)
+separate implementation from acceptance. Use the storage executable matching
+the archive's exact application migration ledger. A ledger-18 storage executable
+does not restore a ledger-17 archive by upgrading it. Restore an older archive
+using its matching storage release, verify that target, then perform the
+controlled forward upgrade. Historical 1.0.1 receipts still describe ledger 16.
+These application ledger numbers do not change the PostgreSQL **17.11** engine
+and compatible major-17 native client baseline.
+
+Ledger-18 restore also invalidates helper authority and volatile runs through
+the restore generation. Unknown usage is protected and paid admission remains
+blocked pending operator reconciliation; a backup cannot account for dispatches
+that happened after it. Raw questions, answers, log bodies and tool payloads
+are absent from helper tables. They are not recovered from a backup. Older
+observational data and backups keep their existing retention/privacy rules.
 
 ## Safety contract
 

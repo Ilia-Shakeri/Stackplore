@@ -1,18 +1,22 @@
 # Stackplore delivery plan
 
-Current correction, **2026-10-24**: the previous source passed seven hosted
-jobs but its signed trial failed the dependency gate. Exact package patches
-now pass an independent audit with zero findings; fresh full-source and signed
-release gates remain open. [Current correction evidence](docs/evidence/2.0.0-alpha.1/README.md#dependency-correction--2026-10-24).
+Current checkpoint, **2026-10-24**: **2.0.0-alpha.1** is published at
+`1f4d46d5178b032fd5c3e7a2540cd7d2718d2698`, schema17. All seven main/tag
+jobs, strict signed packaging, 39 public assets, 30 checksums, 31 provenance
+subjects and seven SBOM attestations pass. Windows public bytes match an actual
+recovery-tested trial; Linux has signed producer execution. Public OCI archive
+execution and current-host processor restart remain separate. Stage2
+**2.0.0-alpha.2**, schema18, now passes focused and complete local gates; final
+hosted/concurrency and checkpoint artifacts remain pending. [Current evidence](docs/evidence/2.0.0-alpha.2/README.md).
 
 
-## Active version 2 implementation — 2026-10-21
+## Active version 2 implementation — 2026-10-24
 
 The maintainer authorized all stages, tests, documentation, checkpoint versions,
 commits and pushes on 2026-10-19. This explicit authorization supersedes the
 default no-push repository rule for this delivery. Preserve every existing tag
 and all unrelated user work. Stage 0 starts at `2.0.0-alpha.0`; stable 1.0.3 and
-its schema-17 acceptance remain immutable. No helper runtime is shipped yet.
+its schema-17 acceptance remain immutable. The bounded gateway is published; public helper dispatch remains absent.
 
 Published stage-0 checkpoint **2.0.0-alpha.0**, schema **17**, is immutable at
 `eb86ab7554db555f023c1de72c3119acf101226a`. Main CI
@@ -31,30 +35,16 @@ with absence verified. **Stage 0 is accepted within the recorded scope.**
 [Alpha.0 evidence](docs/evidence/2.0.0-alpha.0/README.md) retains failed consumer
 attempts and separates each runtime claim.
 
-Stage 1 now has an actual native local protocol proof: startup and both English
-and Persian typed requests pass. The bounded gateway candidate is
-**2.0.0-alpha.1**, with public dispatch absent and schema **17** in its isolated
-source. Its [candidate receipt](docs/evidence/2.0.0-alpha.1/README.md) separates
-that result from hosted and publication gates. Full local gate C passes on
-tree `695c705a379ae46f3eb570009efab10654ae6f85`: 544 web, 40 client, 48 release
-and 11 corpus tests, cached Go checks and production build. The unchanged
-PostgreSQL/native checks actually passed in attempt B; both earlier full-gate
-failures remain recorded. Final receipt/document edits need exact-commit CI.
-The earlier launch
-rejection remains historical; the maintainer explicitly authorized the new
-installation/startup on 2026-10-21. The current CI definition adds a seventh,
-Windows pure-tool job; historical alpha.0 checks remain six jobs.
+Stage1 is a published prerelease checkpoint within its
+[recorded source/artifact scope](docs/evidence/2.0.0-alpha.1/published-release.json).
+The historical actual English/Persian protocol proof retains its exact pins and
+limitations. A fresh current-host restart was automatic-review rejected; no new
+running-service claim is made. The earlier scanner, local-gate and download
+failures remain recorded. Stage2 is the
+[locally passing durable-runtime candidate](docs/evidence/2.0.0-alpha.2/README.md);
+later preparation remains excluded from its clean source.
 
-
-The previous alpha.1 source `f1ae80391aca646fca89fed7a5ecf79271999c97`
-passed seven hosted jobs and fourteen actual browser cases, but signed trial
-`39592142674` failed on CVE-2026-111943 in the Go 1.26.9 standard library
-embedded in gosu. No alpha.1 tag was created. The Go 1.26.10 source correction
-requires fresh local, hosted and artifact acceptance;
-[retained failure and toolchain proof](docs/evidence/2.0.0-alpha.1/README.md#go-security-correction--2026-10-21). Earlier compiler results do
-not accept the correction.
-
-Stages **1–10 remain incomplete** until their own full gates pass. Draft
+Stages **2–10 remain incomplete** until their own full gates pass. Draft
 [PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1),
 `e660e16bd0b3c56f0096bb43b5688195135892b1`, contains unaccepted stage-1–3
 preparation, not a delivered milestone. Its earlier code/SQL and draft CI do not

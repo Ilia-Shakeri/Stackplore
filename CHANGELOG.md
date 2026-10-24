@@ -1,6 +1,19 @@
 # Changelog
 
-## [2.0.0-alpha.1] - Unreleased
+## [2.0.0-alpha.2] - Unreleased
+
+- Add application migration 18 for owner-private run/step/status metadata,
+  fenced leases, admission quotas, idempotency and protected uncertain usage.
+  Preserve all seventeen previous migration bytes; keep PostgreSQL 17.11.
+- Add bounded recovery and retention maintenance under server ownership, joined
+  before database shutdown. Keep text dispatch and public helper routes absent;
+  no raw question, answer, log body or tool payload enters helper tables.
+- Define restart, owned subprocess crash boundaries, fair claims, reservation
+  reconciliation and restore-generation fencing, with bilingual runtime and
+  schema-specific backup/upgrade/rollback guidance. Acceptance remains tied to
+  exact-source SQL, native recovery, concurrency, full and hosted receipts.
+
+## [2.0.0-alpha.1] - 2026-10-24
 
 - Apply exact security patches to Vite, Vitest/coverage, brace-expansion and
   undici. Retain failed dependency scan diagnostics without weakening gates.

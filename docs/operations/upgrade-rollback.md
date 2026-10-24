@@ -1,5 +1,34 @@
 # Upgrade and rollback
 
+## Version-2 stage-2 candidate: application ledger 17 to 18
+
+The alpha.2 runtime candidate adds metadata-only helper migration **18** on
+normal startup, including disabled deployments. This changes the application
+ledger, not the PostgreSQL 17.11 server/client baseline. Check acceptance in the
+[active ledger](../v2/implementation.md); preparation or a green focused test
+does not authorize an installation on customer data.
+
+1. Verify the exact source/package and preserve the first seventeen migration
+   bytes and their immutable ledger entries. Keep source references, runtime
+   digest key, PostgreSQL volumes and a verified pre-upgrade backup.
+2. Restore a ledger-17 backup into a new empty target with the matching
+   ledger-17 storage release. Verify that copy before starting the newer binary.
+3. Stop the old owner, then rehearse the single-owner forward migration on the
+   copy. Verify readiness, authentication, existing inventory/history and helper
+   metadata/recovery with the capability disabled. Public helper dispatch is
+   not introduced by this migration or the maintenance worker.
+4. For a ledger-18 backup, use the matching ledger-18 storage release. Restore
+   revokes sessions and helper authority, loses volatile questions/answers, and
+   fences paid admission until unknown exposure is reconciled.
+5. Rollback to 1.0.3/alpha.1 requires a **separate empty target**, the verified
+   pre-upgrade ledger-17 backup and its matching storage executable. Do not run
+   the older binary on ledger 18, delete tables or edit ledger checksums. Changes
+   made after the pre-upgrade backup are not present in that restored target.
+
+See [runtime lifecycle](../v2/runtime.md) and [backup/restore](backup-restore.md).
+Real schema, native recovery and deployment receipts remain separate; this
+procedure alone does not establish a completed v2 pilot or customer upgrade.
+
 ## 1.0.2 to corrective 1.0.3
 
 Schema remains **17**. Keep PostgreSQL, the runtime digest key, source references

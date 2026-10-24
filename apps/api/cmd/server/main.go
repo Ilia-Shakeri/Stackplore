@@ -180,6 +180,11 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errAlertStart)
 	}
+	assistantMaintenance, err := buildAssistantMaintenance(database)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(err)
+	}
 	historyReader, _ := database.(productHistoryReader)
 	server, err := newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, observations.settings, operations, applicationSettings,
 		httpapi.ApplicationMutationMode{Enabled: settings.MutationsEnabled && !settings.DemoDeployment, DockerWriteEnabled: settings.DockerWriteEnabled, KubernetesWriteEnabled: settings.KubernetesWriteEnabled}, historyReader)
@@ -231,6 +236,7 @@ func runWithStorage(
 	retentionDone := make(chan struct{})
 	operationDone := make(chan struct{})
 	auditRetentionDone := make(chan struct{})
+	assistantDone := make(chan struct{})
 	go func() {
 		defer close(monitorDone)
 		monitorDatabase(monitorContext, database, readiness, databaseHealthInterval, settings.DatabaseHealthTimeout)
@@ -250,6 +256,12 @@ func runWithStorage(
 	go func() {
 		defer close(auditRetentionDone)
 		runAuditRetention(monitorContext, settings, applicationSettings, logger)
+	}()
+	go func() {
+		defer close(assistantDone)
+		if err := assistantMaintenance.Run(monitorContext); err != nil && monitorContext.Err() == nil {
+			logger.Error("helper maintenance stopped", "reason", "maintenance_unavailable")
+		}
 	}()
 	if operations == nil {
 		close(operationDone)
@@ -284,6 +296,7 @@ func runWithStorage(
 	<-retentionDone
 	<-operationDone
 	<-auditRetentionDone
+	<-assistantDone
 	readiness.SetDatabaseReady(false)
 	if ownership, ok := database.(interface{ OwnershipLost() <-chan struct{} }); ok {
 		select {

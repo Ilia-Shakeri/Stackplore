@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T13:45:38.330Z",
+  "source_revision": "1f4d46d5178b032fd5c3e7a2540cd7d2718d2698",
+  "version": "2.0.0-alpha.1",
+  "trial_run": 40096840528,
+  "artifact_id": 12561461186,
+  "status": "incomplete-transfer-not-accepted",
+  "configured_transfer_deadline_seconds": 900,
+  "expected_bytes": 267800364,
+  "expected_sha256": "4d7fdca130c23f2959ef0bf4bfb7e1efe49fe0ffe30e97650d0742f9c7076df5",
+  "retained_prefix_bytes": 52363264,
+  "retained_prefix_sha256": "8c7a51d05d75e8f56a0b01d1b5fd84ac814702fb6db6a710bd39b472f2195443",
+  "validated_full_archive": false,
+  "extracted_or_executed": false,
+  "precise_network_cause": "The original consumer reported a fixed transfer-or-validation error; the underlying network exception was not retained.",
+  "scope": "The private failed prefix remains unchanged. A separate bounded exact-range attempt must still validate the complete API digest, flat archive, manifest and signatures."
+}

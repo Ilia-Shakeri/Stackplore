@@ -174,3 +174,38 @@ acceptance remain required for this dependency correction. Stage 1 remains open.
 بررسی جدا ۱۲ ایراد یافت؛ بسته‌ها با نسخهٔ دقیق آپدیت شدند. اسکن بستهٔ تازه
 صفر ایراد دارد؛ جای اسکن سختِ نشر را نگیرد. گیت محلیِ قبلی خروجی نهایی ندارد؛
 پاس کامل حساب نشود. تست کامل و CI و اسکن و نشرِ منبع تازه هنوز لازم‌اند.
+
+## October 24 local and hosted results
+
+The corrected source `1f4d46d5178b032fd5c3e7a2540cd7d2718d2698` passes the
+[complete local gate](dependency-full-gate.json): 544 web, 40 client, 48 release
+and 11 corpus cases, actual PostgreSQL 17.11/native-tool tests and production
+build. The seven main jobs in
+[40096762392](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/40096762392)
+and seven tag jobs in
+[40098076780](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/40098076780)
+pass. Signed [trial 40096840528](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/40096840528)
+passes its strict scan and packaging gates; publication is intentionally skipped
+for that dispatch event. Annotated `v2.0.0-alpha.1` points to this source;
+tag object `45814cc15735682ef5f571a8b54add02dca0ffec`.
+
+Independent trial consumption had a retained
+[incomplete transfer](trial-consumer-failure-a.json). A bounded range attempt
+preserves the original prefix and still requires the complete API digest and
+all original checks; no failed transfer becomes accepted by assumption.
+Public artifact acceptance remains separate until its own checks finish.
+
+A fresh processor restart was
+[rejected by automatic review](processor-restart-rejected.json) with only
+`blocked by policy`. The combined command did not execute. No alternative
+launch route was tried. The installed files and earlier actual English/Persian
+protocol receipt remain; there is no fresh current-host running-service claim.
+New runtime branch coverage, live product journeys and later stage gates remain
+open. Source-slice review after dependency correction: **8 → fix → 9/10**;
+this score does not replace those gates.
+
+گیت کامل و هفت کار main و تگ پاس؛ بستهٔ امضاشده و اسکن سخت هم پاس.
+تگ `alpha.1` پوش شد. دریافت مستقل آرشیو نخست ناقص ماند؛ شکست حفظ شد.
+شروع دوبارهٔ پردازنده در بررسی خودکار رد شد و اجرا نشد؛ دلیل فقط
+`blocked by policy`. پاس تاریخی بماند؛ پاس زندهٔ تازه یا پایان کل نسخهٔ ۲
+ادعا نشود. نمرهٔ همین اصلاح ۹/۱۰؛ گیت‌های باز جای خود دارند.

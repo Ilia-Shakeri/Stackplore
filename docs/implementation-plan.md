@@ -1,9 +1,13 @@
 # Stackplore active implementation evidence
 
-Current correction, **2026-10-24**: the previous source passed seven hosted
-jobs but its signed trial failed the dependency gate. Exact package patches
-now pass an independent audit with zero findings; fresh full-source and signed
-release gates remain open. [Current correction evidence](evidence/2.0.0-alpha.1/README.md#dependency-correction--2026-10-24).
+Current checkpoint, **2026-10-24**: **2.0.0-alpha.1** is published at
+`1f4d46d5178b032fd5c3e7a2540cd7d2718d2698`, schema17. All seven main/tag
+jobs, strict signed packaging, 39 public assets, 30 checksums, 31 provenance
+subjects and seven SBOM attestations pass. Windows public bytes match an actual
+recovery-tested trial; Linux has signed producer execution. Public OCI archive
+execution and current-host processor restart remain separate. Stage2
+**2.0.0-alpha.2**, schema18, now passes focused and complete local gates; final
+hosted/concurrency and checkpoint artifacts remain pending. [Current evidence](evidence/2.0.0-alpha.2/README.md).
 
 
 ## Version 2 status — 2026-10-21

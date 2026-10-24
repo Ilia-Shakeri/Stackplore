@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T13:45:38.313Z",
+  "source_revision": "1f4d46d5178b032fd5c3e7a2540cd7d2718d2698",
+  "action": "explicit restart through the reviewed local processor launcher",
+  "status": "automatic-review-rejected",
+  "reported_reason": "blocked by policy",
+  "command_executed": false,
+  "fresh_live_integration_executed": false,
+  "alternate_launch_attempted": false,
+  "launcher_sha256": "acc5aaad35b38e4e2f0db89311637edd71ef43e491e21effaba55e26bc2f1061",
+  "scope": "The tool rejected the combined restart and live-test invocation before execution. Existing installation and historical actual protocol proof are retained; no new running-service claim is made."
+}

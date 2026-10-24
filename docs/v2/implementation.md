@@ -1,9 +1,13 @@
 # Version 2 implementation ledger
 
-Current correction, **2026-10-24**: the previous source passed seven hosted
-jobs but its signed trial failed the dependency gate. Exact package patches
-now pass an independent audit with zero findings; fresh full-source and signed
-release gates remain open. [Current correction evidence](../evidence/2.0.0-alpha.1/README.md#dependency-correction--2026-10-24).
+Current checkpoint, **2026-10-24**: **2.0.0-alpha.1** is published at
+`1f4d46d5178b032fd5c3e7a2540cd7d2718d2698`, schema17. All seven main/tag
+jobs, strict signed packaging, 39 public assets, 30 checksums, 31 provenance
+subjects and seven SBOM attestations pass. Windows public bytes match an actual
+recovery-tested trial; Linux has signed producer execution. Public OCI archive
+execution and current-host processor restart remain separate. Stage2
+**2.0.0-alpha.2**, schema18, now passes focused and complete local gates; final
+hosted/concurrency and checkpoint artifacts remain pending. [Current evidence](../evidence/2.0.0-alpha.2/README.md).
 
 
 Started: **2026-10-19**. Authorized scope: implement the complete
@@ -12,7 +16,7 @@ update documents, version, commit and push. Stable 1.0.3 remains independently
 accepted at `656581cf05d4774358d5644a6e1af3c69a210f81`, schema 17.
 Baseline documentation source: `c018cf09c20456d27dfa6daa3f74e342fe46e27e`.
 
-Current reconciliation: **2026-10-21**. The published design/brand checkpoint is
+Stage0 historical reconciliation: **2026-10-21**. The published design/brand checkpoint is
 immutable `v2.0.0-alpha.0` at `eb86ab7554db555f023c1de72c3119acf101226a`,
 schema **17**. Main CI
 [39258522963](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39258522963)
@@ -40,8 +44,8 @@ not accept the correction.
 | Stage | Target                 | State                        | Acceptance still required                                  |
 | ----- | ---------------------- | ---------------------------- | ---------------------------------------------------------- |
 | 0     | `2.0.0-alpha.0`        | Accepted in recorded scope   | No helper runtime, customer installation or capacity claim |
-| 1     | `2.0.0-alpha.1`        | Security correction pending  | Fresh full gate, seven hosted jobs, strict scans and publication  |
-| 2     | `2.0.0-alpha.2`        | Unaccepted draft preparation | Complete lifecycle, quota, lease and recovery acceptance   |
+| 1 | `2.0.0-alpha.1` | Published; recorded scope accepted | Current host restart and global quality/branch gates remain separate |
+| 2 | `2.0.0-alpha.2` | Focused and full local gates pass | Exact hosted/race gates, signed checkpoint and public acceptance |
 | 3     | `2.0.0-alpha.3`        | Unaccepted draft preparation | Complete shared privacy and evidence-tool acceptance       |
 | 4     | `2.0.0-alpha.4`        | Not delivered                | Bilingual grounded conversation                            |
 | 5     | `2.0.0-alpha.5`        | Not delivered                | Bounded investigation loop                                 |
@@ -57,7 +61,7 @@ versioned `alpha.0` checkpoint because the maintainer requested a version at
 every stage; this supersedes the proposal's unversioned planning checkpoint.
 Existing tags remain immutable. New tags wait for their own passing gates.
 
-Stages **1–10 are not complete**. The
+Stages **2–10 are not complete**. The
 [separate preparation status](preparation-status.md) binds unaccepted draft
 [PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1) to
 `e660e16bd0b3c56f0096bb43b5688195135892b1`; it is not part of alpha.0.
@@ -392,3 +396,15 @@ checksum، ۳۱ موضوع منشأ و ۷ گواهی SBOM** پاس شدند. آ�
 محلی درست؛ دو درخواست بستهٔ واقعی فارسی/انگلیسی نیز پاس، بی‌skip.
 نامزد `alpha.1` به گیت کامل منبع پاک، هفت کار CI و پذیرش نسخه نیاز دارد.
 گام‌های **۱ تا ۱۰**، کیفیت پاسخ و نسخهٔ پایدار ۲ هنوز بسته نشده‌اند.
+
+## Stage2 local checkpoint — 2026-10-24
+
+[Exact source and commands](../evidence/2.0.0-alpha.2/README.md) bind schema18
+tree `4b80e52b11db03a65a794c054c6289d9e6559e87`. Pure/server tests, actual SQL, three native crash phases,
+schema17 upgrade and actual pg_dump/pg_restore pass. The full gate passes with
+544 web/40 client/48 release/11 corpus cases and real SQL/native tools. Source
+review9/10; branch percentages are not invented. Hosted/race and artifact gates
+remain open; no question dispatch or new live profile is enabled.
+
+نامزد گام۲ منبع جدا و طرح۱۸ دارد؛ تست واحد، پایگاه، سه قطع، ارتقا، بازیابی و
+گیت کامل پاس. CI و اسکن و نسخهٔ خود گام هنوز لازم؛ قابلیت گفت‌وگو فعال نیست.

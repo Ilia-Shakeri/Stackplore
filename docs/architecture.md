@@ -134,6 +134,24 @@ The [version 2 roadmap](roadmap-v2.md) owns delivery order and the active plan
 owns implementation state. Each stage still needs its focused tests, full
 local gate and separately named real integration and release evidence.
 
+### Stage-2 runtime candidate boundary
+
+The stage-2 candidate introduces forward-only application migration 18 and
+`assistant.RuntimeRepository`: metadata-only admission, versioned transitions,
+leases/fencing, call reservations, unknown usage, safe replay and bounded
+retention. A separately composed `assistantworker` performs only bounded
+recovery and prune batches. It starts under the server ownership context and
+joins before database close; it has no inference, provider, question or answer
+port. A missing maintenance repository fails startup before listen.
+
+The gateway remains outside public dispatch. Durable claim/step state is tested
+through repository fixtures, including owned subprocess crash boundaries;
+synthetic dispatch markers do not prove a real model-backed worker. Raw text
+and shared evidence reads belong to later privacy/use-case stages. See the
+[bilingual lifecycle guide](v2/runtime.md) ([فارسی](v2/runtime.fa.md)) and
+[active acceptance ledger](v2/implementation.md). Stable 1.0.3 and alpha.1
+still have migration ledger 17. PostgreSQL remains 17.11, not major 18.
+
 ## Persistence
 
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and

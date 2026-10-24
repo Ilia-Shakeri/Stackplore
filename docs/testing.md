@@ -369,6 +369,39 @@ are separate CI lanes. Packaging, strict dependency/native/image/secret scans,
 SPDX, checksums, signatures and independent consumer verification follow
 [release operations](operations/release.md) ([فارسی](operations/release.fa.md)).
 
+## Version-2 durable runtime candidate
+
+Run stage-2 checks only from its clean exact-source export and an owned
+disposable PostgreSQL fixture. Do not let untracked stage-3 authority/context
+preparation satisfy compilation or a document link. Stage-2 source includes
+application migration 18; the engine and native clients remain PostgreSQL 17.11.
+Keep the v1 full gate, original workload/assertions and timeouts unchanged.
+
+```powershell
+go -C apps/api test ./internal/assistant ./internal/assistantworker ./cmd/server -count=1
+go -C apps/api test ./internal/postgres -run '^TestAssistant' -count=1 -v
+go -C apps/api test ./internal/postgres -run '^TestAssistantNativeCrashBoundaries$' -count=1 -v
+go -C apps/api test ./internal/postgres -run '^TestReleaseUpgradeFromShippedPrefixesPreservesDataAndImmutableLedger$/17$' -count=1 -v
+go -C apps/api test ./internal/postgresops -run '^TestAssistantNativeRestorePreservesUnknownUsageAndFencesPaidGeneration$' -count=1 -v
+npm.cmd run verify
+```
+
+Use the documented private `STACKPLORE_TEST_POSTGRES_URL` and explicit
+`STACKPLORE_TEST_NATIVE_POSTGRES_TOOLS=true` opt-in with matching native tools.
+Absent opt-ins produce skips, not proof. Upgrade tests preserve released
+prefixes 14, 16 and 17 and the immutable migration bytes. Native recovery must
+prove unknown-usage retention, restore-generation fencing and disabled paid
+admission; record owned databases/schemas before and after cleanup.
+
+Crash tests kill and join only an exact owned subprocess. Admission, reservation,
+dispatch-marker fsync, transaction rollback and reopen are separate boundaries.
+The dispatch marker is synthetic, not inference or paid-provider execution.
+EXPLAIN tests use the production SQL, bounded historical fixtures and rollback;
+timings on that fixture do not establish capacity. Statement coverage does not
+prove branch coverage. A separate supported concurrency detector and exact-source
+hosted jobs remain necessary. See [runtime](v2/runtime.md),
+[فارسی](v2/runtime.fa.md), and [delivery state](v2/implementation.md).
+
 ## Safety and review
 
 Fixtures use invented values. Logs and stored evidence contain no live secrets.

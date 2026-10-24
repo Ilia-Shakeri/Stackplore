@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T14:05:04.040Z",
+  "version": "2.0.0-alpha.2",
+  "tested_tree": "4b80e52b11db03a65a794c054c6289d9e6559e87",
+  "source_manifest": [
+    {
+      "path": "apps/api/internal/assistant/runtime.go",
+      "sha256": "ed33796de982d7e254695406a98f0d939b05a0cf53b80dc7e2fa6ed746454010"
+    },
+    {
+      "path": "apps/api/internal/assistant/runtime_test.go",
+      "sha256": "d7db16247edf9714f0e7e1ff88dae52ab6e657c3f737e4647641a8c03e1e6435"
+    },
+    {
+      "path": "apps/api/internal/assistantworker/maintenance.go",
+      "sha256": "6e8cff62c0fd23479f2ecba51093bc45d6cb62163f79d4c7938dafe1ebc5d66c"
+    },
+    {
+      "path": "apps/api/internal/assistantworker/maintenance_test.go",
+      "sha256": "e183a6d1774933aa2b3f5c86404f4e0320f652029494643c2ed878a466a49e4a"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_runtime.go",
+      "sha256": "9eb8041f961999ca595992cd9385314aa6ed8135af4baba41a31b96f4e891fb4"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_steps.go",
+      "sha256": "4d815b4f7bb427abf7dd55aa15fcb24ddca78037c98a543bbd76524d245b5af7"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_lifecycle.go",
+      "sha256": "68524e201af4e1a3455472377063637559980718aaef474f6a73cde8ee1c40c0"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_usage.go",
+      "sha256": "84186bb3fa55f9b79e28a8a9f42c684afe7f3cc43b856b5f8977033954073d10"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_runtime_integration_test.go",
+      "sha256": "ca6d85a14b9c4cf4df5f8a9f22b7a23dc0c5f5f6b089e5c41d7eb7017cb6657e"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_guards_integration_test.go",
+      "sha256": "1a2b26595a9e0bcc6c100080da368219b786c00e40d53b3a3ff62be2bfe633eb"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_boundaries_integration_test.go",
+      "sha256": "13906e3e78d699c012e12bebeb54fb208a55bc40f59541aab3911a745f6ec818"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_query_plans_integration_test.go",
+      "sha256": "255eda7ec22f4a4d727045dd0f766ad4b03f6581b9a053042a1a0cd07b85006e"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_crash_integration_test.go",
+      "sha256": "d2f94971eea755d4c1219a312cdf08d3fb7e38dee127e82c2c6d69b40a2296df"
+    },
+    {
+      "path": "apps/api/internal/postgres/release_upgrade_integration_test.go",
+      "sha256": "369460c49ee15e040b002a7e0f642a41e7540d58a4382baf880273f1eb0ce1d6"
+    },
+    {
+      "path": "apps/api/internal/postgresops/assistant_restore_integration_test.go",
+      "sha256": "a76f86afa61748769e9ecabc28134f328fc81c5e897c991611daca722df73655"
+    },
+    {
+      "path": "apps/api/postgresmigrations/000018_assistant_runtime.sql",
+      "sha256": "287de60fb7dac0d547dd11cdd7ce1785dd97fdc0fa7b65efd4ec0fed791e9158"
+    },
+    {
+      "path": "apps/api/cmd/server/main.go",
+      "sha256": "6469f4d32206a295cc22cdc5c35fef013eff38cb81aecd445f9e668ab98ef9f8"
+    },
+    {
+      "path": "apps/api/cmd/server/main_test.go",
+      "sha256": "607bb1ef64d0f46f73906dc5e29955e91c1e18daed10774a851f93dd9d8865f0"
+    },
+    {
+      "path": "apps/api/cmd/server/assistant_runtime.go",
+      "sha256": "26eb9232fe5deb248eedb3fbf25389e7312c4fe1fa977250711035134f30d076"
+    },
+    {
+      "path": "apps/api/cmd/server/assistant_runtime_test.go",
+      "sha256": "6e274eb06b691b2448b16a85531ff52ba725c347f9fceb025bc3438dc6bbb201"
+    }
+  ],
+  "attempts": {
+    "units": {
+      "exit_code": 0,
+      "log_sha256": "a9f94895538627f43962dcd7f7346fd1e7e3af859d5dbc90dcbc7a74a6dbdbf6",
+      "top_level_passes": 39,
+      "top_level_skips": 1
+    },
+    "sql": {
+      "exit_code": 0,
+      "log_sha256": "cba3ddcace020e6cbed6eabf1f99f91a6e051c2ce19dffa3501c35cc6ca4bafa",
+      "top_level_passes": 24,
+      "top_level_skips": 1
+    },
+    "upgrade": {
+      "exit_code": 0,
+      "log_sha256": "4f7a35164d239fa8d0cefa769444d03857ea9c6d28961630efd63bec5d3ed21e",
+      "top_level_passes": 1,
+      "top_level_skips": 0
+    },
+    "restore": {
+      "exit_code": 0,
+      "log_sha256": "c426b0c1d9d69479a1ad0f16cbaf89ed8f25a1c694a0472e90ff5cef07338d93",
+      "top_level_passes": 1,
+      "top_level_skips": 0
+    },
+    "verify": {
+      "exit_code": 0,
+      "log_sha256": "b8a718a4916aba7182579598756ff395d7ac10cc461419b94a998d01a236b850",
+      "top_level_passes": 0,
+      "top_level_skips": 0
+    }
+  },
+  "actual_database": "PostgreSQL17.11 owned disposable fixture",
+  "actual_crash_checkpoints": [
+    "admitted",
+    "before_dispatch",
+    "completion_before_commit"
+  ],
+  "crash_dispatch": "synthetic, while process kill, transaction rollback and reopen are real",
+  "intentional_skips": [
+    "Crash child helper is skipped in the parent invocation; all three child checkpoints ran.",
+    "Provider credential-file platform test is skipped on Windows; no provider success claim."
+  ],
+  "query_plans": {
+    "count": 7,
+    "history_runs": 4096,
+    "synthetic_steps": 7168,
+    "batch_and_protected_state_assertions": "passed",
+    "capacity_claim": false
+  },
+  "upgrade": {
+    "from_schema": 17,
+    "to_schema": 18,
+    "immutable_history_and_data": "passed"
+  },
+  "native_restore": {
+    "matching_tools": "pg_dump/pg_restore17.11",
+    "unknown_usage_survives": true,
+    "paid_generation_fenced": true,
+    "owned_databases_cleaned": true
+  },
+  "scope": "Real source-level runtime, migration, plan, crash and native restore tests. No packaged alpha2, browser helper journey, live generation or new-runtime branch percentage is proved."
+}

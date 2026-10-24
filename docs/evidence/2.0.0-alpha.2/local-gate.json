@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T14:05:04.042Z",
+  "version": "2.0.0-alpha.2",
+  "tested_tree": "4b80e52b11db03a65a794c054c6289d9e6559e87",
+  "command": "npm.cmd run verify",
+  "status": "passed",
+  "exit_code": 0,
+  "log_sha256": "b8a718a4916aba7182579598756ff395d7ac10cc461419b94a998d01a236b850",
+  "go": "1.26.10",
+  "postgres": "17.11",
+  "actual_postgres_seconds": 168.378,
+  "actual_postgresops_seconds": 34.402,
+  "release_cases": 48,
+  "corpus_cases": 11,
+  "client_cases": 40,
+  "web_cases": 544,
+  "web_duration_seconds": 188.59,
+  "web_branch_percent": 80.33,
+  "web_build_seconds": 13.1,
+  "production_build": "passed",
+  "contracts_locales_notices_lint_types": "passed",
+  "later_preparation_excluded": true,
+  "public_dispatch": false,
+  "raw_text_persistence": false,
+  "remaining": [
+    "exact final-source hosted/race gate",
+    "signed checkpoint scans and artifacts",
+    "independent public artifact acceptance",
+    "new-runtime branch coverage requirement"
+  ],
+  "scope": "Full local pass on the frozen schema18 source, independent of the mixed working tree. Go statement figures never substitute for branch coverage."
+}
