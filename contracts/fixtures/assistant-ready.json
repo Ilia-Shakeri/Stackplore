@@ -1,0 +1,40 @@
+{
+  "run": {
+    "id": "ar_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "conversation_id": "ac_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "goal": "explain_resource",
+    "state": "completed",
+    "version": 3,
+    "scope": {
+      "source_id": "src_demo_01",
+      "resource_id": "r1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "window_minutes": 15,
+      "range": { "from": "2026-10-28T10:00:00.000001Z", "to": "2026-10-28T10:15:00.000001Z" }
+    },
+    "created_at": "2026-10-28T10:15:00.000001Z",
+    "updated_at": "2026-10-28T10:15:01.000001Z",
+    "deadline": "2026-10-28T10:17:00.000001Z",
+    "usage_uncertain": false,
+    "usage_conservative": false
+  },
+  "content_state": "ready",
+  "answer": {
+    "sections": [
+      {
+        "kind": "facts",
+        "text": "Selected resource is available.",
+        "citations": ["ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+      }
+    ]
+  },
+  "citations": [
+    {
+      "id": "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "resource",
+      "source_id": "src_demo_01",
+      "resource_id": "r1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "observed_at": "2026-10-28T10:15:00.000002001Z",
+      "range": { "from": "2026-10-28T10:00:00.000001Z", "to": "2026-10-28T10:15:00.000001Z" }
+    }
+  ]
+}

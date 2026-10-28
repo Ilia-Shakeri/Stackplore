@@ -50,6 +50,7 @@ type Options struct {
 	Operations              OperationManager
 	ApplicationSettings     ApplicationSettings
 	ApplicationMutationMode ApplicationMutationMode
+	AssistantRuns           AssistantRunReader
 	LogRedactionFields      []string
 	WebAssets               fs.FS
 	GuestDemo               *GuestDemoOptions
@@ -91,26 +92,7 @@ func NewHandler(options Options) (http.Handler, error) {
 	root.Get("/healthz", health)
 	root.Get("/readyz", ready(options.Readiness))
 	root.Get("/metrics", requireMetricsAccess(proxy, options.MetricsAllowedPrefixes, http.HandlerFunc(metrics.serveHTTP)).ServeHTTP)
-	root.Mount("/api/v1", apiRouter(
-		proxy,
-		options.MaximumRequestBody,
-		options.Authentication,
-		options.Readiness,
-		now,
-		options.ProductProviders,
-		options.AuditReader,
-		options.AlertReader,
-		options.NotificationReader,
-		options.NotificationSettings,
-		options.NotificationTester,
-		options.AlertManager,
-		options.SourceSettings,
-		options.Operations,
-		options.ApplicationSettings,
-		options.ApplicationMutationMode,
-		logPolicy,
-		options.GuestDemo,
-	))
+	root.Mount("/api/v1", apiRouter(proxy, options, now, logPolicy))
 	if options.WebAssets == nil {
 		root.NotFound(plainNotFound)
 	} else {
@@ -159,6 +141,9 @@ func validateOptions(options Options) error {
 	if !validGuestDemo(options.GuestDemo, options.ProductProviders) {
 		return errInvalidOptions
 	}
+	if options.GuestDemo != nil && options.AssistantRuns != nil {
+		return errInvalidOptions
+	}
 	if _, err := logsafe.NewPolicy(options.LogRedactionFields); err != nil {
 		return errInvalidOptions
 	}
@@ -182,25 +167,30 @@ func validPrefixes(prefixes []netip.Prefix) bool {
 	return true
 }
 
-func apiRouter(proxy proxyPolicy, maximumBody int64, authentication authenticationBoundary, readiness *Readiness, now func() time.Time, providers []ProductProvider, auditReader AuditReader, alertReader AlertReader, notificationReader NotificationReader, notificationSettings NotificationSettingsReader, notificationTester NotificationTester, alertManager AlertManager, sourceSettings SourceSettings, operations OperationManager, applicationSettings ApplicationSettings, applicationMode ApplicationMutationMode, logPolicy logsafe.Policy, guest ...*GuestDemoOptions) http.Handler {
-	authRoutes := newAuthHTTP(authentication, proxy.origin, readiness, now, maximumBody)
-	if len(guest) == 1 {
-		authRoutes.guestDemo = guest[0]
-	}
+func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPolicy logsafe.Policy) http.Handler {
+	authRoutes := newAuthHTTP(options.Authentication, proxy.origin, options.Readiness, now, options.MaximumRequestBody)
+	authRoutes.guestDemo = options.GuestDemo
+	providers := options.ProductProviders
 	if len(providers) == 0 {
 		providers = []ProductProvider{demo.MustNew()}
 	}
-	productRoutes := newProductHTTP(authRoutes, providers, auditReader, alertReader, notificationReader, notificationSettings, notificationTester, alertManager)
-	productRoutes.sourceSettings = sourceSettings
-	productRoutes.operations = operations
-	productRoutes.applicationSettings = applicationSettings
-	productRoutes.applicationMutationMode = applicationMode
+	productRoutes := newProductHTTP(authRoutes, providers, options.AuditReader, options.AlertReader, options.NotificationReader, options.NotificationSettings, options.NotificationTester, options.AlertManager)
+	productRoutes.sourceSettings = options.SourceSettings
+	productRoutes.operations = options.Operations
+	productRoutes.applicationSettings = options.ApplicationSettings
+	productRoutes.applicationMutationMode = options.ApplicationMutationMode
 	productRoutes.logRedactionPolicy = logPolicy
 	router := chi.NewRouter()
 	router.Use(proxy.requirePublicOrigin)
-	router.Use(limitRequestBody(maximumBody))
+	router.Use(limitRequestBody(options.MaximumRequestBody))
 	router.Use(rejectMalformedQuery)
 	router.Use(guestReadBoundary(authRoutes.guestDemo))
+	if options.AssistantRuns != nil {
+		helper := assistantHTTP{product: productRoutes, runs: options.AssistantRuns}
+		router.Get("/assistant/runs/{run_id}", helper.get)
+		router.Post("/assistant/runs/{run_id}/cancel", helper.cancel)
+		router.Get("/assistant/runs/{run_id}/citations/{citation_id}", helper.citation)
+	}
 	router.Get("/setup/status", authRoutes.setupStatus)
 	router.Post("/setup", authRoutes.setup)
 	router.Post("/auth/preflight", authRoutes.preflight)

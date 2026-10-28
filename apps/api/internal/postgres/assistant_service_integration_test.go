@@ -187,11 +187,12 @@ func TestAssistantServiceCommitsReservationBeforeOneGroundedLocalDispatch(t *tes
 		if wire {
 			name = "bounded_http_adapter"
 		}
-		t.Run(name, func(t *testing.T) { testAssistantServiceGroundedDispatch(t, wire) })
+		t.Run(name, func(t *testing.T) { testAssistantServiceGroundedDispatch(t, wire, false) })
 	}
+	t.Run("private_http_projection", func(t *testing.T) { testAssistantServiceGroundedDispatch(t, true, true) })
 }
 
-func testAssistantServiceGroundedDispatch(t *testing.T, wire bool) {
+func testAssistantServiceGroundedDispatch(t *testing.T, wire, transport bool) {
 	store, actor, at := assistantFixture(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -208,6 +209,11 @@ func testAssistantServiceGroundedDispatch(t *testing.T, wire bool) {
 		t.Fatal(err)
 	}
 	admission := assistantAdmission(actor, "service_sql_run", at)
+	if transport {
+		admission.ID = "ar_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+		admission.ConversationID = "ac_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+		admission.From = admission.Until.Add(-15 * time.Minute)
+	}
 	admission.ResourceID, admission.ReservedUnits = string(ref.ID), 16128
 	backend := &assistantServiceBackend{store: store, runID: admission.ID}
 	if wire {
@@ -288,6 +294,14 @@ func testAssistantServiceGroundedDispatch(t *testing.T, wire bool) {
 	input.Question = "Explain a changed question."
 	if _, err := service.Submit(ctx, input); !errors.Is(err, assistant.ErrConflict) {
 		t.Fatal("changed question reused a committed run", err)
+	}
+	if transport {
+		testAssistantHTTPReplay(t, ctx, store, actor, service, run.ID)
+		if backend.calls.Load() != 1 || backend.counts.Load() != 1 {
+			t.Fatal("private HTTP replay/cancel repeated content dispatch")
+		}
+		assertAssistantServiceContentNotStored(t, ctx, store, "Explain the selected resource.", input.Question, snapshot.Answer.Sections[0].Text, "Fixture service")
+		return
 	}
 	if _, err := store.pool.Exec(ctx, `UPDATE infrastructure_sources SET enabled=0 WHERE id='source_demo'`); err != nil {
 		t.Fatal("revoke owned SQL source fixture")

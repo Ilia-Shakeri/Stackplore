@@ -46,8 +46,9 @@ then passed all seven hosted jobs; all 49 canonical commits passed the existing
 whole-history secret policy. [Exact reply-increment hosted receipt](reply-hosted.json).
 This accepts the reply increment only; later decoder code has different bytes.
 
-No startup profile registration, enabled content client, public run handler,
-status stream, citation resolver or bilingual conversation is delivered here.
+No startup profile registration, enabled application dispatch, public admission,
+live status stream or bilingual conversation is delivered here. Conditional
+library read/cancel/citation handlers have their own later increment below.
 Those owning paths, real database/browser/privacy proofs, accepted branch
 measurement and current processor/human quality gates remain open. There is no
 alpha.4 milestone tag or full-stage acceptance claim.
@@ -67,7 +68,41 @@ receipt](status-decoder.json) distinguishes these focused checks from a full
 local gate and retains the corrected tool-path/lint attempts.
 It opens no connection and adds no public endpoint or browser journey. The
 earlier 118-test full gate binds its own immutable reply increment, not this
-later source. Whole-source hosted checks for the decoder remain separate.
+later source. The decoder commit `f2dd57ad5d94a87823d33bfac030d92725dcccc6`
+subsequently passed all seven hosted jobs; its 50-commit canonical history scan
+found no secrets under the existing policy. [Decoder hosted receipt](status-hosted.json).
+This does not certify the later HTTP boundary.
+
+## Private HTTP read increment
+
+The [conditional transport](../../v2/private-run-http.md) delegates read, owner
+cancellation and citation resolution to the existing authority-checked service.
+It is not supplied by the server entry point and cannot be composed with guest
+mode. It projects only safe metadata and complete validated content; ordinary
+JSON/format/log paths cannot disclose its private answer. The shared synthetic
+publication fixture checks both server output and client validation.
+
+Focused HTTP/inference tests pass; **187 client tests** and strict client types
+and lint pass. A fresh real PostgreSQL run passes the original synthetic and
+production HTTP-adapter cases plus the new in-process HTTP projection case:
+replay, citation, cancellation, account-revision revocation, one dispatch and
+private-content absence from SQL/logs. Authentication and processor output in
+that combined fixture remain synthetic. A new malformed-Unicode regression was
+reproduced before fixing silent decoder repair. Exact-source full and hosted
+gates for this increment are source-bound in the [HTTP increment receipt](http-boundary.json).
+The complete local gate passes on tree `d2a7e2efe3179eb01964c2bcfd956e44a3b073c5`:
+real PostgreSQL **125.477 s**, **187 client**, **544 web**, contracts/notices/locales,
+strict format/lint/types, release/corpus tooling and production builds. Native
+database operations are cached in the final gate; they actually passed in
+**17.220 s** on this same code during the earlier failed outer gate.
+
+Two earlier commands reached the unchanged **10-minute** package timeout while
+the SQL suite continued to advance. Both remain failed. A three-case comparison
+on old/current sources was diagnostic only; it is not a p95 acceptance benchmark.
+The unchanged source subsequently passed the complete gate with the same timeout,
+assertions and thresholds. No skip, timeout increase or scanner exception was added.
+Fresh source/package and staged-secret scans pass. Final documentation-only edits
+and exact final-commit hosted verification remain separate.
 
 [Operator profile preparation](../../v2/operator-profile.md) describes the exact
 proposed variables and why current startup still rejects them. The alpha.3
@@ -91,5 +126,8 @@ CI هفت‌کارِ کامیت پایهٔ `cf3dbc5` پاس شد؛ تغییر ب
 UTF-8، ترتیب شماره، reset و پاک‌کردن قاب در لغو. اتصال شبکه یا مسیر سرور
 نسازد. شاهد گیت کامل بخش قبلی، اثبات این تغییر تازه نیست؛ CI منبع تازه جداست.
 
-اتصال شروع برنامه، مسیر عمومی، stream، resolver ارجاع و صفحهٔ دوزبانه هنوز
-ساخته نشده‌اند. تگ گام۴ و پذیرش کامل ادعا نشود.
+مرز کتابخانه‌ای خواندن، لغو و ارجاع ساخته شد؛ در ورودی اصلی وصل نیست. نمونهٔ
+قالب مشترک و ۱۸۷ تست کارخواه پاس؛ مسیر ترکیبی با پایگاه واقعی نیز پاس شد.
+احراز هویت و پردازندهٔ آن تست آزمایشی‌اند. گیت منبع تازه جدا لازم است.
+اتصال شروع برنامه، ساخت عمومی اجرا، stream و صفحهٔ دوزبانه هنوز مانده‌اند.
+تگ گام۴ و پذیرش کامل ادعا نشود.

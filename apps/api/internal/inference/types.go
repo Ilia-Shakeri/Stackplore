@@ -153,28 +153,40 @@ func parseAnswer(contents []byte, evidence map[string]struct{}) (Answer, error) 
 	if decoder.Decode(&answer) != nil || decoder.Decode(new(any)) != io.EOF || len(answer.Sections) < 1 || len(answer.Sections) > MaximumSections {
 		return Answer{}, ErrInvalidOutput
 	}
-	for _, section := range answer.Sections {
-		if section.Kind != SectionFacts && section.Kind != SectionHypotheses && section.Kind != SectionGaps && section.Kind != SectionNextChecks || !validText(section.Text, 4096) || section.Citations == nil || len(section.Citations) > MaximumEvidence || section.Kind == SectionFacts && len(section.Citations) == 0 {
-			return Answer{}, ErrInvalidOutput
-		}
-		if strings.ContainsAny(section.Text, "<>\x00") || strings.Contains(section.Text, "](") || strings.Contains(section.Text, "http://") || strings.Contains(section.Text, "https://") {
-			return Answer{}, ErrInvalidOutput
-		}
-		seen := map[string]bool{}
-		for _, citation := range section.Citations {
-			if _, exists := evidence[citation]; !exists || !boundedID(citation, MaximumReferenceLength) || seen[citation] {
-				return Answer{}, ErrInvalidOutput
-			}
-			seen[citation] = true
-		}
+	if err := ValidateAnswer(answer, evidence); err != nil {
+		return Answer{}, err
 	}
 	return answer, nil
 }
 
-// UniqueJSON checks UTF-8, bounded nesting and case-folded unique object keys.
+// ValidateAnswer checks decoded sections against the exact allowed references.
+// The caller separately bounds serialized bytes before any publication.
+func ValidateAnswer(answer Answer, evidence map[string]struct{}) error {
+	if len(answer.Sections) < 1 || len(answer.Sections) > MaximumSections {
+		return ErrInvalidOutput
+	}
+	for _, section := range answer.Sections {
+		if section.Kind != SectionFacts && section.Kind != SectionHypotheses && section.Kind != SectionGaps && section.Kind != SectionNextChecks || !validText(section.Text, 4096) || section.Citations == nil || len(section.Citations) > MaximumEvidence || section.Kind == SectionFacts && len(section.Citations) == 0 {
+			return ErrInvalidOutput
+		}
+		if strings.ContainsAny(section.Text, "<>\x00") || strings.Contains(section.Text, "](") || strings.Contains(section.Text, "http://") || strings.Contains(section.Text, "https://") {
+			return ErrInvalidOutput
+		}
+		seen := map[string]bool{}
+		for _, citation := range section.Citations {
+			if _, exists := evidence[citation]; !exists || !boundedID(citation, MaximumReferenceLength) || seen[citation] {
+				return ErrInvalidOutput
+			}
+			seen[citation] = true
+		}
+	}
+	return nil
+}
+
+// UniqueJSON checks scalar Unicode, bounded nesting and case-folded unique object keys.
 // Case folding also rejects aliases that encoding/json would decode to one field.
 func UniqueJSON(contents []byte) bool {
-	if !utf8.Valid(contents) {
+	if !utf8.Valid(contents) || !scalarJSONStringEncoding(contents) {
 		return false
 	}
 	decoder := json.NewDecoder(strings.NewReader(string(contents)))

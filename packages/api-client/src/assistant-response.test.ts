@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import publicationFixture from '../../../contracts/fixtures/assistant-ready.json?raw';
 import {
   createApiClient,
   createAssistantClient,
@@ -26,6 +27,10 @@ const reject = (value: unknown) => {
 };
 
 describe('closed private conversation replies', () => {
+  it('accepts the same synthetic publication fixture checked by the server boundary', () => {
+    const input: unknown = JSON.parse(publicationFixture);
+    expect(parseAssistantRunResponse(input, assistantRunId)).toEqual(input);
+  });
   it.each(['en', 'fa'])('accepts complete inert %s text and copies the entire result', (locale) => {
     const input = assistantReadyFixture();
     first(input.answer.sections).text =

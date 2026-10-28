@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T11:42:44.494Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "f2dd57ad5d94a87823d33bfac030d92725dcccc6",
+  "tested_tree": "d2a7e2efe3179eb01964c2bcfd956e44a3b073c5",
+  "scope": "Conditional private library read/cancel/citation and strict output; application composition remains unfinished",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "log_sha256": "bbf62dd8a75e001e49139deb81517b158d1f9c461699e3363391fc86c89ae7f5",
+    "client_tests": 187,
+    "web_tests": 544,
+    "tooling_tests": 48,
+    "corpus_tooling_tests": 11,
+    "actual_postgres_seconds": 125.477,
+    "production_builds": "passed",
+    "native_database_operations": {
+      "current_gate": "cached success",
+      "prior_exact_source_execution_seconds": 17.22,
+      "prior_log_sha256": "79b621395267358ab9a56a159afc6b66696cd4907adb53d26c9520ac9370102e",
+      "prior_outer_command": "failed SQL-suite timeout; this individual native package passed"
+    }
+  },
+  "package_audit": {
+    "command": "corepack.cmd pnpm --config.local-address=0.0.0.0 audit --audit-level high --json",
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    },
+    "report_sha256": "4a058b957fd988a9ffbdeafeb69f8a00efd127ac96a8c59e5561d401666b78f6"
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "include_development_dependencies": true,
+    "exit_code": 0,
+    "targets": [
+      {
+        "target": "apps/api/go.mod",
+        "type": "gomod",
+        "reported_vulnerabilities": 0
+      },
+      {
+        "target": "pnpm-lock.yaml",
+        "type": "pnpm",
+        "reported_vulnerabilities": 0
+      }
+    ],
+    "report_sha256": "46f583fa0be617861ac109c2be414bf4b729caaccf16a064c6b838693d980759",
+    "sbom_sha256": "f55f32808ea99e1e1fd760111b430811def0e7fff909a8426c924f651779422f"
+  },
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Implementation diff before final receipt/documentation-only additions; complete final index and canonical history checked separately"
+  },
+  "files": [
+    {
+      "path": "apps/api/internal/httpapi/router.go",
+      "sha256": "c7200223dd9bd5044e3b2ccd9e35f3479b5c54b8f43ec1dea7f1b4a190963e12"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_contract.go",
+      "sha256": "bca2dee06337ae47e541dbee991c255990189b9f9aa61d7a447695afb7b6ca63"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_contract_test.go",
+      "sha256": "d8bb81f62217977a5224f388ca7e9e919b89c95791716f78377303e4cab0dddd"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_handlers.go",
+      "sha256": "445059b713ffcf31c831f6e37b94cd1b2007f2c05b0b92a91fe0c54780f64a96"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_handlers_test.go",
+      "sha256": "3cda8191620bff662ab546ee08c7486c9ea3d17483df0292164db0234e8eb563"
+    },
+    {
+      "path": "apps/api/internal/inference/types.go",
+      "sha256": "2e403c8892e8879514200749e99d13755af4c57b8f8e9e6a91ceb2dfd30bf641"
+    },
+    {
+      "path": "apps/api/internal/inference/json_unicode.go",
+      "sha256": "cacc5ad5d33f0ce3fedd7b390507f9dea7a20dd8d3497fbc3a761385aacb3aaf"
+    },
+    {
+      "path": "apps/api/internal/inference/output_unicode_test.go",
+      "sha256": "04b81d5346204cfcf2d1ace3d353716a17a3cdd00e74e400262f2196f4483b15"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_service_integration_test.go",
+      "sha256": "60f6b7b5fd70f1d5d4bec2e408286254d368f19391bb9a3cc621546e189e1b14"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_http_integration_test.go",
+      "sha256": "9392d149651df2c007c63d79dd63063b70016abed009417c96ff6353172baf0d"
+    },
+    {
+      "path": "contracts/fixtures/assistant-ready.json",
+      "sha256": "24fdfaa29b6431cf6c33e62c4fca23fadca6a2b0f1a5bcd8946fc48ead3197f1"
+    },
+    {
+      "path": "packages/api-client/src/assistant-response.test.ts",
+      "sha256": "fae704496b9b1fb840ae3f812d876d8bbf972f5e79ede85bf47b6ebace8072d2"
+    },
+    {
+      "path": "packages/api-client/src/test-assets.d.ts",
+      "sha256": "8aff26e3ecec97ea5f20f5abab212d33ba0823493ee38f3fbf61e5d97f3ca805"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Conditional transport and strict-output component only",
+    "corrections": [
+      "Protect ordinary JSON/format/structured-log paths and confine content to explicit publication",
+      "Preserve valid provider nanoseconds while keeping SQL scopes at microsecond precision",
+      "Replace long positional router dependency list with validated options",
+      "Reject unpaired Unicode escapes before decoder repair"
+    ]
+  },
+  "retained_failures": [
+    {
+      "name": "v2-stage4-http-full-gate-20261028-a",
+      "exit_code": 1,
+      "log_sha256": "79b621395267358ab9a56a159afc6b66696cd4907adb53d26c9520ac9370102e"
+    },
+    {
+      "name": "v2-stage4-http-pg-retry-20261028-a",
+      "exit_code": 1,
+      "log_sha256": "7784353f4f6a722451df460cc3f38a135ca1de2b84966d09126cf19d4342db07"
+    }
+  ],
+  "runner_diagnosis": {
+    "unchanged_tested_source": true,
+    "default_go_package_timeout_unchanged": "10m",
+    "thresholds_skips_and_assertions_unchanged": true,
+    "comparative_probe": "Three sequential representative-case runs on old and new sources; not a workload/performance acceptance benchmark",
+    "baseline_log_sha256": "7df6eec10d887d50d7fd09a5710e28ccb357e285777b7be80be296d7658d9542",
+    "current_log_sha256": "d7344773f8abc8756fb99db6fa82b8f46ecd2f41159c1f1455446d995ffd011e"
+  },
+  "unicode_regression": {
+    "before_exit_code": 1,
+    "after_package_exit_code": 0,
+    "before_log_sha256": "31def5fde85f73037dcd0a4e61add8e5853c133ae49b4283f705b1cf7439a6a2",
+    "after_log_sha256": "75c678d8691f581057d7609c2c0c7cb620bf170072ee0b0f7f5a766c55a50e47"
+  },
+  "limitations": [
+    "Combined SQL/private-HTTP case uses synthetic authentication and a bounded synthetic processor behind the production HTTP adapter",
+    "Default server entry point does not compose these routes; no public admission/status subscription/bilingual journey",
+    "No current real engine, accepted new-package branch measurement, human quality, soak/capacity or artifact acceptance",
+    "No alpha.4 milestone tag; exact final commit hosted checks remain separate"
+  ]
+}

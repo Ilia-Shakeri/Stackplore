@@ -62,6 +62,9 @@ loss/shutdown. Disabled and guest modes must create no content client. Public
 admission, owner-only replay, cancellation, citation routes, bounded status
 streams and bilingual browser behavior need their own contract and real tests.
 
+The [conditional HTTP read boundary](private-run-http.md) is separate library
+composition; it does not register or enable these startup variables.
+
 ## فارسی
 
 این سند فقط آماده‌سازی گام۴ است؛ متغیرها هنوز در شروع برنامه ثبت نیستند و

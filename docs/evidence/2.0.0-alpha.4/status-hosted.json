@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T10:53:39.937Z",
+  "version": "2.0.0-alpha.4",
+  "source_revision": "f2dd57ad5d94a87823d33bfac030d92725dcccc6",
+  "scope": "Pure metadata decoder development increment only; not a complete stage or published release",
+  "main_ci": {
+    "id": 40669206619,
+    "url": "https://github.com/Ilia-Shakeri/Stackplore/actions/runs/40669206619",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "deploy",
+        "conclusion": "success"
+      },
+      {
+        "name": "code",
+        "conclusion": "success"
+      },
+      {
+        "name": "helm-install",
+        "conclusion": "success"
+      },
+      {
+        "name": "kubernetes-provider",
+        "conclusion": "success"
+      },
+      {
+        "name": "compose-install",
+        "conclusion": "success"
+      },
+      {
+        "name": "docker-provider",
+        "conclusion": "success"
+      },
+      {
+        "name": "processor-tool",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "history_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "exit_code": 0,
+    "findings": 0,
+    "commits": 50,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "log_sha256": "6079f4697dfcbc64ea4670d01d10ee4d40ec7be2a54b2fab0f889d8a97f37c8c",
+    "ignore_policy": "Existing exact historical fixture ignores unchanged"
+  },
+  "limitations": [
+    "No alpha.4 tag or signed/published artifacts",
+    "Later conditional HTTP source requires its own exact-source gates",
+    "No public conversation, current real engine, new branch or human-quality acceptance"
+  ]
+}
