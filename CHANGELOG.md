@@ -11,6 +11,7 @@
 - Add a pure bounded status-byte decoder with strict UTF-8, owner/run identity, contiguous replay, reset fencing, duplicate-field rejection and cancellation erasure. It opens no connection and does not deliver a live stream or conversation.
 - Add conditional private read/cancel/citation transport over the existing service, with trusted actor mapping, current authority, closed publication, no-store responses and protected generic serialization. Default application wiring, public admission and live status remain pending.
 - Reject unpaired Unicode escapes before processor JSON decoding can repair them. Share decoded-answer checks with explicit HTTP publication and a cross-runtime synthetic contract fixture.
+- Add conditional explicit conversation admission with closed Unicode-safe requests, owner-bound server identities, frozen retries, current trusted resource resolution and atomic continuation guards. Add real SQL/HTTP admission-to-settlement privacy checks; application startup remains unwired.
 - Preserve exact alpha.3 source/artifact evidence separately; this development version is not a completed stage or a tagged release.
 
 ## [2.0.0-alpha.3] - 2026-10-28

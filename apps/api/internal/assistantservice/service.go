@@ -66,6 +66,8 @@ type Input struct {
 	Scope     contextbuilder.Scope
 	Locale    string
 	Question  string
+	// Trusted transport presence flag; never accepted as a browser policy field.
+	RequireExistingConversation bool
 }
 
 func (Input) Format(state fmt.State, _ rune) {
@@ -181,6 +183,9 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 		_, _ = mac.Write([]byte(value))
 		_, _ = mac.Write([]byte{0})
 	}
+	if input.RequireExistingConversation {
+		_, _ = mac.Write([]byte("explicit-conversation-v1\x00"))
+	}
 	copy(a.Fingerprint[:], mac.Sum(nil))
 	input.Admission = a
 	work, cancel := service.ioContext(ctx)
@@ -212,6 +217,9 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 		return run, nil
 	} else if lookupErr != assistant.ErrDenied {
 		return assistant.Run{}, ownedError(lookupErr)
+	}
+	if a.RequireExisting {
+		return assistant.Run{}, assistant.ErrConflict
 	}
 	a.RequireExisting = false
 	input.Admission = a

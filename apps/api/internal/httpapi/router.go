@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation"
+
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/webui"
@@ -187,6 +189,11 @@ func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPoli
 	router.Use(guestReadBoundary(authRoutes.guestDemo))
 	if options.AssistantRuns != nil {
 		helper := assistantHTTP{product: productRoutes, runs: options.AssistantRuns}
+		if admitter, ok := options.AssistantRuns.(AssistantRunAdmitter); ok {
+			helper.admitter = admitter
+			helper.bodyLimit = min(options.MaximumRequestBody, assistantconversation.MaximumRequestBytes)
+			router.Post("/assistant/runs", helper.admit)
+		}
 		router.Get("/assistant/runs/{run_id}", helper.get)
 		router.Post("/assistant/runs/{run_id}/cancel", helper.cancel)
 		router.Get("/assistant/runs/{run_id}/citations/{citation_id}", helper.citation)

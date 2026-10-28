@@ -131,3 +131,25 @@ UTF-8، ترتیب شماره، reset و پاک‌کردن قاب در لغو. �
 احراز هویت و پردازندهٔ آن تست آزمایشی‌اند. گیت منبع تازه جدا لازم است.
 اتصال شروع برنامه، ساخت عمومی اجرا، stream و صفحهٔ دوزبانه هنوز مانده‌اند.
 تگ گام۴ و پذیرش کامل ادعا نشود.
+
+## Explicit admission increment
+
+The [conversation admission boundary](../../v2/conversation-admission.md) adds
+conditional POST handling, closed bounded requests, trusted server identities,
+frozen retries, missing-row fencing and atomic volatile continuation guards.
+Actual SQL/HTTP tests exercise one reserved dispatch and settlement, replay,
+changed-request conflicts, cancellation and session-revision revocation.
+Authentication, resource selection and the loopback processor remain synthetic.
+The settings read port changes neither control version nor audit/usage state.
+Application startup, live status and the bilingual journey remain open. No
+alpha.4 milestone tag or whole-stage acceptance is claimed. Source-bound checks
+for this increment are recorded separately from earlier receipts.
+
+The [admission source receipt](conversation-admission.json) binds 15 code files
+and clean tree `36fbfb7e857f3c33afc70b1d1fe8f22357fcb9fd`. Full verification passes: 187 client tests,
+544 web tests, actual PostgreSQL 146.706 s, native database operations 13.186 s,
+contracts/notices/locales, format/lint/types, release/corpus tooling and builds.
+Fresh source scans and the standard 393-version package audit report zero
+findings within their severity scopes. The initial fixture compile failure is
+retained. The preceding HTTP increment has its [exact hosted receipt](http-hosted.json):
+seven successful jobs and 51 canonical commits with no secret findings.

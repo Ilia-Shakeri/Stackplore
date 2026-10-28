@@ -33,6 +33,12 @@ func (fixture *helperHTTPAuthentication) AuthorizeUnsafe(context.Context, string
 
 func testAssistantHTTPReplay(t *testing.T, ctx context.Context, store *Store, actor assistant.Actor, service *assistantservice.Service, runID string) {
 	t.Helper()
+	handler, logs := newAssistantSQLHTTPFixture(t, ctx, store, actor, service)
+	testAssistantHTTPReads(t, ctx, store, actor, handler, logs, runID)
+}
+
+func newAssistantSQLHTTPFixture(t *testing.T, ctx context.Context, store *Store, actor assistant.Actor, service httpapi.AssistantRunReader) (http.Handler, *bytes.Buffer) {
+	t.Helper()
 	var sessionID string
 	if err := store.pool.QueryRow(ctx, `SELECT id FROM sessions WHERE user_id=$1 AND token_digest=$2`, actor.UserID, actor.SessionDigest[:]).Scan(&sessionID); err != nil {
 		t.Fatal("read owned HTTP actor fixture")
@@ -47,6 +53,11 @@ func testAssistantHTTPReplay(t *testing.T, ctx context.Context, store *Store, ac
 	if err != nil {
 		t.Fatal("construct owned SQL-bound private HTTP fixture")
 	}
+	return handler, &logs
+}
+
+func testAssistantHTTPReads(t *testing.T, ctx context.Context, store *Store, actor assistant.Actor, handler http.Handler, logs *bytes.Buffer, runID string) {
+	t.Helper()
 	request := func(method, path string) *httptest.ResponseRecorder {
 		r := httptest.NewRequest(method, "http://stackplore.test"+path, nil)
 		r = r.WithContext(ctx)

@@ -49,6 +49,9 @@ func (service *Service) stage(input Input) (*memoryRun, bool, error) {
 		return existing, false, nil
 	}
 	c, exists := service.conversations[input.Admission.ConversationID]
+	if input.RequireExistingConversation && (!exists || c.owner != input.Admission.Actor.UserID || !service.time().Before(c.at.Add(MemoryLifetime))) {
+		return nil, false, assistant.ErrDenied
+	}
 	if exists && (c.owner != input.Admission.Actor.UserID || c.turns >= MaximumTurns || !service.time().Before(c.at.Add(MemoryLifetime))) {
 		return nil, false, assistant.ErrQuota
 	}

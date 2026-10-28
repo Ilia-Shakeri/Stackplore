@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -24,6 +25,12 @@ type AssistantRunReader interface {
 	Get(context.Context, assistant.Actor, string) (assistantservice.Snapshot, error)
 	Cancel(context.Context, assistant.Actor, string) (assistant.Run, error)
 }
+
+type AssistantRunAdmitter interface {
+	Submit(context.Context, assistant.Actor, assistantconversation.Request, string) (assistant.Run, error)
+}
+
+var _ AssistantRunAdmitter = (*assistantconversation.Service)(nil)
 
 var _ AssistantRunReader = (*assistantservice.Service)(nil)
 

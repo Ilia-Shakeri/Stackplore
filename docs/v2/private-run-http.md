@@ -12,8 +12,9 @@ When supplied, it registers these existing contract paths:
 | GET | `/api/v1/assistant/runs/{run_id}/citations/{citation_id}` | One retained selected-resource locator |
 
 The default server entry point does **not** supply this capability. Guest
-composition rejects it. Startup profile registration, public admission,
-status subscriptions and the bilingual view remain unfinished. This source
+composition rejects it. A later [admission capability](conversation-admission.md)
+adds conditional public request handling in the library. Startup profile
+registration, status subscriptions and the bilingual view remain unfinished. This source
 increment does not enable the feature through environment variables.
 
 ## Authority and request limits
@@ -80,7 +81,8 @@ and later roadmap acceptance remain required.
 
 کتابخانهٔ HTTP سه مسیر خواندن، لغو و ارجاع دارد؛ فقط با وابستگیِ مورد اعتماد
 وصل شوند. ورودی اصلی برنامه هنوز آن را وصل نکند؛ پیش‌فرض بسته است. حالت
-مهمان این وابستگی را رد کند. ساخت اجرا، جریان وضعیت و صفحهٔ دوزبانه مانده‌اند.
+مهمان این وابستگی را رد کند. ساخت اجرا در کتابخانه افزوده شود؛ اتصال اصلی،
+جریان وضعیت و صفحهٔ دوزبانه مانده‌اند.
 
 کاربر از نشست موجود شناخته شود؛ لغو، مبدأ درست و CSRF هم بخواهد. مالک و
 شناسهٔ همان کار دوباره سنجیده شوند. سؤال، بدنه، پارامتر اضافی، تنظیم پردازنده

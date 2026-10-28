@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T12:42:40.375Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "bbb9e667c20a7156b88e361cff7b3bc1b50a6917",
+  "tested_tree": "36fbfb7e857f3c33afc70b1d1fe8f22357fcb9fd",
+  "scope": "Conditional HTTP conversation admission and atomic continuation; application startup remains unwired",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "log_sha256": "d8bacc3a4805da6db3d19e1c9abaf7b8606f34a2f307a894569a5c1922cee9a3",
+    "client_tests": 187,
+    "web_tests": 544,
+    "actual_postgres_seconds": 146.706,
+    "actual_native_database_operations_seconds": 13.186,
+    "production_builds": "passed"
+  },
+  "package_audit": {
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    },
+    "report_sha256": "4a058b957fd988a9ffbdeafeb69f8a00efd127ac96a8c59e5561d401666b78f6"
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "include_development_dependencies": true,
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "exit_code": 0,
+    "targets": [
+      {
+        "target": "apps/api/go.mod",
+        "type": "gomod",
+        "reported_vulnerabilities": 0
+      },
+      {
+        "target": "pnpm-lock.yaml",
+        "type": "pnpm",
+        "reported_vulnerabilities": 0
+      }
+    ],
+    "report_sha256": "f0f95f3b80ae65585750006b70a63cbcc625eaa97013201e8ab487116ef71263",
+    "sbom_sha256": "2f7cf822f20a77463fd9cdeb3a9aeb98d808cf4bd4127e2bf6e7ffed7f3c1633"
+  },
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Implementation index before final receipt/document additions; final index scanned separately"
+  },
+  "files": [
+    {
+      "path": "apps/api/internal/assistantconversation/request.go",
+      "sha256": "e2ccb3154cd1f8d7f7d8ad870e34860c50a5a174e4dc905ef4009c57a3c32fba"
+    },
+    {
+      "path": "apps/api/internal/assistantconversation/request_test.go",
+      "sha256": "6980bcde191508c774a017cc24d794e3b97c52623aad6480c1ca1d0a9c63522f"
+    },
+    {
+      "path": "apps/api/internal/assistantconversation/service.go",
+      "sha256": "6c4f16ee140715c72cab51923539acb21977cb479527ba39afa59e62d5db0276"
+    },
+    {
+      "path": "apps/api/internal/assistantconversation/service_test.go",
+      "sha256": "8b9211a51ff39f16cefefc006f7c61e40c0ed93d50761a386ae6a768ba078ce4"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/memory.go",
+      "sha256": "a9274f77540d33d60498559eedb48c61e41206ff79bc2c6ff94a8942729f36f1"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/service.go",
+      "sha256": "b01af92f6d1b9658979b621ff048ed919e422c9ec6001e0be1d2fe920bf9869f"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/conversation_guard_test.go",
+      "sha256": "3182ce19229da18ad38a7be1b8dd925b116f4073317c1f3e0a381620d4f9c9aa"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_contract.go",
+      "sha256": "369dfd0895db69055e5969f79f0146e589b83d90e2a9ab966b1e3c061dc06457"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_handlers.go",
+      "sha256": "7d2ad593c40228bf11403d6d2eaf0f9cf6a3bd433ab2bee2410beb3862a2c9e3"
+    },
+    {
+      "path": "apps/api/internal/httpapi/router.go",
+      "sha256": "d3b9d09c22f7181a9e19c76ce0f86f3982b4e8bad0f9fa063b43137f2397114a"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_admission_test.go",
+      "sha256": "967fc1cda48c0c5b5841bb768ea37c0e65c757be66dbef4844f9da8efb4b2f96"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_settings.go",
+      "sha256": "26cedcd6a93fdc9c9de2d56b8369995635df4b9e2ba60071f1956c88122eb4a4"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_settings_integration_test.go",
+      "sha256": "5a3f47154cea7d6121fdb43fcf2a52ac543a305d7842d9096a06823baeeeaca9"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_http_integration_test.go",
+      "sha256": "49d1301b1e0315a487733e540123f813dfb6cb4e1472da03b2217f5b9e83a25a"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_conversation_integration_test.go",
+      "sha256": "e0deddf52211667a525f7b566aa58b99284343335a243bee3668745650efd2fb"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Explicit admission component only",
+    "corrections": [
+      "Bound and strictly decode the public request before trusted resource resolution",
+      "Freeze retained scope and carry the missing-row guard to atomic admission",
+      "Reject unknown/foreign/expired explicit volatile conversations atomically",
+      "Never restore lost questions or consume a turn on durable retry",
+      "Check parent cancellation after lookup and resource resolution"
+    ]
+  },
+  "combined_sql_http_proof": {
+    "authentication": "synthetic principal/session facade; SQL actor and revocation are real",
+    "resource_selection": "controlled trusted fixture",
+    "processor": "synthetic loopback protocol behind production HTTP adapter",
+    "reservation_dispatch_settlement": "one count, one generation, 13 settled units",
+    "privacy": "owned SQL fixture tables and captured HTTP logs; no deployed telemetry claim"
+  },
+  "retained_failures": [
+    {
+      "name": "v2-stage4-conversation-sql-20261028-a",
+      "exit_code": 1,
+      "scope": "Initial test referenced resource fields at the wrong nesting; corrected before clean export",
+      "log_sha256": "7d3f5102f89299976ddd7c5292d8a611e00e8080429c7b40485c6ddf7bb1e9e3"
+    }
+  ],
+  "limitations": [
+    "No startup profile registration or enabled application dispatch",
+    "No server status connection or bilingual browser journey",
+    "No current real engine, human quality, accepted branch measurement, soak/capacity or artifact acceptance",
+    "No alpha.4 milestone tag; exact final commit hosted gates remain separate"
+  ]
+}
