@@ -1,5 +1,7 @@
 # Release artifacts and verification
 
+Latest recorded version-2 artifact acceptance is **2.0.0-alpha.3** at immutable `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. [Public proof](../evidence/2.0.0-alpha.3/published-release.json) binds fourteen main/tag jobs, signed publication,39 files, eight strict scans and actual Windows recovery. Development alpha.4 is an unfinished conversation foundation. The detailed earlier trial sequence below retains its historical scope; current engine, branch/quality, capacity and full version-2 gates remain separate.
+
 Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](../evidence/1.0.3/published-release.json) binds the exact source and artifacts. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical 1.0.2 acceptance and receipts below retain their original scope.
 
 ## Historical release proof

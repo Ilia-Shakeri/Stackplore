@@ -186,3 +186,52 @@ export type CurrentMetricResult = DataAllowedCurrentMetricResult | NoDataCurrent
 export type DataAllowedEventPage = Derived.DataAllowedEventPage;
 export type NoDataEventPage = Omit<Derived.NoDataEventPage, 'items'> & { items: [] };
 export type EventPage = DataAllowedEventPage | NoDataEventPage;
+
+export type {
+  AssistantActiveRun,
+  AssistantAnswerText,
+  AssistantCitationId,
+  AssistantCompletedRun,
+  AssistantConversationId,
+  AssistantEventCursor,
+  AssistantLocale,
+  AssistantLostResponse,
+  AssistantOtherSection,
+  AssistantPendingResponse,
+  AssistantResetEvent,
+  AssistantResourceCitation,
+  AssistantRun,
+  AssistantRunId,
+  AssistantRunReceipt,
+  AssistantRunRequest,
+  AssistantRunScope,
+  AssistantRunState,
+  AssistantStatusEvent,
+  AssistantTimeRange,
+  AssistantUnavailableResponse,
+  AssistantWindowMinutes,
+} from './derived/types.derived';
+
+export type AssistantFactSection = Omit<Derived.AssistantFactSection, 'citations'> & {
+  citations: [Derived.AssistantCitationId, ...Derived.AssistantCitationId[]];
+};
+
+export type AssistantAnswerSection = AssistantFactSection | Derived.AssistantOtherSection;
+
+export type AssistantAnswer = Omit<Derived.AssistantAnswer, 'sections'> & {
+  sections: [AssistantAnswerSection, ...AssistantAnswerSection[]];
+};
+
+export type AssistantReadyResponse = Omit<
+  Derived.AssistantReadyResponse,
+  'answer' | 'citations'
+> & {
+  answer: AssistantAnswer;
+  citations: [Derived.AssistantResourceCitation];
+};
+
+export type AssistantRunResponse =
+  | Derived.AssistantPendingResponse
+  | Derived.AssistantLostResponse
+  | Derived.AssistantUnavailableResponse
+  | AssistantReadyResponse;

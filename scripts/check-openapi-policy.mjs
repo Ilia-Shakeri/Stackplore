@@ -5,6 +5,14 @@ import { dirname, join, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
+import {
+  assistantParameterNames,
+  assistantRoutePolicies,
+  assistantSchemaNames,
+  inspectAssistantPolicy,
+  runAssistantPolicySelfTests,
+} from './assistant-contract-policy.mjs';
+
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const contractPath = join(repositoryRoot, 'contracts', 'openapi.yaml');
 const configPath = join(repositoryRoot, 'redocly.yaml');
@@ -667,6 +675,7 @@ routePolicies.set('/health/history', {
     security: browserSession,
   },
 });
+for (const [path, policy] of assistantRoutePolicies) routePolicies.set(path, policy);
 const allowedPathNames = [...routePolicies.keys()];
 const allowedOperationKeys = [
   'description',
@@ -713,6 +722,7 @@ const allowedParameterNames = [
   'UserRoleFilter',
 ];
 const allowedResponseNames = [
+  'AssistantStatusStream',
   'BadRequestProblem',
   'ConflictProblem',
   'ForbiddenProblem',
@@ -731,6 +741,7 @@ const allowedResponseNames = [
 ];
 const retryableResponseNames = new Set(['ServiceUnavailableProblem', 'TooManyRequestsProblem']);
 const successResponseNames = new Set([
+  'AssistantStatusStream',
   'MutationAccepted',
   'ProductEventStream',
   'UserCreated',
@@ -987,6 +998,8 @@ allowedSchemaNames.push(
   ],
 );
 allowedParameterNames.push('OperationId', 'OperationIdempotencyKey');
+allowedParameterNames.push(...assistantParameterNames);
+allowedSchemaNames.push(...assistantSchemaNames);
 const forbiddenPropertyFragments = [
   'accesskey',
   'apikey',
@@ -1269,7 +1282,7 @@ const inspectComponentPolicy = (components) => {
         issues.push(`${responseLocation}.headers must be an object`);
       } else {
         const expectedHeaders =
-          responseName === 'ProductEventStream'
+          responseName === 'ProductEventStream' || responseName === 'AssistantStatusStream'
             ? ['Cache-Control', 'Set-Cookie', 'X-Accel-Buffering', 'X-Request-ID']
             : responseName === 'UserCreated' || responseName === 'UserFound'
               ? ['ETag', 'Set-Cookie', 'X-Request-ID']
@@ -1291,7 +1304,7 @@ const inspectComponentPolicy = (components) => {
         }
       }
 
-      if (responseName === 'ProductEventStream') {
+      if (responseName === 'ProductEventStream' || responseName === 'AssistantStatusStream') {
         if (
           !isRecord(response.content) ||
           !hasExactKeys(response.content, ['text/event-stream']) ||
@@ -1955,6 +1968,9 @@ const main = async () => {
     if (componentIssues.length > 0) {
       fail(componentIssues.join('; '));
     }
+    const assistantIssues = inspectAssistantPolicy(document);
+    if (assistantIssues.length > 0) fail(assistantIssues.join('; '));
+    runAssistantPolicySelfTests(document);
     assertExactValues(Object.keys(components), allowedComponentCollections, 'components');
     assertExactValues(Object.keys(components.schemas), allowedSchemaNames, 'components.schemas');
     assertExactValues(
@@ -2022,7 +2038,7 @@ const main = async () => {
 
     if (isRecord(components.responses)) {
       for (const [name, response] of Object.entries(components.responses)) {
-        if (name === 'ProductEventStream') {
+        if (name === 'ProductEventStream' || name === 'AssistantStatusStream') {
           continue;
         }
         if (!isRecord(response) || !isRecord(response.content)) {
@@ -2391,13 +2407,14 @@ const main = async () => {
           }
           continue;
         }
-        if (name === 'ProductEventStream') {
+        if (name === 'ProductEventStream' || name === 'AssistantStatusStream') {
           if (
             response?.content?.['text/event-stream']?.schema?.type !== 'string' ||
-            response?.headers?.['Cache-Control']?.schema?.const !== 'no-cache, no-store' ||
+            response?.headers?.['Cache-Control']?.schema?.const !==
+              (name === 'ProductEventStream' ? 'no-cache, no-store' : 'no-store') ||
             response?.headers?.['X-Accel-Buffering']?.schema?.const !== 'no'
           ) {
-            fail('ProductEventStream must keep its bounded SSE transport contract');
+            fail(`${name} must keep its bounded SSE transport contract`);
           }
           continue;
         }

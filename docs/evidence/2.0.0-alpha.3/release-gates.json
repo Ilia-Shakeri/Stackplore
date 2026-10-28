@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T07:30:45.142Z",
+  "version": "2.0.0-alpha.3",
+  "revision": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+  "tag": "v2.0.0-alpha.3",
+  "tag_object": "715228e7631b56d0ba3be20dff2499e6f4b59e9c",
+  "main_ci": {
+    "id": 40648487660,
+    "sha": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+    "branch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 122682772399,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122682772428,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122682772511,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122682772543,
+        "name": "processor-tool",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122682772560,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122682772578,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122682772662,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  },
+  "trial_run": 40648550256,
+  "trial_signature_verification": {
+    "schema_version": 2,
+    "status": "passed",
+    "observed_at_utc": "2026-10-28T07:27:00.1454168Z",
+    "revision": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+    "source_ref": "refs/heads/main",
+    "version": "2.0.0-alpha.3",
+    "release_assets": 39,
+    "checked_manifest_entries": 30,
+    "provenance_subjects": 31,
+    "sbom_attestations": 7,
+    "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/heads/main",
+    "deny_self_hosted_runners": true,
+    "consumer_script_sha256": "31d6aa237f77a20fc4b3faeb2b26fb0e5a0ac215fdb0fee91af141fd83a9f735",
+    "verifier_version": "2.102.0",
+    "verifier_binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "manifest_sha256": "525847a5e2ceb561a179eb01dcf74c763476695ffd18e45e1939827180513afa",
+    "scope": "Checksums and signed provenance/SPDX verification only. Release archives were not extracted or executed. No runtime, browser, migration or deployment acceptance is proved."
+  },
+  "trial_signed_scan_review": {
+    "version": "2.0.0-alpha.3",
+    "revision": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+    "recorded_at": "2026-10-28T07:28:48.410Z",
+    "scan_reports": [
+      {
+        "name": "stackplore_2.0.0-alpha.3_linux_amd64.scan.json",
+        "sha256": "09c56ad87891aa90178eef60e7b9601e8c531a8131d67fde579a55a42c67345d",
+        "analyzed_results": 3,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "stackplore_2.0.0-alpha.3_linux_arm64.scan.json",
+        "sha256": "9b8e21b5580a76c2cf7149e8c444feaee9ae62c4db63cd26ada87830ac15c908",
+        "analyzed_results": 3,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "stackplore_2.0.0-alpha.3_windows_amd64.scan.json",
+        "sha256": "6a3e9edbddce09c02aa5b891512722990a62d83796541c3ac3f92e195922885a",
+        "analyzed_results": 3,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "stackplore_2.0.0-alpha.3_darwin_amd64.scan.json",
+        "sha256": "e1d72fb305fc9a66fbac83aaa7d167dae39429e0b0e5d974b890d655b4dc092a",
+        "analyzed_results": 3,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "stackplore_2.0.0-alpha.3_darwin_arm64.scan.json",
+        "sha256": "6d0ceeea3aa3b294ed2d6d1aa82fc13f80520aba39f5574d654290869f1c69a5",
+        "analyzed_results": 3,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "image-scan.json",
+        "sha256": "0151bf24f10cc95818ee1b984390edfe73d6fa44d660dce562d1917d30ef8912",
+        "analyzed_results": 2,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "database-image-scan.json",
+        "sha256": "c44134c79a66f4fd81e7ab9dafe536eb812d1eda50dfda3ac919a2be424c556d",
+        "analyzed_results": 2,
+        "high_critical_findings": 0
+      },
+      {
+        "name": "dependency-scan.json",
+        "sha256": "5816a84702d3cb6e60aa981a2e147758990f2f8a5b2525d1666e9e6970cc7722",
+        "analyzed_results": 2,
+        "high_critical_findings": 0
+      }
+    ],
+    "secret_findings": 0,
+    "producer_linux_native_smoke": {
+      "schema": 1,
+      "version": "2.0.0-alpha.3",
+      "revision": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+      "platform": "linux/amd64",
+      "archive": "stackplore_2.0.0-alpha.3_linux_amd64.tar.gz",
+      "startedAt": "2026-10-28T07:20:11.769Z",
+      "completedAt": "2026-10-28T07:20:14.501Z",
+      "toolUsageChecks": [
+        "storage-rejects-missing-arguments",
+        "operator-rejects-missing-arguments"
+      ],
+      "modes": [
+        {
+          "mode": "guest",
+          "checks": [
+            "readiness",
+            "liveness",
+            "embedded-ui",
+            "spa-fallback",
+            "guest-sources",
+            "guest-resources",
+            "guest-no-cookie",
+            "guest-private-denied",
+            "guest-operation-denied"
+          ],
+          "resourceCount": 9,
+          "gracefulShutdown": true,
+          "disposableDatabaseRemoved": true
+        },
+        {
+          "mode": "normal",
+          "checks": [
+            "readiness",
+            "liveness",
+            "embedded-ui",
+            "spa-fallback",
+            "setup-preflight",
+            "initial-admin",
+            "authenticated-session",
+            "version",
+            "all-operation-gates-disabled"
+          ],
+          "resourceCount": 0,
+          "gracefulShutdown": true,
+          "disposableDatabaseRemoved": true
+        }
+      ],
+      "limits": [
+        "No native execution of other cross-built targets.",
+        "Backup/restore is a separate recovery gate."
+      ]
+    },
+    "scope": "Strict review of exact signed trial reports; no newly generated vulnerability database or local OCI execution claimed."
+  },
+  "actual_trial_windows_native": {
+    "owned_database_cleanup": "owner checked and absence verified",
+    "platform": "windows/amd64",
+    "revision": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+    "schema_version": 1,
+    "native_backup_restore": true,
+    "durable_sse_replay_after_restart": true,
+    "migration_entries": 18,
+    "restored_preauth_challenges": 0,
+    "version": "2.0.0-alpha.3",
+    "resources": 9,
+    "restore_generation": 1,
+    "binary_sha256": {
+      "stackplore-operator.exe": "fb8bb97f7689d1bf077a094be0fcac94c7bcd68b9fb2c1f986fdcd28ee66e886",
+      "stackplore-storage.exe": "42cf9bf8f3a86df22c5f224e956fee94875ed99ffb1da8c93d03a23f5b349e9f",
+      "stackplore-server.exe": "25debe1892366159b3c8be12a49ed419f5ff9356156897eded8f6c9235e207cd"
+    },
+    "source_disabled": true,
+    "restored_sessions": 0,
+    "metric_samples": 972,
+    "fresh_login": true,
+    "durable_alert_acknowledgement": true,
+    "native_tools": {
+      "pg_restore": "pg_restore (PostgreSQL) 17.11",
+      "pg_dump": "pg_dump (PostgreSQL) 17.11"
+    },
+    "observed_at": "2026-10-28T07:28:22.3543893Z",
+    "proof_case": "trial3a",
+    "ownership_loss_nonzero_shutdown": true,
+    "source_version": 2
+  },
+  "trial_windows_archive_sha256": "3211e26a20766fda506a29c56f4266be2de8c011cd327faef7bb737c0e5c5cad",
+  "package_manager_audit": {
+    "date": "2026-10-28",
+    "command": "corepack.cmd pnpm --config.local-address=0.0.0.0 audit --audit-level high --json",
+    "exit_code": 0,
+    "report_sha256": "b7ed94c8bcf34e2d70b6eeca21570be8aef8687dd938f13752cbe4d33a7f0777",
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    },
+    "scope": "Standard locked-package audit using outgoing IPv4 binding; TLS verification and advisory gates unchanged; no ignore list"
+  },
+  "canonical_history_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "commits": 47,
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "existing_exact_historical_fixture_ignore_unchanged": true
+  },
+  "tag_ci": 40650376731,
+  "tag_release_run": 40650376645,
+  "public_acceptance": "Subsequently passed; see published-release.json for tag-bound acceptance and exact scope.",
+  "scope": "Checked source checkpoint and independently verified signed branch trial. Trial identity is refs/heads/main, not a published tag identity. Public/tag acceptance, branch threshold, human quality and remaining roadmap stages are separate."
+}

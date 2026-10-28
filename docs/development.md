@@ -246,3 +246,22 @@ Report each proof at its real level:
 - browser accessibility and performance run.
 
 Do not use one level as proof of another.
+
+## Windows package audit transport
+
+If the standard audit fails with a connection timeout on this Windows host, the
+pinned package manager supports an explicit outgoing IPv4 binding for that
+command:
+
+```powershell
+corepack.cmd pnpm --config.local-address=0.0.0.0 audit --audit-level high --json
+```
+
+On 2026-10-28 this command audited all 393 locked versions and returned zero
+findings at every severity. It keeps TLS verification and the advisory severity
+gate intact and changes no project/global configuration. Preserve failed logs;
+a successful source audit does not replace signed native/container scans. Do not
+use registry-error ignores or disabled certificate verification.
+
+ویندوز: هنگام timeout، فرمان بالا فقط اتصال خروجی همان audit را روی IPv4
+ببندد. TLS و شرط اسکن همان بمانند. نتیجهٔ منبع جای اسکن بستهٔ نهایی نیست.

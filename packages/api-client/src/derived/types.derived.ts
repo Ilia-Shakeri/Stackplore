@@ -2,6 +2,193 @@ export type ClientOptions = {
   baseUrl: `${string}://${string}/api/v1` | (string & {});
 };
 
+/**
+ * Server-issued opaque private run identity; it grants no authority by itself.
+ */
+export type AssistantRunId = string;
+
+/**
+ * Server-issued owner-private conversation identity; never a caller-selected name.
+ */
+export type AssistantConversationId = string;
+
+/**
+ * Opaque evidence reference retained only with the volatile authorized answer.
+ */
+export type AssistantCitationId = string;
+
+/**
+ * Canonical unsigned decimal zero through 9223372036854775807; no sign or leading zero.
+ */
+export type AssistantEventCursor = string;
+
+export type AssistantLocale = 'en' | 'fa';
+
+export type AssistantWindowMinutes = 5 | 15 | 60 | 360 | 1440;
+
+export type AssistantRunState =
+  | 'queued'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'expired'
+  | 'interrupted'
+  | 'uncertain';
+
+/**
+ * One explicit local explain_resource request. Omit conversation_id to start a server-owned conversation; otherwise it must be a live owner-authorized server-issued conversation. Retries retain the first admitted conversation and exact window. Reusing the key with changed question, locale, selected scope or explicit conversation conflicts. Text loss never authorizes another dispatch, including after restart, session change or pruning.
+ */
+export type AssistantRunRequest = {
+  source_id: SourceId;
+  resource_id: ResourceId;
+  window_minutes: AssistantWindowMinutes;
+  locale: AssistantLocale;
+  /**
+   * Explicit user question, nonblank valid UTF-8 without NUL, at most 8192 UTF-8 bytes. maxLength bounds Unicode code points and does not replace the independent byte bound. Kept only in bounded volatile memory; never logged, persisted or put in a URL.
+   */
+  question: string;
+  conversation_id?: AssistantConversationId;
+};
+
+/**
+ * Server-pinned UTC microsecond endpoints, to after from, at most 24 hours apart.
+ */
+export type AssistantTimeRange = {
+  from: Timestamp;
+  to: Timestamp;
+};
+
+export type AssistantRunScope = {
+  source_id: SourceId;
+  resource_id: ResourceId;
+  window_minutes: AssistantWindowMinutes;
+  range: AssistantTimeRange;
+};
+
+/**
+ * Safe owner-authorized durable state. It contains no question, answer, lease owner, actor digest, profile, credential, provider endpoint or internal configuration version. Usage flags remain truthful for interrupted or uncertain outcomes. The returned version is informational; no assistant request accepts a browser-selected version.
+ */
+export type AssistantRun = {
+  id: AssistantRunId;
+  conversation_id: AssistantConversationId;
+  goal: 'explain_resource';
+  state: AssistantRunState;
+  version: number;
+  scope: AssistantRunScope;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  deadline: Timestamp;
+  usage_uncertain: boolean;
+  usage_conservative: boolean;
+};
+
+export type AssistantCompletedRun = AssistantRun & {
+  state: 'completed';
+};
+
+export type AssistantActiveRun = AssistantRun & {
+  state: 'queued' | 'running';
+};
+
+export type AssistantRunReceipt = {
+  run: AssistantRun;
+};
+
+/**
+ * Metadata only for queued or running work whose volatile input remains retained. No answer or citation fields, and no automatic dispatch or resend from polling.
+ */
+export type AssistantPendingResponse = {
+  run: AssistantActiveRun;
+  content_state: 'pending';
+};
+
+/**
+ * Completed metadata whose volatile answer is known to be absent or expired. The stored completed state remains truthful; loss does not rerun the request or recreate content.
+ */
+export type AssistantLostResponse = {
+  run: AssistantCompletedRun;
+  content_state: 'volatile_lost';
+};
+
+/**
+ * Owner-authorized metadata with no publishable content. Failed, cancelled, expired, interrupted and uncertain outcomes retain their distinct run state. A completed result may also be withheld until authority and retained content are established. This state does not claim volatile loss or permit a retry. Uncertain usage requires review and must never be presented as a safe automatic resend.
+ */
+export type AssistantUnavailableResponse = {
+  run: AssistantRun;
+  content_state: 'unavailable';
+};
+
+/**
+ * Nonblank inert text, at most 4096 UTF-8 bytes independently of maxLength. Render as plain text only. Angle brackets, NUL, Markdown link syntax and HTTP links are rejected. It never grants permission for an action or for loading a remote image or URL.
+ */
+export type AssistantAnswerText = string;
+
+export type AssistantFactSection = {
+  kind: 'facts';
+  text: AssistantAnswerText;
+  citations: Array<AssistantCitationId>;
+};
+
+export type AssistantOtherSection = {
+  kind: 'hypotheses' | 'gaps' | 'next_checks';
+  text: AssistantAnswerText;
+  citations: Array<AssistantCitationId>;
+};
+
+export type AssistantAnswerSection = AssistantFactSection | AssistantOtherSection;
+
+/**
+ * One complete validated answer, at most 64 KiB of serialized UTF-8 JSON, released after current authority checks. Every citation ID must match the single resolved selected-resource citation returned alongside it. Unknown, duplicate, forged or out-of-scope references fail closed. A hypothesis is not an observation, and missing evidence remains explicit.
+ */
+export type AssistantAnswer = {
+  sections: Array<AssistantAnswerSection>;
+};
+
+/**
+ * One exact normalized selected-resource locator, with no href, path or observation text.
+ */
+export type AssistantResourceCitation = {
+  id: AssistantCitationId;
+  kind: 'resource';
+  source_id: SourceId;
+  resource_id: ResourceId;
+  observed_at: Timestamp;
+  range: AssistantTimeRange;
+};
+
+export type AssistantReadyResponse = {
+  run: AssistantCompletedRun;
+  content_state: 'ready';
+  answer: AssistantAnswer;
+  citations: [AssistantResourceCitation];
+};
+
+export type AssistantRunResponse =
+  | AssistantPendingResponse
+  | AssistantLostResponse
+  | AssistantUnavailableResponse
+  | AssistantReadyResponse;
+
+/**
+ * Owner-and-run-scoped status only; no question, answer, citation or evidence fields.
+ */
+export type AssistantStatusEvent = {
+  run_id: AssistantRunId;
+  sequence: number;
+  version: number;
+  state: AssistantRunState;
+  at: Timestamp;
+};
+
+/**
+ * Refetch the private REST status; reset never authorizes a new request or resend.
+ */
+export type AssistantResetEvent = {
+  run_id: AssistantRunId;
+  reason: 'replay_gap' | 'cursor_ahead' | 'replay_expired' | 'queue_overflow';
+};
+
 export type SourceSettingsRecord = {
   id: SourceId;
   provider: ProviderKind;
@@ -2214,6 +2401,26 @@ export type OperationPage = {
   data: Array<OperationReceipt>;
   page: PageInfo;
 };
+
+/**
+ * One owner-private server-issued run reference.
+ */
+export type AssistantRunId2 = AssistantRunId;
+
+/**
+ * One retained reference from the owner-authorized completed answer.
+ */
+export type AssistantCitationId2 = AssistantCitationId;
+
+/**
+ * Fresh cryptographically random 32-byte lowercase hex per explicit request, scoped by a keyed owner-bound digest. Keep only in volatile request memory. Never log it, place it in a URL or save it in browser persistence. A retry reuses the exact key and input; a lost answer never grants permission to resend or silently choose a new key.
+ */
+export type AssistantIdempotencyKey = string;
+
+/**
+ * Canonical nonnegative signed-64-bit decimal position in this owner-private run only. Missing or zero starts an authorized status snapshot. Malformed or overflowing values fail validation. A well-formed future or no-longer-retained position causes reset.
+ */
+export type AssistantLastEventId = AssistantEventCursor;
 
 /**
  * Exact operator-owned adapter lane; omission selects generic_webhook.
@@ -6110,3 +6317,348 @@ export type GetOperationResponses = {
 };
 
 export type GetOperationResponse = GetOperationResponses[keyof GetOperationResponses];
+
+export type CreateAssistantRunData = {
+  body: AssistantRunRequest;
+  headers: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Fresh cryptographically random 32-byte lowercase hex per explicit request, scoped by a keyed owner-bound digest. Keep only in volatile request memory. Never log it, place it in a URL or save it in browser persistence. A retry reuses the exact key and input; a lost answer never grants permission to resend or silently choose a new key.
+     */
+    'Idempotency-Key': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/assistant/runs';
+};
+
+export type CreateAssistantRunErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CreateAssistantRunError = CreateAssistantRunErrors[keyof CreateAssistantRunErrors];
+
+export type CreateAssistantRunResponses = {
+  /**
+   * New or matching existing run status; this response never contains content.
+   */
+  202: AssistantRunReceipt;
+};
+
+export type CreateAssistantRunResponse =
+  CreateAssistantRunResponses[keyof CreateAssistantRunResponses];
+
+export type GetAssistantRunData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * One owner-private server-issued run reference.
+     */
+    run_id: AssistantRunId;
+  };
+  query?: never;
+  url: '/assistant/runs/{run_id}';
+};
+
+export type GetAssistantRunErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetAssistantRunError = GetAssistantRunErrors[keyof GetAssistantRunErrors];
+
+export type GetAssistantRunResponses = {
+  /**
+   * Current private metadata or one complete freshly authorized answer.
+   */
+  200: AssistantRunResponse;
+};
+
+export type GetAssistantRunResponse = GetAssistantRunResponses[keyof GetAssistantRunResponses];
+
+export type CancelAssistantRunData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * One owner-private server-issued run reference.
+     */
+    run_id: AssistantRunId;
+  };
+  query?: never;
+  url: '/assistant/runs/{run_id}/cancel';
+};
+
+export type CancelAssistantRunErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CancelAssistantRunError = CancelAssistantRunErrors[keyof CancelAssistantRunErrors];
+
+export type CancelAssistantRunResponses = {
+  /**
+   * Owner-authorized current run status after the cancellation decision.
+   */
+  200: AssistantRunReceipt;
+};
+
+export type CancelAssistantRunResponse =
+  CancelAssistantRunResponses[keyof CancelAssistantRunResponses];
+
+export type ResolveAssistantCitationData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * One owner-private server-issued run reference.
+     */
+    run_id: AssistantRunId;
+    /**
+     * One retained reference from the owner-authorized completed answer.
+     */
+    citation_id: AssistantCitationId;
+  };
+  query?: never;
+  url: '/assistant/runs/{run_id}/citations/{citation_id}';
+};
+
+export type ResolveAssistantCitationErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ResolveAssistantCitationError =
+  ResolveAssistantCitationErrors[keyof ResolveAssistantCitationErrors];
+
+export type ResolveAssistantCitationResponses = {
+  /**
+   * One freshly authorized closed resource locator.
+   */
+  200: AssistantResourceCitation;
+};
+
+export type ResolveAssistantCitationResponse =
+  ResolveAssistantCitationResponses[keyof ResolveAssistantCitationResponses];
+
+export type StreamAssistantRunStatusData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+    /**
+     * Canonical nonnegative signed-64-bit decimal position in this owner-private run only. Missing or zero starts an authorized status snapshot. Malformed or overflowing values fail validation. A well-formed future or no-longer-retained position causes reset.
+     */
+    'Last-Event-ID'?: AssistantEventCursor;
+  };
+  path: {
+    /**
+     * One owner-private server-issued run reference.
+     */
+    run_id: AssistantRunId;
+  };
+  query?: never;
+  url: '/assistant/runs/{run_id}/events';
+};
+
+export type StreamAssistantRunStatusErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type StreamAssistantRunStatusError =
+  StreamAssistantRunStatusErrors[keyof StreamAssistantRunStatusErrors];
+
+export type StreamAssistantRunStatusResponses = {
+  /**
+   * Bounded UTF-8 status/reset frames with canonical decimal status IDs and single-line JSON data.
+   */
+  200: string;
+};
+
+export type StreamAssistantRunStatusResponse =
+  StreamAssistantRunStatusResponses[keyof StreamAssistantRunStatusResponses];

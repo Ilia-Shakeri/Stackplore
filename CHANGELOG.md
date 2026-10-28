@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.0-alpha.4] - 2026-10-28
+
+### Smart Assistant — development in progress
+
+- Prepare a default-off, snapshot-only operator profile parser with closed loopback identity pins and bounded limits. Application startup registration remains pending.
+- Define the owner-private resource conversation contract and generated transport types, with explicit volatile-loss and bounded status/citation shapes.
+- Add explicit protected request constructors, cryptographic idempotency-key generation, UTF-8 bounds, cancellation and no automatic resend. Public handlers, response validation, streams and the bilingual conversation remain pending.
+- Preserve exact alpha.3 source/artifact evidence separately; this development version is not a completed stage or a tagged release.
+
 ## [2.0.0-alpha.3] - 2026-10-28
 
 ### Smart Assistant

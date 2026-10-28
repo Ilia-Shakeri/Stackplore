@@ -1,17 +1,13 @@
 # Stackplore active implementation evidence
 
-Stage-3 source checkpoint, **2026-10-28**: candidate **2.0.0-alpha.3**, schema18. The isolated local full gate passed on 2026-10-26 with actual PostgreSQL, 40 client tests, 544 web tests and production builds. Current-authority, commit-outcome, bounded synthetic HTTP wire and SQL content-absence checks pass. The package-manager audit failed on network fetch; an independent official bulk query checked all 393 locked versions with no advisories. Exact-source hosted checks, fresh canonical scans, signed package consumption and the accepted branch/quality gates remain open. This is source-checkpoint progress, not complete stage or product acceptance. [Evidence](evidence/2.0.0-alpha.3/README.md).
+Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.
 
-Current published checkpoint, **2026-10-25**: **2.0.0-alpha.2**, schema18,
-immutable source `2086b3c1ca22fbd484eb28e29471e61567efc10e`. All seven main
-and seven tag jobs, signed publication,39 assets/30 checksums/31 provenance
-subjects/seven SBOMs and eight publication scan reports pass. The public Windows
-archive independently passes restart, replay, native backup/restore, session
-revocation and ownership-loss shutdown. [Public acceptance](evidence/2.0.0-alpha.2/published-release.json)
-records exact source and scope. Publication report review is not a new database
-scan. Global branch/quality, current engine, public OCI and capacity gates remain
-separate. Stage3 is the next isolated candidate; future public routes/configuration
-remain excluded. Canonical project: `D:\Projects\Stackplore\repository`.
+Stage-4 development **2.0.0-alpha.4** prepares default-off loopback profile parsing, closed private conversation contracts/types and explicit protected client requests. Focused checks, the full clean development-snapshot gate and fresh source/package scans pass; exact-source hosted verification remains separate. Startup composition, public handlers/streams/citations and the bilingual conversation are not delivered. No alpha.4 tag or whole-stage acceptance is claimed. [Development evidence](evidence/2.0.0-alpha.4/README.md).
+
+Current published checkpoint, **2026-10-28**: **2.0.0-alpha.3**, schema18,
+immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`. Recorded public
+artifact acceptance passes; current development is the unfinished alpha.4
+foundation. Canonical project: `D:\Projects\Stackplore\repository`.
 
 
 ## Version 2 status — 2026-10-21

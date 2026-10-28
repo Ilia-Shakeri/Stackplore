@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 2.0.0-alpha.3
+  version: 2.0.0-alpha.4
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -2612,6 +2612,248 @@ paths:
             },
         },
     }
+  /assistant/runs:
+    post:
+      operationId: createAssistantRun
+      summary: Explain one selected resource
+      description: >-
+        Authenticated normal-mode local-only explain_resource admission. The selected window is
+        resolved to exact UTC endpoints and current source, resource and operator policy on first
+        admission. Those endpoints remain pinned for a matching idempotency retry. A matching
+        retry returns the existing owner-authorized status without another dispatch; changed input,
+        a retained tombstone or incompatible authority conflicts. Lost volatile text is never
+        reconstructed or resent. The user must explicitly submit a new request with a new key.
+        The request is at most 64 KiB of UTF-8 JSON and question is independently at most 8192
+        UTF-8 bytes. Unknown, duplicate or case-alias fields, invalid UTF-8, non-JSON content and
+        trailing JSON values fail closed. This route never accepts a provider endpoint, host path,
+        profile, model, tool arguments, policy version or caller-selected UTC endpoints.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/AssistantIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantRunRequest'
+      responses:
+        '202':
+          description: New or matching existing run status; this response never contains content.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantRunReceipt'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runs/{run_id}:
+    get:
+      operationId: getAssistantRun
+      summary: Read private run status or a complete authorized answer
+      description: >-
+        Authenticated normal-mode owner-only read. Every durable state remains observable without
+        a provider read when no answer is returned. A ready answer is returned whole only after
+        fresh source, actor, resource and evidence-family authority; it is never streamed in pieces.
+        A ready result has exactly one authorized selected-resource citation. Pending is limited
+        to queued or running work. volatile_lost describes a completed answer whose memory is
+        known to be gone. Other contentless states are unavailable, including uncertain results
+        that must be held for review. None contains answer or citation fields or authorizes an
+        automatic retry. Foreign and missing runs are not distinguished.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/AssistantRunId'
+      responses:
+        '200':
+          description: Current private metadata or one complete freshly authorized answer.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantRunResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runs/{run_id}/cancel:
+    post:
+      operationId: cancelAssistantRun
+      summary: Cancel one private run
+      description: >-
+        Authenticated normal-mode owner-only cancellation with exact same-origin and CSRF checks.
+        No request body or caller version is accepted. The server uses the current authoritative
+        run version and durable cancellation boundary. The receipt contains metadata only and
+        never claims that an uncertain external result was undone.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/AssistantRunId'
+      responses:
+        '200':
+          description: Owner-authorized current run status after the cancellation decision.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantRunReceipt'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runs/{run_id}/citations/{citation_id}:
+    get:
+      operationId: resolveAssistantCitation
+      summary: Resolve one authorized resource citation
+      description: >-
+        Authenticated normal-mode owner-only resolution of a citation from the retained completed
+        answer. Fresh actor, source, resource and sealed evidence authority are required again.
+        The result is one typed selected-resource locator, never a URL, host path or observation
+        body. Foreign, missing and lost volatile citations are not distinguished; the server
+        never reconstructs them or attaches a fresh observation automatically.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/AssistantRunId'
+        - $ref: '#/components/parameters/AssistantCitationId'
+      responses:
+        '200':
+          description: One freshly authorized closed resource locator.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantResourceCitation'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runs/{run_id}/events:
+    get:
+      operationId: streamAssistantRunStatus
+      summary: Watch bounded private run status
+      description: >-
+        Authenticated normal-mode owner-and-run-scoped status-only SSE. The only data events are
+        assistant.status.v1 with AssistantStatusEvent data and assistant.reset.v1 with
+        AssistantResetEvent data. Frames are single-line JSON and at most 16 KiB of UTF-8.
+        Status IDs are the durable per-run sequence 1 through 64. Replays contain at most 100
+        statuses. Missing or zero Last-Event-ID starts an owner-authorized status snapshot;
+        malformed or overflowing decimal IDs are rejected. A valid future cursor, expired
+        replay or missing retained sequence emits reset with a bounded reason and requires a
+        fresh REST read. The stream never contains question, answer, citation or evidence content.
+        Authority is rechecked during its bounded lifetime; revocation closes the subscription.
+        Queue overflow emits reset and closes. Disconnect cancels reads and frees its slot.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/AssistantRunId'
+        - $ref: '#/components/parameters/AssistantLastEventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/AssistantStatusStream'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
 components:
   securitySchemes:
     BrowserSession:
@@ -2658,6 +2900,341 @@ components:
         idle_expires_at: 2026-01-02T03:34:05Z
         absolute_expires_at: 2026-01-02T15:04:05Z
   schemas:
+    AssistantRunId:
+      type: string
+      minLength: 67
+      maxLength: 67
+      pattern: '^ar_[0-9a-f]{64}$'
+      description: Server-issued opaque private run identity; it grants no authority by itself.
+    AssistantConversationId:
+      type: string
+      minLength: 67
+      maxLength: 67
+      pattern: '^ac_[0-9a-f]{64}$'
+      description: Server-issued owner-private conversation identity; never a caller-selected name.
+    AssistantCitationId:
+      type: string
+      minLength: 67
+      maxLength: 67
+      pattern: '^ev_[0-9a-f]{64}$'
+      description: Opaque evidence reference retained only with the volatile authorized answer.
+    AssistantEventCursor:
+      type: string
+      minLength: 1
+      maxLength: 19
+      pattern: '^(?:0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)$(?![\s\S])'
+      description: Canonical unsigned decimal zero through 9223372036854775807; no sign or leading zero.
+    AssistantLocale:
+      type: string
+      enum: [en, fa]
+    AssistantWindowMinutes:
+      type: integer
+      enum: [5, 15, 60, 360, 1440]
+      minimum: 5
+      maximum: 1440
+    AssistantRunState:
+      type: string
+      enum: [queued, running, completed, failed, cancelled, expired, interrupted, uncertain]
+    AssistantRunRequest:
+      type: object
+      additionalProperties: false
+      required: [source_id, resource_id, window_minutes, locale, question]
+      properties:
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        window_minutes:
+          $ref: '#/components/schemas/AssistantWindowMinutes'
+        locale:
+          $ref: '#/components/schemas/AssistantLocale'
+        question:
+          type: string
+          minLength: 1
+          maxLength: 8192
+          pattern: '^(?!\p{White_Space}*$)[^\u0000]+$'
+          description: >-
+            Explicit user question, nonblank valid UTF-8 without NUL, at most 8192 UTF-8 bytes.
+            maxLength bounds Unicode code points and does not replace the independent byte bound.
+            Kept only in bounded volatile memory; never logged, persisted or put in a URL.
+        conversation_id:
+          $ref: '#/components/schemas/AssistantConversationId'
+      description: >-
+        One explicit local explain_resource request. Omit conversation_id to start a server-owned
+        conversation; otherwise it must be a live owner-authorized server-issued conversation.
+        Retries retain the first admitted conversation and exact window. Reusing the key with
+        changed question, locale, selected scope or explicit conversation conflicts. Text loss
+        never authorizes another dispatch, including after restart, session change or pruning.
+    AssistantTimeRange:
+      type: object
+      additionalProperties: false
+      required: [from, to]
+      properties:
+        from:
+          $ref: '#/components/schemas/Timestamp'
+        to:
+          $ref: '#/components/schemas/Timestamp'
+      description: Server-pinned UTC microsecond endpoints, to after from, at most 24 hours apart.
+    AssistantRunScope:
+      type: object
+      additionalProperties: false
+      required: [source_id, resource_id, window_minutes, range]
+      properties:
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        window_minutes:
+          $ref: '#/components/schemas/AssistantWindowMinutes'
+        range:
+          $ref: '#/components/schemas/AssistantTimeRange'
+    AssistantRun:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - conversation_id
+        - goal
+        - state
+        - version
+        - scope
+        - created_at
+        - updated_at
+        - deadline
+        - usage_uncertain
+        - usage_conservative
+      properties:
+        id:
+          $ref: '#/components/schemas/AssistantRunId'
+        conversation_id:
+          $ref: '#/components/schemas/AssistantConversationId'
+        goal:
+          type: string
+          const: explain_resource
+        state:
+          $ref: '#/components/schemas/AssistantRunState'
+        version:
+          type: integer
+          minimum: 1
+          maximum: 64
+        scope:
+          $ref: '#/components/schemas/AssistantRunScope'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        deadline:
+          $ref: '#/components/schemas/Timestamp'
+        usage_uncertain:
+          type: boolean
+        usage_conservative:
+          type: boolean
+      description: >-
+        Safe owner-authorized durable state. It contains no question, answer, lease owner,
+        actor digest, profile, credential, provider endpoint or internal configuration version.
+        Usage flags remain truthful for interrupted or uncertain outcomes. The returned version
+        is informational; no assistant request accepts a browser-selected version.
+    AssistantCompletedRun:
+      allOf:
+        - $ref: '#/components/schemas/AssistantRun'
+        - required: [state]
+          properties:
+            state:
+              type: string
+              const: completed
+    AssistantActiveRun:
+      allOf:
+        - $ref: '#/components/schemas/AssistantRun'
+        - required: [state]
+          properties:
+            state:
+              type: string
+              enum: [queued, running]
+    AssistantRunReceipt:
+      type: object
+      additionalProperties: false
+      required: [run]
+      properties:
+        run:
+          $ref: '#/components/schemas/AssistantRun'
+    AssistantPendingResponse:
+      type: object
+      additionalProperties: false
+      required: [run, content_state]
+      properties:
+        run:
+          $ref: '#/components/schemas/AssistantActiveRun'
+        content_state:
+          type: string
+          const: pending
+      description: >-
+        Metadata only for queued or running work whose volatile input remains retained. No
+        answer or citation fields, and no automatic dispatch or resend from polling.
+    AssistantLostResponse:
+      type: object
+      additionalProperties: false
+      required: [run, content_state]
+      properties:
+        run:
+          $ref: '#/components/schemas/AssistantCompletedRun'
+        content_state:
+          type: string
+          const: volatile_lost
+      description: >-
+        Completed metadata whose volatile answer is known to be absent or expired. The stored
+        completed state remains truthful; loss does not rerun the request or recreate content.
+    AssistantUnavailableResponse:
+      type: object
+      additionalProperties: false
+      required: [run, content_state]
+      properties:
+        run:
+          $ref: '#/components/schemas/AssistantRun'
+        content_state:
+          type: string
+          const: unavailable
+      description: >-
+        Owner-authorized metadata with no publishable content. Failed, cancelled, expired,
+        interrupted and uncertain outcomes retain their distinct run state. A completed result
+        may also be withheld until authority and retained content are established. This state
+        does not claim volatile loss or permit a retry. Uncertain usage requires review and
+        must never be presented as a safe automatic resend.
+    AssistantAnswerText:
+      type: string
+      minLength: 1
+      maxLength: 4096
+      pattern: '^(?!\p{White_Space}*$)(?![\s\S]*(?:\]\(|http://|https://))[^<>\u0000]+$'
+      description: >-
+        Nonblank inert text, at most 4096 UTF-8 bytes independently of maxLength. Render as plain
+        text only. Angle brackets, NUL, Markdown link syntax and HTTP links are rejected. It
+        never grants permission for an action or for loading a remote image or URL.
+    AssistantFactSection:
+      type: object
+      additionalProperties: false
+      required: [kind, text, citations]
+      properties:
+        kind:
+          type: string
+          const: facts
+        text:
+          $ref: '#/components/schemas/AssistantAnswerText'
+        citations:
+          type: array
+          minItems: 1
+          maxItems: 64
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AssistantCitationId'
+    AssistantOtherSection:
+      type: object
+      additionalProperties: false
+      required: [kind, text, citations]
+      properties:
+        kind:
+          type: string
+          enum: [hypotheses, gaps, next_checks]
+        text:
+          $ref: '#/components/schemas/AssistantAnswerText'
+        citations:
+          type: array
+          maxItems: 64
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AssistantCitationId'
+    AssistantAnswerSection:
+      oneOf:
+        - $ref: '#/components/schemas/AssistantFactSection'
+        - $ref: '#/components/schemas/AssistantOtherSection'
+    AssistantAnswer:
+      type: object
+      additionalProperties: false
+      required: [sections]
+      properties:
+        sections:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/AssistantAnswerSection'
+      description: >-
+        One complete validated answer, at most 64 KiB of serialized UTF-8 JSON, released after
+        current authority checks. Every citation ID must match the single resolved selected-resource
+        citation returned alongside it. Unknown, duplicate, forged or out-of-scope references fail
+        closed. A hypothesis is not an observation, and missing evidence remains explicit.
+    AssistantResourceCitation:
+      type: object
+      additionalProperties: false
+      required: [id, kind, source_id, resource_id, observed_at, range]
+      properties:
+        id:
+          $ref: '#/components/schemas/AssistantCitationId'
+        kind:
+          type: string
+          const: resource
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        resource_id:
+          $ref: '#/components/schemas/ResourceId'
+        observed_at:
+          $ref: '#/components/schemas/Timestamp'
+        range:
+          $ref: '#/components/schemas/AssistantTimeRange'
+      description: One exact normalized selected-resource locator, with no href, path or observation text.
+    AssistantReadyResponse:
+      type: object
+      additionalProperties: false
+      required: [run, content_state, answer, citations]
+      properties:
+        run:
+          $ref: '#/components/schemas/AssistantCompletedRun'
+        content_state:
+          type: string
+          const: ready
+        answer:
+          $ref: '#/components/schemas/AssistantAnswer'
+        citations:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/AssistantResourceCitation'
+    AssistantRunResponse:
+      oneOf:
+        - $ref: '#/components/schemas/AssistantPendingResponse'
+        - $ref: '#/components/schemas/AssistantLostResponse'
+        - $ref: '#/components/schemas/AssistantUnavailableResponse'
+        - $ref: '#/components/schemas/AssistantReadyResponse'
+    AssistantStatusEvent:
+      type: object
+      additionalProperties: false
+      required: [run_id, sequence, version, state, at]
+      properties:
+        run_id:
+          $ref: '#/components/schemas/AssistantRunId'
+        sequence:
+          type: integer
+          minimum: 1
+          maximum: 64
+        version:
+          type: integer
+          minimum: 1
+          maximum: 64
+        state:
+          $ref: '#/components/schemas/AssistantRunState'
+        at:
+          $ref: '#/components/schemas/Timestamp'
+      description: Owner-and-run-scoped status only; no question, answer, citation or evidence fields.
+    AssistantResetEvent:
+      type: object
+      additionalProperties: false
+      required: [run_id, reason]
+      properties:
+        run_id:
+          $ref: '#/components/schemas/AssistantRunId'
+        reason:
+          type: string
+          enum: [replay_gap, cursor_ahead, replay_expired, queue_overflow]
+      description: Refetch the private REST status; reset never authorizes a new request or resend.
     SourceSettingsRecord:
       type: object
       additionalProperties: false
@@ -6742,6 +7319,44 @@ components:
           },
       }
   parameters:
+    AssistantRunId:
+      name: run_id
+      in: path
+      required: true
+      description: One owner-private server-issued run reference.
+      schema:
+        $ref: '#/components/schemas/AssistantRunId'
+    AssistantCitationId:
+      name: citation_id
+      in: path
+      required: true
+      description: One retained reference from the owner-authorized completed answer.
+      schema:
+        $ref: '#/components/schemas/AssistantCitationId'
+    AssistantIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        Fresh cryptographically random 32-byte lowercase hex per explicit request, scoped by a
+        keyed owner-bound digest. Keep only in volatile request memory. Never log it, place it
+        in a URL or save it in browser persistence. A retry reuses the exact key and input;
+        a lost answer never grants permission to resend or silently choose a new key.
+      schema:
+        type: string
+        minLength: 64
+        maxLength: 64
+        pattern: '^[0-9a-f]{64}$'
+    AssistantLastEventId:
+      name: Last-Event-ID
+      in: header
+      required: false
+      description: >-
+        Canonical nonnegative signed-64-bit decimal position in this owner-private run only.
+        Missing or zero starts an authorized status snapshot. Malformed or overflowing values
+        fail validation. A well-formed future or no-longer-retained position causes reset.
+      schema:
+        $ref: '#/components/schemas/AssistantEventCursor'
     NotificationTestAdapter:
       name: adapter
       in: query
@@ -7028,6 +7643,34 @@ components:
         maxLength: 18
         pattern: '^"[1-9][0-9]{0,15}"$'
   responses:
+    AssistantStatusStream:
+      description: >-
+        Private bounded status-only SSE with assistant.status.v1 and assistant.reset.v1 data
+        validated against AssistantStatusEvent and AssistantResetEvent. Frames are at most
+        16 KiB of UTF-8, status sequences are owner-and-run scoped and at most 64 per run,
+        and replay reads at most 100 statuses. The stream has bounded slots, queue, write time,
+        keepalive, authority checks and lifetime. Reset requires a private REST read and never
+        permits a new inference request. No question, answer, citation or observation content.
+      headers:
+        Cache-Control:
+          description: Prevents storage of private run status.
+          schema:
+            type: string
+            const: no-store
+        Set-Cookie:
+          $ref: '#/components/headers/BrowserStateUpdate'
+        X-Accel-Buffering:
+          description: Disables reverse-proxy response buffering for this stream.
+          schema:
+            type: string
+            const: 'no'
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+      content:
+        text/event-stream:
+          schema:
+            type: string
+            description: Bounded UTF-8 status/reset frames with canonical decimal status IDs and single-line JSON data.
     ProductEventStream:
       description: >-
         Authenticated bounded SSE feed. Snapshot JSON data is capped at 256 KiB.

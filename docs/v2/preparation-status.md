@@ -1,5 +1,12 @@
 # Smart Assistant — separate development preparation
 
+Historical record only. Current main has progressed through the separately
+published schema-18 alpha.2 runtime and tagged alpha.3 shared-policy/evidence
+source at `21475ec1135c0496c5929329738142f3c0d5a9d0`. Their exact-source
+[current ledger](implementation.md) and [checkpoint evidence](../evidence/2.0.0-alpha.3/README.md)
+govern acceptance. The earlier draft and receipts below keep their original
+scope; they do not describe current main or accept later public routes.
+
 The unaccepted [draft change](https://github.com/Ilia-Shakeri/Stackplore/pull/1)
 backs up prepared code at
 `e660e16bd0b3c56f0096bb43b5688195135892b1`, branch `prep-v2-runtime`.

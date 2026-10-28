@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T08:22:21.948Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "21475ec1135c0496c5929329738142f3c0d5a9d0",
+  "tested_tree": "084ad0a258be0b1a3a2aea48d9b9ca81ef35a7f1",
+  "schema": 18,
+  "status": "Development foundation only; public conversation not delivered",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "actual_postgres": true,
+    "log_sha256": "854af3605d4841480af0a0cb7cba2bd25ce94f290b75764484b9ee1ca8909161",
+    "client_tests": 52,
+    "web_tests": 544,
+    "tooling_tests": 48,
+    "corpus_tooling_tests": 11,
+    "production_builds": "passed"
+  },
+  "focused_profile": {
+    "pass_events": 71,
+    "whole_configuration_tests_and_vet": "passed",
+    "coverage_kind": "Focused statement measurement only; not branch acceptance"
+  },
+  "package_manager_audit": {
+    "command": "corepack.cmd pnpm --config.local-address=0.0.0.0 audit --audit-level high --json",
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    },
+    "report_sha256": "b7ed94c8bcf34e2d70b6eeca21570be8aef8687dd938f13752cbe4d33a7f0777"
+  },
+  "source_scan": {
+    "tool": "Trivy 0.76.0",
+    "include_development_dependencies": true,
+    "exit_code": 0,
+    "targets": [
+      {
+        "target": "apps/api/go.mod",
+        "type": "gomod",
+        "reported_vulnerabilities": 0
+      },
+      {
+        "target": "pnpm-lock.yaml",
+        "type": "pnpm",
+        "reported_vulnerabilities": 0
+      }
+    ],
+    "report_sha256": "f5cbfa339a25ff0d385235c8b540e1fa358dbbf7836d2b96737b953023775d92",
+    "sbom_sha256": "6083a3a230d7980942deaa5449014e92242aff779606a923d54536aa4bc01c57"
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "b53cc62ee3c43886e3390121d7cce20fa1a5cf750e968b68d051de9586afd3e8"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "8ace84f8beace373faac396015d4928b93ddb70f69879281f16ba7d538ec1f4d"
+    },
+    {
+      "path": "package.json",
+      "sha256": "d6148d5474ec78496f97c14c83f3611712f7f62812ed658cf3bc290f657ecdb9"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "94f97aa7c251c54a7dac2539044bf50811050001dc3b00bf5c84c01a5d921a00"
+    },
+    {
+      "path": "packages/ui/package.json",
+      "sha256": "4a01c10c5cfaecab227d173a54560576f50ba57ae07fe7d1e1c6a7ab00871e13"
+    },
+    {
+      "path": "packages/api-client/package.json",
+      "sha256": "7742cf0930e469db5f9877e1a0f931bc2a374d6a29ec63a591675554ddee35e3"
+    },
+    {
+      "path": "apps/api/internal/config/audit_policy.go",
+      "sha256": "9f1e26193fdf0436a1777c1e3c4cd736d8b6d7ea7543e6034dd467cc6e01e705"
+    },
+    {
+      "path": "apps/api/internal/config/assistant_profile.go",
+      "sha256": "655d095bef32d29f4827cf4042606486e0c38f70bca016cce0195e6dfd3e1bc6"
+    },
+    {
+      "path": "apps/api/internal/config/assistant_profile_test.go",
+      "sha256": "f9083a7da44dbe0a674bd9ae9e8846a1f0447ba57bcb0ca84e3326beff9d8e29"
+    },
+    {
+      "path": "compose.yaml",
+      "sha256": "7f9f42802a5618b8f566248fbe4c43241389138af1c584b86c29433b236813ab"
+    },
+    {
+      "path": "contracts/openapi.yaml",
+      "sha256": "8dcbd46fa1e512b8fd83b941c8dcc26bdf379a6c2864e6750a0af5c2016aadc7"
+    },
+    {
+      "path": "deploy/postgres-image.json",
+      "sha256": "8a0bcb937ce8aaa1df027ef4b25c38173325b4acfc643fd94727e3952d2c8b69"
+    },
+    {
+      "path": "deploy/helm/stackplore/Chart.yaml",
+      "sha256": "c0ae62e1692298ad753d9c482a980a5d689626ab9aa71936054b0ccc1757c25f"
+    },
+    {
+      "path": "deploy/helm/stackplore/values.yaml",
+      "sha256": "44580cbeda68364a684210e26e3e4c96a25b340e62a4aa21996643d9e16966e8"
+    },
+    {
+      "path": "packages/api-client/src/contract.ts",
+      "sha256": "51bd5786818e2f21e18500bd0d1504e7634886e11dbb901ed18a2fde1ae2a9ce"
+    },
+    {
+      "path": "packages/api-client/src/derived/types.derived.ts",
+      "sha256": "985966186d544b050df9e711498e512a6f6736a3bf593fa42d2bbd403e839422"
+    },
+    {
+      "path": "packages/api-client/src/index.ts",
+      "sha256": "0e290830ac40e89734b963a125a6f17719c230105442f16008d7fce100a16099"
+    },
+    {
+      "path": "packages/api-client/src/assistant-client.ts",
+      "sha256": "f63ded387da81b1d3ce9449ba7841fafe875f359cbaf11caf0a970fec141ce4e"
+    },
+    {
+      "path": "packages/api-client/src/assistant-client.test.ts",
+      "sha256": "62c522960e617ecec7ca48f66d47bc698f2e2cc9cddfd0138915d780d62ab990"
+    },
+    {
+      "path": "packages/api-client/src/assistant-contract.test.ts",
+      "sha256": "e5fd223d778fd61e5ab0a04c024f1d640c1622f2abdc2337089c6c30845f9b33"
+    },
+    {
+      "path": "scripts/check-openapi-policy.mjs",
+      "sha256": "391199db4bbea8984ae5207d5d0859b3f4166b41e459d549f11858ec0341cac2"
+    },
+    {
+      "path": "scripts/assistant-contract-policy.mjs",
+      "sha256": "4d0125de8217c56bd87893d7b9d59750b4ec98953df9e755c3cd3633c81213ab"
+    }
+  ],
+  "retained_failures": [
+    "Initial request fixture lacked the required response request ID",
+    "Already-aborted requests needed an explicit preflight guard",
+    "Strict lint and optional conversation-type narrowing were corrected without disabling rules"
+  ],
+  "quality_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Default-off parser, closed contract and explicit request-construction foundation; not full product or stage acceptance"
+  },
+  "remaining": [
+    "Exact-source hosted verification for this development commit",
+    "Audited startup composition and durable settings binding",
+    "Public run handlers, validated replies, bounded status/citation paths and per-call deadlines",
+    "Bilingual private conversation and owning real database/browser/privacy acceptance",
+    "Accepted branch measurement, current real processor, human quality, soak/capacity and later roadmap stages",
+    "No alpha.4 milestone tag or complete-stage acceptance"
+  ],
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Complete staged source diff before this fixed receipt-only metadata addition; canonical history checked separately after commit"
+  }
+}
