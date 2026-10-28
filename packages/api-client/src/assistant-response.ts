@@ -4,6 +4,8 @@ import type {
   AssistantRun,
   AssistantRunReceipt,
   AssistantRunResponse,
+  AssistantStatusEvent,
+  AssistantResetEvent,
 } from './contract';
 
 const runPattern = /^ar_[0-9a-f]{64}$/u;
@@ -239,4 +241,43 @@ export const parseAssistantRunResponse = (
   if (new TextEncoder().encode(JSON.stringify({ sections })).byteLength > 65536) return fail();
   // Every field and cross-reference above has been checked; no untrusted object escapes.
   return { run, content_state: 'ready', answer: { sections }, citations } as AssistantRunResponse;
+};
+
+export const parseAssistantStatusEvent = (
+  value: unknown,
+  expectedRunId: string,
+): AssistantStatusEvent => {
+  const event = closed(value, ['run_id', 'sequence', 'version', 'state', 'at']);
+  if (
+    !matches(event.run_id, runPattern) ||
+    event.run_id !== expectedRunId ||
+    typeof event.sequence !== 'number' ||
+    !Number.isInteger(event.sequence) ||
+    event.sequence < 1 ||
+    event.sequence > 64 ||
+    typeof event.version !== 'number' ||
+    !Number.isInteger(event.version) ||
+    event.version < 1 ||
+    event.version > 64 ||
+    typeof event.state !== 'string' ||
+    !states.has(event.state)
+  )
+    return fail();
+  timestamp(event.at);
+  return event as AssistantStatusEvent;
+};
+
+export const parseAssistantResetEvent = (
+  value: unknown,
+  expectedRunId: string,
+): AssistantResetEvent => {
+  const event = closed(value, ['run_id', 'reason']);
+  if (
+    !matches(event.run_id, runPattern) ||
+    event.run_id !== expectedRunId ||
+    typeof event.reason !== 'string' ||
+    !['replay_gap', 'cursor_ahead', 'replay_expired', 'queue_overflow'].includes(event.reason)
+  )
+    return fail();
+  return event as AssistantResetEvent;
 };

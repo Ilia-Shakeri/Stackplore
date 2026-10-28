@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T10:00:37.435Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "da79cb5581457ca73e93f9b0513fbe86fdd45177",
+  "tested_tree": "2ce9d237d19758c3023acd2a8d3c2a83ba53a88c",
+  "scope": "Pure metadata decoder; no network subscription, public handler or browser journey",
+  "isolated_checks": {
+    "exit_code": 0,
+    "tasks": [
+      "format:check",
+      "check:docs",
+      "check:version",
+      "check:contracts",
+      "lint:web",
+      "typecheck",
+      "test:client",
+      "build:web"
+    ],
+    "client_tests": 186,
+    "production_web_build": "passed",
+    "log_sha256": "c5bc57ce29bf6ab9e6bd65e035a514f18cfce3bf87b3b6af51fc072bc2b894ad",
+    "full_local_gate": false,
+    "go_database_browser_tests": "Not rerun for this client-only increment; previous reply checkpoint and exact final-commit hosted checks have separate receipts"
+  },
+  "package_audit": {
+    "command": "corepack.cmd pnpm --config.local-address=0.0.0.0 audit --audit-level high --json",
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    },
+    "report_sha256": "4a058b957fd988a9ffbdeafeb69f8a00efd127ac96a8c59e5561d401666b78f6"
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "include_development_dependencies": true,
+    "exit_code": 0,
+    "targets": [
+      {
+        "target": "apps/api/go.mod",
+        "type": "gomod",
+        "reported_vulnerabilities": 0
+      },
+      {
+        "target": "pnpm-lock.yaml",
+        "type": "pnpm",
+        "reported_vulnerabilities": 0
+      }
+    ],
+    "report_sha256": "162cdb8fa8c24fb73dfff867f15f1894606d67eac991b89c42aa8c9ec549bea3",
+    "sbom_sha256": "de48574931781069d6c2a5f3df3d1df0a7a93d38328e6f7f70deeb94ee2c359c"
+  },
+  "files": [
+    {
+      "path": "packages/api-client/src/index.ts",
+      "sha256": "3a499c396519ed4ecf208cddf26f990810feaf93dc0d66877a43abefcc955dd7"
+    },
+    {
+      "path": "packages/api-client/src/assistant-response.ts",
+      "sha256": "a6527d24c5732dbfbf99b57ee2e83b043534c22b1088a21e80016e46c77903fe"
+    },
+    {
+      "path": "packages/api-client/src/assistant-status.ts",
+      "sha256": "929c6f52435e4a5b17ae5b18218d061e6b73b93a7facdeb5af5915d1c318a04f"
+    },
+    {
+      "path": "packages/api-client/src/assistant-status.test.ts",
+      "sha256": "d3d7251720fdb61148597bcce96593cc638cfde784980716c82fea733d9027f5"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Byte-decoder component only; not complete infrastructure or stage acceptance",
+    "correction": "Add idempotent explicit cancellation erasure and reject late frames without treating cancellation as normal EOF"
+  },
+  "retained_attempts": [
+    "Early 181-test source lacks the final cancellation tests and does not certify the 186-test snapshot",
+    "Strict lint rejected a numeric template interpolation; fixed with explicit string conversion",
+    "Initial isolated wrapper omitted pinned gofmt and failed format:check with ENOENT; corrected tool PATH then reran the complete increment task list"
+  ],
+  "limitations": [
+    "Caller must bound connection lifetime/subscriptions, split oversized network chunks, and close on owner changes",
+    "No server owner/session/source authorization is established by client metadata validation",
+    "No automatic connection, reconnect, REST read, content publication or resend",
+    "No whole-stage branch, current real engine, human-quality, soak/capacity, tag or release acceptance",
+    "Final documentation edits, staged/history secrets and exact final-commit hosted checks remain separate"
+  ]
+}

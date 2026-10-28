@@ -41,14 +41,33 @@ severities across **393 locked versions**. The staged secret scan reports zero
 findings. The [separate increment receipt](reply-boundary.json) binds the six
 tested code files and the actual gate/report hashes. Earlier failed tool/type
 attempts and the different intermediate snapshot are retained; only the final
-snapshot accepts these code bytes. Final documentation-only edits still require
-their checks and exact final-commit hosted verification.
+snapshot accepts these code bytes. Commit `da79cb5581457ca73e93f9b0513fbe86fdd45177`
+then passed all seven hosted jobs; all 49 canonical commits passed the existing
+whole-history secret policy. [Exact reply-increment hosted receipt](reply-hosted.json).
+This accepts the reply increment only; later decoder code has different bytes.
 
 No startup profile registration, enabled content client, public run handler,
 status stream, citation resolver or bilingual conversation is delivered here.
 Those owning paths, real database/browser/privacy proofs, accepted branch
 measurement and current processor/human quality gates remain open. There is no
 alpha.4 milestone tag or full-stage acceptance claim.
+
+## Status decoder increment
+
+The [pure status decoder](../../v2/status-decoder.md) checks bounded UTF-8 frames,
+closed metadata, same-run identity, sequence/version order, reset fencing,
+duplicate fields/escaped JSON aliases and deterministic cancellation cleanup.
+It supports every two-chunk split of replay frames, bytewise multibyte comments,
+LF/CRLF/CR, exact frame limits, all 64 statuses and late/truncated data rejection.
+Focused client tests now pass **186/186**, with strict types and targeted lint.
+Clean-snapshot format/docs/version/contracts, full frontend lint, all workspace
+types and production web build also pass. Fresh source dependency scans and
+the standard package audit report no findings. The [source-bound decoder
+receipt](status-decoder.json) distinguishes these focused checks from a full
+local gate and retains the corrected tool-path/lint attempts.
+It opens no connection and adds no public endpoint or browser journey. The
+earlier 118-test full gate binds its own immutable reply increment, not this
+later source. Whole-source hosted checks for the decoder remain separate.
 
 [Operator profile preparation](../../v2/operator-profile.md) describes the exact
 proposed variables and why current startup still rejects them. The alpha.3
@@ -67,6 +86,10 @@ CI هفت‌کارِ کامیت پایهٔ `cf3dbc5` پاس شد؛ تغییر ب
 شاهد این بخش با گیت قدیمی یکی نیست. گیت کامل کد آخر با پایگاه واقعی، ۱۱۸ تست
 کارخواه، ۵۴۴ تست وب و ساخت پاس شد. اسکن منبع و audit همهٔ ۳۹۳ نسخه بی‌یافته؛
 اسکن فیلدهای محرمانهٔ تغییرات ثبت‌شده نیز بی‌یافته. CI کامیت آخر هنوز جداست.
+
+خوانندهٔ جداگانهٔ وضعیت نیز با ۱۸۶ تست کارخواه، نوع و lint پاس شد: حد بایت،
+UTF-8، ترتیب شماره، reset و پاک‌کردن قاب در لغو. اتصال شبکه یا مسیر سرور
+نسازد. شاهد گیت کامل بخش قبلی، اثبات این تغییر تازه نیست؛ CI منبع تازه جداست.
 
 اتصال شروع برنامه، مسیر عمومی، stream، resolver ارجاع و صفحهٔ دوزبانه هنوز
 ساخته نشده‌اند. تگ گام۴ و پذیرش کامل ادعا نشود.

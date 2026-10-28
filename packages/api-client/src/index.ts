@@ -19,7 +19,14 @@ export {
   parseAssistantRunReceipt,
   parseAssistantRunResponse,
   parseAssistantCitation,
+  parseAssistantStatusEvent,
+  parseAssistantResetEvent,
 } from './assistant-response';
+export {
+  createAssistantStatusDecoder,
+  type AssistantStatusDecoder,
+  type AssistantStatusMessage,
+} from './assistant-status';
 export {
   createAssistantClient,
   createAssistantIdempotencyKey,

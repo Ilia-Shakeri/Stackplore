@@ -48,6 +48,9 @@ Fresh server-side owner/session/source/profile/policy checks remain mandatory.
 No status stream, public handler, startup composition or bilingual view is
 added by this boundary. Stage-4 browser and later roadmap gates remain open.
 
+The separate [status decoder](status-decoder.md) accepts metadata bytes only;
+it cannot replace the complete-answer checks or establish server authority.
+
 ## فارسی
 
 این بخش فقط مرز پاسخ کارخواه است. پاسخ کامل پیش از برگشت نوع‌دار بررسی
