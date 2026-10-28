@@ -4,14 +4,16 @@
 
 ### Smart Assistant — development in progress
 
-- Prepare a default-off, snapshot-only operator profile parser with closed loopback identity pins and bounded limits. Application startup registration remains pending.
+- Register a default-off, snapshot-only operator profile with closed loopback identity pins and bounded limits. Reject enabled guest composition.
 - Define the owner-private resource conversation contract and generated transport types, with explicit volatile-loss and bounded status/citation shapes.
 - Add explicit protected request constructors, cryptographic idempotency-key generation, UTF-8 bounds, cancellation and no automatic resend.
-- Validate closed replies before exposing typed content: bind run/scope/citation identities, preserve distinct content states, reject unsafe or oversized text and forged references, and return detached copies with fixed errors. Public handlers, streams and the bilingual conversation remain pending.
+- Validate closed replies before exposing typed content: bind run/scope/citation identities, preserve distinct content states, reject unsafe or oversized text and forged references, and return detached copies with fixed errors. Server status subscriptions and the bilingual conversation remain pending.
 - Add a pure bounded status-byte decoder with strict UTF-8, owner/run identity, contiguous replay, reset fencing, duplicate-field rejection and cancellation erasure. It opens no connection and does not deliver a live stream or conversation.
-- Add conditional private read/cancel/citation transport over the existing service, with trusted actor mapping, current authority, closed publication, no-store responses and protected generic serialization. Default application wiring, public admission and live status remain pending.
+- Add conditional private read/cancel/citation transport over the existing service, with trusted actor mapping, current authority, closed publication, no-store responses and protected generic serialization.
 - Reject unpaired Unicode escapes before processor JSON decoding can repair them. Share decoded-answer checks with explicit HTTP publication and a cross-runtime synthetic contract fixture.
-- Add conditional explicit conversation admission with closed Unicode-safe requests, owner-bound server identities, frozen retries, current trusted resource resolution and atomic continuation guards. Add real SQL/HTTP admission-to-settlement privacy checks; application startup remains unwired.
+- Add conditional explicit conversation admission with closed Unicode-safe requests, owner-bound server identities, frozen retries, current trusted resource resolution and atomic continuation guards. Add real SQL/HTTP admission-to-settlement privacy checks.
+- Own enabled application composition, purpose-separated installation keys, pinned durable profile identity, retained operator stops, monotonic source epochs and joined worker shutdown before storage close. Verify real SQL idle restart and startup-failure cleanup without processor requests.
+- Add one bounded explicit status connection with no automatic reconnect/resend, byte/read/time caps, late-response disposal and owner-cancellation fencing. Server subscriptions and the owning view remain unfinished.
 - Preserve exact alpha.3 source/artifact evidence separately; this development version is not a completed stage or a tagged release.
 
 ## [2.0.0-alpha.3] - 2026-10-28

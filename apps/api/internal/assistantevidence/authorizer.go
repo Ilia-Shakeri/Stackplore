@@ -20,6 +20,9 @@ func (reader *Reader) validate(actor assistant.Actor, run assistant.Run, scope c
 		return Source{}, ErrInvalid
 	}
 	source, found := reader.sources[scope.Source.SourceID]
+	if found {
+		source.ConfigurationVersion = reader.sourceVersion(source)
+	}
 	if !found || source.Reference != scope.Source || source.ConfigurationVersion != scope.ConfigurationVersion {
 		return Source{}, ErrDenied
 	}

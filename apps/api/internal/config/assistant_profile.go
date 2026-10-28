@@ -38,8 +38,7 @@ var assistantProfileKeys = [...]string{
 	assistantOutputTokensKey, assistantCallTimeoutKey,
 }
 
-// AssistantProfile is a parsed operator capability, separate from Config until
-// runtime composition and its acceptance gates explicitly register these keys.
+// AssistantProfile is a parsed operator capability for trusted composition.
 // Its zero value is disabled. No parser or accessor performs network or file I/O.
 type AssistantProfile struct {
 	enabled      bool
@@ -105,12 +104,14 @@ func (profile AssistantProfile) Limits() AssistantLimits {
 // LoadAssistantProfile reads one bounded environment snapshot. Getter.Environ
 // must enumerate all assistant variables; LookupEnv is deliberately not used
 // to combine inconsistent snapshots or fetch values absent from that inventory.
-// This helper does not register settings in the existing global Config loader.
 func LoadAssistantProfile(getter Getter) (AssistantProfile, error) {
 	if getter == nil {
 		return AssistantProfile{}, invalid("assistant_profile", "environment is unavailable")
 	}
-	entries := getter.Environ()
+	return loadAssistantProfileEntries(getter.Environ())
+}
+
+func loadAssistantProfileEntries(entries []string) (AssistantProfile, error) {
 	if len(entries) > maximumAssistantEnvironmentEntries {
 		return AssistantProfile{}, invalid("assistant_profile", "environment exceeds its bound")
 	}

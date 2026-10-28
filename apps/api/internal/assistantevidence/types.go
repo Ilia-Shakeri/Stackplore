@@ -125,6 +125,7 @@ func (ReadRequest) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 type Reader struct {
 	gate          MetadataGate
 	sources       map[domain.SourceID]Source
+	versions      *sourceConfigurationVersions
 	now           func() time.Time
 	timeout       time.Duration
 	slots         chan struct{}
@@ -187,7 +188,7 @@ func New(options Options) (*Reader, error) {
 		}
 		sources[source.Reference.SourceID] = source
 	}
-	return &Reader{gate: options.Gate, sources: sources, now: options.Now, timeout: options.Timeout, slots: make(chan struct{}, MaximumConcurrent), metadataSlots: make(chan struct{}, MaximumMetadataConcurrent)}, nil
+	return &Reader{gate: options.Gate, sources: sources, versions: &sourceConfigurationVersions{values: make(map[domain.SourceID]int64, len(sources))}, now: options.Now, timeout: options.Timeout, slots: make(chan struct{}, MaximumConcurrent), metadataSlots: make(chan struct{}, MaximumMetadataConcurrent)}, nil
 }
 
 func (reader *Reader) work(ctx context.Context) (context.Context, context.CancelFunc, error) {

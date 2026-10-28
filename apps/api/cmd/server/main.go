@@ -133,7 +133,9 @@ func runWithStorage(
 			}
 		}()
 	}
+	var assistantProduct *assistantProductRuntime
 	closeDatabase := func(primary error) error {
+		assistantProduct.Close()
 		if err := database.Close(); err != nil {
 			return errors.Join(primary, errStorageStop)
 		}
@@ -169,6 +171,11 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errObservationStart)
 	}
+	assistantProduct, err = buildAssistantProduct(serviceContext, settings, database, providers, observations.providers, logger)
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errAssistantStart)
+	}
 	providers = observations.providers
 	applicationSettings, err := buildApplicationSettingsRuntime(settings, database)
 	if err != nil {
@@ -186,8 +193,12 @@ func runWithStorage(
 		return closeDatabase(err)
 	}
 	historyReader, _ := database.(productHistoryReader)
+	var assistantRuns httpapi.AssistantRunReader
+	if assistantProduct != nil {
+		assistantRuns = assistantProduct.service
+	}
 	server, err := newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, observations.settings, operations, applicationSettings,
-		httpapi.ApplicationMutationMode{Enabled: settings.MutationsEnabled && !settings.DemoDeployment, DockerWriteEnabled: settings.DockerWriteEnabled, KubernetesWriteEnabled: settings.KubernetesWriteEnabled}, historyReader)
+		httpapi.ApplicationMutationMode{Enabled: settings.MutationsEnabled && !settings.DemoDeployment, DockerWriteEnabled: settings.DockerWriteEnabled, KubernetesWriteEnabled: settings.KubernetesWriteEnabled}, assistantRuns, historyReader)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(err)
@@ -434,7 +445,7 @@ func newHTTPServerWithProviders(
 	sourceSettings httpapi.SourceSettings,
 	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
-	return newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, sourceSettings, nil, nil, httpapi.ApplicationMutationMode{}, historyReaders...)
+	return newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, sourceSettings, nil, nil, httpapi.ApplicationMutationMode{}, nil, historyReaders...)
 }
 
 func newHTTPServerWithServices(
@@ -448,6 +459,7 @@ func newHTTPServerWithServices(
 	operations httpapi.OperationManager,
 	applicationSettings httpapi.ApplicationSettings,
 	applicationMode httpapi.ApplicationMutationMode,
+	assistantRuns httpapi.AssistantRunReader,
 	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
 	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil ||
@@ -490,6 +502,7 @@ func newHTTPServerWithServices(
 		Operations:              operations,
 		ApplicationSettings:     applicationSettings,
 		ApplicationMutationMode: applicationMode,
+		AssistantRuns:           assistantRuns,
 		LogRedactionFields:      settings.LogRedactionFields,
 		WebAssets:               webui.Assets(),
 		GuestDemo:               guestHTTPOptions(settings),

@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T13:28:04.353Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "8ba404a19e54598c409903bb32ba176ff9ce2c2e",
+  "tested_tree": "348ddd79896ca2ab0bfbefcd45df2d4671cd8a72",
+  "scope": "Enabled application ownership, monotonic source metadata and one explicit client status connection; server subscription and view unfinished",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "log_sha256": "16a39a9e493aa9f676bc5600edde3b41c8d3c9d839c668f5124bfe38059320bd",
+    "client_tests": 212,
+    "web_tests": 544,
+    "actual_postgres_seconds": 150.548,
+    "actual_native_database_operations_seconds": 13.085,
+    "actual_server_package_seconds": 6.876,
+    "production_builds": "passed"
+  },
+  "application_lifecycle": {
+    "database": "actual disposable PostgreSQL schema under the shared fixture gate",
+    "journey": "two complete application readiness/startup/shutdown cycles plus a listener failure after helper creation",
+    "assertions": [
+      "Pinned control row remains version 2 with one configuration audit across restart",
+      "Existing quota values remain unchanged",
+      "Runs, steps and usage ledger stay empty; one seeded installation account has zero used/reserved units",
+      "All owned producers join before store closure",
+      "Synthetic loopback processor receives zero requests"
+    ],
+    "scope_limit": "Idle application composition; no admitted engine/browser conversation"
+  },
+  "status_client": {
+    "tests": 25,
+    "scope": "Controlled fetch/ReadableStream and cancellation tests, including ignored abort and timer-starving empty chunks",
+    "maximum_lifetime_ms": 120000,
+    "maximum_idle_ms": 15000,
+    "maximum_bytes": 1048576,
+    "maximum_chunks": 65536,
+    "automatic_reconnect": false,
+    "automatic_resend": false
+  },
+  "package_audit": {
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    },
+    "report_sha256": "4a058b957fd988a9ffbdeafeb69f8a00efd127ac96a8c59e5561d401666b78f6"
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "include_development_dependencies": true,
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "exit_code": 0,
+    "targets": [
+      {
+        "target": "apps/api/go.mod",
+        "type": "gomod",
+        "reported_vulnerabilities": 0
+      },
+      {
+        "target": "pnpm-lock.yaml",
+        "type": "pnpm",
+        "reported_vulnerabilities": 0
+      }
+    ],
+    "report_sha256": "550bb119dfe2c13e43b99be471b1c2feb0ac66c6c76f68f0cb99452936872ccc",
+    "sbom_sha256": "0297dc6180d1bc527e9796c66daf3e67c706ffa719a1df617c116be8bda716a1"
+  },
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Implementation diff before receipt additions; final index scanned separately"
+  },
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Application owner and explicit client connection components only",
+    "corrections": [
+      "Keep persisted same-profile operator stops across restart",
+      "Preserve installation usage/quota and reject policy/generation downgrades",
+      "Advance only approved source epochs without replacing sealed evidence readers",
+      "Cancel and join content producers before closing storage on normal and failed startup",
+      "Bound each stream wait and remove listeners; dispose late responses and cap empty chunks"
+    ]
+  },
+  "files": [
+    {
+      "path": "apps/api/cmd/server/main.go",
+      "sha256": "ccad90d7a52e3aafb2fcb7817c7f1223f43c2f8a0e928b2fbe0688767b3e143e"
+    },
+    {
+      "path": "apps/api/cmd/server/assistant_product.go",
+      "sha256": "6532c14651343f45759aa1985f0bb71755769f4269c0123afec3b324f9bf28b2"
+    },
+    {
+      "path": "apps/api/cmd/server/assistant_product_test.go",
+      "sha256": "cae8b88b4b8fd2dee688bc38ab1943b02c7a8b6a31c9dda3d769465307603b40"
+    },
+    {
+      "path": "apps/api/cmd/server/assistant_product_integration_test.go",
+      "sha256": "1c9c491adb97892c4612a5c7f486db40517352ca80eafaa3e11e472396218e9c"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/authorizer.go",
+      "sha256": "18fd4e3999d09cf1b985a78f156a982e8439707463fc608ccd7062ede34f82b2"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/types.go",
+      "sha256": "cc6ddec4ee937099c49af2e67ca13ff7c9747ea55e25beff8f82284081a96826"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/source_versions.go",
+      "sha256": "0782d606355c5f24d308bb3c9414dae968e35ae6bfb143d6278cfde3630eb62b"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/source_versions_test.go",
+      "sha256": "4e77dc2b5defa68386fccf15f66654aa1cff65e51b8a4408a35d978f9cb1bb83"
+    },
+    {
+      "path": "apps/api/internal/config/config.go",
+      "sha256": "8366c7dc35a55d6607796937763b12a2bdfdeee258aa6738737af85e0ea14058"
+    },
+    {
+      "path": "apps/api/internal/config/assistant_profile.go",
+      "sha256": "af4d15da7a9bb54b9ca45d39da0be5ca7263e50bba3f603810b834c3bc873baa"
+    },
+    {
+      "path": "apps/api/internal/config/assistant_composition_test.go",
+      "sha256": "c602fe9e8eee3f28fafb62917a9db0c93759c83d9fd642d49dcd90a352a439c3"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_generation.go",
+      "sha256": "2c0b1ac762f8935974aa66eab863b4cf04c380c4665a87dedfe46f0d048def8b"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_generation_integration_test.go",
+      "sha256": "f70866c49b7b935d29d7ff731764bed248fffc3d7094f146ffaecdb9cbb5d562"
+    },
+    {
+      "path": "packages/api-client/src/index.ts",
+      "sha256": "eabf5dcef8b5a11dc196ce151c58a0f2fcdeed6275e3ea82bb7fbea6848b6ddb"
+    },
+    {
+      "path": "packages/api-client/src/assistant-stream.ts",
+      "sha256": "c65459ca4b28a60bf7cda48df6c30b7381366bdde30cd724d2eb18761c08c81b"
+    },
+    {
+      "path": "packages/api-client/src/assistant-stream.test.ts",
+      "sha256": "0f694af037346a14346bee85ac000d634f38aad88da19b333b2c7344dcd6aa7c"
+    }
+  ],
+  "retained_failures": [
+    {
+      "name": "v2-stage4-composition-runtime-20261028-c",
+      "exit_code": 1,
+      "log_sha256": "7a677568eb419720cb29441e429f16ed28fb89564009129af95dec1f1b415cf0"
+    },
+    {
+      "name": "v2-stage4-composition-sql-20261028-a",
+      "exit_code": 1,
+      "log_sha256": "1451aa879b59b56c291dc06524bf7787ab95de3c645ac6c80587438b5cc5f1dc"
+    }
+  ],
+  "fixture_corrections": [
+    "Restore generation fixtures must also set the required restored timestamp",
+    "Migration 18 seeds exactly one empty installation usage account; assert its identity and zero balance rather than an absent table row",
+    "Audit action column is action; production migration and assertions remain intact"
+  ],
+  "limitations": [
+    "Server status subscription and bilingual conversation not delivered in this source",
+    "Compose/Helm profile forwarding remains off; new pins are a native process configuration",
+    "No current real engine, human quality, accepted branch measurement, soak/capacity or artifact acceptance",
+    "No alpha.4 milestone tag; exact final commit hosted gates remain separate"
+  ]
+}

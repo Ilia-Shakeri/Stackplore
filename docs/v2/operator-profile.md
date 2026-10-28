@@ -1,10 +1,11 @@
-# Smart Assistant — operator profile preparation
+# Smart Assistant — operator profile
 
-Status: **stage-4 development source, 2026-10-28; not registered in application
-startup and not a delivered public capability**. Baseline source is
-`21475ec1135c0496c5929329738142f3c0d5a9d0`. The standalone parser and its tests
-are separate preparation. The released startup loader still rejects these
-unregistered variables. Do not use this document as an enablement runbook.
+Status: **stage-4 development source, 2026-10-28**. The development server now
+registers the bounded profile and conditionally owns conversation admission,
+reads, cancellation and citation routes. The public alpha.3 release at
+`21475ec1135c0496c5929329738142f3c0d5a9d0` still rejects these variables.
+This document describes newer source; it is not alpha.3 enablement guidance.
+Status-server connections and the bilingual conversation remain unfinished.
 
 The parser takes one bounded environment snapshot, uses no second lookup, and
 performs no network or file access. Zero configuration and an explicit `false`
@@ -12,9 +13,9 @@ produce a disabled capability with no address or limits. Disabled profiles rejec
 latent pins. Unknown, duplicate, mixed-case, blank, noncanonical, invalid UTF-8
 and over-bound values fail with fixed errors that omit values.
 
-Every proposed key starts with `STACKPLORE_ASSISTANT_`:
+Every key starts with `STACKPLORE_ASSISTANT_`:
 
-| Suffix | Proposed contract |
+| Suffix | Contract |
 | --- | --- |
 | `ENABLED` | Exact `true` or `false`; default disabled |
 | `ORIGIN` | Exact HTTP/HTTPS origin with a canonical literal loopback address; no DNS name, credentials, path, query, fragment or IPv6 zone |
@@ -55,20 +56,24 @@ abort-boundary fixes. The owning flow must supply per-call deadlines and validat
 the closed reply before rendering it. Response validation, status streaming and
 the owning UI remain separate implementation work.
 
-Remaining composition work must bind the exact profile to audited durable
-settings and the private service, fence generation changes and restoration,
-keep the maintenance worker independent, and close owned workers on ownership
-loss/shutdown. Disabled and guest modes must create no content client. Public
-admission, owner-only replay, cancellation, citation routes, bounded status
-streams and bilingual browser behavior need their own contract and real tests.
+The [application owner](application-runtime.md) binds exact pins and limits to
+audited durable settings, preserves quotas and retained operator stops, reads
+current restore/source epochs, and joins owned workers before closing storage.
+Maintenance remains independent. Disabled profiles construct no content client;
+guest mode rejects enablement. Configuration does not install, launch or contact
+a processor. A compatible separately managed service and exact approved pins
+are required for a real admitted run. Current engine and human-quality acceptance
+remain open. The bounded client status reader opens one explicit connection;
+the server subscription and bilingual browser journey still require delivery.
 
-The [conditional HTTP read boundary](private-run-http.md) is separate library
-composition; it does not register or enable these startup variables.
+The [private HTTP boundary](private-run-http.md) and
+[admission coordinator](conversation-admission.md) retain their own earlier
+source receipts. New application composition requires its own complete gates.
 
 ## فارسی
 
-این سند فقط آماده‌سازی گام۴ است؛ متغیرها هنوز در شروع برنامه ثبت نیستند و
-برنامهٔ منتشرشده آن‌ها را رد کند. نبود تنظیم یا `false`، مقصد و محدودیت فعال
+این سند برای کد در حال توسعه گام۴ است؛ متغیرها اکنون ثبت شوند، ولی نسخهٔ
+منتشرشدهٔ alpha.3 آن‌ها را رد کند. نبود تنظیم یا `false`، مقصد و محدودیت فعال
 نسازد. ورودی پنهان هنگام خاموشی، کلید ناشناخته/تکراری، مقصد بیرونی، مقدار
 مبهم یا بزرگ رد شود. parser فقط یک snapshot بخواند؛ فایل یا شبکه نخواند.
 
@@ -78,4 +83,5 @@ composition; it does not register or enable these startup variables.
 
 ۷۱ رخداد تست/زیرتست محدود، کل تست بستهٔ config و vet پاس شدند. پوشش ثبت‌شده
 statement است؛ اثبات شاخه، موتور واقعی، شروع برنامه یا گفت‌وگوی عمومی نیست.
-اتصال runtime، اختیار تازه، stream محدود، قرارداد و مرورگر دوزبانه هنوز لازم.
+اتصال اصلی، قفل توقف و پایان کارگر ساخته شده؛ جریان سمت سرور و مرورگر
+دوزبانه هنوز مانده. نصب یا شروع پردازنده از تنظیم برنامه انجام نشود.

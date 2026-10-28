@@ -27,6 +27,7 @@ export {
   type AssistantStatusDecoder,
   type AssistantStatusMessage,
 } from './assistant-status';
+export { readAssistantStatus, type AssistantStatusReadOptions } from './assistant-stream';
 export {
   createAssistantClient,
   createAssistantIdempotencyKey,

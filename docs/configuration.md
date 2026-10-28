@@ -1,5 +1,18 @@
 # Runtime configuration
 
+Development alpha.4 adds the default-off
+[Smart Assistant profile](v2/operator-profile.md) and
+[application owner](v2/application-runtime.md). Published alpha.3 does not accept
+those settings. All `STACKPLORE_ASSISTANT_` pins are mandatory when enabled,
+except the two downward limit overrides. Omit them while disabled; exact `false`
+alone is also accepted. Guest mode rejects enablement. The processor must be
+separately managed at a pinned literal loopback origin; application startup does
+not install, launch or probe it. An identical restart preserves a stored stop
+and does not reset quotas or restored usage. The existing Compose/Helm manifests
+keep this capability off and do not forward its profile keys; this development
+profile is currently configured on the native process environment. Server
+status subscriptions and the bilingual conversation remain unfinished.
+
 The Go loader in `apps/api/internal/config/config.go` is authoritative. Unknown,
 duplicate, blank, non-canonical or out-of-range `STACKPLORE_*` names fail startup
 with a safe code, without echoing the rejected value. The service reads process

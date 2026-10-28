@@ -11,11 +11,12 @@ When supplied, it registers these existing contract paths:
 | POST | `/api/v1/assistant/runs/{run_id}/cancel` | Owner cancellation; metadata receipt only |
 | GET | `/api/v1/assistant/runs/{run_id}/citations/{citation_id}` | One retained selected-resource locator |
 
-The default server entry point does **not** supply this capability. Guest
-composition rejects it. A later [admission capability](conversation-admission.md)
-adds conditional public request handling in the library. Startup profile
-registration, status subscriptions and the bilingual view remain unfinished. This source
-increment does not enable the feature through environment variables.
+The server supplies this capability only through an enabled, validated
+[application runtime](application-runtime.md). The default remains off; guest
+composition rejects it. The [admission capability](conversation-admission.md)
+adds conditional public request handling. Server status subscriptions and the
+bilingual view remain unfinished. Earlier library receipts cover their exact
+source; later startup composition has separate acceptance.
 
 ## Authority and request limits
 
@@ -74,15 +75,16 @@ Authentication is **synthetic in that combined SQL/transport fixture**, and the
 processor is a bounded synthetic loopback server. These checks do not prove a
 real user login/browser conversation, deployed telemetry, a running processor,
 new-package branch acceptance or human-reviewed grounding. Existing real
-authentication integration has separate coverage. Full application composition
-and later roadmap acceptance remain required.
+authentication integration has separate coverage. Application startup has
+separate lifecycle evidence; the full browser journey and later roadmap
+acceptance remain required.
 
 ## فارسی
 
 کتابخانهٔ HTTP سه مسیر خواندن، لغو و ارجاع دارد؛ فقط با وابستگیِ مورد اعتماد
-وصل شوند. ورودی اصلی برنامه هنوز آن را وصل نکند؛ پیش‌فرض بسته است. حالت
-مهمان این وابستگی را رد کند. ساخت اجرا در کتابخانه افزوده شود؛ اتصال اصلی،
-جریان وضعیت و صفحهٔ دوزبانه مانده‌اند.
+وصل شوند. ورودی اصلی فقط با تنظیم درست آن را وصل کند؛ پیش‌فرض بسته است. حالت
+مهمان این وابستگی را رد کند. ساخت اجرا و اتصال اصلی افزوده شود؛ جریان سمت
+سرور و صفحهٔ دوزبانه مانده‌اند.
 
 کاربر از نشست موجود شناخته شود؛ لغو، مبدأ درست و CSRF هم بخواهد. مالک و
 شناسهٔ همان کار دوباره سنجیده شوند. سؤال، بدنه، پارامتر اضافی، تنظیم پردازنده
@@ -95,4 +97,4 @@ and later roadmap acceptance remain required.
 
 شاهد مشترک، قالب دو سمت را بسنجد. تست ترکیبی، پایگاه واقعی و پردازنده و
 احراز هویت آزمایشی دارد؛ اثبات ورود واقعی، مرورگر، موتور واقعی یا کیفیت
-معنایی نیست. اتصال برنامه و گیت‌های باقی‌مانده هنوز لازم‌اند.
+معنایی نیست. اتصال برنامه شاهد جدا دارد؛ گیت‌های باقی‌مانده هنوز لازم‌اند.

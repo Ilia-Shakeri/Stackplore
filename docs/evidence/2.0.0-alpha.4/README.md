@@ -153,3 +153,24 @@ Fresh source scans and the standard 393-version package audit report zero
 findings within their severity scopes. The initial fixture compile failure is
 retained. The preceding HTTP increment has its [exact hosted receipt](http-hosted.json):
 seven successful jobs and 51 canonical commits with no secret findings.
+
+## Application ownership and explicit connection increment
+
+New development source conditionally wires the [application runtime](../../v2/application-runtime.md)
+and adds a [single status connection](../../v2/status-connection.md). It preserves
+retained stops, quota/restore boundaries and evidence-reader seals while joining
+workers before storage close. Actual SQL startup/restart and listener-failure
+checks, controlled transport checks and complete source gates are separate from
+the earlier admission receipt. Server subscription, bilingual UI and whole-stage
+acceptance remain open. No alpha.4 milestone tag is claimed.
+
+The [application source receipt](application-runtime.json) binds 16 code files
+and clean tree `348ddd79896ca2ab0bfbefcd45df2d4671cd8a72`. Full verification passes: 212 client tests,
+544 web tests, actual PostgreSQL 150.548 s, native operations 13.085 s,
+actual server package 6.876 s, strict checks/tooling and production builds.
+Fresh dependency scans, the standard 393-version audit and staged secret scan
+report zero findings within their scopes. Failed fixture assumptions remain
+retained, corrected against unchanged migration constraints. The preceding
+admission commit has its [hosted receipt](admission-hosted.json): all seven jobs
+and 52 canonical commits with zero secret findings. These receipts do not
+certify the later server-status implementation.

@@ -166,6 +166,7 @@ const (
 
 // Config is the fully validated server configuration.
 type Config struct {
+	Assistant AssistantProfile
 	ProviderProfiles
 	DockerOperationProfile
 	KubernetesOperationProfile
@@ -303,7 +304,8 @@ func Load(getter Getter) (Config, error) {
 	if getter == nil {
 		return Config{}, invalid("environment", "is unavailable")
 	}
-	if err := validateEnvironmentKeys(getter.Environ()); err != nil {
+	entries := getter.Environ()
+	if err := validateEnvironmentKeys(entries); err != nil {
 		return Config{}, err
 	}
 	if err := validateDevelopmentAPIOrigin(getter); err != nil {
@@ -312,6 +314,9 @@ func Load(getter Getter) (Config, error) {
 
 	result := defaultConfig()
 	var err error
+	if result.Assistant, err = loadAssistantProfileEntries(entries); err != nil {
+		return Config{}, err
+	}
 
 	if result.Environment, err = loadEnvironment(getter, result.Environment); err != nil {
 		return Config{}, err
@@ -477,6 +482,12 @@ func validateDevelopmentAPIOrigin(getter Getter) error {
 
 // Validate checks a typed configuration before it reaches runtime wiring.
 func Validate(result Config) error {
+	if err := result.Assistant.Validate(); err != nil {
+		return err
+	}
+	if result.GuestDemo && result.Assistant.Enabled() {
+		return invalid(assistantEnabledKey, "is unavailable in guest mode")
+	}
 	switch result.Environment {
 	case EnvironmentDevelopment, EnvironmentProduction, EnvironmentTest:
 	default:
@@ -670,6 +681,9 @@ func validateEnvironmentKeys(entries []string) error {
 	}
 	seen := make(map[string]struct{}, len(allowed))
 	for _, key := range providerProfileKeys {
+		allowed[key] = struct{}{}
+	}
+	for _, key := range assistantProfileKeys {
 		allowed[key] = struct{}{}
 	}
 	for _, keys := range [][]string{dockerOperationKeys, kubernetesOperationKeys, auditPolicyKeys, kubeconfigKeys, {logRedactionFieldsKey}} {

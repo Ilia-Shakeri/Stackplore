@@ -4,8 +4,9 @@ Development **2.0.0-alpha.4**, schema **18**, 2026-10-28.
 
 The HTTP library registers `POST /api/v1/assistant/runs` only when its trusted
 run dependency also implements `AssistantRunAdmitter`. A reader alone grants no
-admission. The server entry point still supplies neither capability; this
-increment does not register operator settings or enable application dispatch.
+admission. Later [application composition](application-runtime.md) supplies the
+coordinator only for an enabled approved profile. Default and guest operation
+remain sealed. This document's earlier source receipt predates that composition.
 
 ## Closed request and server authority
 
@@ -47,12 +48,13 @@ Acceptance returns only the validated metadata receipt with status 202 and
 `Cache-Control: no-store`. It starts no worker itself. The existing worker owns
 reservation, dispatch, fresh authority checks and settlement. Cancellation and
 reads delegate through the same runtime. Coordinator close clears its own key;
-the future application owner must cancel, close and join the runtime before
-closing storage. This component does not claim that lifecycle integration.
+the application owner cancels, closes and joins the runtime before closing
+storage. Its [separate lifecycle checks](application-runtime.md) cover that
+integration; this component's earlier receipt covers admission only.
 
 `Store.GetAssistantSettings` reads the existing locked control metadata without
-changing its version, audit rows, enablement or usage. It prepares idempotent
-startup reconciliation; it does not itself configure or activate anything.
+changing its version, audit rows, enablement or usage. The application uses it
+for idempotent startup reconciliation; the read itself activates nothing.
 
 ## Verification limits
 
@@ -68,12 +70,12 @@ That combined test uses synthetic authentication, resource selection and a
 bounded loopback processor protocol. The database, coordinator, core worker,
 HTTP transport and processor adapter are real code. This is not evidence of a
 running engine, real cookie/browser journey, factual quality or whole-stage
-acceptance. Startup, status connections, bilingual conversation, accepted branch
+acceptance. Startup has separate lifecycle checks. Status connections, bilingual conversation, accepted branch
 measurement and later roadmap gates remain open. No alpha.4 release tag exists.
 
 ## فارسی
 
-ساخت اجرا فقط با وابستگی مورد اعتماد وصل شود؛ ورودی اصلی برنامه هنوز بسته
+ساخت اجرا فقط با تنظیم و وابستگی مورد اعتماد وصل شود؛ پیش‌فرض برنامه بسته
 است. نشست، مبدأ، CSRF، کلید تکرار درست و بدنه محدود لازم است. کاربر فقط
 منبع، شناسه پوشیده، بازه، زبان، سؤال و در صورت نیاز گفت‌وگوی موجود بدهد.
 اختیار، تنظیم پردازنده، شناسه بومی و بودجه از مرورگر نیاید.
@@ -82,7 +84,8 @@ measurement and later roadmap gates remain open. No alpha.4 release tag exists.
 گفت‌وگوی ناشناس، بیگانه یا منقضی رد شود؛ تکرار متن گم‌شده را زنده نکند.
 ردیف دیده‌شده اگر حذف شد، اجرای تازه نسازد. رسید فقط فراداده باشد. پرسش و
 پاسخ و کلید خام در پایگاه و لاگ نرود. مالک برنامه باید کارگر را پیش از بستن
-پایگاه متوقف کند و منتظر پایان آن بماند؛ این اتصال هنوز ساخته نشده است.
+پایگاه متوقف کند و منتظر پایان آن بماند؛ اتصال اصلی اکنون این کار را کند.
 
 تست ترکیبی، پایگاه واقعی و احراز هویت و پردازنده آزمایشی دارد. راه‌اندازی
-اصلی، جریان وضعیت، صفحه دوزبانه، موتور واقعی و پذیرش کل مرحله هنوز مانده‌اند.
+اصلی شاهد جدا دارد؛ جریان سمت سرور، صفحه دوزبانه، موتور واقعی و پذیرش کل
+مرحله هنوز مانده‌اند.
