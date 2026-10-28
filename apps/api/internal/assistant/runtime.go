@@ -140,6 +140,8 @@ type Admission struct {
 	Paid                           bool
 	ReservedUnits                  int64
 	At, Deadline                   time.Time
+	// RequireExisting is a trusted retry guard, never material or stored metadata.
+	RequireExisting bool `json:"-"`
 }
 
 func (a Admission) Valid() bool {
@@ -221,6 +223,17 @@ type RestoreSettlement struct {
 	ExposureUnits int64
 	ReceiptDigest [32]byte
 	Audit         OperatorAudit
+}
+
+// AdmissionResult distinguishes a newly committed run from an idempotent reuse.
+type AdmissionResult struct {
+	Run     Run
+	Created bool
+}
+
+// AdmissionRepository returns ownership of a new admission only after commit.
+type AdmissionRepository interface {
+	AdmitAssistantWithOutcome(context.Context, Admission) (AdmissionResult, error)
 }
 
 // RuntimeRepository owns complete transactions; callers perform network I/O only between calls.

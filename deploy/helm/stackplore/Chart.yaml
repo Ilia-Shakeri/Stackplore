@@ -2,6 +2,6 @@ apiVersion: v2
 name: stackplore
 description: Self-hosted infrastructure visibility and troubleshooting service
 type: application
-version: 2.0.0-alpha.2
-appVersion: '2.0.0-alpha.2'
+version: 2.0.0-alpha.3
+appVersion: '2.0.0-alpha.3'
 kubeVersion: '>=1.30.0-0'

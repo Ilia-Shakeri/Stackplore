@@ -1,14 +1,17 @@
 # Version 2 implementation ledger
 
-Current checkpoint, **2026-10-24**: **2.0.0-alpha.1** is published at
-`1f4d46d5178b032fd5c3e7a2540cd7d2718d2698`, schema17. All seven main/tag
-jobs, strict signed packaging, 39 public assets, 30 checksums, 31 provenance
-subjects and seven SBOM attestations pass. Windows public bytes match an actual
-recovery-tested trial; Linux has signed producer execution. Public OCI archive
-execution and current-host processor restart remain separate. Stage2
-**2.0.0-alpha.2**, schema18, now passes focused and complete local gates; final
-hosted/concurrency and checkpoint artifacts remain pending. [Current evidence](../evidence/2.0.0-alpha.2/README.md).
+Stage-3 source checkpoint, **2026-10-28**: candidate **2.0.0-alpha.3**, schema18. The isolated local full gate passed on 2026-10-26 with actual PostgreSQL, 40 client tests, 544 web tests and production builds. Current-authority, commit-outcome, bounded synthetic HTTP wire and SQL content-absence checks pass. The package-manager audit failed on network fetch; an independent official bulk query checked all 393 locked versions with no advisories. Exact-source hosted checks, fresh canonical scans, signed package consumption and the accepted branch/quality gates remain open. This is source-checkpoint progress, not complete stage or product acceptance. [Evidence](../evidence/2.0.0-alpha.3/README.md).
 
+Current published checkpoint, **2026-10-25**: **2.0.0-alpha.2**, schema18,
+immutable source `2086b3c1ca22fbd484eb28e29471e61567efc10e`. All seven main
+and seven tag jobs, signed publication,39 assets/30 checksums/31 provenance
+subjects/seven SBOMs and eight publication scan reports pass. The public Windows
+archive independently passes restart, replay, native backup/restore, session
+revocation and ownership-loss shutdown. [Public acceptance](../evidence/2.0.0-alpha.2/published-release.json)
+records exact source and scope. Publication report review is not a new database
+scan. Global branch/quality, current engine, public OCI and capacity gates remain
+separate. Stage3 is the next isolated candidate; future public routes/configuration
+remain excluded. Canonical project: `D:\Projects\Stackplore\repository`.
 
 Started: **2026-10-19**. Authorized scope: implement the complete
 [roadmap](../roadmap-v2.md) ([فارسی](../roadmap-v2.fa.md)), test each stage,
@@ -45,8 +48,8 @@ not accept the correction.
 | ----- | ---------------------- | ---------------------------- | ---------------------------------------------------------- |
 | 0     | `2.0.0-alpha.0`        | Accepted in recorded scope   | No helper runtime, customer installation or capacity claim |
 | 1 | `2.0.0-alpha.1` | Published; recorded scope accepted | Current host restart and global quality/branch gates remain separate |
-| 2 | `2.0.0-alpha.2` | Focused and full local gates pass | Exact hosted/race gates, signed checkpoint and public acceptance |
-| 3     | `2.0.0-alpha.3`        | Unaccepted draft preparation | Complete shared privacy and evidence-tool acceptance       |
+| 2 | `2.0.0-alpha.2` | Published; recorded artifact scope accepted | Global branch/quality, current engine and capacity gates remain separate |
+| 3 | `2.0.0-alpha.3` | Local source checkpoint tested; not accepted | Exact-source hosted, signed artifacts and accepted branch/quality gates |
 | 4     | `2.0.0-alpha.4`        | Not delivered                | Bilingual grounded conversation                            |
 | 5     | `2.0.0-alpha.5`        | Not delivered                | Bounded investigation loop                                 |
 | 6     | `2.0.0-alpha.6`        | Not delivered                | Incident analysis                                          |

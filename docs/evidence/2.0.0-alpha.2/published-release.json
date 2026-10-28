@@ -1,0 +1,176 @@
+{
+  "schema_version": 2,
+  "recorded_at": "2026-10-25T13:18:10.628Z",
+  "version": "2.0.0-alpha.2",
+  "revision": "2086b3c1ca22fbd484eb28e29471e61567efc10e",
+  "tag": "v2.0.0-alpha.2",
+  "tag_object": "22f1d3bb95969db63dbd6d2bdc582261e7fd4746",
+  "release_id": 422793393,
+  "published_at": "2026-10-24T14:53:48Z",
+  "release_url": "https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.2",
+  "main_ci": 40101423743,
+  "tag_ci": 40102848877,
+  "trial_run": 40101476111,
+  "publish_run": 40102848842,
+  "assets": 39,
+  "checksums": 30,
+  "signature_verification": {
+    "schema_version": 2,
+    "status": "passed",
+    "observed_at_utc": "2026-10-25T12:51:33.3254751Z",
+    "revision": "2086b3c1ca22fbd484eb28e29471e61567efc10e",
+    "source_ref": "refs/tags/v2.0.0-alpha.2",
+    "version": "2.0.0-alpha.2",
+    "release_assets": 39,
+    "checked_manifest_entries": 30,
+    "provenance_subjects": 31,
+    "sbom_attestations": 7,
+    "required_workflow_identity": "https://github.com/Ilia-Shakeri/Stackplore/.github/workflows/release.yml@refs/tags/v2.0.0-alpha.2",
+    "deny_self_hosted_runners": true,
+    "consumer_script_sha256": "31d6aa237f77a20fc4b3faeb2b26fb0e5a0ac215fdb0fee91af141fd83a9f735",
+    "verifier_version": "2.102.0",
+    "verifier_binary_sha256": "756724853cc579510b58e65e7a7429ad6b1af29cf99ef19b3a95f3b701c5c580",
+    "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "manifest_sha256": "a082b0ce2026f8ccd38260105c22b43699c1c22f7afd804b27201fda130eda7d",
+    "scope": "Checksums and signed provenance/SPDX verification only. Release archives were not extracted or executed. No runtime, browser, migration or deployment acceptance is proved."
+  },
+  "scan_reports": [
+    {
+      "name": "stackplore_2.0.0-alpha.2_linux_amd64.scan.json",
+      "sha256": "a788dfb636800537400a3e0aefe90f3953527afb418efcd66862e0510541ef9d",
+      "analyzed_results": 3,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "stackplore_2.0.0-alpha.2_linux_arm64.scan.json",
+      "sha256": "67220ec89964641a4667a2429fbb3ffe8e7e7678dedfe3f6f184dd8107740992",
+      "analyzed_results": 3,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "stackplore_2.0.0-alpha.2_windows_amd64.scan.json",
+      "sha256": "665661bf4f84177b947ac69ce349af9c4d64e06f94b7abb1970b56606dd13f39",
+      "analyzed_results": 3,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "stackplore_2.0.0-alpha.2_darwin_amd64.scan.json",
+      "sha256": "b7a8d8e28c30a2f21ae7834c886ee9b3412b3cc5bbde1dc40fad9334029e0109",
+      "analyzed_results": 3,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "stackplore_2.0.0-alpha.2_darwin_arm64.scan.json",
+      "sha256": "9bbd7643b22c706ca5d8b27d7a8c32271fa3d104b989a9ca241f07c026dcf137",
+      "analyzed_results": 3,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "image-scan.json",
+      "sha256": "aa7f53f1a7f5cbee03229f0685288de5143cdb548ed83c8fe517298bd9668cae",
+      "analyzed_results": 2,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "database-image-scan.json",
+      "sha256": "640a3391745b1f158127e25860bf8530b479b88e0c67fd351820690656634544",
+      "analyzed_results": 2,
+      "high_critical_findings": 0
+    },
+    {
+      "name": "dependency-scan.json",
+      "sha256": "9cc78006a60ba8332aa349024c840bf20401a6742d26ad7bd20696231d993a5e",
+      "analyzed_results": 2,
+      "high_critical_findings": 0
+    }
+  ],
+  "secret_findings": 0,
+  "producer_linux_native_smoke": {
+    "schema": 1,
+    "version": "2.0.0-alpha.2",
+    "revision": "2086b3c1ca22fbd484eb28e29471e61567efc10e",
+    "platform": "linux/amd64",
+    "archive": "stackplore_2.0.0-alpha.2_linux_amd64.tar.gz",
+    "startedAt": "2026-10-24T14:52:29.699Z",
+    "completedAt": "2026-10-24T14:52:32.406Z",
+    "toolUsageChecks": [
+      "storage-rejects-missing-arguments",
+      "operator-rejects-missing-arguments"
+    ],
+    "modes": [
+      {
+        "mode": "guest",
+        "checks": [
+          "readiness",
+          "liveness",
+          "embedded-ui",
+          "spa-fallback",
+          "guest-sources",
+          "guest-resources",
+          "guest-no-cookie",
+          "guest-private-denied",
+          "guest-operation-denied"
+        ],
+        "resourceCount": 9,
+        "gracefulShutdown": true,
+        "disposableDatabaseRemoved": true
+      },
+      {
+        "mode": "normal",
+        "checks": [
+          "readiness",
+          "liveness",
+          "embedded-ui",
+          "spa-fallback",
+          "setup-preflight",
+          "initial-admin",
+          "authenticated-session",
+          "version",
+          "all-operation-gates-disabled"
+        ],
+        "resourceCount": 0,
+        "gracefulShutdown": true,
+        "disposableDatabaseRemoved": true
+      }
+    ],
+    "limits": [
+      "No native execution of other cross-built targets.",
+      "Backup/restore is a separate recovery gate."
+    ]
+  },
+  "public_windows_archive_sha256": "1bb6f81e6ab81e78c91810290fa146b571b07ada3f031af279b023e9acc1a703",
+  "actual_public_windows_native": {
+    "durable_alert_acknowledgement": true,
+    "source_version": 2,
+    "schema_version": 1,
+    "native_tools": {
+      "pg_dump": "pg_dump (PostgreSQL) 17.11",
+      "pg_restore": "pg_restore (PostgreSQL) 17.11"
+    },
+    "resources": 9,
+    "migration_entries": 18,
+    "fresh_login": true,
+    "platform": "windows/amd64",
+    "restored_preauth_challenges": 0,
+    "ownership_loss_nonzero_shutdown": true,
+    "restore_generation": 1,
+    "source_disabled": true,
+    "durable_sse_replay_after_restart": true,
+    "observed_at": "2026-10-25T13:09:20.1078908Z",
+    "binary_sha256": {
+      "stackplore-operator.exe": "709dc4369223f785090c78413007602a357e1f83a60c0e470fbc04d1d901d5cf",
+      "stackplore-server.exe": "6c07c95ce9e0f1fe457fae1f48d48aba2326d8a14486c71495c328e61941e772",
+      "stackplore-storage.exe": "8a7bbab087aa98ee29b9c14f1cc3b49a447c2deb204bfe91954a3450803cf81d"
+    },
+    "proof_case": "publice",
+    "restored_sessions": 0,
+    "revision": "2086b3c1ca22fbd484eb28e29471e61567efc10e",
+    "version": "2.0.0-alpha.2",
+    "owned_database_cleanup": "owner checked and absence verified",
+    "metric_samples": 972,
+    "native_backup_restore": true
+  },
+  "earlier_incomplete_downloads_retained": true,
+  "earlier_native_consumer_failures_retained": true,
+  "scope": "Exact-source hosted gates, signed published reports and independently executed public Windows archive. Reports were produced during publication; this review is not a new vulnerability database scan. No independent public OCI execution, new local engine startup, grounded quality, branch threshold, capacity, pilot or complete version2 acceptance is claimed."
+}

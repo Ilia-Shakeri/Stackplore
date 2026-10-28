@@ -177,10 +177,16 @@ func (store *Store) ConfigureAssistant(ctx context.Context, s assistant.Settings
 }
 
 func (store *Store) AdmitAssistant(ctx context.Context, a assistant.Admission) (assistant.Run, error) {
+	result, err := store.AdmitAssistantWithOutcome(ctx, a)
+	return result.Run, err
+}
+
+func (store *Store) AdmitAssistantWithOutcome(ctx context.Context, a assistant.Admission) (assistant.AdmissionResult, error) {
 	if !a.Valid() {
-		return assistant.Run{}, assistant.ErrInvalid
+		return assistant.AdmissionResult{}, assistant.ErrInvalid
 	}
 	var result assistant.Run
+	created := false
 	fingerprint := assistantMaterial(a)
 	err := store.assistantTransaction(ctx, func(ctx context.Context, tx pgx.Tx) error {
 		c, err := assistantLock(ctx, tx)
@@ -209,6 +215,9 @@ func (store *Store) AdmitAssistant(ctx context.Context, a assistant.Admission) (
 		}
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return err
+		}
+		if a.RequireExisting {
+			return assistant.ErrConflict
 		}
 		var tombstone bool
 		if err = tx.QueryRow(ctx, assistantTombstoneSQL, a.Actor.UserID, a.IdempotencyDigest[:]).Scan(&tombstone); err != nil {
@@ -253,7 +262,14 @@ VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NULLIF($12,''),$13,$14,$15,$16,$17,$18
 			return err
 		}
 		result = record.Run
-		return assistantEvent(ctx, tx, result, a.At)
+		if err := assistantEvent(ctx, tx, result, a.At); err != nil {
+			return err
+		}
+		created = true
+		return nil
 	})
-	return result, err
+	if err != nil {
+		return assistant.AdmissionResult{}, err
+	}
+	return assistant.AdmissionResult{Run: result, Created: created}, nil
 }

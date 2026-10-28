@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T07:08:42.322Z",
+  "version": "2.0.0-alpha.3",
+  "schema": 18,
+  "base_revision": "2086b3c1ca22fbd484eb28e29471e61567efc10e",
+  "tested_tree": "293b7b27474eb139e1e8a50bf712972c26af780c",
+  "scope": "Isolated stage-3 source checkpoint; future public routes and operator configuration excluded",
+  "tools": {
+    "node": "24.18.0",
+    "package_manager": "11.17.0",
+    "go": "1.26.10 source-built pinned toolchain",
+    "postgres": "17.11 native owned fixture"
+  },
+  "full_gate_command": "npm.cmd run verify",
+  "full_gate_postgres_enabled": true,
+  "checks": [
+    {
+      "name": "focused_sql",
+      "exit_code": 0,
+      "log_sha256": "7478ff5685348fc52cf650f40247be9cf1d13107cf5654d40e003dc78c11cb23"
+    },
+    {
+      "name": "shared_http",
+      "exit_code": 0,
+      "log_sha256": "017dbe09ba918d2fdff6b67c5816043f5915f222a4682a62425c4f0ce3ab3a48"
+    },
+    {
+      "name": "full_gate",
+      "exit_code": 0,
+      "log_sha256": "09707d23fb10391068bdf0cc3ee5f1da12496c1614443e9c1aa21b865055e447"
+    }
+  ],
+  "tests": {
+    "client": 40,
+    "web": 544,
+    "release_tooling": 48,
+    "corpus_tooling": 11
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "6ac2bf2615f44cb37df96dbf70b6d36d7067869ebd3a0332b1ad2a4f3963a6a6"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "2c2b5311cc66f84bbded43e701adb59eae42049341d287586c700ee856bd0edb"
+    },
+    {
+      "path": "apps/api/internal/assistant/authority.go",
+      "sha256": "9991beea19c459c027b5af5596710def5999108359f81b10fef482e75f463930"
+    },
+    {
+      "path": "apps/api/internal/assistant/runtime.go",
+      "sha256": "e1640dc12b32c06cae547dce7e466c72d5213459bb86a466c5d1e11b111aba10"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/authority_test.go",
+      "sha256": "e42efa27ea0f77ecb3a00f882340dc9b828f7b050daa59b279928e1e22eb2d12"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/authorizer.go",
+      "sha256": "73db3f7d45f1c3ae382a3e2f0bec53f536cc5d00db224bcae655860a6adeafb6"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/citations.go",
+      "sha256": "6aa3c912d60993743edf6521995bd560042540ae3d9a3c5db8635f47effb3a5c"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/doc.go",
+      "sha256": "25f43e245e0d59f2be5c06a53d8e7e7b281a11523660abe8fd942b1f15db8391"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/live.go",
+      "sha256": "8fcf893ace19bd6eb1a20b003e73a14fa385f94aeb219750a4724c31221d465e"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/metadata_test.go",
+      "sha256": "8dabd2351f1baede8912d23b913894350821608f75e9867580d7ebc2281827b4"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/read.go",
+      "sha256": "7e42c9a129498bd89404639041b163eb679db797e13f0e25048237a13dc84827"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/reader_test.go",
+      "sha256": "ba3f07456de08b497a5331e3f4a19405168ab551eaafc63550df9e29aa64b007"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/transitions_test.go",
+      "sha256": "b3fb7d889b9b2c4d703fbf2d5d04e5807f6610768dd4773f9c4b85a1c960ecdc"
+    },
+    {
+      "path": "apps/api/internal/assistantevidence/types.go",
+      "sha256": "7509f119320550d979e502a8d55e4f8d7308476f70d6562d7abf875e6a0e8524"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/admission_outcome_test.go",
+      "sha256": "c0eb0a0340e486972e11ad20c70df0dcf53ff26ee2b7b5157e51a67e1d472795"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/admission_test.go",
+      "sha256": "32b2b9ab581599ab5ee7d10d9a581a73406d82a9a8120a0296ec58b910238a48"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/boundaries_test.go",
+      "sha256": "5f0f46e9c95b6d9444c6472b4a4b171634be476cd3b7c366a57d269e6a545191"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/execute.go",
+      "sha256": "e6a00374b9475db1c617644e751784217c0f184d062f4e337c3dfc15fb6b2f13"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/fairness_test.go",
+      "sha256": "93c475b565847eabcb1278117870a00558c43078ed378698c74f2baf13321df1"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/fixtures_test.go",
+      "sha256": "b7218639c5d5d64982466b3dfa1a7f8026800727147a06dadcb99883cf5dcccc"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/lifecycle_test.go",
+      "sha256": "eba0df685068f6170a654b4019240bd053085726f05a6b4982b7e480c37a13b7"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/memory.go",
+      "sha256": "95f8a8823bacce4b13c5cac3763cd62842d3ecfde059d5247abbe4fe54bbe92e"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/operations.go",
+      "sha256": "4ff6fb6d4ce0bcecfd832956ee9d167f896cd90f67af897bf928846708989449"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/sealing_test.go",
+      "sha256": "89d29c96bcf5f62e03e44a1c8a714886ab6c7fbb4525b9b4236775f94d22c2c8"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/service.go",
+      "sha256": "a039b4354b9d545495b44a2f6c4fbb5c5f635ea4057790804c00367e7b1ad1b1"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/service_test.go",
+      "sha256": "b053ec000e8dd75e1c77543b6d431176266dbb8442a52c6d3201743d29e5cba7"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/shutdown_test.go",
+      "sha256": "5b0b4d2d7e3b39a74412fdbb7472d1f269f3e9986ee8f86d9885bd7add3d9fc9"
+    },
+    {
+      "path": "apps/api/internal/assistantservice/worker.go",
+      "sha256": "74320278ccc972c5e2e4218072dbc936f05b372d5be23a1fd0908a970ac7ec39"
+    },
+    {
+      "path": "apps/api/internal/config/audit_policy.go",
+      "sha256": "49c0345a6c81533227f766ec7531e17e669f530e5dd9ab29137ba9f411898e4e"
+    },
+    {
+      "path": "apps/api/internal/contextbuilder/builder.go",
+      "sha256": "14f4372feb5dc604ac641466bf67d30120cadf70e53c0f221405e8ca7fbb46a8"
+    },
+    {
+      "path": "apps/api/internal/contextbuilder/builder_test.go",
+      "sha256": "d3b2060e327ba45ac16e70e13c8c57a8e75263557740a2767652e53a8f831fc1"
+    },
+    {
+      "path": "apps/api/internal/contextbuilder/items.go",
+      "sha256": "d39708ff91e9416b202c3c1b308efe90666c698c708332a56a72b1d5e92bb3b3"
+    },
+    {
+      "path": "apps/api/internal/contextbuilder/items_test.go",
+      "sha256": "90940270eef25f850437b7f8b9efa40ed8b4b486809a94c74b9183e77b134778"
+    },
+    {
+      "path": "apps/api/internal/contextbuilder/types.go",
+      "sha256": "1a54987df15b9cfaa522de6ff7f207c26c1b1389c17326cfb6b2183daf4b980d"
+    },
+    {
+      "path": "apps/api/internal/httpapi/configured_logs.go",
+      "sha256": "200c25dfc6fe10385b25e3ac3866158a0969e86ed3d3fc5949cdb6dd90dc94f3"
+    },
+    {
+      "path": "apps/api/internal/logpolicy/reader.go",
+      "sha256": "19433c9a0850fa4fe706092fa113ad4655c42b87b2ab4b56f47138f8a864a72e"
+    },
+    {
+      "path": "apps/api/internal/logpolicy/reader_test.go",
+      "sha256": "2b8f53fc2cc7811b273dd38975821b226c52ecad510a3eea4ce9a822305344aa"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_admission_outcome_integration_test.go",
+      "sha256": "b942b8d042792f2d07748cef7fbef23b551cd844e47aeb401bb9b3e23581dbde"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_authority.go",
+      "sha256": "f3edb64ecfc13868346d49c15ad54169c8ff38d705174e5d9afb04eee49c5a60"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_authority_integration_test.go",
+      "sha256": "f9e51318f2fbeb88bee932f6f8f45eaa509e5eb5b5f2f5b1fedcf73636d35b0d"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_fairness_integration_test.go",
+      "sha256": "1261dcb2b810017c7e4ea3dc2d413ae709faf1c55b17a8f50bcf5416a557d967"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_retry_integration_test.go",
+      "sha256": "29ba07b108afc32a171a86809208cb69e526b1b8752f0a86fbab05becb7096ec"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_runtime.go",
+      "sha256": "3602766b531814274985ee14d156e3d49dece20bc4bfc694d606967a03178575"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_service_integration_test.go",
+      "sha256": "415be6377898cf28e028de4ff6ec623697167ee5be76c2d1205a3faa920aa0a4"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_wire_integration_test.go",
+      "sha256": "5851e61e0dfaaa4e6d02955fcf99401861320ecb05f7859b9a9a797a3a0df6e8"
+    },
+    {
+      "path": "apps/api/internal/provider/logsafe/policy.go",
+      "sha256": "0f7177f3649e5c3c618395543c15ff3971bfa6acd2222747cf57f39678e5c1e4"
+    },
+    {
+      "path": "apps/api/internal/provider/logsafe/policy_test.go",
+      "sha256": "f539f8fdddff3d27e6dbbef19190bb92112dfd1bca4f414c20dc2ac12a1c991b"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "0bc3085438510e17a913030f163002233c9b3111e2a6ad6558b7a3a7e6b97a4b"
+    },
+    {
+      "path": "compose.yaml",
+      "sha256": "e0e59ad5453d9490b12b1367ea4fa955eb078e19de308fac532d4c4b4ca9d146"
+    },
+    {
+      "path": "contracts/openapi.yaml",
+      "sha256": "02fd7941ad4f4cc39044f6ee41bc6808e6d701ea7f75b2943afa928be5649a3c"
+    },
+    {
+      "path": "deploy/helm/stackplore/Chart.yaml",
+      "sha256": "e8d37e4caf019047b8cf6db0852e31a3ca917b233725c796425fc277834d5acf"
+    },
+    {
+      "path": "deploy/helm/stackplore/values.yaml",
+      "sha256": "d540e6b8353f8465065f3eeddff09e2b5bfd242b13344f1f620a0c4016cedb89"
+    },
+    {
+      "path": "deploy/postgres-image.json",
+      "sha256": "cb72fce643bd3d0da9df537127f7c3421d02eb9bdf8c5c8a9fd566c4c69e3987"
+    },
+    {
+      "path": "docs/evidence/2.0.0-alpha.2/published-release.json",
+      "sha256": "99bbe5178fb975cafb205a17efd2ae2331a72761afb7e21946fc29c2bf92e408"
+    },
+    {
+      "path": "package.json",
+      "sha256": "1357be363ebe78dafc2a9e92ed8af5d1a633dbaa7014327d3a3bc30db7da5662"
+    },
+    {
+      "path": "packages/api-client/package.json",
+      "sha256": "b2e49e88affc91ba9b541849ee3207532aee1c71c584cf79a71b29357a6f305b"
+    },
+    {
+      "path": "packages/ui/package.json",
+      "sha256": "d53d9182dd02a23e5ce7355ff5cf5832025af4a04dc57bcf8c4f6f2f03626590"
+    }
+  ],
+  "remaining": [
+    "Exact-source hosted concurrency, browser and deployment checks",
+    "Fresh canonical source and artifact vulnerability scans and signed package proof",
+    "Accepted >=90% branch measurement; statement coverage is distinct",
+    "Human grounded-quality review and current local engine proof",
+    "Later roadmap stages; no stable or full stage acceptance claim"
+  ],
+  "retained_failures": [
+    "Initial missing offline tarball; locked online installation subsequently passed",
+    "Initial Compose runtime version mismatch, corrected before passing gate",
+    "Cold offline module graph exceeded gate timeout; warmed the same pinned cache without changing the gate",
+    "Package-manager audit fetch/timeout failures; independent native bulk advisory query is separate"
+  ],
+  "quality_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Tested shared policy, evidence and volatile-service source; no overall product or stage acceptance score",
+    "fixed": [
+      "Provider reference API compile drift",
+      "Restore fixture constraint compliance",
+      "Deterministic metadata/evidence assertions",
+      "Missing bounded HTTP protocol fixture with committed SQL reservation checks",
+      "Runtime image tag consistency",
+      "Stale verification documentation"
+    ]
+  },
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "command": "git diff --cached --binary | gitleaks stdin --redact=100",
+    "exit_code": 0,
+    "findings": 0,
+    "scope": "Staged source diff, before receipt and ledger-only additions; not whole-history acceptance"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T07:10:41.331Z",
+  "tested_tree": "293b7b27474eb139e1e8a50bf712972c26af780c",
+  "scope": "Fresh source Go module and complete locked package dependency scan; not binary or container acceptance",
+  "tool": "Trivy 0.76.0",
+  "verified_archive_sha256": "e24b1c51293c1b15e4ba8d45bbc7891ba053f90278ec2698f3562c993e145fe7",
+  "database": {
+    "Version": 2,
+    "NextUpdate": "2026-10-29T01:21:08.391884123Z",
+    "UpdatedAt": "2026-10-28T01:21:08.391884645Z",
+    "DownloadedAt": "2026-10-28T07:09:13.495938437Z"
+  },
+  "database_metadata_sha256": "50a89b59a2bbd7fe463d3c5f1867265aaf98e118d6e9fce1db53756b1dfd00b6",
+  "report_sha256": "7bb5cce1a8c653ebc1513b316682fc5b54ef8ae29616fbcd7833639ce855aa64",
+  "sbom_sha256": "1a4bc6f992b431a889f22ea9a7c20e6121f17c035503193e71b4c2b33ff2a739",
+  "targets": [
+    {
+      "target": "apps/api/go.mod",
+      "type": "gomod",
+      "reported_vulnerabilities": 0
+    },
+    {
+      "target": "pnpm-lock.yaml",
+      "type": "pnpm",
+      "reported_vulnerabilities": 0
+    }
+  ],
+  "include_development_dependencies": true,
+  "high_critical_gate": "passed",
+  "source_sbom": "produced",
+  "secrets": {
+    "tool": "gitleaks 8.30.1",
+    "verified_archive_sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+    "staged_diff": {
+      "status": "passed",
+      "findings": 0
+    },
+    "directory_scan": {
+      "status": "failed",
+      "findings": 16,
+      "classification": "Pre-existing synthetic redaction/provider test literals; exact fixture bytes verified unchanged from alpha.2. No new ignore or suppression added. Whole-history canonical scan still required.",
+      "unchanged_fixtures": [
+        {
+          "path": "apps/api/internal/provider/kubernetes/provider_test.go",
+          "sha256": "e509becddfe2c7978d6261f6f5dd1dd2407715af4ee6a940ab53613f36ef6778"
+        },
+        {
+          "path": "apps/api/internal/provider/logsafe/message_test.go",
+          "sha256": "93fd494c63917053aee00c1e221b4b9637ae24f0fcb71d3601a25654934fe2f3"
+        }
+      ]
+    }
+  },
+  "remaining": [
+    "Canonical whole-history secret scan on committed source",
+    "Signed native/application/database artifact scans",
+    "Hosted exact-source concurrency/browser/deployment proof"
+  ]
+}

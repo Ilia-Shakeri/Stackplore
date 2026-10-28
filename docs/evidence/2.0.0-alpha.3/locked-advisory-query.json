@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-26T05:55:33.544Z",
+  "method": "Independent native-fetch official bulk advisory query; not a successful package-manager audit",
+  "scope": "Every locked registry package, including development and optional platform packages; no ignore list",
+  "lockfile_sha256": "bb70b154e60e0eb5e16aad0678fbcb07804208b4bb077d4b1a5f56d7365055fd",
+  "request_sha256": "834b1bf527efd8ad236d8a98607c031173545f5745a6550118a3ddd08ad77eb2",
+  "packages": 373,
+  "versions": 393,
+  "counts": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  },
+  "findings": [],
+  "status": "passed"
+}

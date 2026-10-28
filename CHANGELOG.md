@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0-alpha.3] - 2026-10-28
+
+### Smart Assistant
+
+- Add the shared bounded log policy, closed evidence projections, current-authority reader and volatile local explanation service. Public content routes and operator profile composition remain disabled.
+- Preserve committed idempotency ownership: only newly committed admission retains new private material; reused runs cannot acquire a replacement question or consume a turn.
+- Check current owner/session/source/profile/policy/restore/lease authority before counting, dispatch, publication and completed replay.
+- Add actual PostgreSQL authority, rollback, retry, fairness and SQL-content-absence checks; a synthetic HTTP protocol fixture exercises the production local adapter with committed reservations.
+- Reconcile alpha.2 public artifact acceptance and canonical project paths. Retain failed downloads and consumer attempts.
+- This is a prerelease source checkpoint. New-package branch measurement, live engine quality, browser conversation and remaining roadmap gates are not claimed complete.
+
 ## [2.0.0-alpha.2] - Unreleased
 
 - Add application migration 18 for owner-private run/step/status metadata,
