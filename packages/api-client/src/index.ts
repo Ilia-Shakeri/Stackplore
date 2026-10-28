@@ -16,6 +16,11 @@ export { ApiProblemError, parseProblem } from './problem';
 export { createRequestId, isRequestId, type RequestIdFactory } from './request-id';
 export { hasCodePointLength, sliceCodePoints } from './unicode-text';
 export {
+  parseAssistantRunReceipt,
+  parseAssistantRunResponse,
+  parseAssistantCitation,
+} from './assistant-response';
+export {
   createAssistantClient,
   createAssistantIdempotencyKey,
   type AssistantClient,

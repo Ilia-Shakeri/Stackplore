@@ -1,4 +1,9 @@
 import { ApiTransportError, type ApiClient, type ApiResponse } from './client';
+import {
+  parseAssistantCitation,
+  parseAssistantRunReceipt,
+  parseAssistantRunResponse,
+} from './assistant-response';
 import type {
   AssistantResourceCitation,
   AssistantRunReceipt,
@@ -52,6 +57,16 @@ const invalid = (): never => {
   throw new ApiTransportError('invalid_request');
 };
 const stopped = () => Promise.reject(new DOMException('The request was aborted.', 'AbortError'));
+const checkedReply = <T>(
+  response: ApiResponse<unknown>,
+  status: number,
+  parse: (value: unknown) => T,
+  signal?: AbortSignal,
+): ApiResponse<T> => {
+  if (signal?.aborted === true) throw new DOMException('The request was aborted.', 'AbortError');
+  if (response.status !== status) throw new ApiTransportError('unexpected_response');
+  return { ...response, data: parse(response.data) };
+};
 const exact = (value: unknown, pattern: RegExp): value is string =>
   typeof value === 'string' && value.length <= 128 && value === value.trim() && pattern.test(value);
 
@@ -99,6 +114,7 @@ const closedInput = (value: unknown): AssistantRunRequest => {
     typeof input.question !== 'string' ||
     input.question.length > 8192 ||
     input.question.trim() === '' ||
+    !/\P{White_Space}/u.test(input.question) ||
     input.question.includes('\0') ||
     !wellFormed(input.question) ||
     new TextEncoder().encode(input.question).byteLength > 8192 ||
@@ -129,7 +145,7 @@ export const createAssistantIdempotencyKey = (): string => {
 };
 
 // This typed request constructor performs no retry, storage, polling or dispatch
-// until explicitly called. Server authority and response validation remain required.
+// until explicitly called. Closed replies do not replace fresh server authority.
 export const createAssistantClient = (client: ApiClient): AssistantClient => {
   const candidate: unknown = client;
   if (
@@ -154,39 +170,80 @@ export const createAssistantClient = (client: ApiClient): AssistantClient => {
         return invalid();
       }
       if (!exact(options.idempotencyKey, keyPattern)) return invalid();
-      return client.request<AssistantRunReceipt, AssistantRunRequest>({
-        path: '/assistant/runs',
-        method: 'POST',
-        body,
-        protection: { kind: 'session', csrfToken: options.csrfToken },
-        headers: { 'Idempotency-Key': options.idempotencyKey },
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      });
+      return client
+        .request<unknown, AssistantRunRequest>({
+          path: '/assistant/runs',
+          method: 'POST',
+          body,
+          protection: { kind: 'session', csrfToken: options.csrfToken },
+          headers: { 'Idempotency-Key': options.idempotencyKey },
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        })
+        .then((response) => {
+          const checked = checkedReply(response, 202, parseAssistantRunReceipt, options.signal);
+          const data = checked.data;
+          if (
+            data.run.scope.source_id !== body.source_id ||
+            data.run.scope.resource_id !== body.resource_id ||
+            data.run.scope.window_minutes !== body.window_minutes ||
+            (body.conversation_id !== undefined &&
+              data.run.conversation_id !== body.conversation_id)
+          )
+            throw new ApiTransportError('unexpected_response');
+          return checked;
+        });
     },
     get(runId, options = {}) {
       if (options.signal?.aborted === true) return stopped();
-      return client.request<AssistantRunResponse>({
-        path: runPath(runId),
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      });
+      return client
+        .request<unknown>({
+          path: runPath(runId),
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        })
+        .then((response) =>
+          checkedReply(
+            response,
+            200,
+            (value) => parseAssistantRunResponse(value, runId),
+            options.signal,
+          ),
+        );
     },
     cancel(runId, options) {
       if (options.signal?.aborted === true) return stopped();
-      return client.request<AssistantRunReceipt>({
-        path: `${runPath(runId)}/cancel`,
-        method: 'POST',
-        protection: { kind: 'session', csrfToken: options.csrfToken },
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      });
+      return client
+        .request<unknown>({
+          path: `${runPath(runId)}/cancel`,
+          method: 'POST',
+          protection: { kind: 'session', csrfToken: options.csrfToken },
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        })
+        .then((response) =>
+          checkedReply(
+            response,
+            200,
+            (value) => parseAssistantRunReceipt(value, runId),
+            options.signal,
+          ),
+        );
     },
     citation(runId, citationId, options = {}) {
       if (options.signal?.aborted === true) return stopped();
       const path = runPath(runId);
       if (!exact(citationId, citationPattern)) return invalid();
-      return client.request<AssistantResourceCitation>({
-        path: `${path}/citations/${citationId}`,
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      });
+      return client
+        .request<unknown>({
+          path: `${path}/citations/${citationId}`,
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        })
+        .then((response) =>
+          checkedReply(
+            response,
+            200,
+            (value) => parseAssistantCitation(value, citationId),
+            options.signal,
+          ),
+        );
     },
   };
 };

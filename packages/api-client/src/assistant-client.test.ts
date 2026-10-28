@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { assistantCitationFixture, assistantRunFixture } from './assistant-fixture.test-support';
 import {
   ApiTransportError,
   createApiClient,
@@ -17,12 +18,24 @@ const input: AssistantRunRequest = {
   question: 'چرا این منبع در دسترس نیست؟',
 };
 const options = { csrfToken: 'A'.repeat(43), idempotencyKey: 'c'.repeat(64) };
-const response = () =>
-  new Response('{}', {
-    headers: { 'Content-Type': 'application/json', 'X-Request-ID': 'req_assistant_test_01' },
-  });
+const response = (url: unknown, init?: RequestInit) =>
+  new Response(
+    JSON.stringify(
+      typeof url === 'string' && url.includes('/citations/')
+        ? assistantCitationFixture()
+        : init?.method === 'POST'
+          ? { run: assistantRunFixture() }
+          : { run: assistantRunFixture(), content_state: 'volatile_lost' },
+    ),
+    {
+      status: url === '/api/v1/assistant/runs' && init?.method === 'POST' ? 202 : 200,
+      headers: { 'Content-Type': 'application/json', 'X-Request-ID': 'req_assistant_test_01' },
+    },
+  );
 const fixture = () => {
-  const fetchMock = vi.fn<typeof fetch>().mockImplementation(() => Promise.resolve(response()));
+  const fetchMock = vi
+    .fn<typeof fetch>()
+    .mockImplementation((url, init) => Promise.resolve(response(url, init)));
   const client = createAssistantClient(createApiClient({ fetch: fetchMock }));
   return { client, fetchMock };
 };
@@ -129,6 +142,7 @@ describe('explicit private run requests', () => {
       '\ud800',
       '\udc00',
       ' ',
+      '\u0085',
       '\u0000',
     ]) {
       expect(() => client.admit({ ...input, question }, options)).toThrow(ApiTransportError);

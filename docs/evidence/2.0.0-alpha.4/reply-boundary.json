@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-28T09:38:32.896Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "cf3dbc52a771bd47c727a7548a39452a178b93dc",
+  "tested_tree": "66b580f57af397186203712bc276639bb4eeb1d9",
+  "scope": "Closed client replies only; incomplete stage-4 development increment",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "log_sha256": "04ff985d80006d84f71ffe925b1798e602713b636d90541fdc2d97d670280b33",
+    "client_tests": 118,
+    "web_tests": 544,
+    "tooling_tests": 48,
+    "corpus_tooling_tests": 11,
+    "postgres_seconds": 151.689,
+    "native_postgres_seconds": 13.424,
+    "production_builds": "passed"
+  },
+  "package_audit": {
+    "command": "corepack.cmd pnpm --config.local-address=0.0.0.0 audit --audit-level high --json",
+    "exit_code": 0,
+    "report_sha256": "4a058b957fd988a9ffbdeafeb69f8a00efd127ac96a8c59e5561d401666b78f6",
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 330,
+      "optionalDependencies": 55,
+      "totalDependencies": 393
+    }
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "include_development_dependencies": true,
+    "exit_code": 0,
+    "targets": [
+      {
+        "type": "gomod",
+        "target": "apps/api/go.mod",
+        "reported_vulnerabilities": 0
+      },
+      {
+        "type": "pnpm",
+        "target": "pnpm-lock.yaml",
+        "reported_vulnerabilities": 0
+      }
+    ],
+    "report_sha256": "fb8d8a4d2625fdde9b5d37275fc7f86c9c66039b146c79c536f99034d429d6a7",
+    "sbom_sha256": "63a0f4684b88b73b31c99d8d467f170beb13ba5983a56930819eec1bbe589114"
+  },
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Complete implementation diff before this receipt and final documentation-only edits; history checked separately after commit"
+  },
+  "files": [
+    {
+      "path": "packages/api-client/src/index.ts",
+      "sha256": "68b4df733d046a1fd2fb8fa7660e2ac973a988f4b18d7fa8c74ca3c2b77329d3"
+    },
+    {
+      "path": "packages/api-client/src/assistant-client.ts",
+      "sha256": "6fef8233e742b781df9aa6261b268ac4fea74d9ec4ae1e271350a34c40e11056"
+    },
+    {
+      "path": "packages/api-client/src/assistant-client.test.ts",
+      "sha256": "8267da24fe4330e1c2cf55808124ab3d74dba273cc83c289f4fe3070d5f66efe"
+    },
+    {
+      "path": "packages/api-client/src/assistant-response.ts",
+      "sha256": "7a722a5242d2fbd06cea73a2b9d6c3de70cbb0fb0ff95e4ded25f0d597b2f3db"
+    },
+    {
+      "path": "packages/api-client/src/assistant-response.test.ts",
+      "sha256": "d2c6d6a3c973b2d99d3ea7f9a3b9c376ba91408c73d60b2a3c14989a8cb4a029"
+    },
+    {
+      "path": "packages/api-client/src/assistant-fixture.test-support.ts",
+      "sha256": "bf284c41685539673423e5ac9ec291fff885175797cb288b52f8067369544fd0"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Closed response client component, not infrastructure or overall product acceptance",
+    "corrections": [
+      "Unicode whitespace-only requests/replies rejected",
+      "Exact success statuses enforced",
+      "Cancellation rechecked before returning late content",
+      "Selected admission scope and explicit conversation bound to receipt"
+    ]
+  },
+  "retained_attempts": [
+    "First contract subprocess validated the description then exited with a Windows libuv assertion; full gate reruns must independently pass",
+    "Initial strict lint rejected control-regex and fixture assertions",
+    "A generic cancellation test mock failed strict lint/type checks before correction",
+    "Intermediate clean snapshot A has a different source tree and fewer tests; it does not certify final snapshot B"
+  ],
+  "limitations": [
+    "No public run route, startup composition, status stream or bilingual view",
+    "Client validation cannot establish server authority or factual correctness",
+    "Owning application still needs scope-bound citation navigation, inert text rendering, per-call deadlines and logout/account-change erasure",
+    "No new whole-stage branch, current-engine, human-quality, soak, capacity or artifact acceptance",
+    "No alpha.4 milestone tag; exact final commit hosted checks remain separate"
+  ]
+}
