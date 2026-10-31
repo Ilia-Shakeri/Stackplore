@@ -18,6 +18,7 @@
 - Preserve full valid owner identity length after internal stream/download namespacing.
 - Refresh the 2026-10-31 dependency graph to `seroval 1.6.11` and `minimatch 11.0.1`, regenerate production legal metadata and audit all severities. Preserve the earlier graph's receipts separately from final dependency acceptance.
 - Patch the server graph to chi 5.4.0 and x/net 0.62.0 with regenerated notices. Retain the package-specific no-fix OpenPGP finding and five-platform evidence that affected imports are absent; do not claim all-severity source zero.
+- Fence browser private requests with an opaque volatile session identity, bound reads and status lifetime, abort on owner changes and reject late callbacks. Preserve protected action checks across same-proof authority changes; the owning view remains pending.
 - Preserve exact alpha.3 source/artifact evidence separately; this development version is not a completed stage or a tagged release.
 
 ## [2.0.0-alpha.3] - 2026-10-28

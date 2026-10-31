@@ -219,3 +219,34 @@ current processor, full-stage acceptance or alpha.4 milestone tag is claimed.
 پاس کرد. اسکن شدید و بحرانی صفر؛ هشدارِ بستهٔ واردنشده در گزارش کامل بماند.
 روش اصلیِ اسکن محرمانه بی‌یافته است؛ هشدارِ checksum در متن diff حفظ شد.
 صفحهٔ دوزبانه، موتور واقعی، تگ و پایان مرحله هنوز جدا لازم‌اند.
+
+## Browser ownership increment
+
+The [browser ownership boundary](../../v2/browser-ownership.md) adds an opaque
+volatile session identity and explicitly owned private transport. Protected
+mutations retain their proof inside the session runner; same-proof authority
+changes fence late dispatch/results. REST calls have 15-second lifetimes and
+status has a 120-second outer bound. Owner loss, caller cancellation and
+timeout settle locally even when transport ignores abort. Cleanup and closed
+reply/status validation remain mandatory; no view, storage, automatic read,
+reconnect or resend is added.
+
+Focused checks pass **47 tests** with **96.15% branch coverage** on the private
+port; type/lint checks pass. Earlier fixture, generic-mock typing, lint,
+synchronous-stop rejection and insufficient-coverage failures remain retained.
+A complete source/hosted gate is separate. The owning bilingual journey, real
+processor, full stage and alpha.4 tag remain open.
+
+نشان مالک در حافظه ساخته شد؛ تغییر نشست و مجوز، پاسخِ دیررس را رد کند.
+۴۷ تست و سنجش سخت شاخه پاس؛ صفحه هنوز وصل نیست. شاهد گیت کامل و CI جدا لازم.
+
+The complete [ownership source receipt](browser-ownership.json) binds tree
+`b5391a2aacadf8d622c0e74ecad55b2fc532285b`: **213 client and 576 web tests**, real SQL/native
+results with cache markers preserved, strict checks and production builds pass.
+Fresh canonical dependency scanning, the 394-version all-severity package audit
+and staged/history secret checks pass within their recorded scopes. The known
+package-specific no-fix finding remains visible in the separate all-severity
+source report. The prior status commit has its [seven-job hosted receipt](status-server-hosted.json).
+Later receipt/doc edits receive separate document/format checks; the exact
+ownership commit still requires hosted checks. Controller and view source
+are not included in this ownership checkpoint.

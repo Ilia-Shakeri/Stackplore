@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-31T07:36:21.390Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "c3d4812443b80f62a154243161481a004505a9de",
+  "tested_tree": "b5391a2aacadf8d622c0e74ecad55b2fc532285b",
+  "scope": "Opaque browser ownership and private port; owning conversation/controller and view are separate",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "client_tests": 213,
+    "web_tests": 576,
+    "log_sha256": "b0b1ab30fc1124542c0322274237cbc398646f02e0359b680983d5d36b1243f5",
+    "go_package_results": [
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/operator\t0.650s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/server\t6.211s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/storage\t1.370s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t1.165s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant\t1.236s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation\t1.217s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence\t1.023s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice\t5.169s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantworker\t0.841s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/auth\t1.474s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/config\t1.004s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder\t0.894s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/database\t1.190s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t1.146s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi\t20.039s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/inference\t0.823s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy\t0.820s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/notification\t5.020s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observability\t0.889s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observation\t1.081s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres\t163.057s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgresops\t12.552s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo\t1.198s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/docker\t2.393s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference\t2.536s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes\t2.057s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe\t1.106s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/realtime\t1.930s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/runtimefiles\t0.867s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/sourcesettings\t0.764s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/webui\t1.170s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t0.596s\tcoverage: 80.6% of statements",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t1.257s\tcoverage: 82.6% of statements"
+    ],
+    "cache_note": "Raw result lines distinguish actual execution and cached packages",
+    "production_builds": "passed"
+  },
+  "focused": {
+    "tests": 47,
+    "exit_code": 0,
+    "log_sha256": "dc828c3613b7bef9e059888321dcfa15ad81bb6631ea580ff4baf14eaba146e2",
+    "coverage": {
+      "scope": "apps/web/src/features/assistant/assistant-api.ts only",
+      "statements": {
+        "covered": 68,
+        "total": 70
+      },
+      "branches": {
+        "covered": 25,
+        "total": 26
+      },
+      "functions": {
+        "covered": 25,
+        "total": 26
+      },
+      "lines": {
+        "covered": 60,
+        "total": 61
+      }
+    },
+    "lint_exit_code": 0,
+    "types_exit_code": 0
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "canonical_severities": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "canonical_exit_code": 0,
+    "canonical_report_sha256": "c71fd322426d0aad3b885fb060e19ecca58111d640a26ec6ccc0217dc42a6e97",
+    "all_severities_exit_code": 1,
+    "remaining_findings": [
+      {
+        "target": "apps/api/go.mod",
+        "id": "GO-2026-5932",
+        "package": "golang.org/x/crypto",
+        "version": "v0.58.0",
+        "severity": "UNKNOWN"
+      }
+    ],
+    "all_report_sha256": "cd2407ca5b0385d0bd79a00de91a7b3350dbfcf30e6448e76d5fde90c54b0b06",
+    "sbom_sha256": "a47923862493aadd17d79b8863921534b7385ab7f4b99e4e8853954aaf3491e7",
+    "not_affected_evidence": "See status-server.json: identical pinned module graph; five release-target import inventories contain no affected package",
+    "no_new_ignores": true
+  },
+  "package_audit": {
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 331,
+      "optionalDependencies": 55,
+      "totalDependencies": 394
+    },
+    "report_sha256": "c74bb429f9ad7e68fa4e91b0cb39c2e8f04dd95c68f163cfd3f89a114921c13a"
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "staged_findings": 0,
+    "canonical_history_commits": 54,
+    "history_findings": 0,
+    "staged_report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "history_report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "log_sha256": "ad3ca8732ceec6d1535ec28339ad2a5639b9fb2940fe10022f72f174a65320b0",
+    "scope": "Before receipt additions; final index checked separately"
+  },
+  "retained_failures": [
+    {
+      "name": "v2-stage4-owned-api-tests-20261031-a",
+      "exit_code": 1,
+      "log_sha256": "eebec9cc2679743c89a9cb68cdea47bc7604a5aad2458d584ce2a875ef404ef7"
+    },
+    {
+      "name": "v2-stage4-owned-api-types-20261031-a",
+      "exit_code": 2,
+      "log_sha256": "cff5735436aab680c35d959bce7a53aeea88235f84b8fe1e4367b162390d8c21"
+    },
+    {
+      "name": "v2-stage4-owned-api-lint-20261031-a",
+      "exit_code": 1,
+      "log_sha256": "56e598f245ee49636676733dd175de37285788d02c474488c8b30d60c43ab783"
+    },
+    {
+      "name": "v2-stage4-owned-api-coverage-20261031-a",
+      "exit_code": 1,
+      "log_sha256": "6ebe75c19232d58cc8e6d95cce3619e8c15c73c98dd10f442ee9a25ee2f3157e"
+    },
+    {
+      "name": "v2-stage4-owned-api-coverage-20261031-b",
+      "exit_code": 1,
+      "log_sha256": "e0fbf5ad2a0e8000440bc21b9c146e6ef675efb12b648441bf5553a15b4f01ed"
+    },
+    {
+      "name": "v2-stage4-owned-api-coverage-20261031-c",
+      "exit_code": 1,
+      "log_sha256": "7e8338e9da155b111a3fdc422b06911da14af53c259748cc6dbe07e369d9c019"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Session ownership and private transport only",
+    "fixes": [
+      "Opaque identity rotation and protected action fencing",
+      "Observe stop before synchronous callback failure",
+      "Bound lifetime, clear listeners and reject late results",
+      "Add missed-notification and cancellation-before-dispatch coverage"
+    ]
+  },
+  "limitations": [
+    "Not mounted as a user view",
+    "Controller, bilingual browser flow and current real processor remain separate",
+    "No whole-stage acceptance or alpha.4 milestone tag"
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/features/auth/auth-store.ts",
+      "sha256": "abcb2dd0207aaf09ffdd326bb4802b39bc16ae583d0410f15146cebe2623404b"
+    },
+    {
+      "path": "apps/web/src/features/auth/auth-owner.test.ts",
+      "sha256": "7b85fdd4a5fd1e7dd682c335df6163192d06638549d3a6ecca7caf4c4113a6f3"
+    },
+    {
+      "path": "apps/web/src/features/assistant/assistant-api.ts",
+      "sha256": "5d5ac3bc4e14723f19fbe7a2a26416ed7ee9be202bed98ff83255d1d99cc1f3a"
+    },
+    {
+      "path": "apps/web/src/features/assistant/assistant-api.test.ts",
+      "sha256": "1e9653173ac9769df8603536510ac251185e01e29e7ceb94237b60ffa793e80b"
+    }
+  ]
+}

@@ -52,6 +52,7 @@ export class AuthStore {
   #csrfProof: string | null;
   #expiryTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   #generation = 0;
+  #sessionOwner: symbol | null = null;
   #inFlight: Promise<AuthSnapshot> | null = null;
   #activityRequest: Promise<void> | null = null;
   #lastActivityRefresh = Number.NEGATIVE_INFINITY;
@@ -71,12 +72,16 @@ export class AuthStore {
         this.#csrfProof = null;
         this.#snapshot = { status: 'unauthenticated' };
       } else {
+        this.#sessionOwner = Symbol();
         this.#scheduleExpiry(deadline);
       }
     }
   }
 
   getSnapshot = () => this.#snapshot;
+
+  // Opaque, volatile identity for fencing private views; contains no session proof.
+  getSessionOwner = () => this.#sessionOwner;
 
   subscribe = (listener: AuthListener) => {
     this.#listeners.add(listener);
@@ -135,6 +140,7 @@ export class AuthStore {
   }
 
   #publishWithoutSession(snapshot: Exclude<AuthSnapshot, { readonly status: 'authenticated' }>) {
+    this.#sessionOwner = null;
     this.#csrfProof = null;
     this.#clearExpiryTimer();
     this.#publish(snapshot);
@@ -145,6 +151,17 @@ export class AuthStore {
     if (deadline === null || deadline <= Date.now()) {
       this.#setUnauthenticated();
       return;
+    }
+    if (
+      this.#sessionOwner === null ||
+      this.#csrfProof !== session.csrfProof ||
+      this.#snapshot.status !== 'authenticated' ||
+      this.#snapshot.user.id !== session.user.id ||
+      this.#snapshot.user.role !== session.user.role ||
+      this.#snapshot.user.version !== session.user.version ||
+      this.#snapshot.user.enabled !== session.user.enabled
+    ) {
+      this.#sessionOwner = Symbol();
     }
     this.#csrfProof = session.csrfProof;
     this.#publish({
@@ -234,6 +251,7 @@ export class AuthStore {
     if (this.#snapshot.status === 'guest_demo') throw new AuthStateError();
     const session = await this.#api.login(input);
     this.#generation += 1;
+    this.#sessionOwner = null;
     this.#acceptSession(session);
   };
 
@@ -241,6 +259,7 @@ export class AuthStore {
     if (this.#snapshot.status === 'guest_demo') throw new AuthStateError();
     const session = await this.#api.setup(input);
     this.#generation += 1;
+    this.#sessionOwner = null;
     this.#acceptSession(session);
   };
 
@@ -311,16 +330,25 @@ export class AuthStore {
     }
     const csrfProof = this.#csrfProof;
     const generation = this.#generation;
+    const owner = this.#sessionOwner;
     const recentAuthToken = await this.#api.createRecentAuthGrant(
       currentPassword,
       purpose,
       csrfProof,
     );
-    if (generation !== this.#generation || this.#csrfProof !== csrfProof) {
+    if (
+      generation !== this.#generation ||
+      this.#csrfProof !== csrfProof ||
+      this.#sessionOwner !== owner
+    ) {
       throw new AuthStateError();
     }
     const result = await action({ csrfToken: csrfProof, kind: 'session', recentAuthToken });
-    if (generation !== this.#generation || this.#csrfProof !== csrfProof) {
+    if (
+      generation !== this.#generation ||
+      this.#csrfProof !== csrfProof ||
+      this.#sessionOwner !== owner
+    ) {
       throw new AuthStateError();
     }
     return result;
@@ -334,8 +362,13 @@ export class AuthStore {
     }
     const csrfProof = this.#csrfProof;
     const generation = this.#generation;
+    const owner = this.#sessionOwner;
     const result = await action({ csrfToken: csrfProof, kind: 'session' });
-    if (generation !== this.#generation || this.#csrfProof !== csrfProof) {
+    if (
+      generation !== this.#generation ||
+      this.#csrfProof !== csrfProof ||
+      this.#sessionOwner !== owner
+    ) {
       throw new AuthStateError();
     }
     return result;
@@ -348,6 +381,7 @@ export class AuthStore {
       (protection) => this.#api.changeOwnPassword(newPassword, protection),
     );
     this.#generation += 1;
+    this.#sessionOwner = null;
     this.#acceptSession(session);
   };
 
