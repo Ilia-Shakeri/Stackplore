@@ -41,8 +41,7 @@ surround each callback; a changed owner or disposed subscription cannot accept
 a late frame. Returned promises are observed and rejected as invalid consumers.
 
 There is no cache, storage, URL serialization, background read, automatic
-reconnection, question resend or raw-error display in this boundary. A future
-owning view must additionally erase its input, turns and scope state on
+reconnection, question resend or raw-error display in this boundary. The [owning resource view](resource-conversation.md) must additionally erase its input, turns and scope state on
 navigation, owner change, expiry, page exit and unmount; bound the conversation
 to eight turns or 30 minutes; render inert text and resolve citations afresh.
 This port alone does not implement those view obligations.

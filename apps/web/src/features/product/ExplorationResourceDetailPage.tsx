@@ -7,6 +7,7 @@ import { ProductState, type ProductLoadState as LoadState } from './exploration-
 import { ResourceMetadataPanel } from './ResourceMetadataPanel';
 import { ResourceOperationsPanel } from './ResourceOperationsPanel';
 import { ResourceMetricsPanel } from './ResourceMetricsPanel';
+import { AssistantResourcePanel } from '../assistant/AssistantResourcePanel';
 interface ProductResourceDetailPageProps {
   readonly id: string;
   readonly kind: string;
@@ -94,7 +95,9 @@ export function ProductResourceDetailPage({
           <div className="resource-detail-card__heading">
             <div>
               <p>{t('product.detail.name')}</p>
-              <h2 id="resource-detail-name">{state.data.resource.name}</h2>
+              <h2 id="resource-detail-name" tabIndex={-1}>
+                {state.data.resource.name}
+              </h2>
             </div>
             <span className={`health-pill health-pill--${state.data.health?.state ?? 'unknown'}`}>
               {healthLabel(state.data.health?.state ?? 'unknown', t)}
@@ -133,6 +136,7 @@ export function ProductResourceDetailPage({
       {state.kind === 'ready' ? <ResourceMetadataPanel resource={state.data.resource} /> : null}
       {state.kind === 'ready' ? <ResourceMetricsPanel resourceId={id} sourceId={source} /> : null}
       {state.kind === 'ready' ? <ResourceOperationsPanel resource={state.data.resource} /> : null}
+      {state.kind === 'ready' ? <AssistantResourcePanel resource={state.data.resource} /> : null}
       {state.kind === 'ready' ? (
         <nav className="resource-detail-links" aria-label={t('explore.detail.links')}>
           <a

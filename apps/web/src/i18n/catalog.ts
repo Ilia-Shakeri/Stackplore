@@ -29,8 +29,11 @@ import settingsEn from '../features/settings/settings.messages.en.json';
 import settingsFa from '../features/settings/settings.messages.fa.json';
 import operationEn from '../features/product/operation.messages.en.json';
 import operationFa from '../features/product/operation.messages.fa.json';
+import assistantEn from '../features/assistant/messages.en.json';
+import assistantFa from '../features/assistant/messages.fa.json';
 
 const enCatalog = {
+  ...assistantEn,
   ...settingsEn,
   ...operationEn,
   ...preferencesEn,
@@ -60,6 +63,7 @@ export type TextMessageKey = {
 export type PluralMessageKey = Exclude<MessageKey, TextMessageKey>;
 
 const faCatalog = {
+  ...assistantFa,
   ...settingsFa,
   ...operationFa,
   ...preferencesFa,

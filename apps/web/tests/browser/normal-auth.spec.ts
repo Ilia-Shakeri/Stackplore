@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { assistantJourney } from './assistant-journey';
 
 const locale = process.env.SP_BROWSER_LOCALE === 'fa' ? 'fa' : 'en';
 const text = Object.assign(
@@ -147,6 +148,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
         .locator('tbody tr')
         .first(),
     ).toBeVisible();
+    await assistantJourney(page, locale, 'administrator', label('insight.healthHistory'));
     await page.locator('main a[href^="/logs?"]').click();
     const pendingDownload = page.waitForEvent('download');
     await page.getByRole('button', { name: label('explore.logs.download'), exact: true }).click();
@@ -177,6 +179,9 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await expect(
       page.getByRole('button', { name: label('users.page.add'), exact: true }),
     ).toHaveCount(0);
+    await page.goto('/resources');
+    await page.locator('main a[href^="/resources/"]').first().click();
+    await assistantJourney(page, locale, 'viewer', label('insight.healthHistory'));
     const cachePaths = await page.evaluate(async () => {
       const paths: string[] = [];
       for (const name of await caches.keys())

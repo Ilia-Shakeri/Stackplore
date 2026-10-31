@@ -250,3 +250,124 @@ source report. The prior status commit has its [seven-job hosted receipt](status
 Later receipt/doc edits receive separate document/format checks; the exact
 ownership commit still requires hosted checks. Controller and view source
 are not included in this ownership checkpoint.
+
+## Owning resource view source
+
+Newer source mounts the [bilingual selected-resource conversation](../../v2/resource-conversation.md).
+The volatile controller binds source/resource/window/language and session owner,
+limits eight submitted turns and thirty minutes from first input, freezes
+explicit retries and rejects stale/late replies. Plain-text rendering and fresh
+citation authority are independent. Cancellation distinguishes acknowledged
+cancel, already-ended work and unknown outcome. Closing/page exit, owner or
+scope change and expiry clear the view. There is no automatic question resend.
+
+Focused controller/view checks pass **51 cases**; earlier controller branch
+measurement passes above 90% in its declared file scope. Types, lint and locale
+parity have separate source checks. Initial strict-type/lint/coverage failures
+remain retained. A production browser fixture uses actual normal authentication
+and exploration but intercepts private replies synthetically; it starts no
+processor. Complete clean-source, browser and hosted gates are still required.
+The prior ownership checkpoint does not certify these later view/controller
+bytes. No alpha.4 tag or full-stage acceptance is claimed.
+
+نمای منبع به دو زبان وصل شد؛ متن در حافظه و محدود است. تغییر نشست و محدوده،
+انقضا و بستن صفحه نما را پاک کنند. تست نمونه، شاهد موتور واقعی یا پایان
+نسخه نیست؛ گیت کامل، مرورگر و CI منبع تازه جدا لازم‌اند.
+
+The first browser probe failed because its synthetic request guard used a
+noncanonical CSRF header name. The second passed English but failed Persian
+on immediate history return after its role/theme journeys. Neither complete
+probe is accepted. Keep both failures and retain immediate as well as settled
+back-navigation in the next gate. Diagnostic output contains only fixed path
+classes, document counts and bounded HTTP statuses, never private text.
+
+Three red tests exposed retained text after explicit status transport denial;
+401/403/404 now erase through the same owner fence as structured denial.
+The corrected focused gate passes **51 cases**, **186/197 branches (94.41%)**
+and **30/30 functions** in the controller file. This does not measure every
+new runtime package or replace real browser/engine/whole-stage acceptance.
+Resource citations also use centered nonanimated focus to avoid the sticky
+header; UTC range endpoints have separate labels for RTL readability.
+
+The third browser probe retained both history modes and recorded only safe
+metadata on failure. It identified HTTP **429**, not a private reply or render
+schema error: interception had disabled Chromium HTTP caching, so repeated
+full-document loads exhausted the unchanged peer bucket. The pinned installed
+browser implementation confirms cache disabling follows interception. The
+corrected fixture restores normal asset caching after the four closed private
+requests, keeps observing all private requests, and uses the existing 2.5-second
+minimum refill cadence between history rounds. Immediate back within its round
+remains tested; there is no question resend or limiter configuration change.
+The third complete probe remains failed.
+
+The locale gate now also covers the previously omitted assistant, authentication,
+user and operation catalogs: **946 messages**, matching keys, duplicate checks
+and interpolation placeholders. This expands the checker; old 738-message
+receipts retain their original scope. Current focused view/controller checks
+pass **51 cases**, **186/197 controller branches (94.41%)** and all 30 functions.
+
+The cadence-corrected D snapshot passes both complete normal browser cases
+without retries or skips: four language/role journeys, both themes, keyboard,
+focus occlusion, accessibility, immediate and settled history return, eight
+viewport images, and exactly four synthetic private requests per journey.
+Its complete local gate passes **213 client and 627 web tests**, actual
+PostgreSQL **154.322 s**, native operations **11.876 s**, strict checks and builds.
+That source predates the final visual correction and does not certify its bytes.
+
+Viewport review also found the existing retained-health table lacked the
+spacing applied only to chart tables. The shared table rule now covers its
+existing focusable scroll wrapper as well; data and behavior are unchanged.
+A browser check requires readable inline cell spacing in both languages.
+The E clean snapshot receives fresh browser and complete source gates.
+
+Further review reproduced one view-level citation race: after changing the
+evidence window, a late citation result correctly lost content authority in the
+controller but still added an unavailable warning to the new view. The retained
+red test fails exactly that assertion. The view now binds completion to its
+lifetime, snapshot and latest check, and binds warnings to their originating
+snapshot. Three added cases cover the late-window reply, warning cleanup on a
+locale change, and superseded checks. All eleven panel cases pass. This newer
+source needs its own clean snapshot; E evidence cannot accept the correction.
+
+The final [resource conversation receipt](resource-conversation.json) binds
+tree `e748464a632dd9a49c7913cbc481848ba3ca1933` and all seventeen runtime/test/style/checker
+files. Complete local verification passes **213 client and 630 web tests**,
+strict checks, actual SQL/native operations and production builds. Raw Go result
+lines retain their cache markers. Both complete normal browser cases pass
+without retries/skips: four role/language journeys, eight mobile viewport
+images, both themes, keyboard, accessibility, current focus, spacing and both
+history-return modes. Conversation replies are intercepted synthetic data;
+normal authentication and exploration use the production service and actual
+disposable PostgreSQL. No current processor is started by these checks.
+
+Final focused checks pass **54 cases**, **187/197 controller branches (94.92%)**
+and all thirty controller functions. The citation warning retains an opaque
+marker, never a copy of a private snapshot. Fresh source policy scanning and
+SBOM generation pass; the all-severity report still contains the documented
+no-fix deprecated-package finding. The unchanged lock graph has a fresh passing
+394-version package audit after its retained network failure. The source receipt
+also retains earlier browser failures and the owned-fixture recovery boundary.
+The fixture launcher now waits for its own process only; final verification
+starts and cleanly stops only the owned PostgreSQL instance. The later H probe
+failed two TypeScript checks. Its old wrapper also shadowed the native exit
+status; its zero lifecycle marker is explicitly invalid and is not a passing
+gate. Both failed gate receipts remain recorded. The final source corrects
+the types and the wrapper checks both child status and actual gate receipts.
+
+The prior browser-ownership commit has its [seven-job hosted receipt](browser-ownership-hosted.json).
+Final document/receipt edits receive separate link, format and index-secret
+checks. Exact new-commit hosted verification remains a separate gate. Current
+processor, remaining profile behavior, human grounding, accepted global branch
+measurement, soak/capacity and pilot remain open. No alpha.4 milestone tag or
+whole-stage acceptance is asserted.
+
+The first complete check of this final source failed: one unchanged Persian
+103-account flow exceeded its 15-second limit, and another unchanged test file
+could not start a worker. That run remains failed. Both affected files then
+passed **62 cases** unchanged; the subsequent complete `verify` run passed
+all **213 client and 630 web tests**, checks and builds on the same source.
+No test limit, isolation, concurrency setting or assertion was changed. Free
+physical memory was observed at 1.37 GiB near the failure and 3.17 GiB before
+the retry; that correlation does not establish a root cause. The receipt keeps
+the original failure, focused diagnostic, actual earlier Go/SQL/native results
+and the passing retry's own cache markers separately.

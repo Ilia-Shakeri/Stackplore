@@ -74,7 +74,7 @@ SQL/HTTP evidence uses a controlled processor and authentication facade. No
 current real engine, complete authenticated browser conversation, accepted
 branch measurement, human quality, soak/capacity or release artifact acceptance
 is claimed. The [status subscription](status-server.md) has separate later checks; the
-bilingual UI remains unfinished.
+owning bilingual [resource view](resource-conversation.md) has separate source and acceptance gates.
 
 ## فارسی
 

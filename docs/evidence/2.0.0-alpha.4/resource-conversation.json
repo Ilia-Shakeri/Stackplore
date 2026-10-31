@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-31T10:25:45.451Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "6e2f17766a3fcec1903fbb3e93ca1df03b3a73b8",
+  "tested_tree": "e748464a632dd9a49c7913cbc481848ba3ca1933",
+  "scope": "Bilingual selected-resource view and volatile conversation owner; synthetic private browser replies, not current processor acceptance",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "client_tests": 213,
+    "web_tests": 630,
+    "log_sha256": "d41eee2949df5d33b8db700dfc7efde2fc095c17e2ddd7785137038424104ffa",
+    "go_package_results": [
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/operator\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/server\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/storage\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantworker\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/auth\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/config\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/database\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/inference\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/notification\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observability\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observation\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgresops\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/docker\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/realtime\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/runtimefiles\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/sourcesettings\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/webui\t(cached)",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t(cached)\tcoverage: 80.6% of statements",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t(cached)\tcoverage: 82.6% of statements"
+    ],
+    "cache_note": "Raw result lines retain cached and executed package boundaries",
+    "production_builds": "passed"
+  },
+  "focused": {
+    "tests": 54,
+    "exit_code": 0,
+    "log_sha256": "849cb94c860164f3f5182bf942e546f43934f2496bece007c3e1648b8fe8510e",
+    "coverage": {
+      "scope": "conversation.ts only",
+      "statements": {
+        "covered": 217,
+        "total": 224
+      },
+      "branches": {
+        "covered": 187,
+        "total": 197
+      },
+      "functions": {
+        "covered": 30,
+        "total": 30
+      },
+      "lines": {
+        "covered": 190,
+        "total": 193
+      }
+    },
+    "denial_regression": {
+      "red_exit_code": 1,
+      "red_log_sha256": "6fb16db025c6f7039cde6614e4cc4f9bc745c042d9fd0d3f37c9045705608025",
+      "fix": "Transport 401/403/404 now erase volatile state just as structured denial does"
+    }
+  },
+  "browser": {
+    "exit_code": 0,
+    "log_sha256": "041eb0f83a9f1edfdd11f76bec69fe304a143e2899113539ca3cbd3b77a5ca4d",
+    "reports": [
+      {
+        "locale": "en",
+        "sha256": "f8a247e8abe4bcf2c8cfc71fa8e2c8e267eba052c0308e1e2e45c6eb62ecb631",
+        "stats": {
+          "startTime": "2026-10-31T09:42:38.687Z",
+          "duration": 25617.75,
+          "expected": 1,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      {
+        "locale": "fa",
+        "sha256": "732a5d247d0e56d2743d75ce60495f3a68c8f08ce45338bcfb84ab71d749c26d",
+        "stats": {
+          "startTime": "2026-10-31T09:43:06.235Z",
+          "duration": 25627.244,
+          "expected": 1,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      }
+    ],
+    "journeys": 4,
+    "roles": [
+      "admin",
+      "viewer"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "private_requests_per_journey": 4,
+    "private_protocol": "Synthetic intercepted closed replies; real normal authentication, exploration, production build and disposable PostgreSQL",
+    "checks": [
+      "Keyboard/mobile/RTL and accessibility",
+      "Current citation focus with no sticky-header occlusion",
+      "Immediate and settled full-document history return without resend",
+      "No private question in URL or browser storage",
+      "Retained-health table inline cell spacing"
+    ],
+    "viewport_images": [
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-en/normal-auth-normal-en-setu-4a67f-undaries-history-and-logout/assistant-en-administrator-dark-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "f07706fd7fcb27f690ed11b0121b86fbdf2df3d598862d09c840bea04733a5ff"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-en/normal-auth-normal-en-setu-4a67f-undaries-history-and-logout/assistant-en-administrator-light-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "7c69cfe584d84ee9765ccbfd408d58d51df179375ba0894377c4a53f2e79c2ad"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-en/normal-auth-normal-en-setu-4a67f-undaries-history-and-logout/assistant-en-viewer-dark-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "f07706fd7fcb27f690ed11b0121b86fbdf2df3d598862d09c840bea04733a5ff"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-en/normal-auth-normal-en-setu-4a67f-undaries-history-and-logout/assistant-en-viewer-light-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "7c69cfe584d84ee9765ccbfd408d58d51df179375ba0894377c4a53f2e79c2ad"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-fa/normal-auth-normal-fa-setu-e76c0-undaries-history-and-logout/assistant-fa-administrator-dark-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "a9dcb521dba85155791042268c52d84f8882b0bef01a899064665bca7b8f2aa3"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-fa/normal-auth-normal-fa-setu-e76c0-undaries-history-and-logout/assistant-fa-administrator-light-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "637121aafee7f21b93f54a3beabc81c11dee4aef2c191e808f6100c878ea756c"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-fa/normal-auth-normal-fa-setu-e76c0-undaries-history-and-logout/assistant-fa-viewer-dark-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "44fafc609ab4df0304bef6ec04ee8efcaf3f25e04a577f0e50ce3e4e1e702c5b"
+      },
+      {
+        "file": "stackplore_browser_1793439698968_21728/test-results/normal-fa/normal-auth-normal-fa-setu-e76c0-undaries-history-and-logout/assistant-fa-viewer-light-mobile.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "519af4b7ea6db258c1ee5c85bffad54eb8c32d6ad01dc12fa609664d0f98b2f3"
+      }
+    ]
+  },
+  "locale_gate": {
+    "messages": 946,
+    "scope": "Expanded catalogs include assistant, authentication, users and operations"
+  },
+  "fixture": {
+    "owned_port": 59639,
+    "lifecycle_exit_code": 0,
+    "recovery_log_sha256": "46038efb813fbca18a92272496901190638dea3f97b51f7af0daa1ca2eb13818",
+    "stop_log_sha256": "3589d2bd01f8295cc7c9ec3f5e07625fcd347ccb6f33f2d80edafe5f5217c1fb",
+    "scope": "Owned fixture only; no other PostgreSQL instance changed",
+    "harness_correction": "Wait for launcher process only; do not shadow LASTEXITCODE; require both child exit and actual gate receipt. H lifecycle marker was invalid because of the old shadowing helper and is not acceptance evidence."
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "canonical_severities": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "canonical_exit_code": 0,
+    "canonical_report_sha256": "9c2faeec863d74669c176c9da983a0294e02f1990283b3027d6fec4ccde8d676",
+    "all_severities_exit_code": 1,
+    "remaining_findings": [
+      {
+        "target": "apps/api/go.mod",
+        "id": "GO-2026-5932",
+        "package": "golang.org/x/crypto",
+        "version": "v0.58.0",
+        "severity": "UNKNOWN"
+      }
+    ],
+    "all_report_sha256": "7bc0a7a4f7d956253bba37db1f8e2f3e697eb5debe81bf1e14e47a215e0d8881",
+    "sbom_sha256": "7c06f4d48af1635913d8b86f75990b55c81516f1786f65ff0dcc0f3ff600a70e",
+    "not_affected_evidence": "Unchanged graph; status-server.json records five target import inventories excluding the affected deprecated package",
+    "no_new_ignores": true
+  },
+  "package_audit": {
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 331,
+      "optionalDependencies": 55,
+      "totalDependencies": 394
+    },
+    "report_sha256": "c74bb429f9ad7e68fa4e91b0cb39c2e8f04dd95c68f163cfd3f89a114921c13a"
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "canonical_history_commits": 55,
+    "history_revision": "6e2f17766a3fcec1903fbb3e93ca1df03b3a73b8",
+    "history_findings": 0,
+    "history_report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Unchanged committed history; final source index checked separately"
+  },
+  "retained_failures": [
+    {
+      "name": "v2-stage4-resource-view-browser-probe-20261031-a",
+      "exit_code": 1,
+      "log_sha256": "73ec28fe2342c0bd4f2fce93caa4485d326110818743331c2bf938c63ec87135"
+    },
+    {
+      "name": "v2-stage4-resource-view-browser-probe-20261031-b",
+      "exit_code": 1,
+      "log_sha256": "f95afa2c264b039dc82b95eb126d33ac079b688d1392d1b31fb7c1076bab0938"
+    },
+    {
+      "name": "v2-stage4-resource-view-browser-probe-20261031-c",
+      "exit_code": 1,
+      "log_sha256": "a7ce162187c9a747fb72299792b901e61e179578debaf479bf0882423b6a6349"
+    },
+    {
+      "name": "v2-stage4-resource-view-browser-probe-20261031-e",
+      "exit_code": 1,
+      "log_sha256": "c926620665f6302d6ac6244857697b7ed837e4be04e6b2bb2455d6478d8e1a8a"
+    },
+    {
+      "name": "v2-stage4-resource-view-package-audit-20261031-e",
+      "exit_code": 1,
+      "log_sha256": "1cf39c12597e369266d82ea7fd9caac58ad95be4d2ff4c51fa76359466424061"
+    },
+    {
+      "name": "v2-stage4-resource-view-browser-probe-20261031-h-retry",
+      "exit_code": 1,
+      "log_sha256": "28de74509c809482f8b9d69d5c653480bfee0db1f3d0c570ef2d9468f0406c40"
+    },
+    {
+      "name": "v2-stage4-resource-view-full-gate-20261031-h",
+      "exit_code": 1,
+      "log_sha256": "5ec106039cb623dda61d89c99bef63dec54fe2b1f1b0d5220663bf157877d353"
+    },
+    {
+      "name": "v2-stage4-resource-view-full-gate-20261031-i",
+      "exit_code": 1,
+      "log_sha256": "018f8b65336d933946143d335508c0b47fe825c0f1e1d40a571a62238637d2bb"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Volatile resource conversation and view only",
+    "fixes": [
+      "Clear private state on transport-level denial",
+      "Fence status/read and cancellation races",
+      "Erase on page exit and absolute expiry",
+      "Correct browser fixture cache/refill and verify immediate return",
+      "Expand locale coverage and fix retained-health table spacing",
+      "Fence citation completion and warning markers without retaining private snapshots",
+      "Correct fixture exit propagation and check actual gate receipts"
+    ]
+  },
+  "limitations": [
+    "No current processor execution or grounded human quality acceptance",
+    "No accepted global Go branch gate, soak/capacity or pilot",
+    "Exact source commit hosted gate remains separate",
+    "No alpha.4 milestone tag or whole-stage completion"
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/app/router.tsx",
+      "sha256": "a8f7ca70e759e9ef83b3826d332479638a9b99fb953cac45240c10493652df62"
+    },
+    {
+      "path": "apps/web/src/features/product/ExplorationResourceDetailPage.tsx",
+      "sha256": "386e2f69528ccb56da0c986d8766dff6598409a979f31d2ffb103f2f185e1764"
+    },
+    {
+      "path": "apps/web/src/i18n/catalog.ts",
+      "sha256": "cb7c13865001ded0d66226cd1a6dad8263a50429785ac3e905b587eba853989a"
+    },
+    {
+      "path": "apps/web/tests/browser/normal-auth.spec.ts",
+      "sha256": "e40a2ce43f07dbb1d09495bc424f3ae5ef0f488e98fee375a3631c752987f6a0"
+    },
+    {
+      "path": "apps/web/tests/browser/assistant-journey.ts",
+      "sha256": "d450af763dc0444330b4138046431e854178911eda0f90e79111d7b4ad9dcea3"
+    },
+    {
+      "path": "apps/web/src/features/assistant/AssistantResourcePanel.tsx",
+      "sha256": "9f2197993d9c874e2989c991d1ed7646accc4b6d4e8c725c75a3713dfd65b553"
+    },
+    {
+      "path": "apps/web/src/features/assistant/AssistantResourcePanel.test.tsx",
+      "sha256": "2ffd3ac5a39d57b0c87c329a45f50e5082ed250e940378fec88827babb12a09a"
+    },
+    {
+      "path": "apps/web/src/features/assistant/assistant-context.tsx",
+      "sha256": "a38f5f6f61e33004318161db41c3e5c0a67875ec100e21ab77fd70187f277cc0"
+    },
+    {
+      "path": "apps/web/src/features/assistant/assistant.css",
+      "sha256": "110f73fdf4459d8637e2aa37c5175a779aa44ffc4f720c42e2f340e099808eea"
+    },
+    {
+      "path": "apps/web/src/features/assistant/conversation.ts",
+      "sha256": "42e0221694ddc316bd1fcfa3496d75fd6bd81c979c98da0021f875899d8ce0da"
+    },
+    {
+      "path": "apps/web/src/features/assistant/conversation.test.ts",
+      "sha256": "c5e37a7c6005ce7ce0cc6ff2821ef59c87f341a6b9267a700d22d3239b23afcc"
+    },
+    {
+      "path": "apps/web/src/features/assistant/conversation-failures.test.ts",
+      "sha256": "f71cc0adc89d0275125f1fb8bebf4030c0b4c52bd09373e606781b6e31137680"
+    },
+    {
+      "path": "apps/web/src/features/assistant/conversation.test-fixtures.ts",
+      "sha256": "5a198111becedd33527790c0ea78bf42a9c5f850af1c5d2a46945fbec202d413"
+    },
+    {
+      "path": "apps/web/src/features/assistant/messages.en.json",
+      "sha256": "92e7895d72e90eb946431814b4ddfc73428858c9c04ddfbd28be5f16a3bf459e"
+    },
+    {
+      "path": "apps/web/src/features/assistant/messages.fa.json",
+      "sha256": "a3c09eca14de8c5e15648d9407b67ef9004ac10b91a616adb4e9930dfd8719c7"
+    },
+    {
+      "path": "scripts/check-locales.mjs",
+      "sha256": "25ec76341f26de7e5bebe0ffadb9c0f2ce8717497f391ca2c7af959eaa5757da"
+    },
+    {
+      "path": "apps/web/src/styles/app.css",
+      "sha256": "92715efb252423aadf72190ec0b6f9d942ae1f233868320b08240b54756f11d0"
+    }
+  ],
+  "pre_citation_snapshot": {
+    "tested_tree": "21e6263cadce2ea482b7bf458ab3b479cc7ab8f0",
+    "full_gate_exit_code": 0,
+    "full_gate_log_sha256": "2462a6e531520f776c0193c127368537f12a19c0d4a8a6e588600dae6e0bc868",
+    "browser_retry_exit_code": 0,
+    "browser_retry_log_sha256": "cf7cf0a5acd74dfa8b9776eacefb6420e26e03c788eca805551220c55af4b0c4",
+    "scope": "Earlier complete 213-client/627-web result; predates citation-view correction and does not accept final source"
+  },
+  "citation_regression": {
+    "red_exit_code": 1,
+    "red_log_sha256": "ed0d1000569db3e2e1dd6ee2dd26587111870d5816031f121e54c94b067115d7",
+    "panel_tests": 11,
+    "green_exit_code": 0,
+    "green_log_sha256": "849cb94c860164f3f5182bf942e546f43934f2496bece007c3e1648b8fe8510e",
+    "final_lint_exit_code": 0,
+    "fix": "Fence citation completion to view lifetime, snapshot and latest explicit check; scope warnings to their originating snapshot"
+  },
+  "unchanged_retry": {
+    "source_tree": "e748464a632dd9a49c7913cbc481848ba3ca1933",
+    "configuration_changed": false,
+    "limits_changed": false,
+    "focused_existing_tests": 62,
+    "focused_exit_code": 0,
+    "focused_log_sha256": "2acefcaba17920a6dd4d4452abf378fbb1ea09a328274873b5ecd25d9559d993",
+    "prior_failure": "One unchanged user-flow case exceeded 15 seconds; another unchanged test-file worker did not start. First complete run failed and remains failed.",
+    "host_observation": "Free physical memory observed at 1.37 GiB near failure and 3.17 GiB before retry; this correlation does not prove a root cause.",
+    "prior_backend_actual_results": [
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/operator\t0.672s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/server\t6.077s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/storage\t1.746s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t1.363s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant\t1.224s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation\t1.513s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence\t1.637s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice\t6.007s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantworker\t1.811s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/auth\t2.342s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/config\t1.511s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder\t1.520s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/database\t2.073s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t1.874s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi\t19.735s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/inference\t1.679s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy\t1.309s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/notification\t6.518s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observability\t1.281s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observation\t1.257s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres\t286.653s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgresops\t12.838s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo\t1.448s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/docker\t3.226s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference\t4.044s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes\t2.552s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe\t1.327s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/realtime\t2.111s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/runtimefiles\t1.008s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/sourcesettings\t1.006s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/webui\t1.384s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t0.573s\tcoverage: 80.6% of statements",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t1.875s\tcoverage: 82.6% of statements"
+    ],
+    "scope": "These actual Go results pass on the same source despite the later web failure. Retry result lines retain their own cache markers."
+  },
+  "retained_failures_note": "A: wrong fixture header; B/C: public cache disabled by interception exhausted unchanged limiter; E: owned SQL fixture unavailable before tests. The unchanged E browser retry followed owned fixture recovery; H has its own independent browser/full gate after the later citation correction. Earlier D/E source does not certify H."
+}

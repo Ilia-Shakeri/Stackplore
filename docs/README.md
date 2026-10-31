@@ -95,3 +95,10 @@ backup/restore, upgrade/rollback, monitoring/troubleshooting/incident response,
 release/signature verification, changelog and license/notices. English/Persian
 operational entry points above cover the same implemented behavior; exact test
 receipts retain their original language and immutable historical scope.
+
+## Development resource conversation
+
+The default-off alpha.4 [selected-resource guide](v2/resource-conversation.md)
+describes the owning English/Persian view, privacy, expiry, explicit recovery
+and citation checks. Its [development evidence](evidence/2.0.0-alpha.4/README.md)
+separates controlled browser fixtures from real processor and release gates.

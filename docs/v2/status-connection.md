@@ -3,7 +3,7 @@
 Development **2.0.0-alpha.4**, 2026-10-28. `readAssistantStatus` connects the
 [bounded decoder](status-decoder.md) to one explicit same-origin GET. This is
 the client connection component; the [server subscription](status-server.md)
-has separate implementation and evidence. The owning view remains unfinished.
+has separate implementation and evidence. The owning [resource view](resource-conversation.md) has separate implementation and acceptance gates.
 
 The caller supplies a canonical run ID, optional replay cursor and a short
 synchronous metadata callback. The request has same-origin mode/credentials,
@@ -47,4 +47,4 @@ real network behavior, browser ownership integration or whole-stage delivery.
 متن ذخیره نکند و وصل‌شدن یا ارسال دوباره خودکار نداشته باشد. سقف کل ۱۲۰ ثانیه،
 سکوت ۱۵ ثانیه و داده یک مگابایت است. لغو، تغییر مالک، قطع و پاسخ نادرست،
 خواننده را ببندند؛ پاسخ دیررس هم دور ریخته شود. خطا دلیل خصوصی لغو را ندهد.
-اتصال سمت سرور شاهد جدا دارد؛ صفحهٔ صاحب این جریان هنوز مانده است.
+اتصال سمت سرور و نمای صاحب این جریان، هرکدام شاهد جدا می‌خواهند.

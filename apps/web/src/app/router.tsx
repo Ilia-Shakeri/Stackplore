@@ -39,6 +39,8 @@ import { SetupPage } from '../features/auth/SetupPage';
 import { createAuthApi } from '../features/auth/auth-api';
 import { AuthProvider, useAuth } from '../features/auth/auth-context';
 import { AuthStore } from '../features/auth/auth-store';
+import { createAssistantApi, type AssistantApi } from '../features/assistant/assistant-api';
+import { AssistantProvider } from '../features/assistant/assistant-context';
 import { createProductApi, type ProductApi } from '../features/product/product-api';
 import {
   ProductProvider,
@@ -51,6 +53,7 @@ import { useLocale } from '../i18n';
 import { productViewSearch, validViewParameter } from '../features/product/product-view-search';
 
 interface RouterContext {
+  readonly assistant: AssistantApi;
   readonly auth: AuthStore;
   readonly product: ProductApi;
   readonly users: UsersApi;
@@ -60,6 +63,7 @@ const defaultApiClient = createBrowserApiClient();
 const defaultAuthStore = new AuthStore(createAuthApi(defaultApiClient));
 const defaultUsersApi = createUsersApi(defaultApiClient, defaultAuthStore);
 const defaultProductApi = createProductApi(defaultApiClient, defaultAuthStore);
+const defaultAssistantApi = createAssistantApi(defaultApiClient, defaultAuthStore);
 
 const DesignSystemPage = lazy(() =>
   import('../routes/DesignSystemPage').then((module) => ({ default: module.DesignSystemPage })),
@@ -86,7 +90,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootRoute() {
-  const { auth, product, users } = rootRoute.useRouteContext();
+  const { auth, product, users, assistant } = rootRoute.useRouteContext();
   const validatedSearch = rootRoute.useSearch();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const search = useRouterState({ select: (state) => state.location.searchStr });
@@ -159,9 +163,11 @@ function RootRoute() {
         onViewParameterChange={selectViewParameter}
         {...(selectedSource === undefined ? {} : { sourceId: selectedSource })}
       >
-        <UsersProvider api={users}>
-          <Outlet />
-        </UsersProvider>
+        <AssistantProvider api={assistant}>
+          <UsersProvider api={users}>
+            <Outlet />
+          </UsersProvider>
+        </AssistantProvider>
       </ProductProvider>
     </AuthProvider>
   );
@@ -480,9 +486,12 @@ export function createAppRouter(
   product: ProductApi = auth === defaultAuthStore
     ? defaultProductApi
     : createProductApi(createBrowserApiClient(), auth),
+  assistant: AssistantApi = auth === defaultAuthStore
+    ? defaultAssistantApi
+    : createAssistantApi(createBrowserApiClient(), auth),
 ) {
   return createRouter({
-    context: { auth, product, users },
+    context: { auth, product, users, assistant },
     routeTree,
     defaultPreload: 'intent',
     scrollRestoration: history === undefined,

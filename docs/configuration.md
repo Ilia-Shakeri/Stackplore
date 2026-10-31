@@ -11,8 +11,9 @@ not install, launch or probe it. An identical restart preserves a stored stop
 and does not reset quotas or restored usage. The existing Compose/Helm manifests
 keep this capability off and do not forward its profile keys; this development
 profile is currently configured on the native process environment. Server
-status subscriptions have separate [bounds](v2/status-server.md); the bilingual
-conversation remains unfinished.
+status subscriptions have separate [bounds](v2/status-server.md). The development
+[resource conversation](v2/resource-conversation.md) has its own source and browser
+gates; a current processor and whole-stage acceptance remain separate.
 
 The Go loader in `apps/api/internal/config/config.go` is authoritative. Unknown,
 duplicate, blank, non-canonical or out-of-range `STACKPLORE_*` names fail startup

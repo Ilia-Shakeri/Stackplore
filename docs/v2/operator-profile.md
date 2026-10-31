@@ -6,7 +6,7 @@ reads, cancellation and citation routes. The public alpha.3 release at
 `21475ec1135c0496c5929329738142f3c0d5a9d0` still rejects these variables.
 This document describes newer source; it is not alpha.3 enablement guidance.
 The status server has [separate bounds and evidence](status-server.md); the
-bilingual conversation remains unfinished.
+owning [resource conversation](resource-conversation.md) has separate implementation and acceptance gates.
 
 The parser takes one bounded environment snapshot, uses no second lookup, and
 performs no network or file access. Zero configuration and an explicit `false`
@@ -55,7 +55,8 @@ the exact key and input. It performs no automatic resend or browser persistence.
 All 52 client tests, strict types and targeted lint pass after the fixture and
 abort-boundary fixes. The owning flow must supply per-call deadlines and validate
 the closed reply before rendering it. Response validation, status streaming and
-the owning UI remain separate implementation work.
+the owning UI have separate development source and evidence; these earlier
+parser/client measurements do not certify those later bytes.
 
 The [application owner](application-runtime.md) binds exact pins and limits to
 audited durable settings, preserves quotas and retained operator stops, reads
@@ -66,7 +67,8 @@ a processor. A compatible separately managed service and exact approved pins
 are required for a real admitted run. Current engine and human-quality acceptance
 remain open. The bounded client status reader opens one explicit connection;
 the server subscription has separate checks and the bilingual browser journey
-still requires delivery.
+has separate source verification. Current processor, remaining profile behavior
+and whole-stage acceptance remain open.
 
 The [private HTTP boundary](private-run-http.md) and
 [admission coordinator](conversation-admission.md) retain their own earlier

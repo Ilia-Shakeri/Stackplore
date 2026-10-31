@@ -4,21 +4,24 @@
 
 ### Smart Assistant — development in progress
 
+- Fence late and superseded citation completions and warnings to the current volatile view snapshot; retain no private snapshot in warning state. Add a failing regression before the correction and scoped passing checks.
+
 - Register a default-off, snapshot-only operator profile with closed loopback identity pins and bounded limits. Reject enabled guest composition.
 - Define the owner-private resource conversation contract and generated transport types, with explicit volatile-loss and bounded status/citation shapes.
 - Add explicit protected request constructors, cryptographic idempotency-key generation, UTF-8 bounds, cancellation and no automatic resend.
-- Validate closed replies before exposing typed content: bind run/scope/citation identities, preserve distinct content states, reject unsafe or oversized text and forged references, and return detached copies with fixed errors. The bilingual conversation remains pending.
+- Validate closed replies before exposing typed content: bind run/scope/citation identities, preserve distinct content states, reject unsafe or oversized text and forged references, and return detached copies with fixed errors. The owning resource view applies this boundary before rendering.
 - Add a pure bounded status-byte decoder with strict UTF-8, owner/run identity, contiguous replay, reset fencing, duplicate-field rejection and cancellation erasure. It opens no connection and does not deliver a live stream or conversation.
 - Add conditional private read/cancel/citation transport over the existing service, with trusted actor mapping, current authority, closed publication, no-store responses and protected generic serialization.
 - Reject unpaired Unicode escapes before processor JSON decoding can repair them. Share decoded-answer checks with explicit HTTP publication and a cross-runtime synthetic contract fixture.
 - Add conditional explicit conversation admission with closed Unicode-safe requests, owner-bound server identities, frozen retries, current trusted resource resolution and atomic continuation guards. Add real SQL/HTTP admission-to-settlement privacy checks.
 - Own enabled application composition, purpose-separated installation keys, pinned durable profile identity, retained operator stops, monotonic source epochs and joined worker shutdown before storage close. Verify real SQL idle restart and startup-failure cleanup without processor requests.
-- Add one bounded explicit status connection with no automatic reconnect/resend, byte/read/time caps, late-response disposal and owner-cancellation fencing. Server subscriptions have separate bounds; the owning view remains unfinished.
+- Add one bounded explicit status connection with no automatic reconnect/resend, byte/read/time caps, late-response disposal and owner-cancellation fencing. Server subscriptions and the owning view have separate bounds.
 - Add bounded private status subscriptions with fresh SQL/session authority, closed metadata-only publication, contiguous replay/reset, owner quotas and clean deadline expiry. Check real TCP and SQL behavior against a shared client fixture.
 - Preserve full valid owner identity length after internal stream/download namespacing.
 - Refresh the 2026-10-31 dependency graph to `seroval 1.6.11` and `minimatch 11.0.1`, regenerate production legal metadata and audit all severities. Preserve the earlier graph's receipts separately from final dependency acceptance.
 - Patch the server graph to chi 5.4.0 and x/net 0.62.0 with regenerated notices. Retain the package-specific no-fix OpenPGP finding and five-platform evidence that affected imports are absent; do not claim all-severity source zero.
-- Fence browser private requests with an opaque volatile session identity, bound reads and status lifetime, abort on owner changes and reject late callbacks. Preserve protected action checks across same-proof authority changes; the owning view remains pending.
+- Fence browser private requests with an opaque volatile session identity, bound reads and status lifetime, abort on owner changes and reject late callbacks. Preserve protected action checks across same-proof authority changes; the owning view retains its own scope lifecycle.
+- Mount the bilingual resource conversation with bounded volatile turns, frozen explicit retries, fresh citations, honest cancellation states, scope/session/history cleanup and inert text. Add mobile/keyboard/theme/accessibility browser fixtures with explicitly synthetic private replies; real processor and whole-stage acceptance remain separate.
 - Preserve exact alpha.3 source/artifact evidence separately; this development version is not a completed stage or a tagged release.
 
 ## [2.0.0-alpha.3] - 2026-10-28

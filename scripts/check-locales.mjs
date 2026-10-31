@@ -3,6 +3,26 @@ import { resolve } from 'node:path';
 import process from 'node:process';
 
 const catalogPairs = [
+  [
+    'assistant',
+    'apps/web/src/features/assistant/messages.en.json',
+    'apps/web/src/features/assistant/messages.fa.json',
+  ],
+  [
+    'auth',
+    'apps/web/src/features/auth/messages.en.json',
+    'apps/web/src/features/auth/messages.fa.json',
+  ],
+  [
+    'users',
+    'apps/web/src/features/users/messages.en.json',
+    'apps/web/src/features/users/messages.fa.json',
+  ],
+  [
+    'operation',
+    'apps/web/src/features/product/operation.messages.en.json',
+    'apps/web/src/features/product/operation.messages.fa.json',
+  ],
   ['pwa', 'apps/web/src/pwa/messages.en.json', 'apps/web/src/pwa/messages.fa.json'],
   [
     'settings',

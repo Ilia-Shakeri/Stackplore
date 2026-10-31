@@ -1,0 +1,94 @@
+.assistant {
+  border: 1px solid var(--sp-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.assistant__header,
+.assistant__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.assistant__header {
+  justify-content: space-between;
+}
+.assistant__header h2 {
+  margin-block: 0 0.5rem;
+}
+.assistant__header p,
+.assistant__privacy,
+.assistant__scope dt {
+  color: var(--sp-text-muted);
+}
+.assistant__body {
+  border-block-start: 1px solid var(--sp-border);
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+}
+.assistant__scope dd {
+  margin: 0;
+}
+.assistant__field {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 1rem;
+}
+.assistant__field select,
+.assistant__field textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border-strong);
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  max-width: 100%;
+  min-width: 0;
+}
+.assistant__field textarea {
+  resize: vertical;
+}
+.assistant__field :focus-visible {
+  outline: 2px solid var(--sp-focus);
+  outline-offset: 3px;
+}
+.assistant__turns {
+  padding-inline-start: 1.5rem;
+}
+.assistant__turns > li {
+  padding-block: 0.75rem;
+  border-block-end: 1px solid var(--sp-border);
+}
+.assistant__turns dd {
+  margin: 0;
+}
+.assistant__range > div {
+  margin-block: 0.5rem;
+}
+.assistant__range dt {
+  color: var(--sp-text-muted);
+}
+.assistant__question {
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+.assistant__text {
+  white-space: pre-wrap;
+}
+.assistant__actions > button {
+  max-width: 100%;
+  white-space: normal;
+}
+@media (max-width: 40rem) {
+  .assistant {
+    padding: 1rem;
+  }
+  .assistant__header > button {
+    width: 100%;
+  }
+  .assistant__actions {
+    align-items: stretch;
+  }
+}

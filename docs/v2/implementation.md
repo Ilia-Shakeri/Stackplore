@@ -2,7 +2,7 @@
 
 Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](../evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.
 
-Stage-4 development **2.0.0-alpha.4** prepares default-off loopback profile parsing, closed private conversation contracts/types, explicit protected client requests, validated detached replies and pure bounded status decoding. Earlier full clean-snapshot and scan receipts bind their own source. The explicit admission increment at 8ba404a passed all seven hosted jobs. Newer source now owns enabled startup, current source/restore fences, retained operator stops and joined shutdown, plus one bounded explicit client status connection. Earlier receipts do not certify these later bytes. Application composition has its own full source receipt. Newer source adds bounded private server status, fresh metadata authority, replay/reset, clean EOF and SQL/TCP/shared-client checks. Private status at c3d4812 passed complete source checks and all seven hosted jobs with the refreshed dependency graph. New browser ownership source adds an opaque volatile session fence and bounded private calls. It does not mount the bilingual conversation, which remains unfinished. No alpha.4 tag or whole-stage acceptance is claimed. [Development evidence](../evidence/2.0.0-alpha.4/README.md).
+Stage-4 development **2.0.0-alpha.4** prepares default-off loopback profile parsing, closed private conversation contracts/types, explicit protected client requests, validated detached replies and pure bounded status decoding. Earlier full clean-snapshot and scan receipts bind their own source. The explicit admission increment at 8ba404a passed all seven hosted jobs. Newer source now owns enabled startup, current source/restore fences, retained operator stops and joined shutdown, plus one bounded explicit client status connection. Earlier receipts do not certify these later bytes. Application composition has its own full source receipt. Newer source adds bounded private server status, fresh metadata authority, replay/reset, clean EOF and SQL/TCP/shared-client checks. Private status at c3d4812 passed complete source checks and all seven hosted jobs with the refreshed dependency graph. Browser ownership at 6e2f177 passed complete source and all seven hosted checks. It supplies an opaque volatile session fence and bounded private calls. Newer source mounts the owning bilingual resource view, bounded volatile turns and explicit status/retry/cancel/citation controls. Scope/session/page-exit cleanup and plain-text rendering have focused checks. The view has complete local and synthetic-protocol real browser receipts; exact hosted checks remain separate; no current processor or whole-stage acceptance is claimed. No alpha.4 tag or whole-stage acceptance is claimed. [Development evidence](../evidence/2.0.0-alpha.4/README.md).
 
 Current published checkpoint, **2026-10-28**: **2.0.0-alpha.3**, schema18,
 immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`. Recorded public
@@ -46,7 +46,7 @@ not accept the correction.
 | 1 | `2.0.0-alpha.1` | Published; recorded scope accepted | Current host restart and global quality/branch gates remain separate |
 | 2 | `2.0.0-alpha.2` | Published; recorded artifact scope accepted | Global branch/quality, current engine and capacity gates remain separate |
 | 3 | `2.0.0-alpha.3` | Published; recorded artifact scope accepted | Accepted branch/quality and current engine remain separate |
-| 4 | `2.0.0-alpha.4` | Development foundation; journey not delivered | Bilingual UI, remaining profile behavior and owning acceptance |
+| 4 | `2.0.0-alpha.4` | Resource journey in development | Remaining profile behavior, current processor and whole-stage acceptance |
 | 5     | `2.0.0-alpha.5`        | Not delivered                | Bounded investigation loop                                 |
 | 6     | `2.0.0-alpha.6`        | Not delivered                | Incident analysis                                          |
 | 7     | `2.0.0-alpha.7`        | Not delivered                | Approved corpus and safe history                           |
@@ -60,7 +60,8 @@ versioned `alpha.0` checkpoint because the maintainer requested a version at
 every stage; this supersedes the proposal's unversioned planning checkpoint.
 Existing tags remain immutable. New tags wait for their own passing gates.
 
-Stages **2–10 are not complete**. The
+Historical preparation note (superseded by the stage table above):
+stages **2–10 were not complete**. The
 [separate preparation status](preparation-status.md) binds unaccepted draft
 [PR 1](https://github.com/Ilia-Shakeri/Stackplore/pull/1) to
 `e660e16bd0b3c56f0096bb43b5688195135892b1`; it is not part of alpha.0.

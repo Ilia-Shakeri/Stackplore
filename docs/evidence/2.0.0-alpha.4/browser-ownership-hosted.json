@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-31T10:25:45.879Z",
+  "version": "2.0.0-alpha.4",
+  "source_revision": "6e2f17766a3fcec1903fbb3e93ca1df03b3a73b8",
+  "scope": "Browser ownership increment only; later resource view source is separate",
+  "main_ci": {
+    "id": 41181649105,
+    "sha": "6e2f17766a3fcec1903fbb3e93ca1df03b3a73b8",
+    "branch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 124480104255,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124480104340,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124480104348,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124480104382,
+        "name": "processor-tool",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124480104413,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124480104460,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124480104491,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ],
+    "url": "https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41181649105"
+  },
+  "history_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "commits": 55,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "ignore_policy": "Existing exact historical fixture entries unchanged"
+  }
+}

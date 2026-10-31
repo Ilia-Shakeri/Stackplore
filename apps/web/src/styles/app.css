@@ -887,14 +887,17 @@
   overflow: auto;
 }
 
-.trend-card table {
+.trend-card table,
+.trend-table-wrap table {
   inline-size: 100%;
   border-collapse: collapse;
   font-size: var(--sp-font-size-sm);
 }
 
 .trend-card th,
-.trend-card td {
+.trend-card td,
+.trend-table-wrap th,
+.trend-table-wrap td {
   padding: var(--sp-space-2);
   border-block-end: 1px solid var(--sp-border);
   text-align: start;
