@@ -5,7 +5,8 @@ registers the bounded profile and conditionally owns conversation admission,
 reads, cancellation and citation routes. The public alpha.3 release at
 `21475ec1135c0496c5929329738142f3c0d5a9d0` still rejects these variables.
 This document describes newer source; it is not alpha.3 enablement guidance.
-Status-server connections and the bilingual conversation remain unfinished.
+The status server has [separate bounds and evidence](status-server.md); the
+bilingual conversation remains unfinished.
 
 The parser takes one bounded environment snapshot, uses no second lookup, and
 performs no network or file access. Zero configuration and an explicit `false`
@@ -64,7 +65,8 @@ guest mode rejects enablement. Configuration does not install, launch or contact
 a processor. A compatible separately managed service and exact approved pins
 are required for a real admitted run. Current engine and human-quality acceptance
 remain open. The bounded client status reader opens one explicit connection;
-the server subscription and bilingual browser journey still require delivery.
+the server subscription has separate checks and the bilingual browser journey
+still requires delivery.
 
 The [private HTTP boundary](private-run-http.md) and
 [admission coordinator](conversation-admission.md) retain their own earlier
@@ -83,5 +85,5 @@ source receipts. New application composition requires its own complete gates.
 
 ۷۱ رخداد تست/زیرتست محدود، کل تست بستهٔ config و vet پاس شدند. پوشش ثبت‌شده
 statement است؛ اثبات شاخه، موتور واقعی، شروع برنامه یا گفت‌وگوی عمومی نیست.
-اتصال اصلی، قفل توقف و پایان کارگر ساخته شده؛ جریان سمت سرور و مرورگر
+اتصال اصلی، قفل توقف و پایان کارگر ساخته شده؛ جریان سمت سرور شاهد جدا دارد؛ مرورگر
 دوزبانه هنوز مانده. نصب یا شروع پردازنده از تنظیم برنامه انجام نشود.

@@ -1,0 +1,291 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-31T07:04:45.828Z",
+  "version": "2.0.0-alpha.4",
+  "base_revision": "c701fca897eefe56311c2b769fbec4be25407287",
+  "tested_tree": "7a6ba67335850bc2c55357177ae6a0f4758f5fc8",
+  "scope": "Private metadata status server and refreshed dependency graph; owning browser view and whole-stage acceptance remain open",
+  "full_gate": {
+    "command": "npm.cmd run verify",
+    "exit_code": 0,
+    "log_sha256": "4791225b24f7d1eaf06127141db3b36f81310a73a77de789d3833ba4d89a8d2e",
+    "go_package_results": [
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/operator\t0.568s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/server\t6.875s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/cmd/storage\t1.541s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t1.245s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant\t1.132s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation\t0.953s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence\t1.050s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice\t5.281s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantworker\t0.941s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/auth\t1.522s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/config\t1.028s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder\t1.024s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/database\t1.364s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t1.209s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/httpapi\t19.881s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/inference\t1.293s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy\t1.388s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/notification\t6.201s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observability\t1.383s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/observation\t0.998s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres\t288.040s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/postgresops\t13.425s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/demo\t1.201s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/docker\t1.720s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference\t3.442s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/kubernetes\t2.319s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/logsafe\t1.224s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/realtime\t2.148s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/runtimefiles\t1.097s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/sourcesettings\t1.445s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/webui\t1.648s",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/domain\t1.357s\tcoverage: 80.6% of statements",
+      "ok  \tgithub.com/Ilia-Shakeri/stackplore/apps/api/internal/alerting\t1.479s\tcoverage: 82.6% of statements"
+    ],
+    "cache_note": "Package lines retain actual timings or explicit cached markers; a success does not imply every unchanged package ran again",
+    "client_tests": 213,
+    "web_tests": 544,
+    "actual_postgres_seconds": 288.04,
+    "actual_native_database_operations_seconds": 13.425,
+    "web_seconds": 211.52
+  },
+  "dependency_scan": {
+    "tool": "Trivy 0.76.0",
+    "include_development_dependencies": true,
+    "canonical_severities": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "canonical_exit_code": 0,
+    "canonical_report_sha256": "f30c8ca22f3db6d52933fec6d3d656dba64b310926527f68c74bbbf7b80cc25d",
+    "all_severities_exit_code": 1,
+    "all_severities_report_sha256": "8cca708c3eca7bc0c69d63d5253bd380434e22bc57cc90cc5d22bc50f9bc1548",
+    "remaining_findings": [
+      {
+        "target": "apps/api/go.mod",
+        "id": "GO-2026-5932",
+        "package": "golang.org/x/crypto",
+        "version": "v0.58.0",
+        "severity": "UNKNOWN",
+        "fixed_version": null
+      }
+    ],
+    "sbom_sha256": "d47d3eff042ec630d94864b3b97054102d74fa2bed44a0f3b19d6483c13e3bfc",
+    "no_new_ignores": true,
+    "database": {
+      "metadata": {
+        "Version": 2,
+        "NextUpdate": "2026-11-01T01:14:32.62557306Z",
+        "UpdatedAt": "2026-10-31T01:14:32.625573468Z",
+        "DownloadedAt": "2026-10-31T06:19:04.2655127Z"
+      },
+      "repository": "public.ecr.aws/aquasecurity/trivy-db:2",
+      "download_exit_code": 0,
+      "download_log_sha256": "f5049f718f7c157d83b35293d24510c2b3d0f4d3ef7190a3802591616a88d574"
+    }
+  },
+  "package_audit": {
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 63,
+      "devDependencies": 331,
+      "optionalDependencies": 55,
+      "totalDependencies": 394
+    },
+    "report_sha256": "c74bb429f9ad7e68fa4e91b0cb39c2e8f04dd95c68f163cfd3f89a114921c13a"
+  },
+  "package_reachability": {
+    "scope": "Default-tag operator/server/storage import graphs for all five release platforms; no affected OpenPGP imports",
+    "report": {
+      "schema_version": 1,
+      "recorded_at": "2026-10-31T06:33:23.428Z",
+      "advisory": "GO-2026-5932",
+      "source_advisory_url": "https://vuln.go.dev/ID/GO-2026-5932.json",
+      "affected_package_prefix": "golang.org/x/crypto/openpgp",
+      "scope": "Default CGO-disabled dependencies of all three commands on all five published targets; no global advisory ignore",
+      "go_mod_sha256": "1308515c14a069ea6bb2571e5406e3e37c9f1f6ea73d5ed4f4a4856665723893",
+      "go_sum_sha256": "50f2b62ec4b6f3eb0e7c376b44296de5407b021aa69aa2acca79b679fb9f56fd",
+      "commands": [
+        "./cmd/operator",
+        "./cmd/server",
+        "./cmd/storage"
+      ],
+      "targets": [
+        {
+          "target": "linux/amd64",
+          "imports": 623,
+          "affected_imports": [],
+          "import_inventory_sha256": "e5615802fe72acd72c5a2581dc11cb79540ac097c8204d6398bbdcc6dab433e4"
+        },
+        {
+          "target": "linux/arm64",
+          "imports": 621,
+          "affected_imports": [],
+          "import_inventory_sha256": "f7ba779f41a79109b1a520914cac78eedb702709f549c47ef271e7950145a327"
+        },
+        {
+          "target": "windows/amd64",
+          "imports": 630,
+          "affected_imports": [],
+          "import_inventory_sha256": "bc7a33eda25741addab64a26621356673a00c29c5d379608263b3447cb850450"
+        },
+        {
+          "target": "darwin/amd64",
+          "imports": 623,
+          "affected_imports": [],
+          "import_inventory_sha256": "cf93027630f481ca3078b1f738d65bab311196be314c25926a259595085ab670"
+        },
+        {
+          "target": "darwin/arm64",
+          "imports": 621,
+          "affected_imports": [],
+          "import_inventory_sha256": "903519657819731f7b47a6513dc7663f7aceb7c00e0f45f5b4147187bf7695e1"
+        }
+      ]
+    },
+    "report_sha256": "87b838ea151a73be46dca412e44c9755d95d3ef73e64bfe1e99fd788bc800eee"
+  },
+  "regressions": [
+    {
+      "name": "Expired deadline truncated final HTTP terminator",
+      "failed_log_sha256": "c4004ba44954b749bfddd825287c4f831c425f31bba1bdaaca120d1e660645b2",
+      "passed_log_sha256": "cfc1629df781a06cc2c38d9abd0d662673af31ed42b5e106ff55f068311b11de"
+    },
+    {
+      "name": "Internal owner namespace rejected valid 128-byte identities",
+      "failed_log_sha256": "3315496dc4970345ec1924112355843b52125be81927af3374f3ac5d0eac62d6",
+      "passed_log_sha256": "e840386ee562293677b3c1861705493f1634ba13c763ec36e1f6df1c833d2cb1"
+    }
+  ],
+  "retained_failures": [
+    {
+      "name": "Final dependency snapshot B stopped at offline linked-module notice check",
+      "exit_code": 1,
+      "log_sha256": "8f270290bb50af626243574cc2e1fa7d3131b3d5ce81dfe25a37b7e10e2596f9"
+    },
+    {
+      "name": "Earlier all-severity source graph had four server findings",
+      "exit_code": 1,
+      "report_sha256": "0467fdf2a32b1a991ad49bf0176ca0e8c0c85e22ab949e36e13dc119ee3f17e2"
+    },
+    {
+      "name": "Pathless diff stdin classified an unchanged public oauth2 module checksum as a key; canonical path-aware index scan passed with no new ignore",
+      "exit_code": 1,
+      "report_sha256": "91a36a19a4d00e12b2086b92fbba1eaefc40007eedcf1e44d55db045495026db"
+    }
+  ],
+  "self_review": {
+    "before": 8,
+    "after": 9,
+    "scope": "Status publication, lifecycle and refreshed graph only",
+    "fixes": [
+      "Bounded final HTTP termination",
+      "Full owner key capacity",
+      "Fresh patch graph and explicit unresolved package-specific advisory"
+    ]
+  },
+  "limitations": [
+    "Authentication and processor in SQL/transport journey are synthetic",
+    "No current real processor or human grounding proof",
+    "Owning bilingual view remains unfinished",
+    "No whole-stage acceptance, alpha.4 tag, capacity/soak or performance claim"
+  ],
+  "sources": [
+    {
+      "path": "apps/api/internal/assistantconversation/status.go",
+      "sha256": "7f3146193b5f87c6ec9b290be44aec5e830aac2b0064d8a782d967561f217f1e"
+    },
+    {
+      "path": "apps/api/internal/assistantconversation/status_test.go",
+      "sha256": "a064d9a5b8bbfd94c5048730e644320bc1d556e6d79c79ad9ef454515879ac00"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_contract.go",
+      "sha256": "2559005d085921f51689bdb1c5c97e349481a8f61faaf91db5bc7f139e80af95"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_handlers.go",
+      "sha256": "171198e74e7ad40e619b15af5197a7a27c98067c115b88caab5d0159db32dddc"
+    },
+    {
+      "path": "apps/api/internal/httpapi/product_stream_handlers.go",
+      "sha256": "2b5fa65a573ef88b9dbb7b3981c9a8849a4a52c07d8f4ebd8610f2a0955c589b"
+    },
+    {
+      "path": "apps/api/internal/httpapi/router.go",
+      "sha256": "cba91686f066072b7fb4bf02128ca832c8b61312d01c22779d3cc0ed54dc50c7"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_status.go",
+      "sha256": "7e3186f3361e3b56b5e1a52ca5dc0ff2e31ae3d60f92d762cae1e6b431655436"
+    },
+    {
+      "path": "apps/api/internal/httpapi/assistant_status_test.go",
+      "sha256": "2c0c8e74e2cae004b2e6c6ffae7378b082e75cb4a58bf721691f10c69b1411d1"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_conversation_integration_test.go",
+      "sha256": "13372ecb1e746ed1a6a3267e24061bc9a9e876295aab258832545cc93c1e9620"
+    },
+    {
+      "path": "apps/api/internal/postgres/assistant_status_integration_test.go",
+      "sha256": "ace210cc52ed34331b0422a63f35926036328909e011ec39059773dc306d52e9"
+    },
+    {
+      "path": "packages/api-client/src/assistant-status.test.ts",
+      "sha256": "dbe66b111016873ed64057c7e414eeaf1a5ac83b2a1247edb432be2d0592518e"
+    },
+    {
+      "path": "contracts/fixtures/assistant-status.json",
+      "sha256": "9b17e6ceaeea12cff8366931495814e06aeb7f5d2b47aa0496091ada54624385"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "sha256": "a64714f83cac409e16b8f167e37a789a1fcbf5f5aeb9a89304f21f357ae658b3"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "ae868d5014e30a212f996b2a0fa3ffd448acf0e1777ed5336fef7680ec0656a2"
+    },
+    {
+      "path": "apps/web/public/licenses/packages/manifest.json",
+      "sha256": "d3ab51d2299275ae5e92236af196e00423621a2c7d4f93dbbf7875a7d48b9947"
+    },
+    {
+      "path": "apps/api/go.mod",
+      "sha256": "1308515c14a069ea6bb2571e5406e3e37c9f1f6ea73d5ed4f4a4856665723893"
+    },
+    {
+      "path": "apps/api/go.sum",
+      "sha256": "50f2b62ec4b6f3eb0e7c376b44296de5407b021aa69aa2acca79b679fb9f56fd"
+    },
+    {
+      "path": "apps/api/licenses/modules/manifest.json",
+      "sha256": "9f3916d153864e5a46be77dd4a422f064afeac4906ec583d7022b1ca4d8dc8ed"
+    },
+    {
+      "path": "apps/web/public/licenses/packages/seroval-895905da9d48/LICENSE",
+      "sha256": "2bd8a2c61751fc47dcd214f864b6fcdbcb518995fbf497c81a06c3bfe8d1d9d4"
+    }
+  ],
+  "deleted_files": [
+    "apps/web/public/licenses/packages/seroval-3d6add296944/LICENSE"
+  ],
+  "staged_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "command": "gitleaks git --pre-commit --staged --redact=100",
+    "exit_code": 0,
+    "findings": 0,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "Implementation index before receipt/document additions; final index checked separately"
+  }
+}

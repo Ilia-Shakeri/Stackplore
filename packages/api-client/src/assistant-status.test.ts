@@ -6,6 +6,7 @@ import {
   type AssistantStatusMessage,
 } from './index';
 import { assistantRunId } from './assistant-fixture.test-support';
+import serverStatusFixture from '../../../contracts/fixtures/assistant-status.json?raw';
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const status = (sequence = 1, version = sequence) => ({
@@ -22,6 +23,30 @@ const resetFrame = (reason = 'replay_gap') =>
 const fault = 'API transport failed with unexpected_response.';
 
 describe('private status-only byte decoding', () => {
+  it('decodes the exact shared native server publication', () => {
+    const fixture = JSON.parse(serverStatusFixture) as Record<string, unknown>;
+    if (
+      typeof fixture.run_id !== 'string' ||
+      typeof fixture.after_cursor !== 'string' ||
+      typeof fixture.wire !== 'string'
+    )
+      throw new Error('Invalid shared status fixture');
+    const decoder = createAssistantStatusDecoder(fixture.run_id, fixture.after_cursor);
+    const messages = [...decoder.push(encode(fixture.wire)), ...decoder.finish()];
+    expect(messages).toEqual([
+      {
+        type: 'status',
+        id: '3',
+        data: {
+          run_id: assistantRunId,
+          sequence: 3,
+          version: 3,
+          state: 'completed',
+          at: '2026-10-28T10:15:01.000001Z',
+        },
+      },
+    ]);
+  });
   it.each(['\n', '\r\n', '\r'])('handles byte boundaries with line ending %#', (ending) => {
     const decoder = createAssistantStatusDecoder(assistantRunId);
     const bytes = encode(`\uFEFF: ضربان\n\n${frame(3)}${frame(4)}`.replaceAll('\n', ending));

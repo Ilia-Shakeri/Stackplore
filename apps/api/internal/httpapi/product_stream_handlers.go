@@ -65,7 +65,9 @@ func (gate *streamGate) acquire(userID auth.UserID) (func(), bool) {
 }
 
 func (gate *streamGate) acquireBucket(userID string) (func(), bool) {
-	if gate == nil || userID == "" || len(userID) > 128 {
+	// Auth identities allow 128 bytes; their internal namespace adds five.
+	const maximumBucketBytes = 128 + len("user:")
+	if gate == nil || userID == "" || len(userID) > maximumBucketBytes {
 		return nil, false
 	}
 	gate.mu.Lock()

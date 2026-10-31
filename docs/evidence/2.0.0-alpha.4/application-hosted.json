@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-31T07:04:51.108Z",
+  "version": "2.0.0-alpha.4",
+  "source_revision": "c701fca897eefe56311c2b769fbec4be25407287",
+  "scope": "Application ownership increment only; status server and browser view require their own hosted checks",
+  "main_ci": {
+    "id": 40697143243,
+    "sha": "c701fca897eefe56311c2b769fbec4be25407287",
+    "branch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 122846831138,
+        "name": "processor-tool",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122846831451,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122846831491,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122846831596,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122846831633,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122846831666,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 122846831804,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ],
+    "url": "https://github.com/Ilia-Shakeri/Stackplore/actions/runs/40697143243"
+  },
+  "history_secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "findings": 0,
+    "commits": 53,
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "log_sha256": "394698b9a16d9629300780d5d8194a7c2a580b69f2e3c67f7c27dcf586dde134",
+    "ignore_policy": "Existing exact historical fixture entries unchanged"
+  }
+}

@@ -174,3 +174,48 @@ retained, corrected against unchanged migration constraints. The preceding
 admission commit has its [hosted receipt](admission-hosted.json): all seven jobs
 and 52 canonical commits with zero secret findings. These receipts do not
 certify the later server-status implementation.
+
+## Private status server increment
+
+New source adds the [private status server](../../v2/status-server.md), with
+metadata-only SQL access, bounded replay/reset, fresh session authority, owner
+slots and deterministic transport cleanup. Actual TCP expiry exposed truncated
+HTTP termination; its failing receipt is retained and the bounded completion
+fix is tested. A separate regression catches valid maximum-length owners being
+rejected by the internal namespace; the full identity limit remains unchanged.
+SQL/public-admission checks cover snapshots, retained replay, future cursors,
+an owned missing sequence and revocation without provider/processor work.
+Authentication and processor are controlled fixtures. Complete source/hosted
+gates remain separate; the bilingual owning view and full-stage acceptance
+remain open. No alpha.4 milestone tag is claimed.
+
+The 2026-10-31 [dependency refresh](../../v2/dependency-refresh-20261031.md) found
+new high/moderate advisories in the earlier 393-version graph. Final pins are
+serializer 1.6.11 and matcher 11.0.1, with 394 locked versions and regenerated
+production legal metadata. The first status-server snapshot passed functional
+checks but contains the superseded dependency graph; it does not accept these
+new bytes. Complete final snapshot and fresh scan evidence are recorded separately.
+
+The final [status source receipt](status-server.json) binds clean tree
+`7a6ba67335850bc2c55357177ae6a0f4758f5fc8` and the refreshed server/browser graph.
+Complete verification passes: **213 client and 544 web tests**, actual PostgreSQL
+**288.040 s**, native database operations **13.425 s**, strict checks and builds.
+The final 394-version all-severity package audit is clear. Canonical source
+HIGH/CRITICAL scanning passes; the separate all-severity report retains
+GO-2026-5932 without suppression. Fresh five-platform, three-command import
+inventories contain none of its affected OpenPGP package family. The fresh
+database came from the documented official public ECR repository.
+
+Path-aware staged and 53-commit history secret checks pass. A failed pathless
+diff probe remains recorded: an unchanged public oauth2 checksum in context
+was classified as a key. No new ignore is added. The failed B notice gate and
+earlier advisory reports remain failed and do not certify final bytes.
+The preceding application commit has its [seven-job hosted receipt](application-hosted.json).
+Later receipt/document edits receive their own document/format checks;
+the exact final commit still requires hosted checks. No bilingual owning view,
+current processor, full-stage acceptance or alpha.4 milestone tag is claimed.
+
+گیت کاملِ منبع تازه، ۲۱۳ تست کارخواه و ۵۴۴ تست وب، پایگاه واقعی و ساخت را
+پاس کرد. اسکن شدید و بحرانی صفر؛ هشدارِ بستهٔ واردنشده در گزارش کامل بماند.
+روش اصلیِ اسکن محرمانه بی‌یافته است؛ هشدارِ checksum در متن diff حفظ شد.
+صفحهٔ دوزبانه، موتور واقعی، تگ و پایان مرحله هنوز جدا لازم‌اند.

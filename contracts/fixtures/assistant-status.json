@@ -1,0 +1,5 @@
+{
+  "run_id": "ar_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "after_cursor": "0",
+  "wire": "id: 3\nevent: assistant.status.v1\ndata: {\"run_id\":\"ar_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"sequence\":3,\"version\":3,\"state\":\"completed\",\"at\":\"2026-10-28T10:15:01.000001Z\"}\n\n"
+}

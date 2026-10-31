@@ -151,7 +151,13 @@ func TestAssistantConversationHTTPAdmissionRetainsOneSQLReservation(t *testing.T
 	}
 	// This helper reads the answer and citation, cancels retained text, and then
 	// revokes the SQL actor. The stale synthetic authentication must not suffice.
+	reads, live := provider.reads.Load(), provider.live.Load()
+	testAssistantSQLStatus(t, ctx, store, actor, handler, receipt.Run.ID, false)
+	if provider.reads.Load() != reads || provider.live.Load() != live || backend.calls.Load() != 1 {
+		t.Fatal("metadata status replay performed provider or processor work")
+	}
 	testAssistantHTTPReads(t, ctx, store, actor, handler, logs, receipt.Run.ID)
+	testAssistantSQLStatus(t, ctx, store, actor, handler, receipt.Run.ID, true)
 	if response := post(15, question, ""); response.Code != http.StatusNotFound || backend.calls.Load() != 1 {
 		t.Fatal("revoked public retry restored or dispatched content")
 	}

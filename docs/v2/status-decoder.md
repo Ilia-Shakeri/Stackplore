@@ -3,7 +3,8 @@
 Development version: **2.0.0-alpha.4**, **2026-10-28**. This is a pure client
 decoder. It does not open a connection or deliver the public status endpoint.
 The separate [explicit connection reader](status-connection.md) now owns fetch,
-timeouts, cancellation and cleanup; server subscriptions remain unfinished.
+timeouts, cancellation and cleanup. The [server subscription](status-server.md)
+has separate authority and publication checks.
 
 `createAssistantStatusDecoder(runId, afterCursor)` owns one run's decoding state.
 The initial cursor defaults to `0`; accepted cursors are canonical decimal zero

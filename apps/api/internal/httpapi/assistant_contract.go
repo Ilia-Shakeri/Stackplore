@@ -30,6 +30,12 @@ type AssistantRunAdmitter interface {
 	Submit(context.Context, assistant.Actor, assistantconversation.Request, string) (assistant.Run, error)
 }
 
+type AssistantStatusReader interface {
+	Status(context.Context, assistant.Actor, string, int64) (assistantconversation.StatusPage, error)
+}
+
+var _ AssistantStatusReader = (*assistantconversation.Service)(nil)
+
 var _ AssistantRunAdmitter = (*assistantconversation.Service)(nil)
 
 var _ AssistantRunReader = (*assistantservice.Service)(nil)

@@ -179,8 +179,8 @@
     },
     {
       "module": "github.com/go-chi/chi/v5",
-      "version": "v5.3.1",
-      "checksum": "h1:3j4HZLGZQ3JpMCrPJF/Jl3mYJfWLKBfNJ6quurUGCf8=",
+      "version": "v5.4.0",
+      "checksum": "h1:+ufzvFTGKyin26Or5DLrlIDq4ygIDBVcj7oVNeeaYFE=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -849,8 +849,8 @@
     },
     {
       "module": "golang.org/x/crypto",
-      "version": "v0.57.0",
-      "checksum": "h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=",
+      "version": "v0.58.0",
+      "checksum": "h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -870,8 +870,8 @@
     },
     {
       "module": "golang.org/x/net",
-      "version": "v0.60.0",
-      "checksum": "h1:79p50tfZlm0J9YfoDsSi639qSXNGVwEzOPLCxM2FsYU=",
+      "version": "v0.62.0",
+      "checksum": "h1:18ELalfM5+XNRwzM2nYqXsZQ9ByS1uhj2O/U7+5jqRY=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -907,8 +907,8 @@
     },
     {
       "module": "golang.org/x/sync",
-      "version": "v0.23.0",
-      "checksum": "h1:KameEIfc1IkluZyXWLn39Wd4tURc6GbCiISGiZm2bQk=",
+      "version": "v0.24.0",
+      "checksum": "h1:iqiDrGoDgyuvAKrhLQthUEzU/R378N78gXbBjxed7oA=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -928,8 +928,8 @@
     },
     {
       "module": "golang.org/x/sys",
-      "version": "v0.48.0",
-      "checksum": "h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=",
+      "version": "v0.49.0",
+      "checksum": "h1:XbzkgYJHdqh/8m2Uu0W/dQv8nktxx4BFHp1M0gROTXA=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -949,8 +949,8 @@
     },
     {
       "module": "golang.org/x/term",
-      "version": "v0.46.0",
-      "checksum": "h1:3+OXuTbaKDgwk8jTi3aSLHRlmWqHEUDUtxnbFigO4YE=",
+      "version": "v0.47.0",
+      "checksum": "h1:cpyOwQkr2Nzxe2p6KnrTG7Ei2wtzjsuSjhpXXepZ/BM=",
       "targets": [
         "linux/amd64",
         "windows/amd64"
@@ -970,8 +970,8 @@
     },
     {
       "module": "golang.org/x/text",
-      "version": "v0.42.0",
-      "checksum": "h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=",
+      "version": "v0.43.0",
+      "checksum": "h1:1QivrlhwAsnMOcqgOdl9my7s9OyZl8O5/UGUTJVXoWc=",
       "targets": [
         "linux/amd64",
         "windows/amd64"

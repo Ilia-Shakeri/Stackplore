@@ -189,6 +189,11 @@ func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPoli
 	router.Use(guestReadBoundary(authRoutes.guestDemo))
 	if options.AssistantRuns != nil {
 		helper := assistantHTTP{product: productRoutes, runs: options.AssistantRuns}
+		if statuses, ok := options.AssistantRuns.(AssistantStatusReader); ok {
+			helper.statuses = statuses
+			helper.statusGate = newStreamGate(16, 2)
+			router.Get("/assistant/runs/{run_id}/events", helper.streamStatus)
+		}
 		if admitter, ok := options.AssistantRuns.(AssistantRunAdmitter); ok {
 			helper.admitter = admitter
 			helper.bodyLimit = min(options.MaximumRequestBody, assistantconversation.MaximumRequestBytes)
@@ -264,6 +269,9 @@ func isAPIPath(path string) bool {
 }
 
 func isStreamPath(path string) bool {
+	if isAssistantStatusPath(path) {
+		return true
+	}
 	switch path {
 	case "/api/v1/streams/health", "/api/v1/streams/metrics", "/api/v1/streams/events", "/api/v1/streams/logs", "/api/v1/streams/alerts":
 		return true

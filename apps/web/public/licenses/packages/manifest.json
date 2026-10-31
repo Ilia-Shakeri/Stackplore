@@ -6,7 +6,7 @@
     "packages/ui",
     "packages/api-client"
   ],
-  "lockfile_sha256": "bb70b154e60e0eb5e16aad0678fbcb07804208b4bb077d4b1a5f56d7365055fd",
+  "lockfile_sha256": "ae868d5014e30a212f996b2a0fa3ffd448acf0e1777ed5336fef7680ec0656a2",
   "packages": [
     {
       "identity": "@floating-ui/core@1.8.0",
@@ -944,17 +944,17 @@
       ]
     },
     {
-      "identity": "seroval@1.6.3",
+      "identity": "seroval@1.6.11",
       "name": "seroval",
-      "version": "1.6.3",
+      "version": "1.6.11",
       "declared_license": "MIT",
-      "package_json_sha256": "2705b998cc4f24a339f25ec9ef67905420ae51a1b226d616a884a19ca9581e1a",
+      "package_json_sha256": "cf5a1ca824773f8cdf9414940c589195957f75261ce6450b672c60a1f9714007",
       "legal_origin": "installed-package",
       "supplement": null,
       "files": [
         {
           "source": "LICENSE",
-          "path": "apps/web/public/licenses/packages/seroval-3d6add296944/LICENSE",
+          "path": "apps/web/public/licenses/packages/seroval-895905da9d48/LICENSE",
           "sha256": "2bd8a2c61751fc47dcd214f864b6fcdbcb518995fbf497c81a06c3bfe8d1d9d4"
         }
       ]

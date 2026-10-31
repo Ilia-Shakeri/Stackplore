@@ -14,8 +14,8 @@ When supplied, it registers these existing contract paths:
 The server supplies this capability only through an enabled, validated
 [application runtime](application-runtime.md). The default remains off; guest
 composition rejects it. The [admission capability](conversation-admission.md)
-adds conditional public request handling. Server status subscriptions and the
-bilingual view remain unfinished. Earlier library receipts cover their exact
+adds conditional public request handling. The [status subscription](status-server.md) is supplied only with its additional
+trusted metadata capability. The bilingual view remains unfinished. Earlier library receipts cover their exact
 source; later startup composition has separate acceptance.
 
 ## Authority and request limits
@@ -84,7 +84,7 @@ acceptance remain required.
 کتابخانهٔ HTTP سه مسیر خواندن، لغو و ارجاع دارد؛ فقط با وابستگیِ مورد اعتماد
 وصل شوند. ورودی اصلی فقط با تنظیم درست آن را وصل کند؛ پیش‌فرض بسته است. حالت
 مهمان این وابستگی را رد کند. ساخت اجرا و اتصال اصلی افزوده شود؛ جریان سمت
-سرور و صفحهٔ دوزبانه مانده‌اند.
+سرور شاهد جدا دارد؛ صفحهٔ دوزبانه مانده است.
 
 کاربر از نشست موجود شناخته شود؛ لغو، مبدأ درست و CSRF هم بخواهد. مالک و
 شناسهٔ همان کار دوباره سنجیده شوند. سؤال، بدنه، پارامتر اضافی، تنظیم پردازنده

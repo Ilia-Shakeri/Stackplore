@@ -11,10 +11,12 @@ import (
 )
 
 type assistantHTTP struct {
-	product   productHTTP
-	runs      AssistantRunReader
-	admitter  AssistantRunAdmitter
-	bodyLimit int64
+	product    productHTTP
+	runs       AssistantRunReader
+	admitter   AssistantRunAdmitter
+	bodyLimit  int64
+	statuses   AssistantStatusReader
+	statusGate *streamGate
 }
 
 func (handler assistantHTTP) admit(w http.ResponseWriter, r *http.Request) {

@@ -70,7 +70,7 @@ That combined test uses synthetic authentication, resource selection and a
 bounded loopback processor protocol. The database, coordinator, core worker,
 HTTP transport and processor adapter are real code. This is not evidence of a
 running engine, real cookie/browser journey, factual quality or whole-stage
-acceptance. Startup has separate lifecycle checks. Status connections, bilingual conversation, accepted branch
+acceptance. Startup has separate lifecycle checks. Status connections have separate checks. Bilingual conversation, accepted branch
 measurement and later roadmap gates remain open. No alpha.4 release tag exists.
 
 ## فارسی
@@ -87,5 +87,5 @@ measurement and later roadmap gates remain open. No alpha.4 release tag exists.
 پایگاه متوقف کند و منتظر پایان آن بماند؛ اتصال اصلی اکنون این کار را کند.
 
 تست ترکیبی، پایگاه واقعی و احراز هویت و پردازنده آزمایشی دارد. راه‌اندازی
-اصلی شاهد جدا دارد؛ جریان سمت سرور، صفحه دوزبانه، موتور واقعی و پذیرش کل
+اصلی و جریان سمت سرور شاهد جدا دارند؛ صفحه دوزبانه، موتور واقعی و پذیرش کل
 مرحله هنوز مانده‌اند.
