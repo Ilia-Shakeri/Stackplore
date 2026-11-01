@@ -365,11 +365,9 @@ export class AssistantConversation {
   ): Promise<AssistantResourceCitation | null> => {
     if (!this.#valid() || this.#owner === null) return null;
     const response = this.#snapshot.turns.find((turn) => turn.response?.run.id === runId)?.response;
-    if (
-      response?.content_state !== 'ready' ||
-      !response.citations.some((citation) => citation.id === citationId)
-    )
-      return null;
+    if (response?.content_state !== 'ready') return null;
+    const reference = response.citations.find((citation) => citation.id === citationId);
+    if (reference === undefined) return null;
     this.#citationWork?.abort();
     const controller = new AbortController();
     this.#citationWork = controller;
@@ -379,6 +377,9 @@ export class AssistantConversation {
       if (
         !this.#valid(epoch) ||
         controller.signal.aborted ||
+        citation.id !== reference.id ||
+        citation.kind !== reference.kind ||
+        citation.observed_at !== reference.observed_at ||
         citation.source_id !== response.run.scope.source_id ||
         citation.resource_id !== response.run.scope.resource_id ||
         citation.range.from !== response.run.scope.range.from ||

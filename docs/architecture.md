@@ -163,6 +163,10 @@ gateway; one final generation remains bounded by the existing run limits.
 Ordinary resource explanation retains its single read. Public investigation
 transport and desktop controls are candidates awaiting hosted acceptance; [current work](v2/investigation.md)
 distinguishes implemented internals from acceptance. All validation runs hosted.
+The candidate local transport uses [ADR-0019](adr/0019-request-local-citation-handles.md)
+to reduce opaque citation output work. Per-request tables do not grant authority.
+Strict expansion and independent canonical gateway validation retain the same
+references, budgets and single dispatch; exact-source timing remains pending.
 
 ## Persistence
 

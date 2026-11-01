@@ -1068,6 +1068,10 @@ sealed family proofs. Unsupported reads produce coverage metadata without
 invented citations. Every proof requires fresh authority before content release;
 log consent and the selected goal bind admission identity. Public investigation
 contracts and desktop controls remain unshipped until their own acceptance.
+The local transport may use [request-local compact handles](docs/adr/0019-request-local-citation-handles.md)
+only inside exact-counted input/generation. Strictly restore and independently
+validate original canonical citations before publication. This encoding cannot
+change read authority, budgets or public identifiers.
 
 Every profile requires real protocol, privacy, quality and cancellation proof.
 Every stage requires focused regression tests and the complete gate on the approved execution environment, plus

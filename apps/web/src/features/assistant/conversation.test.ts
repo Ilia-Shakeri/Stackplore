@@ -37,6 +37,24 @@ const forbidden = () =>
   });
 
 describe('volatile owning conversation', () => {
+  it('rejects a changed citation family, identity or observation time before navigation', async () => {
+    const { api, conversation } = make();
+    const ready = readyResponse();
+    if (ready.content_state !== 'ready') throw new Error('Missing retained citation fixture');
+    api.get.mockResolvedValue(ready);
+    conversation.setDraft('Explain selected resource.');
+    await conversation.submit();
+    for (const patch of [
+      { kind: 'health' as const },
+      { observed_at: '2026-10-28T10:15:02Z' },
+      { id: `ev_${'d'.repeat(64)}` },
+    ]) {
+      api.citation.mockResolvedValue({ ...ready.citations[0], ...patch });
+      await expect(
+        conversation.resolveCitation(ready.run.id, ready.citations[0].id),
+      ).resolves.toBeNull();
+    }
+  });
   it('binds explicit investigation and consent without accepting an explanation reply', async () => {
     const { api } = controlledConversationApi();
     const conversation = new AssistantConversation(api, {

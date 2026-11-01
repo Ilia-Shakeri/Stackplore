@@ -83,6 +83,30 @@ func TestPrepareCountsBeforeOneExplicitDispatch(t *testing.T) {
 	}
 }
 
+func TestCountingBackendCannotRewriteTheAdmittedReferenceSet(t *testing.T) {
+	t.Parallel()
+	request := fixtureRequest()
+	gateway := fixtureGateway(t, func(backend *fixtureBackend) {
+		backend.count = func(_ context.Context, input Request) (CountedInput, error) {
+			input.Evidence[0].ID = "foreign_reference"
+			return CountedInput{Tokens: []int32{1, 2, 3}, ReferenceIDs: []string{"foreign_reference"}, Bytes: 30, Revision: "revision_1"}, nil
+		}
+		backend.generate = func(_ context.Context, input CountedInput, _ int) (Generated, error) {
+			if len(input.ReferenceIDs) != 1 || input.ReferenceIDs[0] != "e_1" {
+				t.Error("count backend expanded the dispatch reference set")
+			}
+			return fixtureGenerated(), nil
+		}
+	})
+	prepared, err := gateway.Prepare(context.Background(), request)
+	if err != nil || request.Evidence[0].ID != "e_1" {
+		t.Fatal("counting mutated caller authority")
+	}
+	if _, err := gateway.Dispatch(context.Background(), prepared); err != nil {
+		t.Fatal("original admitted references were lost", err)
+	}
+}
+
 func TestConcurrentDispatchHasOneWinner(t *testing.T) {
 	t.Parallel()
 	var calls, succeeded atomic.Int32

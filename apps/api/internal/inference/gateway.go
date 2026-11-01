@@ -56,7 +56,19 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	}
 	work, cancel := context.WithTimeout(ctx, MaximumCallDuration)
 	defer cancel()
-	input, err := gateway.backend.Count(work, request)
+	refs := make(map[string]struct{}, len(request.Evidence))
+	references := make([]string, 0, len(request.Evidence))
+	for _, item := range request.Evidence {
+		refs[item.ID] = struct{}{}
+		references = append(references, item.ID)
+	}
+	// A backend may inspect only detached input; it cannot rewrite its authority.
+	countRequest := request
+	countRequest.Evidence = slices.Clone(request.Evidence)
+	countRequest.Outcomes = slices.Clone(request.Outcomes)
+	defer clear(countRequest.Evidence)
+	defer clear(countRequest.Outcomes)
+	input, err := gateway.backend.Count(work, countRequest)
 	if work.Err() != nil {
 		return nil, ErrCancelled
 	}
@@ -75,12 +87,7 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 		}
 	}
 	input.Tokens = slices.Clone(input.Tokens)
-	input.ReferenceIDs = make([]string, 0, len(request.Evidence))
-	refs := make(map[string]struct{}, len(request.Evidence))
-	for _, item := range request.Evidence {
-		refs[item.ID] = struct{}{}
-		input.ReferenceIDs = append(input.ReferenceIDs, item.ID)
-	}
+	input.ReferenceIDs = references
 	return &Prepared{owner: gateway, input: input, evidence: refs, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
 }
 

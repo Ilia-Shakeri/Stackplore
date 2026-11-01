@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development candidate
 
+- Reduce private citation output work with request-local handles; strictly restore canonical IDs and recheck expansion bounds. Freeze count-backend reference authority and retain fresh family/time matching on citation navigation. Exact hosted source/profile acceptance remains pending.
+
 - Add fixed investigation recipes, per-read caps, separate proof reauthorization, typed coverage and an explicit bilingual desktop mode with local log consent. Preserve ordinary explanation. Hosted verification, generated transport and alpha.5 acceptance remain pending. Fix the bounded result read during final publication.
 - Prepare the next bounded read-only investigation checkpoint on a separate branch. No new investigation mode or later-stage acceptance is claimed by the version change.
 - Allow verification of development branches under `v2/**`; retain the exact eight-job publication gate and immutable alpha.4 source.

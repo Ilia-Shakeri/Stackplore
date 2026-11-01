@@ -67,12 +67,30 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	if err := local.verify(ctx); err != nil {
 		return port.CountedInput{}, err
 	}
+	ids := make([]string, len(request.Evidence))
+	for index, item := range request.Evidence {
+		ids[index] = item.ID
+	}
+	aliases, bindings, err := compactReferences(ids)
+	if err != nil {
+		return port.CountedInput{}, err
+	}
+	defer clear(aliases)
+	defer clear(bindings)
+	wireEvidence := make([]port.Evidence, len(request.Evidence))
+	if request.Evidence == nil {
+		wireEvidence = nil
+	}
+	defer clear(wireEvidence)
+	for index, item := range request.Evidence {
+		wireEvidence[index] = port.Evidence{ID: aliases[index], Text: item.Text}
+	}
 	input, err := json.Marshal(struct {
 		Locale   string             `json:"locale"`
 		Question string             `json:"question"`
 		Evidence []port.Evidence    `json:"evidence"`
 		Outcomes []port.ToolOutcome `json:"outcomes,omitempty"`
-	}{request.Locale, request.Question, request.Evidence, request.Outcomes})
+	}{request.Locale, request.Question, wireEvidence, request.Outcomes})
 	if err != nil {
 		return port.CountedInput{}, port.ErrInvalid
 	}
@@ -132,10 +150,6 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 			return port.CountedInput{}, port.ErrInputLimit
 		}
 	}
-	ids := make([]string, 0, len(request.Evidence))
-	for _, item := range request.Evidence {
-		ids = append(ids, item.ID)
-	}
 	return port.CountedInput{Tokens: counted.Tokens, ReferenceIDs: ids, Bytes: len(formatted.Prompt), Revision: local.revision}, nil
 }
 
@@ -153,7 +167,13 @@ func (local *Local) Generate(ctx context.Context, input port.CountedInput, outpu
 	if err := local.verify(ctx); err != nil {
 		return port.Generated{}, err
 	}
-	schema, err := port.AnswerSchemaForReferences(input.ReferenceIDs)
+	aliases, bindings, err := compactReferences(input.ReferenceIDs)
+	if err != nil {
+		return port.Generated{}, err
+	}
+	defer clear(aliases)
+	defer clear(bindings)
+	schema, err := port.AnswerSchemaForReferences(aliases)
 	if err != nil {
 		return port.Generated{}, err
 	}
@@ -186,7 +206,16 @@ func (local *Local) Generate(ctx context.Context, input port.CountedInput, outpu
 	if decodeClosed(contents, &result) != nil || result.TokensPredicted == nil || result.TokensEvaluated == nil || result.Truncated == nil || !utf8.ValidString(result.Content) || len(result.Content) > port.MaximumOutputBytes || result.Model != local.profile.ExpectedAlias {
 		return port.Generated{}, port.ErrInvalidOutput
 	}
-	return port.Generated{Content: []byte(result.Content), InputTokens: *result.TokensEvaluated, OutputTokens: *result.TokensPredicted, Complete: !*result.Truncated && (result.StopType == "eos" || result.StopType == "word"), Revision: local.revision}, nil
+	generated := port.Generated{Content: []byte(result.Content), InputTokens: *result.TokensEvaluated, OutputTokens: *result.TokensPredicted, Complete: !*result.Truncated && (result.StopType == "eos" || result.StopType == "word"), Revision: local.revision}
+	if generated.Complete {
+		canonical, err := canonicalAnswer(generated.Content, bindings)
+		clear(generated.Content)
+		if err != nil {
+			return port.Generated{}, err
+		}
+		generated.Content = canonical
+	}
+	return generated, nil
 }
 
 func decodeClosed(contents []byte, target any) error {

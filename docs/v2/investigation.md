@@ -122,3 +122,10 @@ cleanup. [Receipt and open full-source failure](../evidence/2.0.0-alpha.5/README
 The full source gate remains failed on a malformed concurrent-test timestamp
 fixture. Corrected fixture/instruction/format bytes require new exact-source
 validation. No alpha.5 tag or full-stage acceptance is claimed.
+
+The next source adds [request-local compact citation handles](../adr/0019-request-local-citation-handles.md)
+after a measured 40-second Persian cutoff. Canonical IDs, proofs, deadlines, pins
+and exact answer assertions remain. Strict expansion precedes independent gateway
+validation. The gateway freezes its original references and detaches count input
+to prevent backend mutation of admitted authority. New source must prove both
+correctness and timing; this decision does not accept it.

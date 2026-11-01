@@ -63,3 +63,25 @@ unknown-use and source-revocation tests otherwise pass in that focused run.
 The next source also clarifies that coverage is displayed separately and answer
 form/section count still follows the user's question. Neither failed revision
 nor the newer instruction/fixture bytes receive whole-source acceptance yet.
+
+Source `1f52587f128f6e8318727cb71aaae7b5ec194686`, run `41296691305`,
+[remains failed](persian-deadline-failed-ci.json). Focused Go tests including
+concurrent reads now pass; source stops at a contract negative self-test that
+still injects the former fixed-goal constant. The new closed goal set must reject
+both unexpected schema constants and arbitrary goals, not silently ignore either.
+
+[Measured processor failure](hosted-persian-deadline-failed.json) proves all four
+English journeys and the Persian ordinary administrator journey. The Persian
+investigation admits once, completes five reads, then its client closes exactly
+at 40000 ms with 1422 counted tokens; usage stays uncertain and no retry occurs.
+The Persian viewer cases never run. All owned observers/engine/database stop.
+This failed receipt is not replaced by the earlier passing hosted runtime.
+
+The next candidate follows [ADR-0019](../../adr/0019-request-local-citation-handles.md):
+compact handles reduce avoidable opaque citation output work while strict
+expansion and independent canonical gateway checks preserve authority and bytes.
+No timeout, model pin, evidence cap or assertion is relaxed. Additional tests
+reject another run's sealed family proof, metadata-byte overflow, count-backend
+mutation, forged/duplicate handles and canonical output expansion overflow.
+Citation navigation also requires the retained ID, family and observation time.
+These newer changes require their own complete hosted acceptance and trial.

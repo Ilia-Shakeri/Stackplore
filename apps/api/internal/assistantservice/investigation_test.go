@@ -202,3 +202,40 @@ func TestSourceRevocationDuringExtraReadPreventsLatePublication(t *testing.T) {
 		}
 	}
 }
+
+func TestLaterFamilyCannotReuseAnotherRunsSealedProof(t *testing.T) {
+	t.Parallel()
+	service, _, authority, model := fixtureService(t, nil)
+	authority.reads.extraReads = true
+	first, second := inputFixture(t, 1), inputFixture(t, 2)
+	first.Admission.Goal, second.Admission.Goal = assistant.InvestigateIncident, assistant.InvestigateIncident
+	second.Scope.Range = first.Scope.Range
+	second.Admission.From, second.Admission.Until = first.Admission.From, first.Admission.Until
+	var retained *assistantevidence.Evidence
+	original := service.collector
+	service.collector = collectorFunc(func(ctx context.Context, request assistantevidence.ReadRequest) (assistantevidence.Evidence, error) {
+		if request.Kind == assistant.Health && retained != nil {
+			return *retained, nil
+		}
+		proof, err := original.Read(ctx, request)
+		if request.Kind == assistant.Health && err == nil {
+			retained = &proof
+		}
+		return proof, err
+	})
+	for _, input := range []Input{first, second} {
+		if _, err := service.Submit(context.Background(), input); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := service.runOne(context.Background(), "worker"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.runOne(context.Background(), "worker"); err != assistant.ErrDenied || model.counts.Load() != 1 || model.calls.Load() != 1 {
+		t.Fatal("same-scope proof from another run authorized generation")
+	}
+	snapshot, err := service.Get(context.Background(), second.Admission.Actor, second.Admission.ID)
+	if err != nil || snapshot.Answer != nil || snapshot.Volatile || len(snapshot.Outcomes) != 0 {
+		t.Fatal("cross-run proof retained partial private output")
+	}
+}

@@ -244,10 +244,11 @@ export const inspectAssistantPolicy = (document) => {
     'usage_conservative',
   ]);
   check(
-    same(schemas.AssistantRun?.properties?.goal?.enum, [
-      'explain_resource',
-      'investigate_incident',
-    ]),
+    same(Object.keys(schemas.AssistantRun?.properties?.goal ?? {}), ['type', 'enum']) &&
+      same(schemas.AssistantRun?.properties?.goal?.enum, [
+        'explain_resource',
+        'investigate_incident',
+      ]),
     'goal.fixed',
   );
   check(bounded(schemas.AssistantRun?.properties?.version, 1, 64), 'version.bounded');
@@ -582,6 +583,9 @@ export const runAssistantPolicySelfTests = (document) => {
   });
   reject('goal.fixed', (value) => {
     value.components.schemas.AssistantRun.properties.goal.const = 'investigate_incident';
+  });
+  reject('goal.fixed', (value) => {
+    value.components.schemas.AssistantRun.properties.goal.enum.push('shell');
   });
   reject('AssistantRun.closed', (value) => {
     value.components.schemas.AssistantRun.properties.question = { type: 'string', maxLength: 8192 };

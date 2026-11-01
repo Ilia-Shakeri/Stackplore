@@ -2,6 +2,7 @@ package inference
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -48,5 +49,19 @@ func TestOutcomeCoverageIsClosedAndCannotInventRecords(t *testing.T) {
 	}
 	if _, err := outcomeBytes(make([]ToolOutcome, 7)); err == nil {
 		t.Fatal("unbounded family metadata accepted")
+	}
+}
+
+func TestCoverageBytesParticipateInAggregateInputBudget(t *testing.T) {
+	request := Request{Locale: "en", Question: strings.Repeat("q", 8050), OutputLimit: 128}
+	for _, id := range []string{"first_fact", "second_fact", "third_fact", "fourth_fact", "fifth_fact", "sixth_fact", "seventh_fact"} {
+		request.Evidence = append(request.Evidence, Evidence{ID: id, Text: strings.Repeat("x", 8192)})
+	}
+	if request.Validate() != nil {
+		t.Fatal("bounded evidence-only boundary fixture rejected")
+	}
+	request.Outcomes = []ToolOutcome{{Tool: "metrics", Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Records: 7}}
+	if request.Validate() != ErrInputLimit {
+		t.Fatal("coverage metadata escaped the complete input byte budget")
 	}
 }
