@@ -65,6 +65,7 @@ func TestObservationsRejectInvalidBundleAndPreserveEmptyCoverage(t *testing.T) {
 	}
 	request := requestFixture(t)
 	request.Status.State = domain.AvailabilityUnsupported
+	request.Status.ReasonCode = "source.unsupported"
 	request.Resources, request.Health, request.Metrics = nil, nil, nil
 	request.Events, request.Relationships = nil, nil
 	bundle, err := Build(context.Background(), request)
