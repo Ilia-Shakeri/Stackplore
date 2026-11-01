@@ -42,6 +42,17 @@ func (Report) Format(state fmt.State, _ rune) {
 
 func (Report) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
+func (report Report) Clone() Report {
+	report.Timeline = slices.Clone(report.Timeline)
+	report.Gaps, report.NextReads = slices.Clone(report.Gaps), slices.Clone(report.NextReads)
+	report.Hypotheses = slices.Clone(report.Hypotheses)
+	for index := range report.Hypotheses {
+		report.Hypotheses[index].Supporting = slices.Clone(report.Hypotheses[index].Supporting)
+		report.Hypotheses[index].Contrary = slices.Clone(report.Hypotheses[index].Contrary)
+	}
+	return report
+}
+
 // Build grants no authority. The owning service must retain and freshly check
 // every sealed read proof before invoking it and before any publication.
 func Build(scope contextbuilder.Scope, observations []contextbuilder.Observation) (Report, error) {
@@ -51,7 +62,7 @@ func Build(scope contextbuilder.Scope, observations []contextbuilder.Observation
 		return Report{}, ErrInvalid
 	}
 	result := Report{Timeline: slices.Clone(observations), Hypotheses: []Hypothesis{},
-		Gaps: []string{"alerts_not_read", "workload_history_not_read", "cause_unproven"},
+		Gaps:      []string{"alerts_not_read", "workload_history_not_read", "cause_unproven"},
 		NextReads: []string{"review_health", "review_metrics", "review_events", "review_alert_history", "review_workload_history"}}
 	seen := make(map[string]bool, len(observations))
 	for _, item := range observations {

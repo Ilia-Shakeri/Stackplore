@@ -32,6 +32,9 @@ func TestInvestigationReservesFixedReadsAndRetainsSeparateCoverage(t *testing.T)
 		if err != nil || snapshot.Answer == nil || snapshot.Run.State != assistant.Completed || snapshot.Run.ToolCalls != 5 || snapshot.Run.InferenceCalls != 1 || model.calls.Load() != 1 || len(snapshot.Outcomes) != 5 || len(snapshot.Citations) != wantRecords {
 			t.Fatal("investigation escaped its bounded metadata contract", err)
 		}
+		if snapshot.Report == nil || len(snapshot.Report.Timeline) != wantRecords {
+			t.Fatal("incident report omitted or fabricated retained observations")
+		}
 		want := []string{}
 		for _, kind := range []string{"inventory", "health", "metrics", "events", "topology"} {
 			want = append(want, "begin:"+kind, "read:"+kind, "finish:"+kind)
@@ -48,8 +51,9 @@ func TestInvestigationReservesFixedReadsAndRetainsSeparateCoverage(t *testing.T)
 			}
 		}
 		snapshot.Outcomes[0].Records = 100
+		snapshot.Report.Timeline[0].Reference.ID = "changed"
 		again, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID)
-		if err != nil || again.Outcomes[0].Records != 1 {
+		if err != nil || again.Outcomes[0].Records != 1 || again.Report == nil || again.Report.Timeline[0].Reference.ID == "changed" {
 			t.Fatal("coverage snapshot mutated retained state")
 		}
 		if available {
@@ -59,7 +63,7 @@ func TestInvestigationReservesFixedReadsAndRetainsSeparateCoverage(t *testing.T)
 			}
 			service.mu.Lock()
 			entry := service.entries[input.Admission.ID]
-			cleared := entry.revoked && entry.evidence == nil && len(entry.extraEvidence) == 0 && entry.answer == nil && entry.outcomes == nil
+			cleared := entry.revoked && entry.evidence == nil && len(entry.extraEvidence) == 0 && entry.answer == nil && entry.outcomes == nil && entry.report == nil
 			service.mu.Unlock()
 			if !cleared {
 				t.Fatal("revocation left partial private results")

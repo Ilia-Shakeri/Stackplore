@@ -161,7 +161,7 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 		return assistantReplyJSON{}, err
 	}
 	reply := assistantReplyJSON{Run: run, ContentState: "unavailable"}
-	if !snapshot.Volatile && (snapshot.Answer != nil || len(snapshot.Citations) != 0 || len(snapshot.Outcomes) != 0) {
+	if !snapshot.Volatile && (snapshot.Answer != nil || snapshot.Report != nil || len(snapshot.Citations) != 0 || len(snapshot.Outcomes) != 0) {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
 	if snapshot.Run.State == assistant.Completed && !snapshot.Volatile {
@@ -181,7 +181,7 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 	if len(snapshot.Citations) < 1 || len(snapshot.Citations) > inference.MaximumEvidence || len(snapshot.Answer.Sections) < 1 || len(snapshot.Answer.Sections) > inference.MaximumSections {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
-	if run.Goal == assistant.ExplainResource && (len(snapshot.Citations) != 1 || len(snapshot.Outcomes) != 0) {
+	if run.Goal == assistant.ExplainResource && (len(snapshot.Citations) != 1 || len(snapshot.Outcomes) != 0 || snapshot.Report != nil) {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
 	citations := make([]assistantCitationJSON, 0, len(snapshot.Citations))

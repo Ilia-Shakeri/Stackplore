@@ -486,3 +486,12 @@ partial, old or insufficient data cannot become a complete diagnosis. Warning
 events alone cannot establish OOM or connectivity failure. Alert/replica history
 remain explicitly unread; no public report or stage-6 quality acceptance exists.
 New focused tests and all source gates must pass on Actions before integration.
+
+At `75ad179`, run `41303099170`, focused correlation and policy tests pass;
+the full source gate stops at Go formatting. The next source applies only the
+inspected Actions formatting patch and attaches report construction to the owning
+volatile service lifecycle. It clones snapshots, erases reports on invalidation,
+and uses the existing pre/post-publication proof fences. Ordinary explanations
+do not acquire reports. The report is still internal; public transport and
+desktop integration remain pending. New lifecycle tests require fresh hosted
+checks; an earlier partial source run cannot accept this slice.

@@ -201,6 +201,10 @@ func (service *Service) execute(ctx context.Context, entry *memoryRun) error {
 	if err = service.completeStep(ctx, entry, step, units, false); err != nil {
 		return err
 	}
+	report, err := service.incidentReport(entry)
+	if err != nil {
+		return err
+	}
 	completed, err := service.finishCompleted(ctx, entry)
 	if err != nil {
 		return err
@@ -214,5 +218,6 @@ func (service *Service) execute(ctx context.Context, entry *memoryRun) error {
 		return assistant.ErrDenied
 	}
 	entry.run, entry.answer, entry.citations = completed, cloneAnswer(result.Answer), service.citationSetLocked(entry)
+	entry.report = report
 	return nil
 }

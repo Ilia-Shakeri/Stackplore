@@ -9,6 +9,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/incidentreport"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 )
 
@@ -36,6 +37,7 @@ type memoryRun struct {
 	evidence      *assistantevidence.Evidence
 	extraEvidence []assistantevidence.Evidence
 	outcomes      []inference.ToolOutcome
+	report        *incidentreport.Report
 	operations    chan struct{}
 }
 
@@ -135,6 +137,7 @@ func (service *Service) eraseLocked(entry *memoryRun) {
 	entry.revoked = true
 	entry.input.Question = ""
 	entry.answer = nil
+	entry.report = nil
 	entry.citations = nil
 	entry.evidence = nil
 	clear(entry.extraEvidence)
@@ -250,7 +253,7 @@ func (service *Service) Get(ctx context.Context, actor assistant.Actor, id strin
 		service.mu.Unlock()
 		return Snapshot{Run: run, Volatile: false}, nil
 	}
-	content := run.State == assistant.Completed && (entry.answer != nil || len(entry.citations) > 0)
+	content := run.State == assistant.Completed && (entry.answer != nil || entry.report != nil || len(entry.citations) > 0)
 	finishing := run.State == assistant.Completed && entry.active && entry.answer == nil
 	finished := entry.finished
 	seal := entry.evidence
@@ -286,6 +289,10 @@ func (service *Service) Get(ctx context.Context, actor assistant.Actor, id strin
 		snapshot.Answer = cloneAnswer(*entry.answer)
 		snapshot.Citations = slices.Clone(entry.citations)
 		snapshot.Outcomes = slices.Clone(entry.outcomes)
+		if entry.report != nil {
+			report := entry.report.Clone()
+			snapshot.Report = &report
+		}
 	}
 	return snapshot, nil
 }

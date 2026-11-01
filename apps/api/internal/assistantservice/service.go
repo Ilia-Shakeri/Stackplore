@@ -19,6 +19,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantplan"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/incidentreport"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 )
 
@@ -83,6 +84,7 @@ type Snapshot struct {
 	Citations []contextbuilder.CitationReference
 	Volatile  bool
 	Outcomes  []inference.ToolOutcome
+	Report    *incidentreport.Report
 }
 
 func (Snapshot) Format(state fmt.State, _ rune) {

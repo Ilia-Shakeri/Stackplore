@@ -74,6 +74,14 @@ func TestQualifiedRestartAndHealthKeepActualChronologyAndContraryEvidence(t *tes
 			t.Fatal("rank became a probability or unqualified cause")
 		}
 	}
+	cloned := report.Clone()
+	cloned.Timeline[0].Reference.ID = "changed"
+	cloned.Hypotheses[0].Supporting[0] = "changed"
+	cloned.Hypotheses[1].Contrary[0] = "changed"
+	cloned.Gaps[0], cloned.NextReads[0] = "changed", "changed"
+	if report.Timeline[0].Reference.ID == "changed" || report.Hypotheses[0].Supporting[0] == "changed" || report.Hypotheses[1].Contrary[0] == "changed" || report.Gaps[0] == "changed" || report.NextReads[0] == "changed" {
+		t.Fatal("nested report clone retained mutable aliases")
+	}
 	encoded, err := json.Marshal(report)
 	if err != nil || string(encoded) != "{}" || strings.Contains(fmt.Sprintf("%+v", report), "report_source") {
 		t.Fatal("ordinary formatting exposed report material")
@@ -149,7 +157,9 @@ func TestRejectCrossScopeMalformedHiddenFieldsAndBudgets(t *testing.T) {
 		func(item *contextbuilder.Observation) { item.Reference.ConfigurationVersion++ },
 		func(item *contextbuilder.Observation) { item.Reference.PolicyVersion++ },
 		func(item *contextbuilder.Observation) { item.Reference.RestoreGeneration++ },
-		func(item *contextbuilder.Observation) { item.Reference.Range.End = item.Reference.Range.End.Add(time.Second) },
+		func(item *contextbuilder.Observation) {
+			item.Reference.Range.End = item.Reference.Range.End.Add(time.Second)
+		},
 		func(item *contextbuilder.Observation) { item.Reference.ResourceID = "" },
 		func(item *contextbuilder.Observation) { item.Reference.ID = "ev_unknown" },
 		func(item *contextbuilder.Observation) { item.Reference.ObservedAt = scope.ObservedAt.Add(time.Second) },
@@ -191,8 +201,16 @@ func TestSimultaneousHealthConflictAndLimitedEvidenceRemainExplicit(t *testing.T
 		t.Fatal("tie-break order suppressed simultaneous contrary health")
 	}
 	for _, limited := range []contextbuilder.Observation{
-		func() contextbuilder.Observation { item := bad; item.Availability = domain.AvailabilityStale; return item }(),
-		func() contextbuilder.Observation { item := bad; item.Completeness = domain.CompletenessPartial; return item }(),
+		func() contextbuilder.Observation {
+			item := bad
+			item.Availability = domain.AvailabilityStale
+			return item
+		}(),
+		func() contextbuilder.Observation {
+			item := bad
+			item.Completeness = domain.CompletenessPartial
+			return item
+		}(),
 	} {
 		report, err := Build(scope, []contextbuilder.Observation{limited})
 		if err != nil || len(report.Hypotheses) != 0 || !slices.Contains(report.Gaps, "limited_evidence") {
