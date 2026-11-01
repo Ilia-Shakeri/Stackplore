@@ -33,7 +33,10 @@ export async function assistantLiveJourney(
   const reads: Promise<void>[] = [];
   const observeReply = (response: Response) => {
     const path = new URL(response.url()).pathname;
-    if (response.request().method() === 'GET' && /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/report$/u.test(path)) {
+    if (
+      response.request().method() === 'GET' &&
+      /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/report$/u.test(path)
+    ) {
       metadata.report_status = response.status();
       return;
     }
@@ -192,9 +195,15 @@ export async function assistantLiveJourney(
     );
     expect(metadata.citation_current).toBe(true);
     if (goal === 'investigate_incident') {
-      await panel.getByRole('button', { name: label('assistant.report.open'), exact: true }).click();
+      await panel
+        .getByRole('button', { name: label('assistant.report.open'), exact: true })
+        .click();
       try {
-        await page.waitForFunction(() => document.querySelectorAll('.assistant__report tbody tr').length > 0, undefined, { timeout: 15_000 });
+        await page.waitForFunction(
+          () => document.querySelectorAll('.assistant__report tbody tr').length > 0,
+          undefined,
+          { timeout: 15_000 },
+        );
       } catch {
         throw new Error('Real typed incident report did not settle');
       }
@@ -203,12 +212,18 @@ export async function assistantLiveJourney(
       expect(metadata.report_rows >= 1 && metadata.report_rows <= 64).toBe(true);
       await report.locator('tbody button').first().click();
       try {
-        await page.waitForFunction(() => document.activeElement?.id === 'resource-detail-name', undefined, { timeout: 5000 });
+        await page.waitForFunction(
+          () => document.activeElement?.id === 'resource-detail-name',
+          undefined,
+          { timeout: 5000 },
+        );
       } catch {
         throw new Error('Real report citation authority focus did not settle');
       }
       metadata.report_current = true;
-      await report.getByRole('button', { name: label('assistant.report.close'), exact: true }).click();
+      await report
+        .getByRole('button', { name: label('assistant.report.close'), exact: true })
+        .click();
       expect(await report.locator('table').count()).toBe(0);
       metadata.report_cleared = true;
     }

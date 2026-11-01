@@ -8,7 +8,13 @@ import { AuthProvider } from '../auth/auth-context';
 import { createAuthenticatedAuthStore, createResolvedAuthStore } from '../../test/auth';
 import { AssistantProvider } from './assistant-context';
 import { AssistantResourcePanel } from './AssistantResourcePanel';
-import { controlledConversationApi, readyResponse, scope, investigationResponse, incidentResponse } from './conversation.test-fixtures';
+import {
+  controlledConversationApi,
+  readyResponse,
+  scope,
+  investigationResponse,
+  incidentResponse,
+} from './conversation.test-fixtures';
 
 const resource: ProductResource = {
   id: scope.resourceId,
@@ -81,27 +87,49 @@ afterEach(() => {
 });
 
 describe('owning resource view', () => {
-  it.each(['en', 'fa'] as const)('reads and clears a typed desktop report explicitly in %s', async (locale) => {
-    const { api } = mount(locale);
-    const ready = investigationResponse();
-    api.admit.mockResolvedValue({ run: ready.run });
-    api.get.mockResolvedValue(ready);
-    api.report.mockResolvedValue(incidentResponse());
-    const words = language[locale];
-    fireEvent.click(screen.getByRole('button', { name: words.open }));
-    fireEvent.change(screen.getByRole('combobox', { name: locale === 'en' ? 'Read mode' : 'حالت خواندن' }), { target: { value: 'investigate_incident' } });
-    fireEvent.change(screen.getByRole('textbox', { name: words.question }), { target: { value: 'Inspect selected facts.' } });
-    fireEvent.click(screen.getByRole('button', { name: words.send }));
-    const open = await screen.findByRole('button', { name: locale === 'en' ? 'View incident report' : 'دیدن گزارش رخداد' });
-    expect(api.report).not.toHaveBeenCalled();
-    fireEvent.click(open);
-    expect(await screen.findByRole('table', { name: locale === 'en' ? 'Bounded observation timeline' : 'خط زمانی مشاهدات محدود' })).not.toBeNull();
-    expect(screen.getByText(locale === 'en' ? 'Alert history was not read.' : 'تاریخچهٔ هشدار خوانده نشد.')).not.toBeNull();
-    expect(api.report).toHaveBeenCalledOnce();
-    expect(api.admit).toHaveBeenCalledOnce();
-    fireEvent.click(screen.getByRole('button', { name: locale === 'en' ? 'Close and clear report' : 'بستن و پاک‌کردن گزارش' }));
-    expect(screen.queryByRole('table')).toBeNull();
-  });
+  it.each(['en', 'fa'] as const)(
+    'reads and clears a typed desktop report explicitly in %s',
+    async (locale) => {
+      const { api } = mount(locale);
+      const ready = investigationResponse();
+      api.admit.mockResolvedValue({ run: ready.run });
+      api.get.mockResolvedValue(ready);
+      api.report.mockResolvedValue(incidentResponse());
+      const words = language[locale];
+      fireEvent.click(screen.getByRole('button', { name: words.open }));
+      fireEvent.change(
+        screen.getByRole('combobox', { name: locale === 'en' ? 'Read mode' : 'حالت خواندن' }),
+        { target: { value: 'investigate_incident' } },
+      );
+      fireEvent.change(screen.getByRole('textbox', { name: words.question }), {
+        target: { value: 'Inspect selected facts.' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: words.send }));
+      const open = await screen.findByRole('button', {
+        name: locale === 'en' ? 'View incident report' : 'دیدن گزارش رخداد',
+      });
+      expect(api.report).not.toHaveBeenCalled();
+      fireEvent.click(open);
+      expect(
+        await screen.findByRole('table', {
+          name: locale === 'en' ? 'Bounded observation timeline' : 'خط زمانی مشاهدات محدود',
+        }),
+      ).not.toBeNull();
+      expect(
+        screen.getByText(
+          locale === 'en' ? 'Alert history was not read.' : 'تاریخچهٔ هشدار خوانده نشد.',
+        ),
+      ).not.toBeNull();
+      expect(api.report).toHaveBeenCalledOnce();
+      expect(api.admit).toHaveBeenCalledOnce();
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: locale === 'en' ? 'Close and clear report' : 'بستن و پاک‌کردن گزارش',
+        }),
+      );
+      expect(screen.queryByRole('table')).toBeNull();
+    },
+  );
   it('drops local log consent on owner change and locale remount without dispatch', () => {
     const { api, setOwner } = mount();
     fireEvent.click(screen.getByRole('button', { name: language.en.open }));

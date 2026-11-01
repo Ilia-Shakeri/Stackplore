@@ -85,6 +85,12 @@ jobs:
         run: bash scripts/start-test-postgres.sh start code
       - name: Verify bounded investigation contracts on hosted runner
         run: go -C apps/api test ./internal/incidentreport ./internal/contextbuilder ./internal/assistantplan ./internal/assistantservice ./internal/assistantevidence ./internal/assistantconversation ./internal/httpapi ./internal/inference ./internal/provider/inference
+      - name: Verify incident report transport and ownership on hosted runner
+        run: |
+          corepack pnpm --filter @stackplore/api-client typecheck
+          corepack pnpm --filter @stackplore/web typecheck
+          corepack pnpm --filter @stackplore/api-client exec vitest run src/assistant-report-response.test.ts
+          corepack pnpm --filter @stackplore/web exec vitest run src/features/assistant/conversation-report.test.ts src/features/assistant/AssistantResourcePanel.test.tsx
       - name: Run full gate
         run: corepack pnpm verify
       - name: Prepare formatting correction after a failed gate

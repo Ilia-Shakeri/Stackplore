@@ -1,4 +1,8 @@
-import { parseAssistantRunResponse, parseAssistantIncidentReportResponse, type AssistantRun } from '@stackplore/api-client';
+import {
+  parseAssistantRunResponse,
+  parseAssistantIncidentReportResponse,
+  type AssistantRun,
+} from '@stackplore/api-client';
 import { vi } from 'vitest';
 
 import type { AssistantApi } from './assistant-api';
@@ -59,18 +63,67 @@ export const lostResponse = (run = resourceRun()) =>
 export const investigationResponse = () => {
   const ready = readyResponse();
   if (ready.content_state !== 'ready') throw new Error('Missing investigation fixture');
-  return parseAssistantRunResponse({ ...ready, run: { ...ready.run, goal: 'investigate_incident' },
-    coverage: ['inventory', 'health', 'metrics', 'events', 'topology'].map((tool, index) => ({ tool,
-      availability: index === 0 ? 'available' : 'unsupported', completeness: 'complete', records: index === 0 ? 1 : 0, more_available: false })) }, ready.run.id);
+  return parseAssistantRunResponse(
+    {
+      ...ready,
+      run: { ...ready.run, goal: 'investigate_incident' },
+      coverage: ['inventory', 'health', 'metrics', 'events', 'topology'].map((tool, index) => ({
+        tool,
+        availability: index === 0 ? 'available' : 'unsupported',
+        completeness: 'complete',
+        records: index === 0 ? 1 : 0,
+        more_available: false,
+      })),
+    },
+    ready.run.id,
+  );
 };
 export const incidentResponse = () => {
   const ready = investigationResponse();
   if (ready.content_state !== 'ready') throw new Error('Missing report answer fixture');
   const ref = ready.citations[0];
-  return parseAssistantIncidentReportResponse({ run: ready.run, content_state: 'ready', citations: ready.citations, coverage: ready.coverage,
-    report: { timeline: [{ citation_id: ref.id, kind: ref.kind, at: ref.observed_at, time_basis: 'observed', availability: 'available', completeness: 'complete', synthetic: true, health: 'healthy', metric: null, severity: '', redacted: false, truncated: false }],
-      hypotheses: [], gaps: ['alerts_not_read', 'workload_history_not_read', 'cause_unproven', 'metrics_missing', 'events_missing'],
-      next_reads: ['review_health', 'review_metrics', 'review_events', 'review_alert_history', 'review_workload_history'] } }, ready.run.id);
+  return parseAssistantIncidentReportResponse(
+    {
+      run: ready.run,
+      content_state: 'ready',
+      citations: ready.citations,
+      coverage: ready.coverage,
+      report: {
+        timeline: [
+          {
+            citation_id: ref.id,
+            kind: ref.kind,
+            at: ref.observed_at,
+            time_basis: 'observed',
+            availability: 'available',
+            completeness: 'complete',
+            synthetic: true,
+            health: 'healthy',
+            metric: null,
+            severity: '',
+            redacted: false,
+            truncated: false,
+          },
+        ],
+        hypotheses: [],
+        gaps: [
+          'alerts_not_read',
+          'workload_history_not_read',
+          'cause_unproven',
+          'metrics_missing',
+          'events_missing',
+        ],
+        next_reads: [
+          'review_health',
+          'review_metrics',
+          'review_events',
+          'review_alert_history',
+          'review_workload_history',
+        ],
+      },
+    },
+    ready.run.id,
+  );
 };
 export const pendingResponse = () => {
   const run = resourceRun('queued', 1);

@@ -537,6 +537,13 @@ The hosted metadata guard rejects missing/false/coerced flags and out-of-bound
 counts. Complete source/type/lint/real-browser validation remains pending;
 stage-6 features, held-out quality and publication are not accepted by this slice.
 
+Source `e07501f` passes focused Go report/lifecycle/route tests and stops the
+source gate at frontend/tool formatting. The next revision applies the inspected
+Actions patch and checks client/web types plus focused report/ownership/view
+tests before the complete gate. Those early checks make typed failures visible
+even when formatting also needs correction. They supplement the full gate;
+they do not replace any real profile, race, provider or deployment job.
+
 ## Stage-5 acceptance followup — 2026-11-01
 
 The correction passes eight source jobs `41301657316` and signed trial

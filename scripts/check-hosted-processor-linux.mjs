@@ -25,9 +25,20 @@ const modelRevision = '90862c4b9d2787eaed51d12237eafdfe7c5f6077';
 const build = 'b11729-412a363c6';
 
 export function validHostedIncidentReportMetadata(value) {
-  if (value?.report_current !== true || value?.report_cleared !== true || !Number.isInteger(value.report_rows)) return false;
-  if (value.goal === 'explain_resource') return value.report_rows === 0 && value.report_status === 0;
-  return value.goal === 'investigate_incident' && value.report_rows >= 1 && value.report_rows <= 64 && value.report_status === 200;
+  if (
+    value?.report_current !== true ||
+    value?.report_cleared !== true ||
+    !Number.isInteger(value.report_rows)
+  )
+    return false;
+  if (value.goal === 'explain_resource')
+    return value.report_rows === 0 && value.report_status === 0;
+  return (
+    value.goal === 'investigate_incident' &&
+    value.report_rows >= 1 &&
+    value.report_rows <= 64 &&
+    value.report_status === 200
+  );
 }
 
 // Metadata-only SQL acceptance: four explicitly admitted runs, no uncertain work.

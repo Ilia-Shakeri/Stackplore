@@ -402,29 +402,53 @@ export class AssistantConversation {
     }
   };
 
-  resolveReport = async (runId: string, signal?: AbortSignal): Promise<AssistantIncidentReportReadyResponse | null> => {
+  resolveReport = async (
+    runId: string,
+    signal?: AbortSignal,
+  ): Promise<AssistantIncidentReportReadyResponse | null> => {
     if (!this.#valid() || this.#owner === null || signal?.aborted === true) return null;
     const response = this.#snapshot.turns.find((turn) => turn.response?.run.id === runId)?.response;
-    if (response?.content_state !== 'ready' || response.run.goal !== 'investigate_incident') return null;
+    if (response?.content_state !== 'ready' || response.run.goal !== 'investigate_incident')
+      return null;
     this.#reportWork?.abort();
     const controller = new AbortController();
-    const abort = () => { controller.abort(); };
+    const abort = () => {
+      controller.abort();
+    };
     signal?.addEventListener('abort', abort, { once: true });
     this.#reportWork = controller;
     const epoch = this.#epoch;
     try {
       const reply = await this.#api.report(this.#owner, runId, controller.signal);
-      if (!this.#valid(epoch) || controller.signal.aborted || this.#snapshot.turns.find((turn) => turn.response?.run.id === runId)?.response !== response) return null;
+      if (
+        !this.#valid(epoch) ||
+        controller.signal.aborted ||
+        this.#snapshot.turns.find((turn) => turn.response?.run.id === runId)?.response !== response
+      )
+        return null;
       if (reply.content_state !== 'ready' || !sameRun(response.run, reply.run)) {
         this.erase('unavailable');
         return null;
       }
-      if (reply.citations.length !== response.citations.length || reply.citations.some((ref) => {
-        const original = response.citations.find((item) => item.id === ref.id);
-        return original === undefined || original.kind !== ref.kind || original.observed_at !== ref.observed_at ||
-          original.source_id !== ref.source_id || original.resource_id !== ref.resource_id ||
-          original.range.from !== ref.range.from || original.range.to !== ref.range.to;
-      }) || new TextEncoder().encode(JSON.stringify(reply.report)).byteLength + new TextEncoder().encode(JSON.stringify(response.answer)).byteLength > 65536) return null;
+      if (
+        reply.citations.length !== response.citations.length ||
+        reply.citations.some((ref) => {
+          const original = response.citations.find((item) => item.id === ref.id);
+          return (
+            original === undefined ||
+            original.kind !== ref.kind ||
+            original.observed_at !== ref.observed_at ||
+            original.source_id !== ref.source_id ||
+            original.resource_id !== ref.resource_id ||
+            original.range.from !== ref.range.from ||
+            original.range.to !== ref.range.to
+          );
+        }) ||
+        new TextEncoder().encode(JSON.stringify(reply.report)).byteLength +
+          new TextEncoder().encode(JSON.stringify(response.answer)).byteLength >
+          65536
+      )
+        return null;
       return reply;
     } catch (error) {
       if (this.#valid(epoch) && denied(error)) this.erase('unavailable');
