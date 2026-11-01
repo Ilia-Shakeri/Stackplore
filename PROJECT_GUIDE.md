@@ -4,6 +4,8 @@ Product rules live in [SPEC.md](SPEC.md), accepted [ADRs](docs/adr/README.md), a
 
 ## Current state
 
+Published v2 prerelease **2.0.0-alpha.4**, schema18, has exact-tag hosted and signed publication evidence in the [active ledger](docs/v2/implementation.md). The alpha.5 [investigation candidate](docs/v2/investigation.md) develops separately with hosted-only verification and desktop priority. Stable 2.0 remains open. The accepted v1 baseline below keeps its own source-bound scope.
+
 Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](docs/evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof.
 
 The historical accepted corrective release is **1.0.2**, immutable `v1.0.2` at

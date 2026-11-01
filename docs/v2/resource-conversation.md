@@ -1,9 +1,9 @@
 # Smart Assistant — selected-resource conversation
 
-Development **2.0.0-alpha.4**, schema **18**, 2026-11-01. This source adds the
+Published chosen-local checkpoint **2.0.0-alpha.4**, schema **18**, 2026-11-01. This source adds the
 owning bilingual view to a resource detail page. Full verification, real browser
 checks and exact-commit hosted evidence are separate gates; this document does
-not mark stage 4 or version 2 complete. See [development evidence](../evidence/2.0.0-alpha.4/README.md).
+not mark whole version 2 complete. The immutable tag accepts the recorded chosen-local scope; alpha.5 investigation is a separate [candidate](investigation.md). See [development evidence](../evidence/2.0.0-alpha.4/README.md).
 
 From 2026-11-01, [validation runs only on Actions](hosted-validation.md).
 Desktop is primary; mobile retains a brief input/overflow smoke check.

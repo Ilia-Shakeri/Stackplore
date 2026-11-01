@@ -208,7 +208,13 @@ export const parseAssistantRunResponse = (
   const response = closed(
     value,
     state === 'ready'
-      ? ['run', 'content_state', 'answer', 'citations', ...(Object.hasOwn(value, 'coverage') ? ['coverage'] : [])]
+      ? [
+          'run',
+          'content_state',
+          'answer',
+          'citations',
+          ...(Object.hasOwn(value, 'coverage') ? ['coverage'] : []),
+        ]
       : ['run', 'content_state'],
   );
   const run = parseRun(response.run);
@@ -219,15 +225,24 @@ export const parseAssistantRunResponse = (
     return { run: { ...run, state: 'completed' }, content_state: state };
   if (state === 'unavailable') return { run, content_state: state };
   if (state !== 'ready' || run.state !== 'completed') return fail();
-  const citations = boundedArray(response.citations, 1, run.goal === 'explain_resource' ? 1 : 64).map(parseCitation);
+  const citations = boundedArray(
+    response.citations,
+    1,
+    run.goal === 'explain_resource' ? 1 : 64,
+  ).map(parseCitation);
   const allowed = new Set(citations.map((citation) => citation.id));
-  if (allowed.size !== citations.length || citations.some((citation) =>
-    citation.source_id !== run.scope.source_id ||
-    citation.resource_id !== run.scope.resource_id ||
-    citation.range.from !== run.scope.range.from ||
-    citation.range.to !== run.scope.range.to ||
-    (run.goal === 'explain_resource' && citation.kind !== 'resource')
-  )) return fail();
+  if (
+    allowed.size !== citations.length ||
+    citations.some(
+      (citation) =>
+        citation.source_id !== run.scope.source_id ||
+        citation.resource_id !== run.scope.resource_id ||
+        citation.range.from !== run.scope.range.from ||
+        citation.range.to !== run.scope.range.to ||
+        (run.goal === 'explain_resource' && citation.kind !== 'resource'),
+    )
+  )
+    return fail();
   let coverage: AssistantReadCoverage[] | undefined;
   if (run.goal === 'investigate_incident') {
     coverage = parseCoverage(response.coverage, citations, run.scope.window_minutes);
@@ -242,31 +257,58 @@ export const parseAssistantRunResponse = (
     )
       return fail();
     const ids = boundedArray(section.citations, section.kind === 'facts' ? 1 : 0, 64);
-    if (new Set(ids).size !== ids.length || ids.some((id) => typeof id !== 'string' || !allowed.has(id))) return fail();
+    if (
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => typeof id !== 'string' || !allowed.has(id))
+    )
+      return fail();
     return { kind: section.kind, text: section.text, citations: ids };
   });
   if (new TextEncoder().encode(JSON.stringify({ sections })).byteLength > 65536) return fail();
   // Every field and cross-reference above has been checked; no untrusted object escapes.
-  return { run, content_state: 'ready', answer: { sections }, citations, ...(coverage === undefined ? {} : { coverage }) } as AssistantRunResponse;
+  return {
+    run,
+    content_state: 'ready',
+    answer: { sections },
+    citations,
+    ...(coverage === undefined ? {} : { coverage }),
+  } as AssistantRunResponse;
 };
 
-const parseCoverage = (value: unknown, citations: readonly AssistantResourceCitation[], window: number): AssistantReadCoverage[] => {
+const parseCoverage = (
+  value: unknown,
+  citations: readonly AssistantResourceCitation[],
+  window: number,
+): AssistantReadCoverage[] => {
   const plan = ['inventory', 'health', 'metrics', 'events', 'topology', 'logs'];
   const kinds = ['resource', 'health', 'metric', 'event', 'relationship', 'log'];
   const values = boundedArray(value, 5, 6);
   if (values.length === 6 && window > 15) return fail();
   const result = values.map((value, index) => {
-    const item = closed(value, ['tool', 'availability', 'completeness', 'records', 'more_available']);
-    if (item.tool !== plan[index] ||
+    const item = closed(value, [
+      'tool',
+      'availability',
+      'completeness',
+      'records',
+      'more_available',
+    ]);
+    if (
+      item.tool !== plan[index] ||
       typeof item.availability !== 'string' ||
       !['available', 'stale', 'unavailable', 'unsupported'].includes(item.availability) ||
       (item.completeness !== 'complete' && item.completeness !== 'partial') ||
-      typeof item.records !== 'number' || !Number.isInteger(item.records) || item.records < 0 || item.records > 8 ||
+      typeof item.records !== 'number' ||
+      !Number.isInteger(item.records) ||
+      item.records < 0 ||
+      item.records > 8 ||
       typeof item.more_available !== 'boolean' ||
-      (item.availability !== 'available' && item.availability !== 'stale' && (item.records !== 0 || item.completeness !== 'complete')) ||
+      (item.availability !== 'available' &&
+        item.availability !== 'stale' &&
+        (item.records !== 0 || item.completeness !== 'complete')) ||
       item.records !== citations.filter((citation) => citation.kind === kinds[index]).length ||
       (index === 0 && item.records !== 1)
-    ) return fail();
+    )
+      return fail();
     return item as AssistantReadCoverage;
   });
   if (result.reduce((total, item) => total + item.records, 0) !== citations.length) return fail();

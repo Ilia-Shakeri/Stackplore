@@ -45,13 +45,18 @@ const sectionKeys = {
   next_checks: 'assistant.nextChecks',
 } as const satisfies Record<string, MessageKey>;
 const toolKeys = {
-  inventory: 'assistant.tool.inventory', health: 'assistant.tool.health',
-  metrics: 'assistant.tool.metrics', events: 'assistant.tool.events',
-  topology: 'assistant.tool.topology', logs: 'assistant.tool.logs',
+  inventory: 'assistant.tool.inventory',
+  health: 'assistant.tool.health',
+  metrics: 'assistant.tool.metrics',
+  events: 'assistant.tool.events',
+  topology: 'assistant.tool.topology',
+  logs: 'assistant.tool.logs',
 } as const satisfies Record<string, MessageKey>;
 const availabilityKeys = {
-  available: 'assistant.coverage.available', stale: 'assistant.coverage.stale',
-  unavailable: 'assistant.coverage.unavailable', unsupported: 'assistant.coverage.unsupported',
+  available: 'assistant.coverage.available',
+  stale: 'assistant.coverage.stale',
+  unavailable: 'assistant.coverage.unavailable',
+  unsupported: 'assistant.coverage.unsupported',
 } as const satisfies Record<string, MessageKey>;
 
 export function AssistantResourcePanel({ resource }: { readonly resource: ProductResource }) {
@@ -112,7 +117,14 @@ function ConversationView({
     () =>
       new AssistantConversation(
         api,
-        { sourceId: resource.source_id, resourceId: resource.id, windowMinutes, locale, goal, logConsent },
+        {
+          sourceId: resource.source_id,
+          resourceId: resource.id,
+          windowMinutes,
+          locale,
+          goal,
+          logConsent,
+        },
         owner,
       ),
     [api, owner, resource.source_id, resource.id, windowMinutes, locale, goal, logConsent],
@@ -180,13 +192,20 @@ function ConversationView({
       </dl>
       <label className="assistant__field" htmlFor={`${panelId}-goal`}>
         <span>{t('assistant.mode')}</span>
-        <select id={`${panelId}-goal`} value={goal} onChange={(event) => {
-          if (event.target.value === 'explain_resource' || event.target.value === 'investigate_incident') {
-            setCitationWarning(null);
-            setLogConsent(false);
-            setGoal(event.target.value);
-          }
-        }}>
+        <select
+          id={`${panelId}-goal`}
+          value={goal}
+          onChange={(event) => {
+            if (
+              event.target.value === 'explain_resource' ||
+              event.target.value === 'investigate_incident'
+            ) {
+              setCitationWarning(null);
+              setLogConsent(false);
+              setGoal(event.target.value);
+            }
+          }}
+        >
           <option value="explain_resource">{t('assistant.mode.explain')}</option>
           <option value="investigate_incident">{t('assistant.mode.investigate')}</option>
         </select>
@@ -215,11 +234,16 @@ function ConversationView({
       </label>
       {goal === 'investigate_incident' ? (
         <label className="assistant__consent" htmlFor={`${panelId}-logs`}>
-          <input id={`${panelId}-logs`} type="checkbox" checked={logConsent}
-            disabled={windowMinutes > 15} onChange={(event) => {
+          <input
+            id={`${panelId}-logs`}
+            type="checkbox"
+            checked={logConsent}
+            disabled={windowMinutes > 15}
+            onChange={(event) => {
               setCitationWarning(null);
               setLogConsent(event.target.checked);
-            }} />
+            }}
+          />
           <span>{t('assistant.logConsent')}</span>
         </label>
       ) : null}
@@ -244,8 +268,12 @@ function ConversationView({
                       {turn.response.coverage.map((item) => (
                         <div key={item.tool}>
                           <dt>{t(toolKeys[item.tool])}</dt>
-                          <dd>{t(availabilityKeys[item.availability])}; {t('assistant.coverage.records', { count: formatNumber(item.records) })}
-                            {item.completeness === 'partial' ? `; ${t('assistant.coverage.partial')}` : ''}
+                          <dd>
+                            {t(availabilityKeys[item.availability])};{' '}
+                            {t('assistant.coverage.records', { count: formatNumber(item.records) })}
+                            {item.completeness === 'partial'
+                              ? `; ${t('assistant.coverage.partial')}`
+                              : ''}
                             {item.more_available ? `; ${t('assistant.coverage.more')}` : ''}
                           </dd>
                         </div>

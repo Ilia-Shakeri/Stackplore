@@ -39,11 +39,19 @@ const forbidden = () =>
 describe('volatile owning conversation', () => {
   it('binds explicit investigation and consent without accepting an explanation reply', async () => {
     const { api } = controlledConversationApi();
-    const conversation = new AssistantConversation(api, { ...scope, goal: 'investigate_incident', logConsent: true });
-    disposals.push(conversation); conversation.connect();
+    const conversation = new AssistantConversation(api, {
+      ...scope,
+      goal: 'investigate_incident',
+      logConsent: true,
+    });
+    disposals.push(conversation);
+    conversation.connect();
     conversation.setDraft('Check selected facts.');
     await conversation.submit();
-    expect(api.admit.mock.calls[0]?.[1]).toMatchObject({ goal: 'investigate_incident', log_consent: true });
+    expect(api.admit.mock.calls[0]?.[1]).toMatchObject({
+      goal: 'investigate_incident',
+      log_consent: true,
+    });
     expect(api.get).not.toHaveBeenCalled();
     expect(conversation.getSnapshot().state).toBe('admission_unknown');
     expect(conversation.getSnapshot().turns[0]?.response).toBeUndefined();

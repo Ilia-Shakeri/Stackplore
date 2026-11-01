@@ -37,7 +37,7 @@ export type AssistantRunState =
   | 'uncertain';
 
 /**
- * One explicit local explain_resource request. Omit conversation_id to start a server-owned conversation; otherwise it must be a live owner-authorized server-issued conversation. Retries retain the first admitted conversation and exact window. Reusing the key with changed question, locale, selected scope or explicit conversation conflicts. Text loss never authorizes another dispatch, including after restart, session change or pruning.
+ * One explicit local selected-resource request. Omitted goal means explain_resource. investigate_incident selects a fixed bounded read recipe. Explicit log_consent true requires that goal and a window of at most 15 minutes; logs otherwise remain excluded. Omit conversation_id to start a server-owned conversation; otherwise it must be a live owner-authorized server-issued conversation. Retries retain the first admitted conversation and exact window. Reusing the key with changed question, locale, goal, log consent, selected scope or explicit conversation conflicts. Text loss never authorizes another dispatch, including after restart, session change or pruning.
  */
 export type AssistantRunRequest = {
   source_id: SourceId;
@@ -49,6 +49,8 @@ export type AssistantRunRequest = {
    */
   question: string;
   conversation_id?: AssistantConversationId;
+  goal?: 'explain_resource' | 'investigate_incident';
+  log_consent?: boolean;
 };
 
 /**
@@ -72,7 +74,7 @@ export type AssistantRunScope = {
 export type AssistantRun = {
   id: AssistantRunId;
   conversation_id: AssistantConversationId;
-  goal: 'explain_resource';
+  goal: 'explain_resource' | 'investigate_incident';
   state: AssistantRunState;
   version: number;
   scope: AssistantRunScope;
@@ -139,29 +141,44 @@ export type AssistantOtherSection = {
 export type AssistantAnswerSection = AssistantFactSection | AssistantOtherSection;
 
 /**
- * One complete validated answer, at most 64 KiB of serialized UTF-8 JSON, released after current authority checks. Every citation ID must match the single resolved selected-resource citation returned alongside it. Unknown, duplicate, forged or out-of-scope references fail closed. A hypothesis is not an observation, and missing evidence remains explicit.
+ * One complete validated answer, at most 64 KiB of serialized UTF-8 JSON, released after current authority checks. Every citation ID must match an actual resolved selected-resource citation returned alongside it. Unknown, duplicate, forged or out-of-scope references fail closed. A hypothesis is not an observation, and missing evidence remains explicit.
  */
 export type AssistantAnswer = {
   sections: Array<AssistantAnswerSection>;
 };
 
 /**
- * One exact normalized selected-resource locator, with no href, path or observation text.
+ * Exact observation family mapped to the authorized selected-resource view; no href, path or raw observation text. Ordinary explanations return only resource citations.
  */
 export type AssistantResourceCitation = {
   id: AssistantCitationId;
-  kind: 'resource';
+  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log';
   source_id: SourceId;
   resource_id: ResourceId;
   observed_at: Timestamp;
   range: AssistantTimeRange;
 };
 
+/**
+ * Typed coverage without raw text or invented citation IDs. Unsupported/unavailable families have zero records and complete status; partial applies only to available/stale data.
+ */
+export type AssistantReadCoverage = {
+  tool: 'inventory' | 'health' | 'metrics' | 'events' | 'topology' | 'logs';
+  availability: 'available' | 'stale' | 'unavailable' | 'unsupported';
+  completeness: 'complete' | 'partial';
+  records: number;
+  more_available: boolean;
+};
+
+/**
+ * Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage and retains one resource citation. All references share the admitted selected-resource scope and exact range.
+ */
 export type AssistantReadyResponse = {
   run: AssistantCompletedRun;
   content_state: 'ready';
   answer: AssistantAnswer;
-  citations: [AssistantResourceCitation];
+  citations: Array<AssistantResourceCitation>;
+  coverage?: Array<AssistantReadCoverage>;
 };
 
 export type AssistantRunResponse =

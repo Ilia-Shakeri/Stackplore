@@ -1,8 +1,8 @@
 # Documentation
 
-Current published prerelease: **2.0.0-alpha.3**, schema18;
-[public evidence](evidence/2.0.0-alpha.3/published-release.json).
-Current development: **2.0.0-alpha.4**;
+Current published prerelease: **2.0.0-alpha.4**, schema18;
+[hosted and publication evidence](evidence/2.0.0-alpha.4/README.md).
+Current development: **2.0.0-alpha.5**; [investigation candidate](v2/investigation.md);
 [stage ledger](v2/implementation.md), [hosted-only validation](v2/hosted-validation.md),
 [English runtime guide](v2/runtime.md), [راهنمای اجرا](v2/runtime.fa.md).
 Stable2.0, quality, new-runtime branch measurement and pilot acceptance remain open.

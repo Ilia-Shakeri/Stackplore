@@ -2,19 +2,18 @@
 
 **2026-11-01 execution rule:** local reads, edits and lightweight Git only;
 tests, services, builds, installs and scans use Actions. Desktop comes first.
-The hosted protocol check passes at `5cebad7`; its new actual application/browser
-extension awaits exact-source validation. Stage 4 remains open.
-[Validation policy](docs/v2/hosted-validation.md).
-
-Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](docs/evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.
-
-Stage-4 development **2.0.0-alpha.4** prepares default-off loopback profile parsing, closed private conversation contracts/types, explicit protected client requests, validated detached replies and pure bounded status decoding. Earlier full clean-snapshot and scan receipts bind their own source. The explicit admission increment at 8ba404a passed all seven hosted jobs. Newer source now owns enabled startup, current source/restore fences, retained operator stops and joined shutdown, plus one bounded explicit client status connection. Earlier receipts do not certify these later bytes. Application composition has its own full source receipt. Newer source adds bounded private server status, fresh metadata authority, replay/reset, clean EOF and SQL/TCP/shared-client checks. Private status at c3d4812 passed complete source checks and all seven hosted jobs with the refreshed dependency graph. Browser ownership at 6e2f177 passed complete source and all seven hosted checks. It supplies an opaque volatile session fence and bounded private calls. Newer source mounts the owning bilingual resource view, bounded volatile turns and explicit status/retry/cancel/citation controls. Scope/session/page-exit cleanup and plain-text rendering have focused checks. The view has complete local and synthetic-protocol real browser receipts; exact hosted checks remain separate; no current processor or whole-stage acceptance is claimed. No alpha.4 tag or whole-stage acceptance is claimed. [Development evidence](docs/evidence/2.0.0-alpha.4/README.md).
-
-Current published checkpoint, **2026-10-28**: **2.0.0-alpha.3**, schema18,
-immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`. Recorded public
-artifact acceptance passes; current development is the unfinished alpha.4
-foundation. Canonical project: `D:\Projects\Stackplore\repository`.
-
+Published **2.0.0-alpha.4**, schema **18**, is immutable at
+`1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`. [Recorded evidence](docs/evidence/2.0.0-alpha.4/README.md)
+binds eight green exact-tag jobs, real local processor/desktop journeys and
+signed package/security publication. Optional remote profiles remain disabled;
+independent public consumption, broader quality/capacity and stable-v2 acceptance
+remain separate. The bounded investigation candidate develops on `v2/alpha5`,
+version **2.0.0-alpha.5**, with focused/full hosted gates and new actual SQL/browser
+journeys still required. [Implementation ledger](docs/v2/implementation.md),
+[stage-5 catalog and stop rules](docs/v2/investigation.md),
+[validation policy](docs/v2/hosted-validation.md).
+Canonical project: `D:\Projects\Stackplore\repository`; isolated development
+worktree: `D:\Projects\Stackplore\worktrees\v2-alpha5`.
 
 ## Active version 2 implementation — 2026-10-24
 
@@ -22,7 +21,7 @@ The maintainer authorized all stages, tests, documentation, checkpoint versions,
 commits and pushes on 2026-10-19. This explicit authorization supersedes the
 default no-push repository rule for this delivery. Preserve every existing tag
 and all unrelated user work. Stage 0 starts at `2.0.0-alpha.0`; stable 1.0.3 and
-its schema-17 acceptance remain immutable. The bounded gateway is published; public helper dispatch remains absent.
+its schema-17 acceptance remain immutable. The bounded local conversation is published; new investigation acceptance remains pending.
 
 Published stage-0 checkpoint **2.0.0-alpha.0**, schema **17**, is immutable at
 `eb86ab7554db555f023c1de72c3119acf101226a`. Main CI

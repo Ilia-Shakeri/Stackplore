@@ -162,7 +162,8 @@ func TestInputScopeAndWorkerConfigurationFailClosed(t *testing.T) {
 	service, repository, _, _ := fixtureService(t, nil)
 	for _, alter := range []func(*Input){
 		func(input *Input) { input.Admission.Paid = true },
-		func(input *Input) { input.Admission.Goal = assistant.InvestigateIncident },
+		func(input *Input) { input.Admission.Goal = assistant.ExplainAlert },
+		func(input *Input) { input.Admission.Goal = "shell" },
 		func(input *Input) { input.Question = strings.Repeat("x", 8193) },
 		func(input *Input) { input.Scope.Source.SourceID = "other_source" },
 		func(input *Input) { input.Scope.PolicyVersion++ },

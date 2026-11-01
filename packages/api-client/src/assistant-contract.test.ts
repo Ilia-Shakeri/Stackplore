@@ -24,11 +24,20 @@ import type {
 describe('private assistant contract types', () => {
   it('accepts only the selected local resource journey', () => {
     expectTypeOf<keyof AssistantRunRequest>().toEqualTypeOf<
-      'source_id' | 'resource_id' | 'window_minutes' | 'locale' | 'question' | 'conversation_id' | 'goal' | 'log_consent'
+      | 'source_id'
+      | 'resource_id'
+      | 'window_minutes'
+      | 'locale'
+      | 'question'
+      | 'conversation_id'
+      | 'goal'
+      | 'log_consent'
     >();
     expectTypeOf<AssistantLocale>().toEqualTypeOf<'en' | 'fa'>();
     expectTypeOf<AssistantWindowMinutes>().toEqualTypeOf<5 | 15 | 60 | 360 | 1440>();
-    expectTypeOf<AssistantRun['goal']>().toEqualTypeOf<'explain_resource' | 'investigate_incident'>();
+    expectTypeOf<AssistantRun['goal']>().toEqualTypeOf<
+      'explain_resource' | 'investigate_incident'
+    >();
     expectTypeOf<
       Extract<keyof AssistantRun, 'question' | 'profile_id' | 'lease_owner' | 'session_digest'>
     >().toEqualTypeOf<never>();
@@ -79,7 +88,9 @@ describe('private assistant contract types', () => {
     expectTypeOf<AssistantReadyResponse['citations']>().toEqualTypeOf<
       [AssistantResourceCitation, ...AssistantResourceCitation[]]
     >();
-    expectTypeOf<AssistantResourceCitation['kind']>().toEqualTypeOf<'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log'>();
+    expectTypeOf<AssistantResourceCitation['kind']>().toEqualTypeOf<
+      'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log'
+    >();
     expectTypeOf<keyof AssistantResourceCitation>().toEqualTypeOf<
       'id' | 'kind' | 'source_id' | 'resource_id' | 'observed_at' | 'range'
     >();

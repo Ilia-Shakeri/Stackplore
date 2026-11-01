@@ -1070,7 +1070,7 @@ log consent and the selected goal bind admission identity. Public investigation
 contracts and desktop controls remain unshipped until their own acceptance.
 
 Every profile requires real protocol, privacy, quality and cancellation proof.
-Every stage requires focused regression tests and the full local gate, plus
+Every stage requires focused regression tests and the complete gate on the approved execution environment, plus
 real PostgreSQL/browser/network/provider/deployment evidence for each claimed
 boundary. Release 2.0 requires all stages 0–10 and the held-out quality/security,
 capacity, upgrade/restore and independently verified stable-artifact gates.

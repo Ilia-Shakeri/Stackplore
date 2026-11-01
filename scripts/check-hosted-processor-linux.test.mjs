@@ -10,21 +10,63 @@ import {
 test('real investigation SQL proof requires exact reservations and known single dispatch', () => {
   const source = 'a'.repeat(40);
   const value = {
-    source_revision: source, status: 'observed',
-    runs: ['explain_resource', 'investigate_incident', 'explain_resource', 'investigate_incident'].map((goal) => ({ goal, state: 'completed', tool_calls: goal === 'explain_resource' ? 1 : 5, inference_calls: 1, usage_unknown: false, usage_conservative: false })),
-    steps: Object.entries({ inventory: 4, health: 2, metrics: 2, events: 2, topology: 2, inference: 4 }).flatMap(([kind, count]) => Array.from({ length: count }, () => ({ kind, state: 'completed', units: kind === 'inference' ? 10 : 0, maximum_units: kind === 'inference' ? 16512 : 0 }))),
+    source_revision: source,
+    status: 'observed',
+    runs: [
+      'explain_resource',
+      'investigate_incident',
+      'explain_resource',
+      'investigate_incident',
+    ].map((goal) => ({
+      goal,
+      state: 'completed',
+      tool_calls: goal === 'explain_resource' ? 1 : 5,
+      inference_calls: 1,
+      usage_unknown: false,
+      usage_conservative: false,
+    })),
+    steps: Object.entries({
+      inventory: 4,
+      health: 2,
+      metrics: 2,
+      events: 2,
+      topology: 2,
+      inference: 4,
+    }).flatMap(([kind, count]) =>
+      Array.from({ length: count }, () => ({
+        kind,
+        state: 'completed',
+        units: kind === 'inference' ? 10 : 0,
+        maximum_units: kind === 'inference' ? 16512 : 0,
+      })),
+    ),
   };
   assert.equal(validHostedDatabaseMetadata(value, source), true);
   for (const mutate of [
-    (v) => { v.runs[0].usage_unknown = true; },
-    (v) => { v.runs[1].tool_calls = 6; },
-    (v) => { v.runs[1].inference_calls = 2; },
-    (v) => { v.steps[0].maximum_units = 1; },
-    (v) => { v.steps.pop(); },
-    (v) => { v.steps.at(-1).units = 20000; },
-    (v) => { v.source_revision = 'b'.repeat(40); },
+    (v) => {
+      v.runs[0].usage_unknown = true;
+    },
+    (v) => {
+      v.runs[1].tool_calls = 6;
+    },
+    (v) => {
+      v.runs[1].inference_calls = 2;
+    },
+    (v) => {
+      v.steps[0].maximum_units = 1;
+    },
+    (v) => {
+      v.steps.pop();
+    },
+    (v) => {
+      v.steps.at(-1).units = 20000;
+    },
+    (v) => {
+      v.source_revision = 'b'.repeat(40);
+    },
   ]) {
-    const changed = structuredClone(value); mutate(changed);
+    const changed = structuredClone(value);
+    mutate(changed);
     assert.equal(validHostedDatabaseMetadata(changed, source), false);
   }
 });

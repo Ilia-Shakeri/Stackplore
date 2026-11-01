@@ -233,7 +233,9 @@ export class AssistantConversation {
           window_minutes: this.#scope.windowMinutes,
           locale: this.#scope.locale,
           question,
-          ...(this.#scope.goal === 'investigate_incident' ? { goal: this.#scope.goal, log_consent: this.#scope.logConsent === true } : {}),
+          ...(this.#scope.goal === 'investigate_incident'
+            ? { goal: this.#scope.goal, log_consent: this.#scope.logConsent === true }
+            : {}),
           ...(this.#conversation === undefined ? {} : { conversation_id: this.#conversation }),
         }),
       };

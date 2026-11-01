@@ -57,7 +57,14 @@ export async function assistantLiveJourney(
             metadata.citation_count = body.citations.length;
             if (goal === 'investigate_incident' && Array.isArray(body.coverage)) {
               const expected = ['inventory', 'health', 'metrics', 'events', 'topology'];
-              metadata.coverage_valid = body.coverage.length === expected.length && body.coverage.every((item: unknown, index) => typeof item === 'object' && item !== null && (item as Record<string, unknown>).tool === expected[index]);
+              metadata.coverage_valid =
+                body.coverage.length === expected.length &&
+                body.coverage.every(
+                  (item: unknown, index) =>
+                    typeof item === 'object' &&
+                    item !== null &&
+                    (item as Record<string, unknown>).tool === expected[index],
+                );
             }
           }
           if (typeof body.run === 'object' && body.run !== null) {
@@ -117,7 +124,9 @@ export async function assistantLiveJourney(
     await page.getByRole('button', { name: label('assistant.open'), exact: true }).click();
     const panel = page.locator('.assistant');
     if (goal === 'investigate_incident') {
-      await panel.getByRole('combobox', { name: label('assistant.mode'), exact: true }).selectOption(goal);
+      await panel
+        .getByRole('combobox', { name: label('assistant.mode'), exact: true })
+        .selectOption(goal);
       expect(await panel.getByRole('checkbox').isChecked()).toBe(false);
     }
     const input = panel.getByRole('textbox', { name: label('assistant.question'), exact: true });
@@ -154,7 +163,11 @@ export async function assistantLiveJourney(
     else {
       expect(count).toBeGreaterThanOrEqual(1);
       expect(count).toBeLessThanOrEqual(64);
-      expect(await panel.getByRole('heading', { name: label('assistant.coverage'), exact: true }).count()).toBe(1);
+      expect(
+        await panel
+          .getByRole('heading', { name: label('assistant.coverage'), exact: true })
+          .count(),
+      ).toBe(1);
     }
     await citation.last().click();
     try {

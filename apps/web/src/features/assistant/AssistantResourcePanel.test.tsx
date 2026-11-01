@@ -81,28 +81,35 @@ afterEach(() => {
 });
 
 describe('owning resource view', () => {
-  it.each(['en', 'fa'] as const)('requires explicit mode and local log consent in %s, then erases on change', (locale) => {
-    const { api } = mount(locale);
-    const words = language[locale];
-    fireEvent.click(screen.getByRole('button', { name: words.open }));
-    const mode = screen.getByRole('combobox', { name: locale === 'fa' ? 'حالت خواندن' : 'Read mode' });
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Private draft.' } });
-    fireEvent.change(mode, { target: { value: 'investigate_incident' } });
-    expect(screen.getByRole('textbox')).toHaveProperty('value', '');
-    const consent = screen.getByRole('checkbox');
-    expect(consent).toHaveProperty('checked', false);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Private draft.' } });
-    fireEvent.click(consent);
-    expect(consent).toHaveProperty('checked', true);
-    expect(screen.getByRole('textbox')).toHaveProperty('value', '');
-    const window = screen.getByRole('combobox', { name: locale === 'fa' ? 'بازهٔ شواهد' : 'Evidence window' });
-    fireEvent.change(window, { target: { value: '60' } });
-    expect(consent).toHaveProperty('checked', false);
-    expect(consent).toHaveProperty('disabled', true);
-    fireEvent.change(mode, { target: { value: 'explain_resource' } });
-    expect(screen.queryByRole('checkbox')).toBeNull();
-    expect(api.admit).not.toHaveBeenCalled();
-  });
+  it.each(['en', 'fa'] as const)(
+    'requires explicit mode and local log consent in %s, then erases on change',
+    (locale) => {
+      const { api } = mount(locale);
+      const words = language[locale];
+      fireEvent.click(screen.getByRole('button', { name: words.open }));
+      const mode = screen.getByRole('combobox', {
+        name: locale === 'fa' ? 'حالت خواندن' : 'Read mode',
+      });
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Private draft.' } });
+      fireEvent.change(mode, { target: { value: 'investigate_incident' } });
+      expect(screen.getByRole('textbox')).toHaveProperty('value', '');
+      const consent = screen.getByRole('checkbox');
+      expect(consent).toHaveProperty('checked', false);
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Private draft.' } });
+      fireEvent.click(consent);
+      expect(consent).toHaveProperty('checked', true);
+      expect(screen.getByRole('textbox')).toHaveProperty('value', '');
+      const window = screen.getByRole('combobox', {
+        name: locale === 'fa' ? 'بازهٔ شواهد' : 'Evidence window',
+      });
+      fireEvent.change(window, { target: { value: '60' } });
+      expect(consent).toHaveProperty('checked', false);
+      expect(consent).toHaveProperty('disabled', true);
+      fireEvent.change(mode, { target: { value: 'explain_resource' } });
+      expect(screen.queryByRole('checkbox')).toBeNull();
+      expect(api.admit).not.toHaveBeenCalled();
+    },
+  );
   it('keeps the guest view sealed even if a synthetic port supplies an owner', () => {
     const { api } = mount('en', true);
     expect(screen.queryByRole('button', { name: language.en.open })).toBeNull();
@@ -177,10 +184,14 @@ describe('owning resource view', () => {
       await screen.findByRole('heading', { name: language.en.facts });
     };
     await enter();
-    fireEvent.change(screen.getByRole('combobox', { name: 'Evidence window' }), { target: { value: '60' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Evidence window' }), {
+      target: { value: '60' },
+    });
     expect(screen.queryByText('Private view fixture.')).toBeNull();
     expect(screen.getByRole('textbox')).toHaveProperty('value', '');
-    fireEvent.change(screen.getByRole('combobox', { name: 'Evidence window' }), { target: { value: '15' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Evidence window' }), {
+      target: { value: '15' },
+    });
     await enter();
     act(() => {
       setOwner(Symbol());
@@ -278,7 +289,9 @@ describe('owning resource view', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: language.en.send }));
     fireEvent.click(await screen.findByRole('button', { name: 'Check resource evidence' }));
-    fireEvent.change(screen.getByRole('combobox', { name: 'Evidence window' }), { target: { value: '60' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Evidence window' }), {
+      target: { value: '60' },
+    });
     const reference = ready.citations[0];
     await act(async () => {
       finish(reference);

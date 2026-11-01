@@ -8,28 +8,25 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-**2.0.0-alpha.1 is published**, schema17, immutable source
-`1f4d46d5178b032fd5c3e7a2540cd7d2718d2698`.
-[Public acceptance](docs/evidence/2.0.0-alpha.1/published-release.json) records
-seven main/tag jobs, strict scans, 39 files, 30 checksums, 31 provenance subjects
-and seven SBOM attestations. The public Windows archive matches an actually
-recovery-tested trial; Linux has signed producer execution. Independent public
-OCI execution and current-host processor restart are separate. The latter was
-automatic-review rejected; historical English/Persian protocol proof retains
-its scope and is not a fresh running-service claim.
+**Published prerelease: 2.0.0-alpha.4**, schema **18**, immutable source
+`1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`.
+[Chosen-local checkpoint evidence](docs/evidence/2.0.0-alpha.4/README.md) records
+eight green exact-tag jobs, real bilingual desktop/processor journeys and signed
+package/security publication. The default-off resource conversation is available
+only with an explicit operator-bound local profile. Independent public artifact
+consumption, optional remote profiles, Windows processor capacity and whole-v2
+quality/capacity remain separate gates.
 
-**Stage2 candidate:2.0.0-alpha.2**, schema18.
-[Evidence](docs/evidence/2.0.0-alpha.2/README.md) covers durable admission,
-quota/fencing, three actual crash phases, upgrade, native restore and a full
-local pass. Exact hosted/concurrency and checkpoint publication remain pending.
-Public question dispatch and raw-text persistence remain absent. Stages2–10
-and stable2.0 completion are open; follow the [ledger](docs/v2/implementation.md).
-
-The mixed local checkout retains unaccepted later preparation. Normal startup
-applies migration18 even with the capability disabled. Use a fresh disposable
-database for preparation, or a verified release;
-[checkout boundary](docs/v2/preparation-status.md).
-[Stage0 evidence](docs/evidence/2.0.0-alpha.0/README.md) remains historical.
+**Development candidate: 2.0.0-alpha.5**, schema **18**, branch `v2/alpha5`.
+The [bounded investigation](docs/v2/investigation.md) adds fixed typed reads,
+separate proof authorization, honest coverage and explicit local log consent.
+It remains unaccepted until the new source, generated types, real SQL/desktop
+journeys, scans and exact-tag gates pass. All tests/builds/services/generators
+for this development run on Actions; the workstation is limited to reading,
+editing and lightweight Git. Desktop is primary. Follow the
+[stage ledger](docs/v2/implementation.md); stable 2.0 and later stages remain open.
+Migration 18 is active even while the helper is disabled; use the documented
+[upgrade and verified backup/restore procedure](docs/operations/upgrade-rollback.md).
 
 > **Stable 1.0.3:** Corrective **1.0.3** is published and independently accepted, schema **17**, immutable `v1.0.3` at `656581cf05d4774358d5644a6e1af3c69a210f81`. [Public acceptance](docs/evidence/1.0.3/published-release.json) binds the exact source and artifacts. Main CI [39235362032](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235362032), tag CI [39238088634](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088634), signed trial [39235380836](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39235380836) and publication [39238088607](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/39238088607) passed; independent checks verified 39 public files, 30 checksum entries, 31 provenance subjects and 7 SBOM attestations. Release 417182030 was published at 2026-10-19T10:51:50Z. The 9 stages are complete within the recorded scope; review 9/10. Customer installation, provider rights, receiver delivery and capacity require separate operator proof. Historical immutable [1.0.2 proof](docs/evidence/1.0.2/published-release.json) keeps its original source and limits.
 

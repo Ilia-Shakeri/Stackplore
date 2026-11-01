@@ -7,8 +7,8 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice"
-	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 )
 
 func investigationSnapshot() assistantservice.Snapshot {
@@ -35,7 +35,9 @@ func TestInvestigationPublicationBindsEveryFamilyAndCoverage(t *testing.T) {
 		t.Fatal("bounded multi-family publication rejected", err)
 	}
 	snapshot.Outcomes[0].Records = 7
-	if reply.Coverage[0].Records != 1 { t.Fatal("coverage retained caller mutation") }
+	if reply.Coverage[0].Records != 1 {
+		t.Fatal("coverage retained caller mutation")
+	}
 	for _, mutate := range []func(*assistantservice.Snapshot){
 		func(s *assistantservice.Snapshot) { s.Outcomes = nil },
 		func(s *assistantservice.Snapshot) { s.Outcomes[1].Records = 0 },
@@ -44,7 +46,9 @@ func TestInvestigationPublicationBindsEveryFamilyAndCoverage(t *testing.T) {
 		func(s *assistantservice.Snapshot) { s.Citations[1].Kind = "log" },
 		func(s *assistantservice.Snapshot) { s.Citations[1].ID = s.Citations[0].ID },
 		func(s *assistantservice.Snapshot) { s.Citations[1].ObjectID = "another_resource" },
-		func(s *assistantservice.Snapshot) { s.Answer.Sections[0].Citations = []string{"ev_"+strings.Repeat("e", 64)} },
+		func(s *assistantservice.Snapshot) {
+			s.Answer.Sections[0].Citations = []string{"ev_" + strings.Repeat("e", 64)}
+		},
 		func(s *assistantservice.Snapshot) { s.Run.Goal = assistant.ExplainResource },
 	} {
 		changed := investigationSnapshot()

@@ -98,11 +98,15 @@ func TestInvestigationSelectionReachesTrustedRuntimeAndCannotChangeReplayGoal(t 
 	options, request, actor, runtime := conversationFixture(t)
 	var saved assistant.Run
 	options.Repository = lookupFunc(func(context.Context, assistant.Actor, string, time.Time) (assistant.Run, error) {
-		if saved.ID == "" { return assistant.Run{}, assistant.ErrDenied }
+		if saved.ID == "" {
+			return assistant.Run{}, assistant.ErrDenied
+		}
 		return saved, nil
 	})
 	service, err := New(options)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer service.Close()
 	request.Goal, request.LogConsent = assistant.InvestigateIncident, true
 	saved, err = service.Submit(context.Background(), actor, request, strings.Repeat("c", 64))

@@ -90,7 +90,7 @@ Add per-user and installation usage quotas, call reservations, queue fairness, a
 
 ## Delivery stages
 
-Each stage ships only after its dependencies and exit tests pass. Before a checkpoint: update the English/Persian documents, add focused tests, run the full local gate, inspect the reviewed diff, then commit and push an authorized implementation milestone. Inspect exact-source hosted results. A failed gate remains recorded and blocks the next checkpoint.
+Each stage ships only after its dependencies and exit tests pass. Before a checkpoint: update the English/Persian documents, add focused tests, run the complete gate on Actions under the current no-local-execution rule, inspect the reviewed diff, then commit and push an authorized implementation milestone. Inspect exact-source hosted results. A failed gate remains recorded and blocks the next checkpoint.
 Prerelease labels below are intended names. Current version and release parsers accept prerelease syntax. Stage 0 must preserve that behavior and prove the full Helm/OCI, archive, tag, checksum/provenance, publication, and independent-consumer paths before the first checkpoint. Syntax support alone does not prove those bindings. Never weaken existing checks to accept a new suffix.
 
 ### Stage 0 — Scope, decisions, and baseline — 3–5 person-days
@@ -189,8 +189,8 @@ Prerelease labels below are intended names. Current version and release parsers 
 - **Dependencies:** Stage 9 and a complete acceptance matrix. Any candidate fix repeats the affected gates and full release gate.
 - **Features and architecture:** Freeze the supported scope, contracts, migrations, default limits, profile versions, and operator obligations. Build the candidate, then build and accept the actual stable artifacts independently.
 - **Security:** Complete dependency/license/vulnerability review, artifact provenance and checksum checks, default-off verification, credential handling, and final threat-model review. Preserve failed attempts and immutable tags.
-- **Tests:** Full local gate, all seven exact-source hosted jobs, actual database/container/browser/provider checks, signed package validation, and independent native/database recovery on downloaded stable assets. Build stable source and packages with their own receipts; do not relabel candidate evidence as stable proof.
-- **Exit:** Every 2.0 acceptance row has a passing receipt tied to source and artifacts; no critical issue remains; public release, tags, documents and limitations agree. The final documentation commit passes its own seven-job hosted gate. Unsupported platforms or customer capacity remain explicitly unproven.
+- **Tests:** Complete hosted gate, all eight exact-source jobs, actual database/container/browser/provider checks, signed package validation, and independent native/database recovery on downloaded stable assets. Build stable source and packages with their own receipts; do not relabel candidate evidence as stable proof.
+- **Exit:** Every 2.0 acceptance row has a passing receipt tied to source and artifacts; no critical issue remains; public release, tags, documents and limitations agree. The final documentation commit passes its own eight-job hosted gate. Unsupported platforms or customer capacity remain explicitly unproven.
 - **Documents:** Final specification and decisions, architecture/security guides, OpenAPI/types, configuration, user/operations guides in both languages, changelog, migration notes, release checklist, support matrix, and immutable acceptance index.
 
 ## Quality and operational acceptance protocol
