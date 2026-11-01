@@ -1,11 +1,20 @@
 # Smart Analysis incident workflows
 
-Status: stage-6 design candidate. No stage-6 release, report contract or quality
-acceptance exists yet. Stage 5 must retain its own exact-source verification,
+Status: stage-6 implementation candidate. A closed report read contract is under
+hosted verification; no stage-6 release or quality acceptance exists yet.
+Stage 5 must retain its own exact-source verification,
 signed security trial and immutable publication. All execution takes place on
 GitHub Actions; local work is limited to files and lightweight Git.
 
 ## Product behavior
+
+The candidate uses explicit owner-only `GET /api/v1/assistant/runs/{run_id}/report`.
+It reuses current run/evidence authorization without admitting another tool or
+generation. Only an investigation can return report content. Pending/lost/
+unavailable states carry metadata only. The ordinary answer contract stays
+independent. The server recomputes typed report claims against exact current
+references and checks report plus answer within one 64-KiB content budget.
+Desktop controls and strict typed client parsing still need integration.
 
 An operator selects one resource, one source and one fixed time window, then
 explicitly requests an investigation. A desktop report must show:

@@ -200,6 +200,7 @@ func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPoli
 			router.Post("/assistant/runs", helper.admit)
 		}
 		router.Get("/assistant/runs/{run_id}", helper.get)
+		router.Get("/assistant/runs/{run_id}/report", helper.report)
 		router.Post("/assistant/runs/{run_id}/cancel", helper.cancel)
 		router.Get("/assistant/runs/{run_id}/citations/{citation_id}", helper.citation)
 	}

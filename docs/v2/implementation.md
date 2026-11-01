@@ -503,3 +503,13 @@ reordered or incomplete timelines and preserves the evidence window's exclusive
 end. Native provider identity is not required to validate the report transport.
 These are internal source changes pending fresh hosted checks; no report route
 or desktop workflow is shipped by them.
+
+The report transport candidate adds an explicit owning read, closed typed scalar
+timeline, qualified hypotheses, contrary references and fixed inert next-read
+codes. It independently validates exact references and recomputes claims; report
+plus answer share one canonical 64-KiB budget. Metadata-only states cannot expose
+report content. New route tests cover current owner/session, early rejection,
+revocation, private logging, detached arrays, forged claims and shared output
+overflow. OpenAPI policy tests bind fields, enums, qualifiers and caps. Generated
+client types, formatting, desktop integration and complete hosted gates remain
+pending; this source is not stage-6 acceptance.

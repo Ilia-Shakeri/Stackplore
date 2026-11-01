@@ -20,5 +20,6 @@ The internal service slice derives reports only from retained bounded proofs,
 uses existing fresh publication/poll fences, clones report arrays and nested
 references, and erases the owning report with the answer. Focused lifecycle and
 revocation tests plus complete exact-source verification remain required.
-There is no public report, alert/replica correlation, held-out quality receipt,
-alpha.6 tag or stage-6 completion claim.
+The next source adds an unaccepted explicit report-route/contract candidate.
+Strict generated client/desktop integration, alert/replica correlation and held-out
+quality remain pending. There is no alpha.6 tag or stage-6 completion claim.

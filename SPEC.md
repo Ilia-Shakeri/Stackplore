@@ -1073,6 +1073,15 @@ only inside exact-counted input/generation. Strictly restore and independently
 validate original canonical citations before publication. This encoding cannot
 change read authority, budgets or public identifiers.
 
+The stage-6 [typed report candidate](docs/adr/0020-typed-volatile-incident-reports.md)
+uses one explicit owning report read. Its timeline preserves actual occurrence,
+sample and observation time, quality and exact citations. Hypotheses stay
+qualified with contrary references; gaps remain visible. Next-read codes are
+inert. Every report uses all current evidence fences and shares the answer's
+canonical output budget; volatile loss or revocation cannot reconstruct text.
+Alert/replica history, desktop integration and independently reviewed held-out
+quality remain separate implementation and acceptance gates.
+
 Every profile requires real protocol, privacy, quality and cancellation proof.
 Every stage requires focused regression tests and the complete gate on the approved execution environment, plus
 real PostgreSQL/browser/network/provider/deployment evidence for each claimed

@@ -4,6 +4,8 @@
 
 ### Smart Analysis — internal preparation, not a released workflow
 
+- Add an explicit owner-only report-read contract with typed chronology and qualified hypotheses, independent reference/claim validation, private metadata-only failure states and a shared report/answer output budget. Hosted contract derivation and desktop integration remain pending.
+
 - Add pure bounded incident correlation with actual chronology, deterministic qualified ranking, later contrary evidence, reset/conflict handling and explicit unread/missing families. Pressure needs a matching positive limit; absent metrics, warning events and stale/partial/old data cannot establish a cause. Public report integration and held-out quality remain pending.
 
 - Prepare a detached typed observation projection from bounded evidence. Preserve original citation, quality and actual event/sample times; omit provider prose and log messages. Ordinary formatting remains protected. Add focused privacy, time, mutation and empty-family tests for hosted execution.

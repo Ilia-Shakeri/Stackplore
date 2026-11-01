@@ -246,7 +246,9 @@ func TestIndependentReportValidationBindsClaimsAndExactReferences(t *testing.T) 
 		func(value *Report) { value.Hypotheses[0].Contrary = []string{first.Reference.ID} },
 		func(value *Report) { value.Gaps = nil },
 		func(value *Report) { value.NextReads[0] = "run_shell" },
-		func(value *Report) { value.Timeline[0].Reference.ObservedAt = value.Timeline[0].Reference.ObservedAt.Add(-time.Second) },
+		func(value *Report) {
+			value.Timeline[0].Reference.ObservedAt = value.Timeline[0].Reference.ObservedAt.Add(-time.Second)
+		},
 		func(value *Report) { slices.Reverse(value.Timeline) },
 		func(value *Report) { value.Timeline = value.Timeline[:1] },
 	} {
