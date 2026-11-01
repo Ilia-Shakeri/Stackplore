@@ -27,9 +27,35 @@ bounded case results and shutdown status. Private receipts, local paths, raw
 replies and model files stay on the disposable runner. Repository permission
 is read-only; no paid profile, application secret or production source is used.
 
-This checks real bilingual **protocol**, not a grounded application journey,
-human quality, soak/capacity or whole-stage acceptance. The first exact-source
-result is pending. Failed attempts must remain recorded.
+The first [real protocol receipt](../evidence/2.0.0-alpha.4/hosted-protocol.json)
+binds source `5cebad7bee494b9e5011b6b86bbd0a9fb9b2ba84` and
+[run 41279900515](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41279900515).
+English/Persian checks pass in 1.46/2.34 seconds, with owned shutdown proven.
+These are test timings, not workload or capacity measurements. The receipt
+contains protocol evidence only; it does not accept later source.
+All eight jobs for that checkpoint pass; the
+[hosted receipt](../evidence/2.0.0-alpha.4/hosted-protocol-ci.json) records them.
+
+The next increment extends this same hosted job with native PostgreSQL 17,
+the production application and real desktop browser. The database uses a fresh
+runner-temporary directory, a fixed free loopback port, and PID/start-time/path
+ownership checks. It never touches the installed database service. Cleanup
+stops only that owned cluster. Missing prerequisites or failed cleanup fail the
+job; no local fallback is permitted.
+
+The normal English/Persian administrator/viewer journeys now have an explicit
+hosted-only real mode. No private route is intercepted. A fixed profile module
+forwards only approved pins, rejects guest/partial-locale/workstation modes,
+and ignores ambient endpoint overrides. Each actual reply must contain exactly
+the selected evidence's resource name, one current citation and no extra claim.
+Closing/reopening must erase text without resubmission. Raw replies are neither
+screenshotted nor uploaded; only aggregate case metadata is retained. This
+candidate awaits its own exact-source run and is not yet accepted.
+
+Even passing these bounded Demo cases is not human quality, a held-out incident
+evaluation, soak/capacity or whole-version acceptance. Failed attempts remain
+recorded. Desktop themes/accessibility remain covered by the separate complete
+synthetic-protocol journey.
 
 ## Desktop and delivery
 

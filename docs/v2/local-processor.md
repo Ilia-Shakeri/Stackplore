@@ -4,8 +4,11 @@
 [Implementation status](implementation.md)
 
 This guide describes a native operator tool, not an enabled product feature or
-a completed roadmap stage. The maintainer authorized local installation and
-startup. Runtime acceptance still requires exact-source integration receipts.
+a completed roadmap stage. Since 2026-11-01, maintainer development uses
+[hosted-only validation](hosted-validation.md); earlier workstation permission
+does not authorize new local execution. The operator commands below document
+installation operation, not instructions to run on the maintainer's computer.
+Runtime acceptance still requires exact-source integration receipts.
 The previous automatic-review launch rejection remains a failed attempt. If a
 new invocation is rejected, preserve that result; do not switch launch methods.
 

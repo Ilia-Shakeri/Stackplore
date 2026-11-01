@@ -28,7 +28,7 @@
     "check:web-notices": "node scripts/check-web-notices.mjs",
     "derive:web-notices": "node scripts/check-web-notices.mjs --write",
     "test:browser": "node scripts/browser-gate.mjs",
-    "test:release": "node --test scripts/release.test.mjs scripts/runtime-images.test.mjs",
+    "test:release": "node --test scripts/release.test.mjs scripts/runtime-images.test.mjs scripts/hosted-assistant-profile.test.mjs",
     "check:v2-corpus": "node scripts/check-v2-corpus.mjs",
     "check:brand": "node scripts/check-brand-assets.mjs",
     "test:v2-corpus": "node --test scripts/check-v2-corpus.test.mjs",

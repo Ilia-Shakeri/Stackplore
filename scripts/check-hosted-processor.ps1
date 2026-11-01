@@ -38,7 +38,7 @@ $report=[ordered]@{
   recorded_at=[DateTime]::UtcNow.ToString('o')
   status='failed'
   phase='archive'
-  scope='Real bilingual empty-evidence protocol only; not grounded browser or human quality acceptance'
+  scope='Real bilingual protocol and application browser with synthetic Demo evidence; not general quality acceptance'
   archive_sha256=$archiveDigest
   model_sha256=$modelDigest
   model_revision='23749fefcc72300e3a2ad315e1317431b06b590a'
@@ -104,12 +104,20 @@ try {
   }
   if($goExit -ne 0){throw 'hosted_processor.protocol_failed'}
   if(@($decoded | Where-Object {$_.Action -in @('skip','fail')}).Count -ne 0 -or @($report.cases | Where-Object {$_.status -cne 'pass'}).Count -ne 0){throw 'hosted_processor.incomplete_probe'}
+  $report.phase='application_browser'
+  $browser=& (Join-Path $PSScriptRoot 'check-hosted-browser.ps1')
+  if($browser.status -cne 'passed' -or -not $browser.postgres_stopped -or $browser.cases.Count -ne 2){
+    throw 'hosted_processor.browser_failed'
+  }
+  $report['browser_cases']=$browser.cases
+  $report['postgres_version']=$browser.postgres_version
+  $report['postgres_stopped']=$browser.postgres_stopped
   $report.status='passed'
   $report.phase='complete'
 } catch {
   $report.status='failed'
   $report['error_code']='hosted_processor.operation_failed'
-  if($_.Exception.Message -cmatch '\Ahosted_processor\.[a-z_]+\z'){$report['error_code']=$_.Exception.Message}
+  if($_.Exception.Message -cmatch '\Ahosted_(?:processor|browser)\.[a-z_]+\z'){$report['error_code']=$_.Exception.Message}
   throw 'hosted_processor.verification_failed'
 } finally {
   foreach($name in @('LOCAL_INFERENCE','INFERENCE_ORIGIN','INFERENCE_ALIAS','INFERENCE_BUILD','INFERENCE_TEMPLATE_SHA256','INFERENCE_CONTEXT_TOKENS')){
@@ -132,6 +140,20 @@ try {
     $report['cleanup_error_code']='hosted_processor.cleanup_failed'
     throw 'hosted_processor.cleanup_failed'
   } finally {
+    $metadataInvalid=$false
+    $browserReceipt=Join-Path $outputDirectory 'hosted-browser.json'
+    if(Test-Path -LiteralPath $browserReceipt){
+      try {
+        $browserMetadata=Get-Content -LiteralPath $browserReceipt -Raw | ConvertFrom-Json
+        if($browserMetadata.source_revision -cne $env:GITHUB_SHA){throw 'hosted_processor.receipt_source'}
+        $report['application_browser']=$browserMetadata
+      } catch {
+        $report.status='failed'
+        $report['metadata_error_code']='hosted_processor.browser_receipt_invalid'
+        $metadataInvalid=$true
+      }
+    }
     $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $publicReceipt -Encoding utf8NoBOM
+    if($metadataInvalid){throw 'hosted_processor.browser_receipt_invalid'}
   }
 }

@@ -1,10 +1,18 @@
 # Smart Assistant — stage 4 development checkpoint
 
 **2026-11-01 continuation:** new validation is hosted-only; no local service,
-test, build, install or scan is permitted. The new real processor job and
-desktop-first browser source await their own exact-source hosted result.
+test, build, install or scan is permitted. The real processor protocol passes
+at `5cebad7`; [its receipt](hosted-protocol.json) retains public pins, both
+language cases and proven owned shutdown. Newer actual application/browser
+source awaits its own exact-source hosted result.
 [Policy and scope](../../v2/hosted-validation.md). The earlier seven-job
 checkpoint does not certify this eighth job or whole-stage acceptance.
+
+The first hosted-only source `5cebad7` now passes all eight jobs in
+[run 41279900515](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41279900515).
+Its [CI receipt](hosted-protocol-ci.json) and [real protocol receipt](hosted-protocol.json)
+retain exact source, both languages and owned shutdown. The new application
+and actual-processor browser extension is not part of that accepted source.
 
 Date: **2026-10-28**. Development version **2.0.0-alpha.4**, schema18.
 

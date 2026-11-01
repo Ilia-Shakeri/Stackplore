@@ -7,6 +7,11 @@ not mark stage 4 or version 2 complete. See [development evidence](../evidence/2
 
 From 2026-11-01, [validation runs only on Actions](hosted-validation.md).
 Desktop is primary; mobile retains a brief input/overflow smoke check.
+The next hosted real mode exercises the production service and processor with
+actual PostgreSQL and synthetic Demo inventory, without private-route mocks.
+It checks an exact evidence-supported resource name and a fresh citation in
+both roles/languages. Its separate source acceptance is pending; protocol-only
+receipts do not certify this application journey.
 
 ## Use
 

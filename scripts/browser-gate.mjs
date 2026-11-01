@@ -5,8 +5,11 @@ import { createServer, request } from 'node:http';
 import { isAbsolute, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import process from 'node:process';
+import { hostedAssistantProfile } from './hosted-assistant-profile.mjs';
 
 const root = resolve(import.meta.dirname, '..');
+const assistantProfile = hostedAssistantProfile(process.env);
+const realAssistant = assistantProfile.STACKPLORE_ASSISTANT_ENABLED === 'true';
 const admin = new globalThis.URL(process.env.SP_BROWSER_ADMIN_URL ?? '');
 if (admin.protocol !== 'postgresql:' || !['127.0.0.1', 'localhost'].includes(admin.hostname))
   throw new Error('Browser gate requires an explicit disposable loopback PostgreSQL administrator');
@@ -142,6 +145,7 @@ for (const mode of requestedModes) {
         STACKPLORE_PUBLIC_ORIGIN: origin,
         STACKPLORE_DATABASE_URL: database.toString(),
         STACKPLORE_DATA_DIRECTORY: resolve(work, `${mode}-runtime`),
+        ...assistantProfile,
         ...(guest
           ? {
               STACKPLORE_DEMO_DEPLOYMENT: 'true',
@@ -195,6 +199,7 @@ for (const mode of requestedModes) {
         SP_BROWSER_LOCALE: locale,
         SP_BROWSER_RESULTS: `../../.tmp/browser-results${guest ? '' : `-${mode}`}.json`,
         SP_BROWSER_OUTPUT: resolve(work, 'test-results', mode),
+        ...(realAssistant ? { SP_BROWSER_REAL_ASSISTANT: 'true' } : {}),
         ...(guest ? { SP_BROWSER_WORKER_OVERRIDE: workerOverride } : {}),
         ...(guest ? {} : { SP_BROWSER_BOOTSTRAP_PROOF: proof }),
       },

@@ -1,8 +1,9 @@
 # Stackplore active implementation evidence
 
 **2026-11-01:** new execution/validation uses Actions; local work is file editing
-and lightweight Git only. Desktop is primary. The hosted processor job awaits
-exact-source evidence; stage 4 remains open.
+and lightweight Git only. Desktop is primary. The hosted protocol passes at
+`5cebad7`; its new actual application/browser extension awaits exact-source
+validation. Stage 4 remains open.
 [Validation policy](v2/hosted-validation.md).
 
 Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.

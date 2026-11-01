@@ -2,7 +2,8 @@
 
 **2026-11-01 execution rule:** local reads, edits and lightweight Git only;
 tests, services, builds, installs and scans use Actions. Desktop comes first.
-The hosted real-processor protocol check is pending; stage 4 remains open.
+The hosted protocol check passes at `5cebad7`; its new actual application/browser
+extension awaits exact-source validation. Stage 4 remains open.
 [Validation policy](docs/v2/hosted-validation.md).
 
 Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](docs/evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.

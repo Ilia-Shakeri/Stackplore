@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-01T06:30:43.2249692Z",
+  "source_revision": "5cebad7bee494b9e5011b6b86bbd0a9fb9b2ba84",
+  "scope": "Hosted real bilingual protocol and desktop synthetic-protocol journey; later actual application/browser source excluded",
+  "main_ci": {
+    "id": 41279900515,
+    "sha": "5cebad7bee494b9e5011b6b86bbd0a9fb9b2ba84",
+    "branch": "main",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 124769502759,
+        "name": "kubernetes-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502830,
+        "name": "processor-tool",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502844,
+        "name": "helm-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502856,
+        "name": "docker-provider",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502858,
+        "name": "processor-runtime",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502862,
+        "name": "code",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502867,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      },
+      {
+        "id": 124769502894,
+        "name": "compose-install",
+        "status": "completed",
+        "conclusion": "success",
+        "active_steps": [],
+        "failed_steps": []
+      }
+    ]
+  }
+}

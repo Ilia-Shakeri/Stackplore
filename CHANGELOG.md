@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Add an explicit hosted-only real application/browser mode with immutable processor pins, actual isolated PostgreSQL, exact evidence-supported resource-name replies, fresh citations and text cleanup. Keep generated replies out of public receipts. The new source awaits hosted acceptance.
+
 - Move new validation to Actions only, add a pinned real bilingual processor protocol job on a disposable hosted Windows runner, and prioritize the desktop resource journey with a short mobile smoke check. Whole-stage acceptance remains open.
 
 - Fence late and superseded citation completions and warnings to the current volatile view snapshot; retain no private snapshot in warning state. Add a failing regression before the correction and scoped passing checks.
