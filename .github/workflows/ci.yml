@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   processor-runtime:
-    runs-on: windows-2025
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -27,15 +27,18 @@ jobs:
         with:
           node-version: 24.18.0
       - name: Install locked browser tooling on hosted runner
-        shell: pwsh
         run: |
-          corepack.cmd enable
-          corepack.cmd prepare pnpm@11.17.0 --activate
-          corepack.cmd pnpm install --frozen-lockfile
-          corepack.cmd pnpm --filter @stackplore/web exec playwright install chromium
-      - name: Verify pinned real processor on disposable hosted runner
-        shell: pwsh
-        run: ./scripts/check-hosted-processor.ps1
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
+      - name: Start only the owned patched PostgreSQL fixture
+        run: bash scripts/start-test-postgres.sh start code
+      - name: Verify pinned real processor and desktop application
+        run: node scripts/check-hosted-processor-linux.mjs
+      - name: Stop only the owned PostgreSQL fixture
+        if: always()
+        run: bash scripts/start-test-postgres.sh stop code
       - name: Retain metadata-only processor receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -86,9 +89,9 @@ jobs:
         if: failure()
         run: |
           mkdir -p .tmp
-          corepack pnpm exec prettier --write apps/web/tests/browser/assistant-live-journey.ts scripts/hosted-assistant-profile.mjs scripts/hosted-assistant-profile.test.mjs scripts/browser-gate.mjs
+          corepack pnpm exec prettier --write scripts/check-hosted-processor-linux.mjs scripts/check-hosted-processor-linux.test.mjs apps/web/tests/browser/assistant-live-journey.ts scripts/hosted-assistant-profile.mjs scripts/hosted-assistant-profile.test.mjs scripts/browser-gate.mjs
           gofmt -w apps/api/internal/provider/inference/local_integration_test.go apps/api/internal/provider/inference/local_evidence_integration_test.go apps/api/internal/inference/types.go apps/api/internal/inference/gateway.go apps/api/internal/inference/gateway_test.go apps/api/internal/provider/inference/local.go apps/api/internal/provider/inference/local_test.go
-          git diff --binary -- apps/web/tests/browser/assistant-live-journey.ts scripts/hosted-assistant-profile.mjs scripts/hosted-assistant-profile.test.mjs scripts/browser-gate.mjs apps/api/internal/provider/inference/local_integration_test.go apps/api/internal/provider/inference/local_evidence_integration_test.go apps/api/internal/inference/types.go apps/api/internal/inference/gateway.go apps/api/internal/inference/gateway_test.go apps/api/internal/provider/inference/local.go apps/api/internal/provider/inference/local_test.go > .tmp/source-format.patch
+          git diff --binary -- scripts/check-hosted-processor-linux.mjs scripts/check-hosted-processor-linux.test.mjs apps/web/tests/browser/assistant-live-journey.ts scripts/hosted-assistant-profile.mjs scripts/hosted-assistant-profile.test.mjs scripts/browser-gate.mjs apps/api/internal/provider/inference/local_integration_test.go apps/api/internal/provider/inference/local_evidence_integration_test.go apps/api/internal/inference/types.go apps/api/internal/inference/gateway.go apps/api/internal/inference/gateway_test.go apps/api/internal/provider/inference/local.go apps/api/internal/provider/inference/local_test.go > .tmp/source-format.patch
       - name: Retain source formatting correction
         if: failure() && hashFiles('.tmp/source-format.patch') != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

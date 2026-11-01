@@ -458,3 +458,10 @@ Source `73601cd`, [run 41286622926](https://github.com/Ilia-Shakeri/Stackplore/a
 The remaining Persian evidence call reaches the fixed deadline. Four logical
 processors are available; the next candidate compares four allowed threads
 with the shorter contract. Whole-stage and timing acceptance remain open.
+
+Source `9d8c4b6`, [run 41286894288](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41286894288),
+[still fails Windows evidence-call capacity](hosted-windows-capacity-failed.json).
+The next source moves only disposable real computation to Linux and retains
+Windows launcher checks. It keeps both languages, roles, desktop journey and
+strict output/deadline gates. Linux results cannot accept Windows capacity,
+public artifacts or later roadmap stages.

@@ -6,7 +6,7 @@ is primary. The eighth job's pinned bilingual real protocol probe passes at
 `5cebad7`; its metadata receipt proves owned shutdown. Newer source extends the
 job to actual PostgreSQL, application and desktop browser journeys, without
 intercepted private replies. That extension failed at ec90463 and 65014a1. A direct evidence probe at 4a0a013 isolated invalid citations and an impossible private-name assertion; b1d49d9 constrains citation generation and requests only the typed identity already present in evidence. Fresh exact-source verification remains required.
-Remaining profile and whole-stage acceptance remain separate.
+The Windows capacity comparisons remain failed. New source moves only the disposable real compute gate to Linux with the same bilingual/desktop and output/deadline criteria; Windows launcher checks stay separate. Remaining profile and whole-stage acceptance remain separate.
 [Hosted validation policy](hosted-validation.md).
 
 Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](../evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.

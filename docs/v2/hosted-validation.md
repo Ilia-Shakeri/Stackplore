@@ -7,18 +7,26 @@ runs on Actions. Earlier local receipts remain historical.
 
 ## Real processor gate
 
-The new `processor-runtime` job uses a disposable `windows-2025` runner.
-[`check-hosted-processor.ps1`](../../scripts/check-hosted-processor.ps1) refuses
-workstation execution before filesystem or process work. It requires a hosted
-Actions context, fixed archive/model hashes and size bounds, and uses the
-existing owner-checked launcher. No public listener or profile default changes.
-The CPU archive remains `b11729`. The original 0.6B operator profile and its
-historical receipts remain in the [operator guide](local-processor.md).
-The current hosted-only candidate is the official Qwen3-1.7B Q8, pinned below; it is not an
-automatic customer upgrade and is not downloaded onto the workstation.
+The current `processor-runtime` job uses disposable `ubuntu-24.04` compute.
+[`check-hosted-processor-linux.mjs`](../../scripts/check-hosted-processor-linux.mjs)
+refuses workstation execution before filesystem, network or process operations.
+It verifies the exact CPU archive and model digest/size, bounds archive paths
+and link targets, checks the free loopback listener and pins runtime/model/
+template/context identity. Its owned child handle is stopped and joined; the
+existing labelled PostgreSQL fixture is removed only after ownership checks.
+The full real desktop journey remains 1536 × 960 in both locales and roles.
+The separate Windows native launcher job and historical Windows receipts remain;
+Linux compute does not establish Windows processor capacity or public artifacts.
+
+The current archive is `llama-b11729-bin-ubuntu-x64.tar.gz`, 17,973,345 bytes,
+SHA-256 `ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25`,
+from the [pinned upstream release](https://github.com/ggml-org/llama.cpp/releases/tag/b11729).
+The model is the official Qwen3-1.7B Q8 revision/hash/size recorded below.
+Product defaults and original customer/operator profile pins remain unchanged.
+No model is downloaded onto the workstation.
 
 Downloads have HTTPS-only redirects, finite attempts and time/size limits.
-The launcher checks all 51 files, model digest, build, template, context and
+The original Windows launcher checks 51 files; the Linux path checks the pinned archive, bounded extraction, model digest, build, template, context and
 one-slot identity. `TestPinnedLocalRuntimeIntegration` must execute both
 languages: exact empty-evidence semantics, counts, closed output and single-use
 preparations. Skipped/missing cases, nonzero exit, identity mismatch or unproven
@@ -38,7 +46,7 @@ contains protocol evidence only; it does not accept later source.
 All eight jobs for that checkpoint pass; the
 [hosted receipt](../evidence/2.0.0-alpha.4/hosted-protocol-ci.json) records them.
 
-The next increment extends this same hosted job with native PostgreSQL 17,
+The original Windows increment extended this hosted job with native PostgreSQL 17,
 the production application and real desktop browser. The database uses a fresh
 runner-temporary directory, a fixed free loopback port, and PID/start-time/path
 ownership checks. It never touches the installed database service. Cleanup
@@ -221,3 +229,18 @@ The two-thread candidate still times out on Persian evidence. The receipt
 confirms four logical processors; the next candidate uses all four allowed
 threads with the shorter contract. This is a profile comparison, not proof of
 capacity. The 25-second ceiling and every exact assertion remain unchanged.
+
+## Compute boundary correction
+
+The last Windows candidate `9d8c4b6`
+([run 41286894288](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41286894288))
+[passes both exact gap literals but times out on both evidence calls](../evidence/2.0.0-alpha.4/hosted-windows-capacity-failed.json).
+Four logical processors and four threads do not establish bounded capacity.
+The new Linux compute path is unaccepted until its own full result. No deadline,
+expected text, citation rule, language or role is removed. Windows capacity stays
+explicitly failed; a Linux receipt must not be labelled a Windows success.
+Pure guard/archive-path tests run in the source gate; imports do no I/O. The
+script publishes only metadata. Neither generated answers nor browser DOM,
+private paths, credential URLs, model files or raw logs are uploaded. Fixture
+cleanup also has an independent always-run workflow step. Existing Windows
+scripts are preserved for their recorded scope; none runs on the workstation.

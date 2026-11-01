@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Add a guarded Linux hosted compute path with pinned CPU archive/model, bounded extraction and metadata-only bilingual protocol/desktop checks using the owned patched PostgreSQL fixture. Retain failed Windows capacity receipts and native launcher checks; no customer or workstation process starts.
+
 - Keep bilingual semantic failures explicit and move only the disposable hosted candidate to independently pinned 1.7B weights. Preserve customer defaults, original operator pins and strict deadlines. Localize the task contract while keeping evidence instructions separate; use an atomic test observer.
 
 - Bind generation citations to authorized request IDs; preserve strict independent output checks and clear volatile reference copies. Correct the hosted semantic probe to request a typed identity actually present in the privacy-filtered evidence, rather than an excluded private display name.
