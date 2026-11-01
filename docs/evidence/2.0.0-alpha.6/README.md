@@ -28,3 +28,20 @@ the later report view. The next source applies inspected hosted formatting and
 adds explicit bilingual report controls and stronger real report metadata gates.
 Fresh complete client/desktop, alert/replica correlation and held-out quality
 remain pending. There is no alpha.6 tag or stage-6 completion claim.
+
+At `846f0ae`, run `41311072056`, client/web type checks and focused parser,
+ownership and bilingual view tests pass. [Real processing remains failed](hosted-persian-identity-failed.json):
+all four English journeys, including both actual report reads/rendered rows/
+citations/clearing, pass. The Persian ordinary administrator journey passes.
+The Persian investigation returns a completed answer whose exact resource
+identity assertion fails before its report is requested. Persian viewer journeys
+do not run. All owned engine/database/observer cleanup passes. This is not
+Persian report-route failure proof or stage acceptance. [CI state](persian-identity-ci.json)
+retains the recorded full workflow boundary independently.
+
+The next synthetic question names the exact structured evidence path and keeps
+the expected resource value out of the question. Exact one-section identity,
+scoped citations, quotas, pins, deadlines and no-retry rules stay unchanged.
+Safe diagnostics add only expected-value containment, byte count and a closed
+identity-shape label; no raw question, generated answer or identifier is saved.
+The new source requires its own complete validation.

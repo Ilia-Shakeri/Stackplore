@@ -21,6 +21,9 @@ export async function assistantLiveJourney(
     run_state: 'not_observed',
     content_state: 'not_observed',
     resource_identity_supported: false,
+    identity_contained: false,
+    identity_text_bytes: 0,
+    identity_shape: 'unobserved',
     citation_current: false,
     citation_status: 0,
     report_current: goal === 'explain_resource',
@@ -143,8 +146,8 @@ export async function assistantLiveJourney(
     const input = panel.getByRole('textbox', { name: label('assistant.question'), exact: true });
     const question =
       locale === 'fa'
-        ? 'فقط یک بخش facts بده. در text فقط مقدار فیلد resource_id از رکورد اول شاهد را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار id همان شاهد را فقط یک بار بگذار.'
-        : 'Return exactly one facts section. Its text must be exactly the resource_id in the evidence. Cite its evidence id once. No health, cause or other claims.';
+        ? 'یک بخش facts بساز: citations فقط [evidence[0].id]. مقدار text را عیناً از evidence[0].text.records[0].resource_id کپی کن؛ فقط همان مقدار، بدون نقل‌قول یا توضیح.'
+        : 'Return one facts section: citations is [evidence[0].id]. Copy text exactly from evidence[0].text.records[0].resource_id; only that value, without quotes or explanation.';
     expect(admissions).toBe(0);
     await input.fill(question);
     await input.press('Tab');
@@ -162,12 +165,28 @@ export async function assistantLiveJourney(
     } catch {
       throw new Error('Real bounded resource completion was not published');
     }
-    const supported = await panel.evaluate((element, expected) => {
+    const identityProbe = await panel.evaluate((element, expected) => {
       const texts = element.querySelectorAll('.assistant__turns .assistant__text');
-      return texts.length === 1 && texts[0]?.textContent.trim() === expected;
+      const value = texts[0]?.textContent.trim() ?? '';
+      return {
+        supported: texts.length === 1 && value === expected,
+        contained: value.includes(expected),
+        text_bytes: new TextEncoder().encode(value).byteLength,
+        shape: /^r1_[A-Za-z0-9_-]{43}$/u.test(value)
+          ? 'resource'
+          : /^ev_[a-f0-9]{64}$/u.test(value)
+            ? 'citation'
+            : /^e[1-9][0-9]?$/u.test(value)
+              ? 'private_handle'
+              : 'other',
+      };
     }, identity);
-    expect(supported).toBe(true);
+    const supported = identityProbe.supported;
+    metadata.identity_contained = identityProbe.contained;
+    metadata.identity_text_bytes = identityProbe.text_bytes;
+    metadata.identity_shape = identityProbe.shape;
     metadata.resource_identity_supported = supported;
+    expect(supported).toBe(true);
     const citation = panel.getByRole('button', { name: label('assistant.citation'), exact: true });
     const count = await citation.count();
     if (goal === 'explain_resource') expect(count).toBe(1);

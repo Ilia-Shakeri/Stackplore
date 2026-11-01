@@ -544,6 +544,14 @@ tests before the complete gate. Those early checks make typed failures visible
 even when formatting also needs correction. They supplement the full gate;
 they do not replace any real profile, race, provider or deployment job.
 
+At `846f0ae`, focused types/parser/ownership/bilingual view checks pass. The
+real job passes English reports for both roles and ordinary Persian admin,
+then fails exact Persian investigation identity before reading that report.
+[Failed receipt and boundary](../evidence/2.0.0-alpha.6/README.md) remain explicit.
+A clearer synthetic structured-path question and metadata-only diagnostics need
+fresh source proof; no expected identifier is placed in the question and no
+assertion, deadline, usage or model/profile pin is relaxed. Review remains 8/10.
+
 ## Stage-5 acceptance followup — 2026-11-01
 
 The correction passes eight source jobs `41301657316` and signed trial
