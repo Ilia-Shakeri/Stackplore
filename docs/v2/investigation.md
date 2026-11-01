@@ -1,9 +1,10 @@
-# Smart Assistant — bounded investigation preparation
+# Smart Assistant — bounded investigation
 
-Development target **2.0.0-alpha.5**, schema **18**, 2026-11-01.
-This plan is preparation; the new investigation mode is not delivered by a
-version bump. Alpha.4's chosen local resource journey has complete hosted source
-and real desktop proof. Its immutable tag/publication has separate acceptance.
+Published **2.0.0-alpha.5**, schema **18**, 2026-11-01, immutable source
+`3038a64d500e044802e7fa43035695f7bf6c2a35`. All eight source and exact-tag jobs,
+signed trial and public publication pass. [Exact evidence](../evidence/2.0.0-alpha.5/README.md).
+This accepts the recorded bounded chosen-local scope; later quality, capacity,
+incident workflow, pilot and independent public consumption remain separate.
 
 ## Intended behavior
 

@@ -1,9 +1,9 @@
 # Version 2 implementation ledger
 
-> Development candidate: branch `v2/alpha5` targets **2.0.0-alpha.5**, schema
-> **18**. The alpha.4 tag points immutably to `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`;
-> exact-tag verification and signed publication pass. This version bump does
-> not deliver an investigation loop. [Stage-5 plan](investigation.md).
+> Published **2.0.0-alpha.5**, schema **18**, immutable source
+> `3038a64d500e044802e7fa43035695f7bf6c2a35`. Eight source and exact-tag jobs,
+> signed trial and publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
+> Stage 6 prepares separately on `v2/alpha6`; later stages remain unaccepted.
 
 **Execution boundary, 2026-11-01:** local file editing and lightweight Git only.
 All services, tests, builds, installs and scans run on Actions. Desktop is
@@ -463,3 +463,15 @@ The full code gate finds three outdated synthetic PostgreSQL wire fixtures;
 their decoder must track lossless common-scope encoding and request-local handles
 while retaining original canonical citation and committed reservation checks.
 The candidate remains 8/10 pending that correction and fresh complete gates.
+
+## Stage-5 acceptance followup — 2026-11-01
+
+The correction passes eight source jobs `41301657316` and signed trial
+`41301679344` at `3038a64d500e044802e7fa43035695f7bf6c2a35`.
+The bounded investigation/authority/code review is **9/10** within that scope.
+Immutable `v2.0.0-alpha.5` passes eight exact-tag jobs `41302764972` and signed
+package/publication `41302764975`; the public prerelease has 39 assets.
+[Receipts and limitations](../evidence/2.0.0-alpha.5/README.md).
+Stage 5 is accepted in this chosen-local scope. Stage-6–10 features, held-out
+quality, pilot and independent public artifact gates remain open. Earlier
+candidate failures and 8/10 reviews remain historical.
