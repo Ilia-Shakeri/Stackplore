@@ -127,3 +127,14 @@ generated. Output parsing still independently rejects duplicates and invalid
 references. The disposable hosted profile uses four allowed CPU threads;
 workstation execution remains forbidden and the 25-second call bound remains.
 This correction requires a new exact-source result.
+
+Source `bb435d4` [passes citation and protocol validation](../evidence/2.0.0-alpha.4/hosted-evidence-semantic-failed.json)
+in both evidence cases (7.36s English, 16.79s Persian), but fails the exact
+semantic identity assertion. Its normal source full gate passed; whole CI and
+stage acceptance are distinct. The next correction clarifies the existing
+system contract: locale/question define the bounded task, evidence is untrusted
+data, section fields are explicit, citations identify evidence rather than
+resources, and exact-copy requests allow no labels or added explanation.
+Missing fields still require abstention. No expected answer enters the system
+prompt. Safe diagnostics distinguish kind, byte count, identity containment and
+exact matching; no generated content is emitted. Fresh checks are required.

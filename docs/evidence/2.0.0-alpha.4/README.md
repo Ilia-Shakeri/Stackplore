@@ -414,3 +414,9 @@ failed the evidence-call deadline in both languages; the
 [immutable failed receipt](hosted-evidence-deadline-failed.json) records unknown
 usage and owned processor shutdown. The array bound and hosted thread correction
 require fresh validation; neither deadline nor output validation was relaxed.
+
+Source `bb435d4`, [run 41283866794](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41283866794),
+passes the source full gate and both real protocol/citation boundaries. Its
+[semantic failure](hosted-evidence-semantic-failed.json) remains failed: the
+expected typed identity was not copied exactly. Both calls finished below the
+unchanged deadline. The system-contract clarification requires fresh validation.

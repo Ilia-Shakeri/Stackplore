@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,6 +27,10 @@ type evidenceProbeMetadata struct {
 	Sections        int    `json:"sections"`
 	CitationsValid  bool   `json:"citations_valid"`
 	IdentityMatches bool   `json:"identity_matches"`
+
+	IdentityContained bool `json:"identity_contained"`
+	FactsKind         bool `json:"facts_kind"`
+	TextBytes         int  `json:"text_bytes"`
 }
 
 type evidenceProbeBackend struct {
@@ -77,6 +82,9 @@ func (probe *evidenceProbeBackend) Generate(ctx context.Context, input port.Coun
 		probe.metadata.Sections = len(answer.Sections)
 		if len(answer.Sections) == 1 {
 			section := answer.Sections[0]
+			probe.metadata.FactsKind = section.Kind == "facts"
+			probe.metadata.TextBytes = len(section.Text)
+			probe.metadata.IdentityContained = strings.Contains(section.Text, probe.identity)
 			probe.metadata.IdentityMatches = section.Kind == "facts" && section.Text == probe.identity
 			probe.metadata.CitationsValid = len(section.Citations) == 1 && section.Citations[0] == probe.id
 		}
