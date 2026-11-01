@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0-alpha.6] - 2026-11-01
+
+### Smart Analysis — internal preparation, not a released workflow
+
+- Prepare a detached typed observation projection from bounded evidence. Preserve original citation, quality and actual event/sample times; omit provider prose and log messages. Ordinary formatting remains protected. Add focused privacy, time, mutation and empty-family tests for hosted execution.
+- Document the incident workflow, failure taxonomy, authority/reservation boundaries, missing alert/replica-history ports and independent held-out quality gate. No public report or complete stage-6 acceptance is claimed.
+- Keep all runtime/test/build/security execution on GitHub Actions and desktop as the primary interface target. Stage-5 immutable acceptance remains a separate prerequisite.
+
 ## [2.0.0-alpha.5] - 2026-11-01
 
 ### Smart Assistant — development candidate

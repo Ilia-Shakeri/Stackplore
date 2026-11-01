@@ -1,9 +1,9 @@
 # Version 2 implementation ledger
 
-> Development candidate: branch `v2/alpha5` targets **2.0.0-alpha.5**, schema
+> Internal preparation: branch `v2/alpha6` targets **2.0.0-alpha.6**, schema
 > **18**. The alpha.4 tag points immutably to `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`;
 > exact-tag verification and signed publication pass. This version bump does
-> not deliver an investigation loop. [Stage-5 plan](investigation.md).
+> not deliver a report workflow. [Stage-6 design](incident-workflows.md).
 
 **Execution boundary, 2026-11-01:** local file editing and lightweight Git only.
 All services, tests, builds, installs and scans run on Actions. Desktop is
@@ -463,3 +463,17 @@ The full code gate finds three outdated synthetic PostgreSQL wire fixtures;
 their decoder must track lossless common-scope encoding and request-local handles
 while retaining original canonical citation and committed reservation checks.
 The candidate remains 8/10 pending that correction and fresh complete gates.
+
+## Stage-6 internal preparation
+
+The separate `v2/alpha6` branch prepares scalar incident observations from
+existing bounded bundles and an explicit [incident workflow design](incident-workflows.md).
+Projection preserves actual occurrence/sample time separately from observation
+time, exact references and quality, with detached scalar copies and protected
+ordinary serialization. It introduces no new public contract, model dispatch,
+provider/repository read, automatic recommendation action or persistent text.
+Focused tests run on Actions. This initial slice remains 8/10 until hosted
+checks and the rest of the design land; it does not close stage 6. Alert and
+replica history, report correlation/contract/desktop integration, comprehensive
+incident fixtures and independently reviewed held-out quality remain required.
+Stage-5 exact-source acceptance and immutable publication stay independent.

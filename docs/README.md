@@ -102,3 +102,7 @@ The default-off alpha.4 [selected-resource guide](v2/resource-conversation.md)
 describes the owning English/Persian view, privacy, expiry, explicit recovery
 and citation checks. Its [development evidence](evidence/2.0.0-alpha.4/README.md)
 separates controlled browser fixtures from real processor and release gates.
+
+The [incident workflow design](v2/incident-workflows.md) records stage-6 behavior,
+bounded architecture, failure taxonomy and independent quality requirements.
+Its initial typed projection is internal preparation, not a public report.
