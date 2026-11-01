@@ -169,3 +169,11 @@ identity/template are independently checked; no failed case is skipped. This
 candidate is unaccepted until all six direct events and the real application
 journeys pass at the exact source. Only the hosted test profile changes; product
 startup stays disabled by default and customer pins are not rewritten.
+
+The pinned 1.7B candidate at `06499cf` passes both exact canonical-evidence
+cases in 14.17s/18.04s, including strict text, citation, completion and input
+accounting. Its [retained receipt](../evidence/2.0.0-alpha.4/hosted-strong-evidence-failed.json)
+still fails both empty-evidence cases. This is partial progress, not a green
+job or release. Additional empty-case diagnostics report only fixed gateway
+fault classes, section/gap/citation booleans, exact/containment booleans and text
+byte counts. Assertions remain unchanged and raw answers remain private.

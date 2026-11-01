@@ -2,6 +2,7 @@ package inference
 
 import (
 	"context"
+	"encoding/json"
 	"net/netip"
 	"net/url"
 	"os"
@@ -53,6 +54,15 @@ func TestPinnedLocalRuntimeIntegration(t *testing.T) {
 	for _, locale := range []string{"en", "fa"} {
 		t.Run(locale, func(t *testing.T) {
 			started := time.Now()
+			metadata := map[string]any{"locale": locale, "gateway_fault": "not_dispatched", "sections": 0, "gaps_kind": false, "empty_citations": false, "text_exact": false, "text_contains": false, "text_bytes": 0}
+			t.Cleanup(func() {
+				encoded, err := json.Marshal(metadata)
+				if err != nil {
+					t.Error("encode bounded empty-evidence metadata")
+					return
+				}
+				t.Logf("empty_probe=%s", encoded)
+			})
 			inputTokens, outputTokens := 0, 0
 			outcome := "fail"
 			t.Cleanup(func() {
@@ -70,6 +80,16 @@ func TestPinnedLocalRuntimeIntegration(t *testing.T) {
 			}
 			inputTokens = prepared.InputTokens()
 			result, err := gateway.Dispatch(ctx, prepared)
+			metadata["gateway_fault"] = probeFault(err)
+			metadata["sections"] = len(result.Answer.Sections)
+			if len(result.Answer.Sections) == 1 {
+				section := result.Answer.Sections[0]
+				metadata["gaps_kind"] = section.Kind == port.SectionGaps
+				metadata["empty_citations"] = len(section.Citations) == 0
+				metadata["text_exact"] = section.Text == noEvidenceProbeText(locale)
+				metadata["text_contains"] = strings.Contains(section.Text, noEvidenceProbeText(locale))
+				metadata["text_bytes"] = len(section.Text)
+			}
 			outputTokens = result.OutputTokens
 			if err != nil || result.InputTokens != inputTokens || result.OutputTokens < 1 || result.OutputTokens > 512 {
 				t.Fatal("closed local completion or usage validation failed")

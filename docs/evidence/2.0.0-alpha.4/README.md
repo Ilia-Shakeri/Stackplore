@@ -431,3 +431,8 @@ also remains failed: [Persian identity and citation are present](hosted-evidence
 but exact text and empty-evidence semantics are not accepted. The next hosted
 candidate uses independently pinned 1.7B weights; the historical 0.6B receipts
 and original operator profile are preserved. New source requires fresh checks.
+
+Source `06499cf`, [run 41284970719](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41284970719),
+[passes both exact evidence cases](hosted-strong-evidence-failed.json) on the
+stronger pinned candidate; both empty-evidence cases remain failed. The job is
+not accepted and application journeys have not yet run on that candidate.

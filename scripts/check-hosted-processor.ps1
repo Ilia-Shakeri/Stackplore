@@ -110,6 +110,13 @@ try {
       $report.evidence_probes+=@{locale=$flags.locale;backend_fault=$flags.backend_fault;gateway_fault=$flags.gateway_fault;input_tokens=$flags.input_tokens;output_tokens=$flags.output_tokens;input_match=$flags.input_match;complete=$flags.complete;json_valid=$flags.json_valid;sections=$flags.sections;citations_valid=$flags.citations_valid;identity_matches=$flags.identity_matches;identity_contained=$flags.identity_contained;facts_kind=$flags.facts_kind;text_bytes=$flags.text_bytes}
     }
   }
+  $report['empty_probes']=@()
+  foreach($event in $decoded){
+    if($event.PSObject.Properties.Name -contains 'Output' -and $event.Output -match 'empty_probe=(\{[^\r\n]+\})'){
+      $flags=$Matches[1] | ConvertFrom-Json
+      $report.empty_probes+=@{locale=$flags.locale;gateway_fault=$flags.gateway_fault;sections=$flags.sections;gaps_kind=$flags.gaps_kind;empty_citations=$flags.empty_citations;text_exact=$flags.text_exact;text_contains=$flags.text_contains;text_bytes=$flags.text_bytes}
+    }
+  }
   if($goExit -ne 0){throw 'hosted_processor.protocol_failed'}
   if(@($decoded | Where-Object {$_.Action -in @('skip','fail')}).Count -ne 0 -or @($report.cases | Where-Object {$_.status -cne 'pass'}).Count -ne 0){throw 'hosted_processor.incomplete_probe'}
   $report.phase='application_browser'
