@@ -70,7 +70,7 @@ try {
       if(Test-Path -LiteralPath $journeyPath){
         $journey=Get-Content -LiteralPath $journeyPath -Raw | ConvertFrom-Json
         if($journey.source_revision -cne $env:GITHUB_SHA){throw 'hosted_browser.receipt_source'}
-        $summary.journeys+=@{locale=$locale;role=$role;admissions=$journey.admissions;admission_status=$journey.admission_status;run_state=$journey.run_state;content_state=$journey.content_state;resource_name_supported=$journey.resource_name_supported;citation_current=$journey.citation_current;cleared=$journey.cleared;view_state=$journey.view_state}
+        $summary.journeys+=@{locale=$locale;role=$role;admissions=$journey.admissions;admission_status=$journey.admission_status;run_state=$journey.run_state;content_state=$journey.content_state;resource_identity_supported=$journey.resource_identity_supported;citation_current=$journey.citation_current;cleared=$journey.cleared;view_state=$journey.view_state}
       }
     }
     $file=Join-Path $repository ('.tmp/browser-results-normal-'+$locale+'.json')

@@ -123,7 +123,11 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 			return port.CountedInput{}, port.ErrInputLimit
 		}
 	}
-	return port.CountedInput{Tokens: counted.Tokens, Bytes: len(formatted.Prompt), Revision: local.revision}, nil
+	ids := make([]string, 0, len(request.Evidence))
+	for _, item := range request.Evidence {
+		ids = append(ids, item.ID)
+	}
+	return port.CountedInput{Tokens: counted.Tokens, ReferenceIDs: ids, Bytes: len(formatted.Prompt), Revision: local.revision}, nil
 }
 
 func (local *Local) Generate(ctx context.Context, input port.CountedInput, outputLimit int) (port.Generated, error) {
@@ -140,6 +144,10 @@ func (local *Local) Generate(ctx context.Context, input port.CountedInput, outpu
 	if err := local.verify(ctx); err != nil {
 		return port.Generated{}, err
 	}
+	schema, err := port.AnswerSchemaForReferences(input.ReferenceIDs)
+	if err != nil {
+		return port.Generated{}, err
+	}
 	payload, err := json.Marshal(struct {
 		Prompt         []int32         `json:"prompt"`
 		Schema         json.RawMessage `json:"json_schema"`
@@ -148,7 +156,7 @@ func (local *Local) Generate(ctx context.Context, input port.CountedInput, outpu
 		Stream         bool            `json:"stream"`
 		CachePrompt    bool            `json:"cache_prompt"`
 		ResponseFields []string        `json:"response_fields"`
-	}{input.Tokens, port.AnswerSchema(), outputLimit, 0, false, false, []string{"content", "tokens_predicted", "tokens_evaluated", "truncated", "stop_type", "model"}})
+	}{input.Tokens, schema, outputLimit, 0, false, false, []string{"content", "tokens_predicted", "tokens_evaluated", "truncated", "stop_type", "model"}})
 	if err != nil {
 		return port.Generated{}, port.ErrInvalid
 	}

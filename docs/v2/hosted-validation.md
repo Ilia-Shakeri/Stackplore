@@ -74,7 +74,19 @@ only completion/count/JSON/reference/name-match flags and fixed fault classes,
 never text or evidence IDs. This separates adapter protocol, exact token
 accounting, schema/citation validation and semantic name matching without
 repeating a failed model request. All six named protocol/evidence test events
-must pass before the application browser runs. Its first result is pending.
+must pass before the application browser runs. Source `4a0a013` failed both evidence cases: exact input counts, bounded complete
+JSON and transport passed, but citations were invalid. The
+[failed receipt](../evidence/2.0.0-alpha.4/hosted-evidence-failed.json) is retained.
+Review also found that the name-copy assertion requested a deliberately omitted
+private display name. New probes instead require the exact typed `resource_id`
+already present in the authorized record; expected text is never put in the
+question or generation schema. The production privacy projection stays intact.
+Generation now receives a bounded citation-ID enum derived from the validated
+request, sealed through preparation and cleared after dispatch. Empty evidence
+permits no citations. Independent output parsing and current-authority citation
+checks remain mandatory. New unit cases cover foreign backend references,
+caller mutation, volatile cleanup and invalid/duplicate reference sets.
+The remote formatter correction is applied; this source requires fresh checks.
 
 Even passing these bounded Demo cases is not human quality, a held-out incident
 evaluation, soak/capacity or whole-version acceptance. Failed attempts remain

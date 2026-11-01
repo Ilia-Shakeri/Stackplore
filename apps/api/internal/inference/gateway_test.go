@@ -343,3 +343,66 @@ func TestInputValidationAndProtectedFormatting(t *testing.T) {
 		}
 	}
 }
+
+func TestPreparedReferencesComeFromRequestAndAreCleared(t *testing.T) {
+	t.Parallel()
+	var dispatched []string
+	gateway := fixtureGateway(t, func(backend *fixtureBackend) {
+		backend.count = func(context.Context, Request) (CountedInput, error) {
+			return CountedInput{Tokens: []int32{1, 2, 3}, ReferenceIDs: []string{"foreign_id"}, Bytes: 30, Revision: "revision_1"}, nil
+		}
+		backend.generate = func(_ context.Context, input CountedInput, _ int) (Generated, error) {
+			dispatched = input.ReferenceIDs
+			if len(dispatched) != 1 || dispatched[0] != "e_1" {
+				t.Error("backend expanded authorized reference set")
+			}
+			return fixtureGenerated(), nil
+		}
+	})
+	request := fixtureRequest()
+	prepared, err := gateway.Prepare(context.Background(), request)
+	if err != nil {
+		t.Fatal("prepare authorized references")
+	}
+	request.Evidence[0].ID = "changed_id"
+	if _, err := gateway.Dispatch(context.Background(), prepared); err != nil {
+		t.Fatal("request mutation changed sealed references")
+	}
+	if len(dispatched) != 1 || dispatched[0] != "" || prepared.input.ReferenceIDs[0] != "" {
+		t.Fatal("volatile references survived dispatch")
+	}
+}
+
+func TestBoundSchemaRestrictsReferencesAndRejectsInvalidSets(t *testing.T) {
+	t.Parallel()
+	for _, ids := range [][]string{nil, {"e_1", "e_2"}} {
+		schema, err := AnswerSchemaForReferences(ids)
+		if err != nil || !json.Valid(schema) {
+			t.Fatal("authorized schema failed")
+		}
+		var root map[string]any
+		if json.Unmarshal(schema, &root) != nil {
+			t.Fatal("decode schema")
+		}
+		properties := root["properties"].(map[string]any)
+		sections := properties["sections"].(map[string]any)
+		item := sections["items"].(map[string]any)
+		fields := item["properties"].(map[string]any)
+		citations := fields["citations"].(map[string]any)
+		if len(ids) == 0 {
+			if citations["maxItems"] != float64(0) {
+				t.Fatal("empty evidence can emit citations")
+			}
+		} else {
+			allowed := citations["items"].(map[string]any)["enum"].([]any)
+			if len(allowed) != 2 || allowed[0] != "e_1" || allowed[1] != "e_2" {
+				t.Fatal("schema can invent citation IDs")
+			}
+		}
+	}
+	for _, ids := range [][]string{{"bad\"id"}, {"same", "same"}, make([]string, MaximumEvidence+1)} {
+		if _, err := AnswerSchemaForReferences(ids); err != ErrInvalid {
+			t.Fatal("invalid reference set accepted")
+		}
+	}
+}

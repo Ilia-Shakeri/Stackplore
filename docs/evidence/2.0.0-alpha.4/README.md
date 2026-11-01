@@ -400,3 +400,11 @@ physical memory was observed at 1.37 GiB near the failure and 3.17 GiB before
 the retry; that correlation does not establish a root cause. The receipt keeps
 the original failure, focused diagnostic, actual earlier Go/SQL/native results
 and the passing retry's own cache markers separately.
+
+Source `4a0a013`, [run 41283173066](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41283173066),
+failed Go formatting and both real-evidence cases. Its
+[bounded evidence receipt](hosted-evidence-failed.json) isolates valid complete
+JSON and exact input counts from invalid citations. Review found the name
+assertion requested a field excluded by the privacy projection. New cases ask
+for the existing typed resource identity, with an independent expected value.
+No failed source is relabelled accepted; alpha.4 remains development.

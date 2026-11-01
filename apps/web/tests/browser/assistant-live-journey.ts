@@ -16,7 +16,7 @@ export async function assistantLiveJourney(
     admission_status: 0,
     run_state: 'not_observed',
     content_state: 'not_observed',
-    resource_name_supported: false,
+    resource_identity_supported: false,
     citation_current: false,
     cleared: false,
     view_state: 'not_visible',
@@ -82,8 +82,9 @@ export async function assistantLiveJourney(
   const original = page.viewportSize();
   await page.setViewportSize({ width: 1536, height: 960 });
   const heading = page.locator('#resource-detail-name');
-  const name = (await heading.textContent())?.trim();
-  if (name === undefined || name === '') throw new Error('Selected resource is unavailable');
+  const identity = new URL(page.url()).pathname.split('/').map(decodeURIComponent)[5];
+  if (identity === undefined || !identity.startsWith('r1_'))
+    throw new Error('Selected resource is unavailable');
   let admissions = 0;
   const observe = (request: Request) => {
     const path = new URL(request.url()).pathname;
@@ -99,8 +100,8 @@ export async function assistantLiveJourney(
     const input = panel.getByRole('textbox', { name: label('assistant.question'), exact: true });
     const question =
       locale === 'fa'
-        ? 'فقط یک بخش facts بده. متن آن دقیقاً نام منبع در شاهد باشد؛ همان شناسه شاهد را یک بار ارجاع بده. هیچ ادعای سلامت یا علت یا متن دیگر نده.'
-        : 'Return exactly one facts section. Its text must be exactly the resource name in the evidence. Cite its evidence id once. No health, cause or other claims.';
+        ? 'فقط یک بخش facts بده. متن آن دقیقاً resource_id در شاهد باشد؛ همان شناسه شاهد را یک بار ارجاع بده. هیچ ادعای سلامت یا علت یا متن دیگر نده.'
+        : 'Return exactly one facts section. Its text must be exactly the resource_id in the evidence. Cite its evidence id once. No health, cause or other claims.';
     expect(admissions).toBe(0);
     await input.fill(question);
     await input.press('Tab');
@@ -121,9 +122,9 @@ export async function assistantLiveJourney(
     const supported = await panel.evaluate((element, expected) => {
       const texts = element.querySelectorAll('.assistant__turns .assistant__text');
       return texts.length === 1 && texts[0]?.textContent.trim() === expected;
-    }, name);
+    }, identity);
     expect(supported).toBe(true);
-    metadata.resource_name_supported = supported;
+    metadata.resource_identity_supported = supported;
     const citation = panel.getByRole('button', { name: label('assistant.citation'), exact: true });
     expect(await citation.count()).toBe(1);
     await citation.click();

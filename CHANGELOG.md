@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Bind generation citations to authorized request IDs; preserve strict independent output checks and clear volatile reference copies. Correct the hosted semantic probe to request a typed identity actually present in the privacy-filtered evidence, rather than an excluded private display name.
+
 - Add a hosted canonical-evidence probe with safe completion, token, JSON, citation and exact-name diagnostics; preserve uncertain usage and original failures. Correct a redundant optional chain in the browser test without relaxing its assertions.
 
 - Preserve the failed real-browser checkpoint and add bounded, metadata-only browser/database diagnostics plus an Actions formatting-patch artifact. Failed revisions remain failed; no local validation or relaxed deadline is introduced.

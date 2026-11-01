@@ -75,9 +75,11 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 		}
 	}
 	input.Tokens = slices.Clone(input.Tokens)
+	input.ReferenceIDs = make([]string, 0, len(request.Evidence))
 	refs := make(map[string]struct{}, len(request.Evidence))
 	for _, item := range request.Evidence {
 		refs[item.ID] = struct{}{}
+		input.ReferenceIDs = append(input.ReferenceIDs, item.ID)
 	}
 	return &Prepared{owner: gateway, input: input, evidence: refs, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
 }
@@ -94,9 +96,12 @@ func (gateway *Gateway) Dispatch(ctx context.Context, prepared *Prepared) (Resul
 		return Result{}, ErrPrepared
 	}
 	defer clear(prepared.input.Tokens)
+	defer clear(prepared.input.ReferenceIDs)
 	work, cancel := context.WithTimeout(ctx, MaximumCallDuration)
 	defer cancel()
 	input := prepared.input
+	input.ReferenceIDs = slices.Clone(input.ReferenceIDs)
+	defer clear(input.ReferenceIDs)
 	input.Tokens = slices.Clone(input.Tokens)
 	generated, err := gateway.backend.Generate(work, input, prepared.limit)
 	clear(input.Tokens)

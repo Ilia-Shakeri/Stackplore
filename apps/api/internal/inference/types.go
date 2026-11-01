@@ -79,9 +79,10 @@ func (Request) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 // CountedInput is volatile and must contain exact token IDs, including framing.
 type CountedInput struct {
-	Tokens   []int32
-	Bytes    int
-	Revision string
+	Tokens       []int32
+	ReferenceIDs []string
+	Bytes        int
+	Revision     string
 }
 
 func (CountedInput) Format(state fmt.State, _ rune) {
@@ -277,4 +278,33 @@ func boundedID(value string, maximum int) bool {
 // AnswerSchema returns a fresh closed schema; callers cannot change the next one.
 func AnswerSchema() json.RawMessage {
 	return json.RawMessage(`{"type":"object","additionalProperties":false,"required":["sections"],"properties":{"sections":{"type":"array","minItems":1,"maxItems":12,"items":{"type":"object","additionalProperties":false,"required":["kind","text","citations"],"properties":{"kind":{"type":"string","enum":["facts","hypotheses","gaps","next_checks"]},"text":{"type":"string","minLength":1,"maxLength":4096},"citations":{"type":"array","maxItems":64,"uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":128}}}}}}}`)
+}
+
+// AnswerSchemaForReferences limits generation to the authorized request IDs.
+// Validation after generation remains mandatory, including citation semantics.
+func AnswerSchemaForReferences(ids []string) (json.RawMessage, error) {
+	if len(ids) > MaximumEvidence {
+		return nil, ErrInvalid
+	}
+	seen := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		if !boundedID(id, MaximumReferenceLength) || seen[id] {
+			return nil, ErrInvalid
+		}
+		seen[id] = true
+	}
+	citations := `{"type":"array","maxItems":0,"items":{"type":"string"}}`
+	if len(ids) > 0 {
+		encoded, err := json.Marshal(ids)
+		if err != nil {
+			return nil, ErrInvalid
+		}
+		citations = `{"type":"array","maxItems":64,"uniqueItems":true,"items":{"type":"string","enum":` + string(encoded) + `}}`
+	}
+	original := `{"type":"array","maxItems":64,"uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":128}}`
+	base := string(AnswerSchema())
+	if strings.Count(base, original) != 1 {
+		return nil, ErrInvalid
+	}
+	return json.RawMessage(strings.Replace(base, original, citations, 1)), nil
 }

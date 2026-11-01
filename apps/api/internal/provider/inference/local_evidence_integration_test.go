@@ -25,14 +25,14 @@ type evidenceProbeMetadata struct {
 	JSONValid      bool   `json:"json_valid"`
 	Sections       int    `json:"sections"`
 	CitationsValid bool   `json:"citations_valid"`
-	NameMatches    bool   `json:"name_matches"`
+	IdentityMatches    bool   `json:"identity_matches"`
 }
 
 type evidenceProbeBackend struct {
 	*Local
 	metadata *evidenceProbeMetadata
 	id       string
-	name     string
+	identity string
 }
 
 func probeFault(err error) string {
@@ -77,7 +77,7 @@ func (probe *evidenceProbeBackend) Generate(ctx context.Context, input port.Coun
 		probe.metadata.Sections = len(answer.Sections)
 		if len(answer.Sections) == 1 {
 			section := answer.Sections[0]
-			probe.metadata.NameMatches = section.Kind == "facts" && section.Text == probe.name
+			probe.metadata.IdentityMatches = section.Kind == "facts" && section.Text == probe.identity
 			probe.metadata.CitationsValid = len(section.Citations) == 1 && section.Citations[0] == probe.id
 		}
 	}
@@ -113,7 +113,7 @@ func TestPinnedLocalEvidenceIntegration(t *testing.T) {
 			resource := capture.Resources[0]
 			at := time.Now().UTC().Truncate(time.Microsecond)
 			bundle, err := contextbuilder.Build(ctx, contextbuilder.Request{
-				Scope: contextbuilder.Scope{RunID: "evidence_probe", Source: capture.Source, ConfigurationVersion: 1, PolicyVersion: 1, Range: domain.TimeRange{Start: at.Add(-15 * time.Minute), End: at}, ObservedAt: at, Resources: []domain.ResourceRef{resource.Resource.Ref}},
+				Scope:       contextbuilder.Scope{RunID: "evidence_probe", Source: capture.Source, ConfigurationVersion: 1, PolicyVersion: 1, Range: domain.TimeRange{Start: at.Add(-15 * time.Minute), End: at}, ObservedAt: at, Resources: []domain.ResourceRef{resource.Resource.Ref}},
 				Destination: contextbuilder.Local, Status: capture.Status, Resources: []domain.ResourceSnapshot{resource}, RecordLimit: 1, ByteLimit: contextbuilder.MaximumBytes,
 			})
 			if err != nil {
@@ -123,14 +123,14 @@ func TestPinnedLocalEvidenceIntegration(t *testing.T) {
 			if err != nil || len(items) != 1 {
 				t.Fatal("materialize one bounded evidence item")
 			}
-			backend := &evidenceProbeBackend{Local: local, metadata: &metadata, id: items[0].ID, name: resource.Resource.DisplayName}
+			backend := &evidenceProbeBackend{Local: local, metadata: &metadata, id: items[0].ID, identity: string(resource.Resource.Ref.ID)}
 			gateway, err := port.New(backend, time.Now)
 			if err != nil {
 				t.Fatal("construct real evidence gateway")
 			}
-			question := "Return exactly one facts section. Its text must be exactly the resource name in the evidence. Cite its evidence id once. No health, cause or other claims."
+			question := "Return exactly one facts section. Its text must be exactly the resource_id in the evidence. Cite its evidence id once. No health, cause or other claims."
 			if locale == "fa" {
-				question = "فقط یک بخش facts بده. متن آن دقیقاً نام منبع در شاهد باشد؛ همان شناسه شاهد را یک بار ارجاع بده. هیچ ادعای سلامت یا علت یا متن دیگر نده."
+				question = "فقط یک بخش facts بده. متن آن دقیقاً resource_id در شاهد باشد؛ همان شناسه شاهد را یک بار ارجاع بده. هیچ ادعای سلامت یا علت یا متن دیگر نده."
 			}
 			prepared, err := gateway.Prepare(ctx, port.Request{Locale: locale, Question: question, Evidence: []port.Evidence{{ID: items[0].ID, Text: items[0].Text}}, OutputLimit: 512})
 			if err != nil {
@@ -139,7 +139,7 @@ func TestPinnedLocalEvidenceIntegration(t *testing.T) {
 			}
 			_, err = gateway.Dispatch(ctx, prepared)
 			metadata.GatewayFault = probeFault(err)
-			if err != nil || !metadata.NameMatches || !metadata.CitationsValid {
+			if err != nil || !metadata.IdentityMatches || !metadata.CitationsValid {
 				t.Fatal("bounded evidence generation failed; inspect metadata flags")
 			}
 		})

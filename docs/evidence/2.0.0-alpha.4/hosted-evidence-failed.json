@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "source_revision": "4a0a01347f6d93df6272ee7b77a112b6ee5fa1f8",
+  "recorded_at": "2026-11-01T07:03:27.1058044Z",
+  "status": "failed",
+  "phase": "protocol",
+  "scope": "Real bilingual protocol and application browser with synthetic Demo evidence; not general quality acceptance",
+  "archive_sha256": "aef737d26bffd08ceeb7be75f045bdef6d1ecc3187e0f4a1a3b0d878a03d2550",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "model_revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+  "model_license": "Apache-2.0",
+  "model_bytes": 639446688,
+  "context_tokens": 20480,
+  "cases": [
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 1.38
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 1.95
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration",
+      "status": "pass",
+      "elapsed_seconds": 3.33
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/en",
+      "status": "fail",
+      "elapsed_seconds": 10.72
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/fa",
+      "status": "fail",
+      "elapsed_seconds": 24.47
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration",
+      "status": "fail",
+      "elapsed_seconds": 35.19
+    }
+  ],
+  "stopped": true,
+  "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+  "build": "b11729-412a363c6",
+  "evidence_probes": [
+    {
+      "input_match": true,
+      "name_matches": false,
+      "input_tokens": 540,
+      "gateway_fault": "invalid_output",
+      "complete": true,
+      "backend_fault": "none",
+      "citations_valid": false,
+      "sections": 1,
+      "json_valid": true,
+      "locale": "en",
+      "output_tokens": 157
+    },
+    {
+      "input_match": true,
+      "name_matches": false,
+      "input_tokens": 588,
+      "gateway_fault": "invalid_output",
+      "complete": true,
+      "backend_fault": "none",
+      "citations_valid": false,
+      "sections": 1,
+      "json_valid": true,
+      "locale": "fa",
+      "output_tokens": 461
+    }
+  ],
+  "error_code": "hosted_processor.protocol_failed"
+}

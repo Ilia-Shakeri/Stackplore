@@ -106,7 +106,7 @@ try {
   foreach($event in $decoded){
     if($event.PSObject.Properties.Name -contains 'Output' -and $event.Output -match 'evidence_probe=(\{[^\r\n]+\})'){
       $flags=$Matches[1] | ConvertFrom-Json
-      $report.evidence_probes+=@{locale=$flags.locale;backend_fault=$flags.backend_fault;gateway_fault=$flags.gateway_fault;input_tokens=$flags.input_tokens;output_tokens=$flags.output_tokens;input_match=$flags.input_match;complete=$flags.complete;json_valid=$flags.json_valid;sections=$flags.sections;citations_valid=$flags.citations_valid;name_matches=$flags.name_matches}
+      $report.evidence_probes+=@{locale=$flags.locale;backend_fault=$flags.backend_fault;gateway_fault=$flags.gateway_fault;input_tokens=$flags.input_tokens;output_tokens=$flags.output_tokens;input_match=$flags.input_match;complete=$flags.complete;json_valid=$flags.json_valid;sections=$flags.sections;citations_valid=$flags.citations_valid;identity_matches=$flags.identity_matches}
     }
   }
   if($goExit -ne 0){throw 'hosted_processor.protocol_failed'}
