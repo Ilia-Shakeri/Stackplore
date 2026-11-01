@@ -91,8 +91,8 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	input, err := json.Marshal(struct {
 		Locale   string             `json:"locale"`
 		Question string             `json:"question"`
-		Evidence []countedEvidence   `json:"evidence"`
-		Scope json.RawMessage `json:"scope,omitempty"`
+		Evidence []countedEvidence  `json:"evidence"`
+		Scope    json.RawMessage    `json:"scope,omitempty"`
 		Outcomes []port.ToolOutcome `json:"outcomes,omitempty"`
 	}{request.Locale, request.Question, wireEvidence, scope, request.Outcomes})
 	if err != nil {

@@ -304,3 +304,24 @@ still required exactly seven jobs. New source requires all eight, explicitly
 including `processor-runtime`, with missing/skipped/failed/incomplete regression
 cases. Extra and duplicate jobs remain denied. This correction requires fresh
 checks; a green parent revision is not acceptance of newer release code.
+
+## Current investigation candidate
+
+Alpha.4's immutable `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32` passes exact-tag
+verification `41291330627` and signed publication `41291330621`; its recorded
+chosen-local scope remains separate from public consumption and later quality.
+
+Alpha.5's new mode requires eight actual desktop journeys: two goals, both roles
+and both languages. Actual SQL must record five reserved reads/one generation
+per investigation and one read/one generation per ordinary explanation, all with
+known usage and no resend. A hosted-only owned loopback observer forwards the
+real engine bytes and records bounded counts/timing/closed outcome flags, never
+raw text or credentials; it must stop with the engine/database. Six prior direct
+events and every existing source/race/install/provider/browser gate remain.
+
+Source `4eb5d7e` passes that real runtime job, but later cutoffs and all failed
+source checks remain explicit in the [attempt index](../evidence/2.0.0-alpha.5/README.md).
+Compact IDs are private transport handles, restored before canonical validation;
+shared scope factoring retains every field and cannot merge different scopes.
+Those newer bytes require new complete receipts. The observed single-fact timing
+is not p95, held-out incident quality, customer capacity or stable-v2 acceptance.

@@ -74,7 +74,9 @@ func splitEnvelope(item port.Evidence) (map[string]json.RawMessage, json.RawMess
 	if string(fields["version"]) != "1" {
 		return nil, nil, false
 	}
-	var records []struct { CitationID string `json:"citation_id"` }
+	var records []struct {
+		CitationID string `json:"citation_id"`
+	}
 	if json.Unmarshal(fields["records"], &records) != nil || len(records) != 1 || records[0].CitationID != item.ID {
 		return nil, nil, false
 	}

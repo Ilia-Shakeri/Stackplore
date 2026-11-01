@@ -1,6 +1,6 @@
 # Version 2 implementation ledger
 
-> Development preparation: branch `v2/alpha5` targets **2.0.0-alpha.5**, schema
+> Development candidate: branch `v2/alpha5` targets **2.0.0-alpha.5**, schema
 > **18**. The alpha.4 tag points immutably to `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`;
 > exact-tag verification and signed publication pass. This version bump does
 > not deliver an investigation loop. [Stage-5 plan](investigation.md).
@@ -430,4 +430,30 @@ within its recorded scope; all eight main jobs pass. This is not whole-version
 acceptance. A pre-tag review found the publication guard still expected seven
 exact jobs. Its new required set includes `processor-runtime`; regression cases
 reject absent, skipped, failed or incomplete processor evidence. A fresh source
-run and signed trial are required before tagging. No alpha.4 tag is claimed.
+run and signed trial were required at that review. They subsequently passed at `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`; immutable alpha.4 exact-tag verification and signed publication pass in the [recorded chosen-local scope](../evidence/2.0.0-alpha.4/README.md).
+
+## Stage-5 candidate — current acceptance boundary
+
+The `v2/alpha5` candidate adds finite server-owned reads, durable reservation
+before each read, independent retained proofs and reauthorization, keyed
+mode/consent identity, honest coverage, bounded local logs, bilingual desktop
+controls and current canonical citation matching. Privacy/permission changes
+clear the complete answer. No new public mutation or provider write capability
+exists; schema remains 18 and ordinary explanation remains available.
+
+At `4eb5d7e`, the real hosted job passes eight desktop journeys and actual SQL
+five-read/one-generation accounting. Full CI fails separately; later measured
+40-second cutoffs remain failed. Compact handles and lossless common-scope
+factoring are new candidates, not accepted by a parent receipt. Focused tests
+cover concurrent ownership, cross-run proof substitution, consent/log masking,
+revocation, unknown-use no-retry, backend mutation and expansion/input budgets.
+[Exact attempts and failures](../evidence/2.0.0-alpha.5/README.md),
+[design/catalog/stop rules](investigation.md),
+[compact transport decision](../adr/0019-request-local-citation-handles.md).
+
+Remaining: fresh complete source/race/browser/install/provider gates, reliable
+strict real profile journeys, full signed package/security trial, reviewed
+source score, immutable exact-tag verification and publication. No alpha.5 tag
+or stage-6–10 acceptance exists. Held-out human quality, pilot/soak and stable
+artifact consumption remain independent future gates. All execution stays on
+Actions; only file reads/edits and lightweight Git occur on the workstation.
