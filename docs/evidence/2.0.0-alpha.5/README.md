@@ -85,3 +85,20 @@ reject another run's sealed family proof, metadata-byte overflow, count-backend
 mutation, forged/duplicate handles and canonical output expansion overflow.
 Citation navigation also requires the retained ID, family and observation time.
 These newer changes require their own complete hosted acceptance and trial.
+
+Source `3842c744fe2ee42c0d8d631b9481f55d55661f54`, run `41298044339`,
+[remains failed](compact-deadline-failed-ci.json). Focused Go authority/alias/
+expansion/budget tests pass; full source stops at one Go test's formatting.
+[Real timing](hosted-compact-deadline-failed.json) proves all six direct events,
+three English desktop journeys and the Persian ordinary administrator journey.
+Completed short-handle responses use 68–73 output tokens instead of about 124.
+The English viewer investigation and Persian administrator investigation still
+reach the unchanged 40-second client deadline (1063/1312 counted input tokens).
+All owned cleanup passes. Fewer output tokens alone do not establish success.
+
+The next candidate retains every canonical record/quality/time/coverage value,
+factors only exactly matching scope envelopes once and avoids double-quoting
+canonical JSON data. Different/unrecognized scopes fall back to unchanged opaque
+text. Tests reconstruct all original fields and preserve escaped role delimiters.
+Timeouts, evidence, model pins, usage rules and exact semantic/citation assertions
+remain unchanged; the new private encoding requires fresh complete validation.

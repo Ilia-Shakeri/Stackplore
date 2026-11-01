@@ -129,3 +129,7 @@ and exact answer assertions remain. Strict expansion precedes independent gatewa
 validation. The gateway freezes its original references and detaches count input
 to prevent backend mutation of admitted authority. New source must prove both
 correctness and timing; this decision does not accept it.
+Matching canonical envelopes also factor their identical scope into one counted
+header and avoid nested JSON-string escaping. All record/quality/time/index and
+coverage values remain; different or unrecognized scopes stay opaque. Tests
+reconstruct every original field and preserve escaped injected role delimiters.

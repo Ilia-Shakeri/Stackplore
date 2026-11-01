@@ -54,26 +54,46 @@ func TestLocalCompactWirePreservesCanonicalGatewayAuthorityAndExactUsage(t *test
 	fixture := &protocolFixture{}
 	fixture.mutate = func(response http.ResponseWriter, request *http.Request) bool {
 		if request.URL.Path == "/apply-template" {
-			var body struct { Messages []message `json:"messages"` }
-			if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 { t.Error("invalid counted framing"); response.WriteHeader(400); return true }
-			var user struct { Evidence []port.Evidence `json:"evidence"` }
-			if json.Unmarshal([]byte(body.Messages[1].Content), &user) != nil || len(user.Evidence) != 2 || user.Evidence[0].ID != "e1" || user.Evidence[1].ID != "e2" { t.Error("canonical IDs were not replaced in counted outer handles") }
+			var body struct {
+				Messages []message `json:"messages"`
+			}
+			if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 {
+				t.Error("invalid counted framing")
+				response.WriteHeader(400)
+				return true
+			}
+			var user struct {
+				Evidence []port.Evidence `json:"evidence"`
+			}
+			if json.Unmarshal([]byte(body.Messages[1].Content), &user) != nil || len(user.Evidence) != 2 || user.Evidence[0].ID != "e1" || user.Evidence[1].ID != "e2" {
+				t.Error("canonical IDs were not replaced in counted outer handles")
+			}
 			_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact formatted fixture prompt"})
 			return true
 		}
-		if request.URL.Path != "/completion" { return false }
-		var payload struct { Schema json.RawMessage `json:"json_schema"` }
-		if json.NewDecoder(request.Body).Decode(&payload) != nil || strings.Contains(string(payload.Schema), first) || !strings.Contains(string(payload.Schema), `"e2"`) { t.Error("completion schema escaped compact handles") }
+		if request.URL.Path != "/completion" {
+			return false
+		}
+		var payload struct {
+			Schema json.RawMessage `json:"json_schema"`
+		}
+		if json.NewDecoder(request.Body).Decode(&payload) != nil || strings.Contains(string(payload.Schema), first) || !strings.Contains(string(payload.Schema), `"e2"`) {
+			t.Error("completion schema escaped compact handles")
+		}
 		_ = json.NewEncoder(response).Encode(map[string]any{"content": `{"sections":[{"kind":"facts","text":"Observed fact.","citations":["e2"]}]}`, "tokens_predicted": 20, "tokens_evaluated": 3, "truncated": false, "stop_type": "eos", "model": fixtureAlias})
 		return true
 	}
 	local, _ := fixtureLocal(t, fixture, Options{})
 	gateway, err := port.New(local, time.Now)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	request := testRequest()
 	request.Evidence = []port.Evidence{{ID: first, Text: "First actual fact."}, {ID: second, Text: "Second actual fact."}}
 	prepared, err := gateway.Prepare(context.Background(), request)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	result, err := gateway.Dispatch(context.Background(), prepared)
 	if err != nil || result.Answer.Sections[0].Citations[0] != second || result.InputTokens != 3 || result.OutputTokens != 20 || request.Evidence[0].ID != first {
 		t.Fatal("compact transport changed authority, caller data or actual usage", err)

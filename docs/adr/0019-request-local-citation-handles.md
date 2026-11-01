@@ -21,6 +21,15 @@ private wire; evidence text, scope, quality and sealed proofs remain intact.
 Exact formatted input includes these handles. The generation schema admits only
 that request's handle set. Tables stay volatile and independent per request.
 
+Complete canonical envelopes with exactly matching version, source, provider,
+configuration, policy, restore generation and window may share one scope header.
+Their remaining per-item fields are encoded as JSON data without double-quoting
+the entire document. Retain every original record, embedded canonical citation ID,
+quality/time, page/index/count and coverage value. Mixed scopes, missing/unknown
+envelope shapes or a mismatched record ID fall back to unchanged opaque text.
+Factoring grants no authority. Prove lossless reconstruction and preserve JSON
+escaping so untrusted role delimiter text cannot become literal prompt framing.
+
 Before returning complete output, strictly decode and validate closed JSON against
 the handle set. Reject unknown/duplicate handles, raw canonical IDs, active text
 and malformed output. Restore only the bounded bijection to original references.

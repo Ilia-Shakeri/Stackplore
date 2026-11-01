@@ -77,25 +77,36 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	}
 	defer clear(aliases)
 	defer clear(bindings)
-	wireEvidence := make([]port.Evidence, len(request.Evidence))
-	if request.Evidence == nil {
-		wireEvidence = nil
+	wireEvidence, scope, err := factorEvidence(request.Evidence, aliases)
+	if err != nil {
+		return port.CountedInput{}, err
 	}
-	defer clear(wireEvidence)
-	for index, item := range request.Evidence {
-		wireEvidence[index] = port.Evidence{ID: aliases[index], Text: item.Text}
-	}
+	defer func() {
+		for index := range wireEvidence {
+			clear(wireEvidence[index].Text)
+		}
+		clear(wireEvidence)
+	}()
+	defer clear(scope)
 	input, err := json.Marshal(struct {
 		Locale   string             `json:"locale"`
 		Question string             `json:"question"`
-		Evidence []port.Evidence    `json:"evidence"`
+		Evidence []countedEvidence   `json:"evidence"`
+		Scope json.RawMessage `json:"scope,omitempty"`
 		Outcomes []port.ToolOutcome `json:"outcomes,omitempty"`
-	}{request.Locale, request.Question, wireEvidence, request.Outcomes})
+	}{request.Locale, request.Question, wireEvidence, scope, request.Outcomes})
 	if err != nil {
 		return port.CountedInput{}, port.ErrInvalid
 	}
 	defer clear(input)
 	notes := localInstructions(request.Locale)
+	if len(scope) > 0 {
+		if request.Locale == "fa" {
+			notes += " scope محدودهٔ مشترک همهٔ شواهد است؛ کیفیت هر شاهد جداست."
+		} else {
+			notes += " scope applies to all evidence; each item's quality remains separate."
+		}
+	}
 	if len(request.Outcomes) > 0 {
 		if request.Locale == "fa" {
 			notes += " پوشش خواندن جداگانه نمایش داده می‌شود. قالب و شمار بخش‌های خواسته‌شده را رعایت کن؛ فقط کمبودهای مرتبط با ادعاهای پاسخ را بیاور. نبود رکورد، اثبات نبودن نیست."
