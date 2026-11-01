@@ -24,6 +24,12 @@ const templateHash = '57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e2
 const modelRevision = '90862c4b9d2787eaed51d12237eafdfe7c5f6077';
 const build = 'b11729-412a363c6';
 
+export function validHostedIncidentReportMetadata(value) {
+  if (value?.report_current !== true || value?.report_cleared !== true || !Number.isInteger(value.report_rows)) return false;
+  if (value.goal === 'explain_resource') return value.report_rows === 0 && value.report_status === 0;
+  return value.goal === 'investigate_incident' && value.report_rows >= 1 && value.report_rows <= 64 && value.report_status === 200;
+}
+
 // Metadata-only SQL acceptance: four explicitly admitted runs, no uncertain work.
 export function validHostedDatabaseMetadata(value, source) {
   if (
@@ -513,6 +519,10 @@ async function main() {
                   'resource_identity_supported',
                   'citation_current',
                   'citation_status',
+                  'report_current',
+                  'report_cleared',
+                  'report_rows',
+                  'report_status',
                   'cleared',
                   'view_state',
                 ].map((key) => [key, journey[key]]),
@@ -538,6 +548,7 @@ async function main() {
       report.application_browser.journeys.length !== 8 ||
       report.application_browser.journeys.some(
         (value) =>
+          !validHostedIncidentReportMetadata(value) ||
           !value.coverage_valid ||
           value.admissions !== 1 ||
           value.admission_status !== 202 ||

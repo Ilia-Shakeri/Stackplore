@@ -21,5 +21,10 @@ uses existing fresh publication/poll fences, clones report arrays and nested
 references, and erases the owning report with the answer. Focused lifecycle and
 revocation tests plus complete exact-source verification remain required.
 The next source adds an unaccepted explicit report-route/contract candidate.
-Strict generated client/desktop integration, alert/replica correlation and held-out
-quality remain pending. There is no alpha.6 tag or stage-6 completion claim.
+Generated client types come only from the inspected Actions source patch.
+Source `b542955`, run `41309091245`, passes seven jobs but fails source formatting
+([record](client-format-ci.json)). Its real engine/old desktop flow does not accept
+the later report view. The next source applies inspected hosted formatting and
+adds explicit bilingual report controls and stronger real report metadata gates.
+Fresh complete client/desktop, alert/replica correlation and held-out quality
+remain pending. There is no alpha.6 tag or stage-6 completion claim.

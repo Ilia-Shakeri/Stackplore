@@ -101,8 +101,12 @@ export function createAssistantApi(
       );
     },
     report(owner: AssistantOwner, runId: string, signal?: AbortSignal) {
-      return owned(owner, signal, 15_000,
-        async (signal) => (await runs.report(runId, { signal })).data);
+      return owned(
+        owner,
+        signal,
+        15_000,
+        async (signal) => (await runs.report(runId, { signal })).data,
+      );
     },
     cancel(owner: AssistantOwner, runId: string, signal?: AbortSignal) {
       return owned(owner, signal, 15_000, (signal) =>

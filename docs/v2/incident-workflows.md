@@ -14,7 +14,14 @@ generation. Only an investigation can return report content. Pending/lost/
 unavailable states carry metadata only. The ordinary answer contract stays
 independent. The server recomputes typed report claims against exact current
 references and checks report plus answer within one 64-KiB content budget.
-Desktop controls and strict typed client parsing still need integration.
+The desktop candidate exposes an explicit report control after an investigation.
+Its scrollable typed table shows occurrence/sample time separately from observed
+time, family, scalar facts, freshness/partial/synthetic/redaction flags and fresh
+citation controls. Qualified possibilities show supporting and contrary references;
+gaps and next reads remain inert text. Both languages use the shared theme.
+Closing the report aborts its read and drops local content. Owner/lifetime/scope
+loss clears the owning conversation; late noncooperating replies are fenced.
+Strict typed client parsing and these controls need fresh complete hosted proof.
 
 An operator selects one resource, one source and one fixed time window, then
 explicitly requests an investigation. A desktop report must show:

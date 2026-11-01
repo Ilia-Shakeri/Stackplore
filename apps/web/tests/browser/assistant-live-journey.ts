@@ -23,12 +23,20 @@ export async function assistantLiveJourney(
     resource_identity_supported: false,
     citation_current: false,
     citation_status: 0,
+    report_current: goal === 'explain_resource',
+    report_cleared: goal === 'explain_resource',
+    report_rows: 0,
+    report_status: 0,
     cleared: false,
     view_state: 'not_visible',
   };
   const reads: Promise<void>[] = [];
   const observeReply = (response: Response) => {
     const path = new URL(response.url()).pathname;
+    if (response.request().method() === 'GET' && /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/report$/u.test(path)) {
+      metadata.report_status = response.status();
+      return;
+    }
     if (
       response.request().method() === 'GET' &&
       /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/citations\/ev_[a-f0-9]{64}$/u.test(path)
@@ -183,6 +191,27 @@ export async function assistantLiveJourney(
       (element) => document.activeElement === element,
     );
     expect(metadata.citation_current).toBe(true);
+    if (goal === 'investigate_incident') {
+      await panel.getByRole('button', { name: label('assistant.report.open'), exact: true }).click();
+      try {
+        await page.waitForFunction(() => document.querySelectorAll('.assistant__report tbody tr').length > 0, undefined, { timeout: 15_000 });
+      } catch {
+        throw new Error('Real typed incident report did not settle');
+      }
+      const report = panel.locator('.assistant__report');
+      metadata.report_rows = await report.locator('tbody tr').count();
+      expect(metadata.report_rows >= 1 && metadata.report_rows <= 64).toBe(true);
+      await report.locator('tbody button').first().click();
+      try {
+        await page.waitForFunction(() => document.activeElement?.id === 'resource-detail-name', undefined, { timeout: 5000 });
+      } catch {
+        throw new Error('Real report citation authority focus did not settle');
+      }
+      metadata.report_current = true;
+      await report.getByRole('button', { name: label('assistant.report.close'), exact: true }).click();
+      expect(await report.locator('table').count()).toBe(0);
+      metadata.report_cleared = true;
+    }
     expect(admissions).toBe(1);
     expect(new URL(page.url()).search.includes(question)).toBe(false);
     const stored = await page.evaluate((privateQuestion) => {

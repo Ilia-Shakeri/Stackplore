@@ -46,7 +46,10 @@ export interface AssistantClient {
     options: AssistantAdmissionOptions,
   ): Promise<ApiResponse<AssistantRunReceipt>>;
   get(runId: string, options?: AssistantReadOptions): Promise<ApiResponse<AssistantRunResponse>>;
-  report(runId: string, options?: AssistantReadOptions): Promise<ApiResponse<AssistantIncidentReportResponse>>;
+  report(
+    runId: string,
+    options?: AssistantReadOptions,
+  ): Promise<ApiResponse<AssistantIncidentReportResponse>>;
   cancel(
     runId: string,
     options: AssistantMutationOptions,
@@ -224,11 +227,19 @@ export const createAssistantClient = (client: ApiClient): AssistantClient => {
     },
     report(runId, options = {}) {
       if (options.signal?.aborted === true) return stopped();
-      return client.request<unknown>({
-        path: `${runPath(runId)}/report`,
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      }).then((response) => checkedReply(response, 200,
-        (value) => parseAssistantIncidentReportResponse(value, runId), options.signal));
+      return client
+        .request<unknown>({
+          path: `${runPath(runId)}/report`,
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        })
+        .then((response) =>
+          checkedReply(
+            response,
+            200,
+            (value) => parseAssistantIncidentReportResponse(value, runId),
+            options.signal,
+          ),
+        );
     },
     cancel(runId, options) {
       if (options.signal?.aborted === true) return stopped();

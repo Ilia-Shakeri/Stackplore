@@ -5,7 +5,18 @@ import {
   safeArchiveNames,
   safeArchiveLinks,
   validHostedDatabaseMetadata,
+  validHostedIncidentReportMetadata,
 } from './check-hosted-processor-linux.mjs';
+
+test('real report receipt requires rendered current authorized content and owned clearing', () => {
+  const value = { goal: 'investigate_incident', report_current: true, report_cleared: true, report_rows: 4, report_status: 200 };
+  assert.equal(validHostedIncidentReportMetadata(value), true);
+  for (const change of [{ report_current: false }, { report_current: 'true' }, { report_cleared: false }, { report_rows: 0 }, { report_rows: 65 }, { report_rows: 1.5 }, { report_rows: '4' }, { report_status: 503 }, { goal: 'shell' }]) {
+    assert.equal(validHostedIncidentReportMetadata({ ...value, ...change }), false);
+  }
+  assert.equal(validHostedIncidentReportMetadata({ ...value, goal: 'explain_resource', report_rows: 0, report_status: 0 }), true);
+  assert.equal(validHostedIncidentReportMetadata({ ...value, goal: 'explain_resource' }), false);
+});
 
 test('real investigation SQL proof requires exact reservations and known single dispatch', () => {
   const source = 'a'.repeat(40);

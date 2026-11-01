@@ -16,6 +16,7 @@ import { useOptionalAuthSnapshot } from '../auth/auth-context';
 import type { AssistantApi, AssistantOwner } from './assistant-api';
 import { useOptionalAssistantApi } from './assistant-context';
 import { AssistantConversation, type ConversationState } from './conversation';
+import { IncidentReportView } from './IncidentReportView';
 import './assistant.css';
 
 const absentSubscribe = () => () => {};
@@ -322,6 +323,7 @@ function ConversationView({
                     {t('assistant.citation')}
                   </Button>
                 ))}
+                {turn.response.run.goal === 'investigate_incident' ? <IncidentReportView conversation={conversation} runId={turn.response.run.id} onCitation={(id) => { citation(turn.response?.run.id ?? '', id); }} /> : null}
               </>
             ) : null}
           </li>

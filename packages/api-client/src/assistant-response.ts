@@ -356,5 +356,11 @@ export const parseAssistantResetEvent = (
 
 // Internal shared wire primitives; the package entrypoint does not export them.
 export const assistantResponseWire = Object.freeze({
-  closed, boundedArray, timestamp, parseRun, parseCitation, parseCoverage, fail,
+  closed,
+  boundedArray,
+  timestamp,
+  parseRun,
+  parseCitation,
+  parseCoverage,
+  fail,
 });

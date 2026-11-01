@@ -2,7 +2,9 @@
 
 ## [2.0.0-alpha.6] - 2026-11-01
 
-### Smart Analysis — internal preparation, not a released workflow
+### Smart Analysis — development candidate
+
+- Add an explicit bilingual desktop report panel with typed chronology, quality flags, qualified hypotheses, fresh supporting/contrary citations and inert next reads. Abort and fence closed/expired/foreign/lost replies, share the retained answer's output cap, and require actual report read/render/citation/clearing receipts on the hosted real journey. New source and stage-6 quality/publication remain pending.
 
 - Add strict detached typed report parsing and explicit session-bound client reads. Validate half-open chronology, scoped unique references, pressure/health/restart support and contrary facts, qualifiers, deterministic ranks and closed inert recommendations. Reject getter/coercion hooks and lost-memory content. Apply hosted contract derivation/formatting; new source requires its own full checks.
 

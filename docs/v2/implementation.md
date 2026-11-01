@@ -524,6 +524,19 @@ matching positive limit, unknown causal claims, unqualified/ranked output,
 unknown references, prototype getters/coercion hooks and content in lost-memory
 states. Fresh full checks and desktop integration remain pending.
 
+The next desktop slice adds a user-triggered report view with both languages,
+typed chronology, qualified hypotheses, supporting/contrary citations, honest
+missing families and inert next reads. A separate bounded report request is
+aborted on close, owner loss, scope change and expiry. It must match the retained
+run/citation metadata and the shared answer/report byte cap. Unit tests cover
+explicit reads, late noncooperating replies, owner loss, closing, lost memory,
+cross-reference drift and combined budget overflow. The real hosted journey now
+requires current report HTTP 200, 1–64 rendered rows, fresh citation navigation
+and owned clearing for all four investigation role/language combinations.
+The hosted metadata guard rejects missing/false/coerced flags and out-of-bound
+counts. Complete source/type/lint/real-browser validation remains pending;
+stage-6 features, held-out quality and publication are not accepted by this slice.
+
 ## Stage-5 acceptance followup — 2026-11-01
 
 The correction passes eight source jobs `41301657316` and signed trial

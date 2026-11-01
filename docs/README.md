@@ -105,4 +105,5 @@ separates controlled browser fixtures from real processor and release gates.
 
 The [incident workflow design](v2/incident-workflows.md) records stage-6 behavior,
 bounded architecture, failure taxonomy and independent quality requirements.
-Its initial typed projection is internal preparation, not a public report.
+Its report contract and desktop workflow remain candidates pending complete
+hosted verification and independent quality acceptance.
