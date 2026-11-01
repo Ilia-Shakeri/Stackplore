@@ -98,6 +98,19 @@ func (bundle Bundle) Citations() []CitationReference {
 
 func (bundle Bundle) RecordCount() int { return len(bundle.document.Records) }
 
+// Summary exposes only typed coverage metadata, including for an empty bundle.
+// It cannot invent a citation or expose names, raw errors, logs or identities.
+type Summary struct {
+	Availability domain.AvailabilityState
+	Completeness domain.Completeness
+	Records int
+	MoreAvailable bool
+}
+
+func (bundle Bundle) Summary() Summary {
+	return Summary{Availability: bundle.document.Quality.Availability, Completeness: bundle.document.Quality.Completeness, Records: len(bundle.document.Records), MoreAvailable: bundle.document.MoreAvailable}
+}
+
 type document struct {
 	Version              int                 `json:"version"`
 	SourceReference      string              `json:"source_reference"`

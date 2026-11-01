@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	port "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 )
 
@@ -130,6 +131,45 @@ func TestLocalProtocolCountsBeforeExactTokenDispatch(t *testing.T) {
 	}
 	if _, err := gateway.Dispatch(context.Background(), prepared); err != port.ErrPrepared || fixture.completion.Load() != 1 {
 		t.Fatal("generation repeated")
+	}
+}
+
+func TestInvestigationCoverageIsCountedAsTypedInertInput(t *testing.T) {
+	t.Parallel()
+	fixture := &protocolFixture{}
+	var seen atomic.Bool
+	fixture.mutate = func(response http.ResponseWriter, request *http.Request) bool {
+		if request.URL.Path != "/apply-template" {
+			return false
+		}
+		var body struct { Messages []message `json:"messages"` }
+		if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 {
+			t.Error("invalid bounded framing")
+			response.WriteHeader(http.StatusBadRequest)
+			return true
+		}
+		var wire struct {
+			Locale string `json:"locale"`
+			Question string `json:"question"`
+			Evidence []port.Evidence `json:"evidence"`
+			Outcomes []port.ToolOutcome `json:"outcomes"`
+		}
+		if decodeClosed := json.Unmarshal([]byte(body.Messages[1].Content), &wire); decodeClosed != nil || len(wire.Evidence) != 1 || len(wire.Outcomes) != 2 || wire.Outcomes[1].Tool != "health" || wire.Outcomes[1].Availability != domain.AvailabilityUnsupported || !strings.Contains(body.Messages[0].Content, "coverage") {
+			t.Error("actual evidence or missing-family metadata omitted from exact token input")
+		}
+		seen.Store(true)
+		_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact formatted fixture prompt"})
+		return true
+	}
+	local, _ := fixtureLocal(t, fixture, Options{})
+	request := testRequest()
+	request.Evidence = []port.Evidence{{ID: "evidence_one", Text: "bounded fact"}}
+	request.Outcomes = []port.ToolOutcome{
+		{Tool: "inventory", Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Records: 1},
+		{Tool: "health", Availability: domain.AvailabilityUnsupported, Completeness: domain.CompletenessComplete},
+	}
+	if _, err := local.Count(context.Background(), request); err != nil || !seen.Load() || fixture.completion.Load() != 0 {
+		t.Fatal("counting did not preserve bounded coverage without generation", err)
 	}
 }
 

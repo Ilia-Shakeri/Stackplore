@@ -48,6 +48,7 @@ type Request struct {
 	Locale      string
 	Question    string
 	Evidence    []Evidence
+	Outcomes    []ToolOutcome
 	OutputLimit int
 }
 
@@ -55,7 +56,11 @@ func (request Request) Validate() error {
 	if request.Locale != "en" && request.Locale != "fa" || !validText(request.Question, 8192) || request.OutputLimit < 1 || request.OutputLimit > MaximumOutputTokens || len(request.Evidence) > MaximumEvidence {
 		return ErrInvalid
 	}
-	bytes := len(request.Question)
+	metadataBytes, err := outcomeBytes(request.Outcomes)
+	if err != nil {
+		return err
+	}
+	bytes := len(request.Question) + metadataBytes
 	seen := make(map[string]struct{}, len(request.Evidence))
 	for _, item := range request.Evidence {
 		if !boundedID(item.ID, MaximumReferenceLength) || !validText(item.Text, 8192) {
@@ -66,6 +71,15 @@ func (request Request) Validate() error {
 		}
 		seen[item.ID] = struct{}{}
 		bytes += len(item.ID) + len(item.Text)
+	}
+	if len(request.Outcomes) > 0 {
+		records := 0
+		for _, outcome := range request.Outcomes {
+			records += outcome.Records
+		}
+		if records != len(request.Evidence) {
+			return ErrInvalid
+		}
 	}
 	if bytes > MaximumInputBytes {
 		return ErrInputLimit

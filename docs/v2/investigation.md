@@ -32,6 +32,15 @@ An upper bound does not promise every planned step can finish within the run.
 
 ## Implementation and exit work
 
+The current internal candidate includes the pure recipe, narrowed reader caps,
+separate retained proofs, closed coverage metadata and a single final dispatch.
+Focused tests are authored for reservation order, actual/unsupported families,
+later health revocation, denied partial collection, consent identity and bounded
+query/log reauthorization. They are not yet accepted until hosted execution.
+The public contract, desktop control, new-mode SQL/browser journeys, signed
+package/security trial and immutable alpha.5 tag remain pending. Ordinary alpha.4
+explanation remains the only reachable browser mode in this increment.
+
 1. Add the bounded plan and combined evidence/proof ownership with focused
    rejection, truncation, unsupported, revocation and budget tests.
 2. Wire an explicit protected request and desktop control, natural English and

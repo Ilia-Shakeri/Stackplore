@@ -16,6 +16,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantplan"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
@@ -66,6 +67,7 @@ type Input struct {
 	Scope     contextbuilder.Scope
 	Locale    string
 	Question  string
+	LogConsent bool
 	// Trusted transport presence flag; never accepted as a browser policy field.
 	RequireExistingConversation bool
 }
@@ -80,6 +82,7 @@ type Snapshot struct {
 	Answer    *inference.Answer
 	Citations []contextbuilder.CitationReference
 	Volatile  bool
+	Outcomes []inference.ToolOutcome
 }
 
 func (Snapshot) Format(state fmt.State, _ rune) {
@@ -139,7 +142,7 @@ func New(options Options) (*Service, error) {
 	return service, nil
 }
 
-// Submit accepts only the initial local, single-resource explanation workflow.
+// Submit accepts fixed local, single-resource workflows with explicit log consent.
 // Raw text is staged in memory before the metadata-only transaction can commit.
 func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run, error) {
 	if service == nil || ctx == nil || ctx.Err() != nil || service.lifetime.Err() != nil {
@@ -161,7 +164,13 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 	a.At, a.Deadline, a.Volatile, a.MemoryOwner = at, at.Add(assistant.MaximumRunDuration), true, service.processID
 	a.Fingerprint = [32]byte{1}
 	input.Scope.RunID, input.Scope.ObservedAt = domain.RequestID(a.ID), at
-	if !a.Valid() || a.Paid || a.Goal != assistant.ExplainResource || len(input.Scope.Resources) != 1 || input.Scope.Source.Validate() != nil || input.Scope.Resources[0].Validate() != nil || !input.Scope.Source.Matches(input.Scope.Resources[0]) || string(input.Scope.Resources[0].ID) != a.ResourceID || string(input.Scope.Source.SourceID) != a.SourceID || input.Scope.ConfigurationVersion != a.SourceVersion || input.Scope.PolicyVersion != a.PolicyVersion || input.Scope.RestoreGeneration != a.RestoreGeneration || input.Scope.Range.Start != a.From || input.Scope.Range.End != a.Until || a.Until.After(at) {
+	if _, err := assistantplan.Reads(a.Goal, input.LogConsent); err != nil {
+		return assistant.Run{}, assistant.ErrInvalid
+	}
+	if input.LogConsent && input.Scope.Range.End.Sub(input.Scope.Range.Start) > contextbuilder.MaximumLogWindow {
+		return assistant.Run{}, assistant.ErrInvalid
+	}
+	if !a.Valid() || a.Paid || len(input.Scope.Resources) != 1 || input.Scope.Source.Validate() != nil || input.Scope.Resources[0].Validate() != nil || !input.Scope.Source.Matches(input.Scope.Resources[0]) || string(input.Scope.Resources[0].ID) != a.ResourceID || string(input.Scope.Source.SourceID) != a.SourceID || input.Scope.ConfigurationVersion != a.SourceVersion || input.Scope.PolicyVersion != a.PolicyVersion || input.Scope.RestoreGeneration != a.RestoreGeneration || input.Scope.Range.Start != a.From || input.Scope.Range.End != a.Until || a.Until.After(at) {
 		return assistant.Run{}, assistant.ErrInvalid
 	}
 	if err := (inference.Request{Locale: input.Locale, Question: input.Question, OutputLimit: service.output}).Validate(); err != nil {
@@ -182,6 +191,12 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 	for _, value := range []string{"helper-local-explanation-v1", input.Locale, input.Question, string(input.Scope.Source.Provider), strconv.Itoa(service.output)} {
 		_, _ = mac.Write([]byte(value))
 		_, _ = mac.Write([]byte{0})
+	}
+	if a.Goal == assistant.InvestigateIncident {
+		_, _ = mac.Write([]byte("investigation-v1\x00"))
+		if input.LogConsent {
+			_, _ = mac.Write([]byte("explicit-local-logs-v1\x00"))
+		}
 	}
 	if input.RequireExistingConversation {
 		_, _ = mac.Write([]byte("explicit-conversation-v1\x00"))

@@ -32,6 +32,8 @@ type memoryRun struct {
 	answer     *inference.Answer
 	citations  []contextbuilder.CitationReference
 	evidence   *assistantevidence.Evidence
+	extraEvidence []assistantevidence.Evidence
+	outcomes []inference.ToolOutcome
 	operations chan struct{}
 }
 
@@ -133,6 +135,10 @@ func (service *Service) eraseLocked(entry *memoryRun) {
 	entry.answer = nil
 	entry.citations = nil
 	entry.evidence = nil
+	clear(entry.extraEvidence)
+	entry.extraEvidence = nil
+	entry.outcomes = nil
+	entry.input.LogConsent = false
 	entry.readyOnce.Do(func() { close(entry.ready) })
 }
 
@@ -243,15 +249,13 @@ func (service *Service) Get(ctx context.Context, actor assistant.Actor, id strin
 	}
 	content := run.State == assistant.Completed && (entry.answer != nil || len(entry.citations) > 0)
 	seal := entry.evidence
-	var evidence assistantevidence.Evidence
-	if content && entry.evidence != nil {
-		evidence = *entry.evidence
+	var proofs []assistantevidence.Evidence
+	if content {
+		proofs = service.evidenceSetLocked(entry)
 	}
 	service.mu.Unlock()
 	if content {
-		proof, stopProof := service.evidenceContext(ctx)
-		err = service.authorizer.AuthorizeEvidence(proof, actor, run, evidence)
-		stopProof()
+		err = service.authorizeProofs(ctx, actor, run, proofs)
 	}
 	if err != nil {
 		service.invalidateEntry(entry)
@@ -266,6 +270,7 @@ func (service *Service) Get(ctx context.Context, actor assistant.Actor, id strin
 	if content && entry.evidence == seal && entry.answer != nil && run.State == assistant.Completed {
 		snapshot.Answer = cloneAnswer(*entry.answer)
 		snapshot.Citations = slices.Clone(entry.citations)
+		snapshot.Outcomes = slices.Clone(entry.outcomes)
 	}
 	return snapshot, nil
 }

@@ -152,6 +152,18 @@ and shared evidence reads belong to later privacy/use-case stages. See the
 [active acceptance ledger](v2/implementation.md). Stable 1.0.3 and alpha.1
 still have migration ledger 17. PostgreSQL remains 17.11, not major 18.
 
+### Stage-5 internal investigation candidate
+
+[ADR-0018](adr/0018-fixed-investigation-recipes.md) adds a pure fixed read planner
+inside the existing use case, without another service or database. It retains
+each family's proof instead of merging authority into an inventory seal. Each
+extra read reserves its durable step and uses eight-record/8-KiB caps without
+cursor following. Typed coverage and actual items enter the same exact-token
+gateway; one final generation remains bounded by the existing run limits.
+Ordinary resource explanation retains its single read. Public investigation
+transport and desktop controls are still pending; [current work](v2/investigation.md)
+distinguishes implemented internals from acceptance. All validation runs hosted.
+
 ## Persistence
 
 PostgreSQL is the only supported store. Server and native `psql`, `pg_dump` and

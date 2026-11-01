@@ -84,6 +84,7 @@ type readsStub struct {
 	logEdit         func(*domain.LogPage)
 	lastLogs        domain.LogReadQuery
 	outside         *domain.ResourceRef
+	expectedRecords int
 }
 
 func (reads *readsStub) enter(kind assistant.StepKind) error {
@@ -131,7 +132,11 @@ func (reads *readsStub) GetMetricHistory(_ context.Context, query domain.MetricH
 	if err := reads.enter(assistant.Metrics); err != nil {
 		return domain.MetricHistoryResult{}, err
 	}
-	if query.PointLimit != MaximumRecords || query.Validate() != nil || len(query.Names) != 3 {
+	limit := reads.expectedRecords
+	if limit == 0 {
+		limit = MaximumRecords
+	}
+	if query.PointLimit != limit || query.Validate() != nil || len(query.Names) != 3 {
 		return domain.MetricHistoryResult{}, ErrInvalid
 	}
 	result := domain.MetricHistoryResult{Status: reads.status, Samples: []domain.MetricSample{{ID: "metric_fixture", ResourceID: query.Resources[0].ID, Name: domain.MetricMemoryUsageBytes, Unit: domain.MetricUnitBytes, Value: 1024, SampledAt: query.Range.Start.Add(time.Second), Interval: time.Second, Synthetic: reads.source.Provider == domain.ProviderDemo}}}
@@ -144,7 +149,11 @@ func (reads *readsStub) ListEvents(_ context.Context, query domain.EventQuery) (
 	if err := reads.enter(assistant.Events); err != nil {
 		return domain.EventPage{}, err
 	}
-	if query.Page.Limit != MaximumRecords || query.Page.Cursor != "" || query.Search != "" || query.Validate() != nil {
+	limit := reads.expectedRecords
+	if limit == 0 {
+		limit = MaximumRecords
+	}
+	if query.Page.Limit != limit || query.Page.Cursor != "" || query.Search != "" || query.Validate() != nil {
 		return domain.EventPage{}, ErrInvalid
 	}
 	id := query.Resources[0].ID
@@ -153,6 +162,13 @@ func (reads *readsStub) ListEvents(_ context.Context, query domain.EventQuery) (
 func (reads *readsStub) GetRelationships(_ context.Context, query domain.TopologyQuery) (domain.RelationshipPage, error) {
 	if err := reads.enter(assistant.Topology); err != nil {
 		return domain.RelationshipPage{}, err
+	}
+	limit := reads.expectedRecords
+	if limit == 0 {
+		limit = MaximumRecords
+	}
+	if query.Page.Limit != limit || query.Page.Cursor != "" || query.Validate() != nil {
+		return domain.RelationshipPage{}, ErrInvalid
 	}
 	to := query.Resources[len(query.Resources)-1]
 	if reads.outside != nil {

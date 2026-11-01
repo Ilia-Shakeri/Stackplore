@@ -4,6 +4,7 @@
 
 ### Smart Assistant — development preparation
 
+- Add internal fixed investigation recipes, per-read caps, separate proof reauthorization and typed coverage. Public mode, hosted verification and alpha.5 acceptance remain pending.
 - Prepare the next bounded read-only investigation checkpoint on a separate branch. No new investigation mode or later-stage acceptance is claimed by the version change.
 - Allow verification of development branches under `v2/**`; retain the exact eight-job publication gate and immutable alpha.4 source.
 

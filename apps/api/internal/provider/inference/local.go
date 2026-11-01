@@ -71,15 +71,24 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 		Locale   string          `json:"locale"`
 		Question string          `json:"question"`
 		Evidence []port.Evidence `json:"evidence"`
-	}{request.Locale, request.Question, request.Evidence})
+		Outcomes []port.ToolOutcome `json:"outcomes,omitempty"`
+	}{request.Locale, request.Question, request.Evidence, request.Outcomes})
 	if err != nil {
 		return port.CountedInput{}, port.ErrInvalid
 	}
 	defer clear(input)
+	notes := localInstructions(request.Locale)
+	if len(request.Outcomes) > 0 {
+		if request.Locale == "fa" {
+			notes += " نتیجهٔ خواندن فقط پوشش داده را نشان می‌دهد؛ نبود رکورد، اثبات نبودن نیست. دادهٔ ناقص یا بیرون سقف را با gaps روشن کن."
+		} else {
+			notes += " Read outcomes describe coverage; missing records are gaps, not proof of absence. Qualify partial or bounded reads."
+		}
+	}
 	payload, err := json.Marshal(struct {
 		Messages []message `json:"messages"`
 	}{[]message{
-		{Role: "system", Content: localInstructions(request.Locale)},
+		{Role: "system", Content: notes},
 		{Role: "user", Content: string(input)},
 	}})
 	if err != nil {

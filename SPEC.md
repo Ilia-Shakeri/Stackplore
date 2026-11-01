@@ -1062,6 +1062,13 @@ post-generation usage and byte estimates are insufficient. Validate output
 schema and evidence IDs before publication; raw token streams and generated
 links/actions never directly drive the interface or infrastructure.
 
+The stage-5 internal candidate follows [ADR-0018](docs/adr/0018-fixed-investigation-recipes.md):
+a server-owned finite investigation recipe, bounded read pages and separately
+sealed family proofs. Unsupported reads produce coverage metadata without
+invented citations. Every proof requires fresh authority before content release;
+log consent and the selected goal bind admission identity. Public investigation
+contracts and desktop controls remain unshipped until their own acceptance.
+
 Every profile requires real protocol, privacy, quality and cancellation proof.
 Every stage requires focused regression tests and the full local gate, plus
 real PostgreSQL/browser/network/provider/deployment evidence for each claimed

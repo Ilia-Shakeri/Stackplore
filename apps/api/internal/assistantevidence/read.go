@@ -34,6 +34,15 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 	if reader == nil || ctx == nil {
 		return Evidence{}, ErrInvalid
 	}
+	if request.RecordLimit == 0 {
+		request.RecordLimit = MaximumRecords
+	}
+	if request.ByteLimit == 0 {
+		request.ByteLimit = contextbuilder.MaximumBytes
+	}
+	if request.RecordLimit < 1 || request.RecordLimit > MaximumRecords || request.ByteLimit < 1 || request.ByteLimit > contextbuilder.MaximumBytes {
+		return Evidence{}, ErrInvalid
+	}
 	if request.Run.State != assistant.Running || !assistant.Timestamp(request.Run.Deadline) || !assistant.Timestamp(request.Run.LeaseUntil) || !request.Run.Deadline.After(reader.time()) || !request.Run.LeaseUntil.After(reader.time()) {
 		return Evidence{}, ErrInvalid
 	}
@@ -76,7 +85,7 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 			status = item.Status
 		}
 	}
-	project := contextbuilder.Request{Scope: cloneScope(request.Scope), Destination: request.Destination, Status: status, RecordLimit: MaximumRecords, ByteLimit: contextbuilder.MaximumBytes}
+	project := contextbuilder.Request{Scope: cloneScope(request.Scope), Destination: request.Destination, Status: status, RecordLimit: request.RecordLimit, ByteLimit: request.ByteLimit}
 	if status.State == domain.AvailabilityPermissionDenied {
 		return Evidence{}, ErrDenied
 	}
@@ -106,7 +115,7 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 	if _, err := reader.fence(work, request.Actor, request.Run, request.Scope, source, proofKind, request.LogConsent); err != nil {
 		return Evidence{}, err
 	}
-	evidence := Evidence{reader: reader, actor: request.Actor, run: request.Run, scope: cloneScope(project.Scope), bundle: bundle, kind: proofKind, expires: request.Run.CreatedAt.Add(VolatileLifetime)}
+	evidence := Evidence{reader: reader, actor: request.Actor, run: request.Run, scope: cloneScope(project.Scope), bundle: bundle, kind: proofKind, recordLimit: request.RecordLimit, byteLimit: request.ByteLimit, expires: request.Run.CreatedAt.Add(VolatileLifetime)}
 	if request.Kind == assistant.Logs && project.Logs != nil {
 		evidence.logConsent = request.LogConsent
 		evidence.logPolicy = project.Logs.PolicyFingerprint()
@@ -138,7 +147,7 @@ func (reader *Reader) collect(ctx context.Context, source Source, request ReadRe
 		}
 		project.Status, project.Health = result.Status, result.Snapshots
 	case assistant.Metrics:
-		query := domain.MetricHistoryQuery{Source: scope.Source, Resources: slices.Clone(scope.Resources), Names: []domain.MetricName{domain.MetricCPUUsageCores, domain.MetricMemoryUsageBytes, domain.MetricRestartCount}, Range: scope.Range, PointLimit: MaximumRecords}
+		query := domain.MetricHistoryQuery{Source: scope.Source, Resources: slices.Clone(scope.Resources), Names: []domain.MetricName{domain.MetricCPUUsageCores, domain.MetricMemoryUsageBytes, domain.MetricRestartCount}, Range: scope.Range, PointLimit: request.RecordLimit}
 		result, err := source.Read.GetMetricHistory(ctx, query)
 		if err != nil {
 			return err
@@ -147,9 +156,9 @@ func (reader *Reader) collect(ctx context.Context, source Source, request ReadRe
 			return ErrUnavailable
 		}
 		project.Status, project.Metrics = result.Status, result.Samples
-		project.MoreAvailable = len(result.Samples) == MaximumRecords
+		project.MoreAvailable = len(result.Samples) == request.RecordLimit
 	case assistant.Events:
-		query := domain.EventQuery{Source: scope.Source, Resources: slices.Clone(scope.Resources), Range: scope.Range, Page: domain.PageRequest{Limit: MaximumRecords}}
+		query := domain.EventQuery{Source: scope.Source, Resources: slices.Clone(scope.Resources), Range: scope.Range, Page: domain.PageRequest{Limit: request.RecordLimit}}
 		page, err := source.Read.ListEvents(ctx, query)
 		if err != nil {
 			return err
@@ -159,7 +168,7 @@ func (reader *Reader) collect(ctx context.Context, source Source, request ReadRe
 		}
 		project.Status, project.Events, project.MoreAvailable = page.Status, page.Events, page.Page.HasMore
 	case assistant.Topology:
-		query := domain.TopologyQuery{Source: scope.Source, Resources: slices.Clone(scope.Resources), Page: domain.PageRequest{Limit: MaximumRecords}}
+		query := domain.TopologyQuery{Source: scope.Source, Resources: slices.Clone(scope.Resources), Page: domain.PageRequest{Limit: request.RecordLimit}}
 		page, err := source.Read.GetRelationships(ctx, query)
 		if err != nil {
 			return err
@@ -180,7 +189,7 @@ func (reader *Reader) collect(ctx context.Context, source Source, request ReadRe
 			}
 		}
 	case assistant.Logs:
-		query := logQuery(scope)
+		query := logQueryWithLimits(scope, request.RecordLimit, request.ByteLimit)
 		capture, err := source.Logs.Capture(ctx, query)
 		if err != nil {
 			return err
@@ -197,7 +206,11 @@ func (reader *Reader) collect(ctx context.Context, source Source, request ReadRe
 }
 
 func logQuery(scope contextbuilder.Scope) domain.LogReadQuery {
-	query := domain.LogReadQuery{Source: scope.Source, Range: scope.Range, LineLimit: min(contextbuilder.MaximumLogLines, MaximumRecords), ByteLimit: contextbuilder.MaximumLogBytes}
+	return logQueryWithLimits(scope, MaximumRecords, contextbuilder.MaximumLogBytes)
+}
+
+func logQueryWithLimits(scope contextbuilder.Scope, records, bytes int) domain.LogReadQuery {
+	query := domain.LogReadQuery{Source: scope.Source, Range: scope.Range, LineLimit: min(contextbuilder.MaximumLogLines, records), ByteLimit: min(contextbuilder.MaximumLogBytes, bytes)}
 	for _, ref := range scope.Resources {
 		query.Targets = append(query.Targets, domain.LogTarget{Resource: ref})
 	}
@@ -211,7 +224,7 @@ func (reader *Reader) verifyLogPolicy(ctx context.Context, actor assistant.Actor
 	if !evidence.logConsent || evidence.logPolicy == [32]byte{} || source.Logs == nil {
 		return ErrDenied
 	}
-	capture, err := source.Logs.Capture(ctx, logQuery(evidence.scope))
+	capture, err := source.Logs.Capture(ctx, logQueryWithLimits(evidence.scope, evidence.recordLimit, evidence.byteLimit))
 	if err != nil {
 		return safeError(ctx, err)
 	}

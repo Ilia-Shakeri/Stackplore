@@ -53,19 +53,38 @@ func (service *Service) authorizeLocked(ctx context.Context, entry *memoryRun) e
 func (service *Service) authorizeContent(ctx context.Context, entry *memoryRun) error {
 	service.mu.Lock()
 	run, actor, revoked := entry.run, entry.input.Admission.Actor, entry.revoked
-	var evidence assistantevidence.Evidence
-	if entry.evidence != nil {
-		evidence = *entry.evidence
-	}
+	proofs := service.evidenceSetLocked(entry)
 	service.mu.Unlock()
 	if revoked || ctx.Err() != nil {
 		return assistant.ErrDenied
 	}
-	work, cancel := service.evidenceContext(ctx)
-	defer cancel()
-	if service.authorizer.AuthorizeEvidence(work, actor, run, evidence) != nil {
+	if service.authorizeProofs(ctx, actor, run, proofs) != nil {
 		service.invalidateEntry(entry)
 		return assistant.ErrDenied
+	}
+	return nil
+}
+
+// Caller holds service.mu. Each proof remains bound to its original read family.
+func (service *Service) evidenceSetLocked(entry *memoryRun) []assistantevidence.Evidence {
+	if entry.evidence == nil {
+		return nil
+	}
+	proofs := make([]assistantevidence.Evidence, 1, 1+len(entry.extraEvidence))
+	proofs[0] = *entry.evidence
+	return append(proofs, entry.extraEvidence...)
+}
+
+func (service *Service) authorizeProofs(ctx context.Context, actor assistant.Actor, run assistant.Run, proofs []assistantevidence.Evidence) error {
+	if len(proofs) < 1 || len(proofs) > 6 {
+		return assistant.ErrDenied
+	}
+	work, cancel := service.evidenceContext(ctx)
+	defer cancel()
+	for _, proof := range proofs {
+		if work.Err() != nil || service.authorizer.AuthorizeEvidence(work, actor, run, proof) != nil {
+			return assistant.ErrDenied
+		}
 	}
 	return nil
 }

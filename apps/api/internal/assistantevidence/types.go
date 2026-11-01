@@ -115,6 +115,8 @@ type ReadRequest struct {
 	Kind        assistant.StepKind
 	Destination contextbuilder.Destination
 	LogConsent  bool
+	RecordLimit int
+	ByteLimit int
 }
 
 func (ReadRequest) Format(state fmt.State, _ rune) {
@@ -149,6 +151,8 @@ type Evidence struct {
 	kind       assistant.StepKind
 	logConsent bool
 	logPolicy  [32]byte
+	recordLimit int
+	byteLimit int
 	expires    time.Time
 }
 

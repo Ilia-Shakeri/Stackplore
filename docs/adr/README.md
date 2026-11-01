@@ -40,6 +40,7 @@ changing the decision.
 | [ADR-0016](0016-helper-authority-and-egress-policy.md)          | Accepted               | Share evidence privacy policy and bind local/remote inference egress to operator profiles |
 
 | [ADR-0017](0017-profile-call-budgets.md) | Accepted | Preserve 25-second defaults; allow explicit bounded 40-second processor profiles |
+| [ADR-0018](0018-fixed-investigation-recipes.md) | Accepted | Fixed read recipes, separate family proofs and explicit local log consent |
 
 Records 0014–0016 are accepted version 2 target design from roadmap stage 0.
 Their acceptance does not ship a helper, HTTP route, migration, runtime profile

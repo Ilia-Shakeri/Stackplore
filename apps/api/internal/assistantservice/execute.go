@@ -3,6 +3,7 @@ package assistantservice
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence"
@@ -145,23 +146,38 @@ func (service *Service) execute(ctx context.Context, entry *memoryRun) error {
 	if err != nil {
 		return err
 	}
-	defer clear(evidence)
+	defer func() { clear(evidence) }()
 	if err = service.completeStep(ctx, entry, read, 0, false); err != nil {
-		return err
-	}
-	step, err := service.begin(ctx, entry, assistant.Inference, service.maximumUnits())
-	if err != nil {
 		return err
 	}
 	service.mu.Lock()
 	input := entry.input
 	service.mu.Unlock()
+	if input.Admission.Goal == assistant.InvestigateIncident {
+		combined, err := service.investigate(ctx, entry, evidence)
+		if err != nil {
+			return err
+		}
+		clear(evidence)
+		evidence = combined
+	}
+	service.mu.Lock()
+	outcomes := slices.Clone(entry.outcomes)
+	service.mu.Unlock()
+	request := inference.Request{Locale: input.Locale, Question: input.Question, Evidence: evidence, Outcomes: outcomes, OutputLimit: service.output}
+	if err := request.Validate(); err != nil {
+		return assistant.ErrQuota
+	}
+	step, err := service.begin(ctx, entry, assistant.Inference, service.maximumUnits())
+	if err != nil {
+		return err
+	}
 	// Preparing exact tokens already sends bounded content to the local service.
 	// Recheck its sealed read family after reservation and before that first I/O.
 	if err = service.authorizeContent(ctx, entry); err != nil {
 		return err
 	}
-	prepared, err := service.gateway.Prepare(ctx, inference.Request{Locale: input.Locale, Question: input.Question, Evidence: evidence, OutputLimit: service.output})
+	prepared, err := service.gateway.Prepare(ctx, request)
 	if err != nil {
 		_ = service.completeStep(ctx, entry, step, 0, false)
 		return assistant.ErrUnavailable
@@ -197,6 +213,6 @@ func (service *Service) execute(ctx context.Context, entry *memoryRun) error {
 	if entry.revoked || service.closed || ctx.Err() != nil || !service.time().Before(entry.expires) || entry.evidence == nil {
 		return assistant.ErrDenied
 	}
-	entry.run, entry.answer, entry.citations = completed, cloneAnswer(result.Answer), entry.evidence.References()
+	entry.run, entry.answer, entry.citations = completed, cloneAnswer(result.Answer), service.citationSetLocked(entry)
 	return nil
 }
