@@ -14,7 +14,7 @@ Actions context, fixed archive/model hashes and size bounds, and uses the
 existing owner-checked launcher. No public listener or profile default changes.
 The CPU archive remains `b11729`. The original 0.6B operator profile and its
 historical receipts remain in the [operator guide](local-processor.md).
-The current hosted-only candidate is Qwen3-1.7B Q8, pinned below; it is not an
+The current hosted-only candidate is Qwen3-1.7B Q4_K_M, pinned below; it is not an
 automatic customer upgrade and is not downloaded onto the workstation.
 
 Downloads have HTTPS-only redirects, finite attempts and time/size limits.
@@ -177,3 +177,18 @@ still fails both empty-evidence cases. This is partial progress, not a green
 job or release. Additional empty-case diagnostics report only fixed gateway
 fault classes, section/gap/citation booleans, exact/containment booleans and text
 byte counts. Assertions remain unchanged and raw answers remain private.
+
+Source `421a851` [isolates the empty-case failures](../evidence/2.0.0-alpha.4/hosted-empty-diagnostic-failed.json):
+valid single gap, no citations and successful gateway, but unequal exact text.
+The probe now quotes its existing expected literal as a JSON string and
+explicitly requires punctuation; it keeps the same expected text and equality
+assertion. One evidence call also timed out, so capacity remains unaccepted.
+
+The next hosted candidate uses the runtime publisher's
+[immutable Q4_K_M conversion](https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF/commit/daeb8e2d528a760970442092f6bf1e55c3b659eb):
+revision `daeb8e2d528a760970442092f6bf1e55c3b659eb`, file
+`Qwen3-1.7B-Q4_K_M.gguf`, 1,282,439,264 bytes, SHA-256
+`d2387ca2dbfee2ffabce7120d3770dadca0b293052bc2f0e138fdc940d9bc7b5`,
+Apache-2.0. Lower file size is not evidence of faster or acceptable behavior;
+actual hosted checks must establish both. Q8 receipts above remain historical.
+All limits and strict semantic assertions remain; no workstation download occurs.

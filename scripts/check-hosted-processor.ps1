@@ -30,7 +30,7 @@ $ownerReceipt=Join-Path $privateFull 'owner.json'
 $archive=Join-Path $privateFull 'processor.zip'
 $runtime=Join-Path $privateFull 'runtime'
 $model=Join-Path $privateFull 'model.gguf'
-$modelDigest='061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a'
+$modelDigest='d2387ca2dbfee2ffabce7120d3770dadca0b293052bc2f0e138fdc940d9bc7b5'
 $archiveDigest='aef737d26bffd08ceeb7be75f045bdef6d1ecc3187e0f4a1a3b0d878a03d2550'
 $report=[ordered]@{
   schema_version=1
@@ -41,9 +41,9 @@ $report=[ordered]@{
   scope='Real bilingual protocol and application browser with synthetic Demo evidence; not general quality acceptance'
   archive_sha256=$archiveDigest
   model_sha256=$modelDigest
-  model_revision='90862c4b9d2787eaed51d12237eafdfe7c5f6077'
+  model_revision='daeb8e2d528a760970442092f6bf1e55c3b659eb'
   model_license='Apache-2.0'
-  model_bytes=1834426016
+  model_bytes=1282439264
   context_tokens=20480
   threads=4
   cases=@()
@@ -65,7 +65,7 @@ function Receive-PinnedAsset([string]$Uri,[string]$Destination,[string]$Digest,[
 try {
   Receive-PinnedAsset 'https://github.com/ggml-org/llama.cpp/releases/download/b11729/llama-b11729-bin-win-cpu-x64.zip' $archive $archiveDigest 268435456
   $report.phase='model'
-  Receive-PinnedAsset 'https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/90862c4b9d2787eaed51d12237eafdfe7c5f6077/Qwen3-1.7B-Q8_0.gguf?download=true' $model $modelDigest 1834426016 1834426016
+  Receive-PinnedAsset 'https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF/resolve/daeb8e2d528a760970442092f6bf1e55c3b659eb/Qwen3-1.7B-Q4_K_M.gguf?download=true' $model $modelDigest 1282439264 1282439264
   $report.phase='extract'
   $zip=[IO.Compression.ZipFile]::OpenRead($archive)
   try {

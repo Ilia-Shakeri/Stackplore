@@ -436,3 +436,9 @@ Source `06499cf`, [run 41284970719](https://github.com/Ilia-Shakeri/Stackplore/a
 [passes both exact evidence cases](hosted-strong-evidence-failed.json) on the
 stronger pinned candidate; both empty-evidence cases remain failed. The job is
 not accepted and application journeys have not yet run on that candidate.
+
+Source `421a851`, [run 41285247489](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41285247489),
+[confirms successful gap/citation validation but unequal literal text](hosted-empty-diagnostic-failed.json);
+one evidence call also times out. The next probe quotes the unchanged target
+and the hosted profile evaluates an independently pinned Q4_K_M conversion.
+Neither capacity nor whole-stage acceptance is claimed.

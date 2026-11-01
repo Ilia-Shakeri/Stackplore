@@ -70,9 +70,13 @@ func TestPinnedLocalRuntimeIntegration(t *testing.T) {
 			})
 			ctx, cancel := context.WithTimeout(context.Background(), 2*port.MaximumCallDuration)
 			defer cancel()
-			question := "No infrastructure evidence is supplied. Return exactly one gaps section, with no citations. Its text must be exactly: " + noEvidenceProbeText(locale)
+			target, err := json.Marshal(noEvidenceProbeText(locale))
+			if err != nil {
+				t.Fatal("encode exact protocol target")
+			}
+			question := "No infrastructure evidence is supplied. Return exactly one gaps section, with no citations. Its text must equal this JSON string decoded once, including punctuation: " + string(target)
 			if locale == "fa" {
-				question = "شاهد زیرساخت داده نشده است. تنها یک بخش gaps بدون ارجاع بده. متن آن دقیقاً این باشد: " + noEvidenceProbeText(locale)
+				question = "شاهد زیرساخت داده نشده است. تنها یک بخش gaps بدون ارجاع بده. مقدار text باید دقیقاً برابر این رشتهٔ JSON پس از بازکردن گیومه باشد؛ نقطهٔ پایانی هم کپی شود: " + string(target)
 			}
 			prepared, err := gateway.Prepare(ctx, port.Request{Locale: locale, Question: question, OutputLimit: 512})
 			if err != nil || prepared == nil || prepared.InputTokens() < 1 || prepared.InputTokens() > port.MaximumInputTokens {
