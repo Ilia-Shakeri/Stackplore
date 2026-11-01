@@ -15,7 +15,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 )
 
-func reportScope(t *testing.T) contextbuilder.Scope {
+func reportScope(t *testing.T) Scope {
 	t.Helper()
 	source := domain.ProviderRef{Provider: domain.ProviderDemo, SourceID: "report_source"}
 	identity, err := domain.NewResourceIdentity(source.Provider, source.SourceID, "report_environment", "demo.service", domain.Scope{Kind: domain.ScopeProject, Name: "report_project"}, "report_native")
@@ -27,11 +27,11 @@ func reportScope(t *testing.T) contextbuilder.Scope {
 		t.Fatal(err)
 	}
 	at := time.Date(2026, 11, 1, 8, 0, 0, 0, time.UTC)
-	return contextbuilder.Scope{RunID: "report_run", Source: source, ConfigurationVersion: 1, PolicyVersion: 1, Range: domain.TimeRange{Start: at.Add(-5 * time.Minute), End: at}, ObservedAt: at, Resources: []domain.ResourceRef{resource}}
+	return Scope{Source: source, ResourceID: resource.ID, ConfigurationVersion: 1, PolicyVersion: 1, Range: domain.TimeRange{Start: at.Add(-5 * time.Minute), End: at}, ObservedAt: at}
 }
 
-func observation(scope contextbuilder.Scope, index int, kind string, at time.Time) contextbuilder.Observation {
-	ref := contextbuilder.CitationReference{ID: fmt.Sprintf("ev_%064x", index), Kind: kind, ObjectID: fmt.Sprintf("fact_%d", index), Source: scope.Source, ConfigurationVersion: scope.ConfigurationVersion, PolicyVersion: scope.PolicyVersion, RestoreGeneration: scope.RestoreGeneration, ResourceID: scope.Resources[0].ID, ObservedAt: scope.ObservedAt, Range: scope.Range}
+func observation(scope Scope, index int, kind string, at time.Time) contextbuilder.Observation {
+	ref := contextbuilder.CitationReference{ID: fmt.Sprintf("ev_%064x", index), Kind: kind, ObjectID: fmt.Sprintf("fact_%d", index), Source: scope.Source, ConfigurationVersion: scope.ConfigurationVersion, PolicyVersion: scope.PolicyVersion, RestoreGeneration: scope.RestoreGeneration, ResourceID: scope.ResourceID, ObservedAt: scope.ObservedAt, Range: scope.Range}
 	item := contextbuilder.Observation{Reference: ref, Time: at, Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Synthetic: true}
 	switch kind {
 	case "resource", "health":
@@ -222,5 +222,45 @@ func TestSimultaneousHealthConflictAndLimitedEvidenceRemainExplicit(t *testing.T
 	report, err = Build(scope, []contextbuilder.Observation{bad})
 	if err != nil || len(report.Hypotheses) != 0 || !slices.Contains(report.Gaps, "out_of_window_observation") {
 		t.Fatal("old health became a selected-window explanation")
+	}
+}
+
+func TestIndependentReportValidationBindsClaimsAndExactReferences(t *testing.T) {
+	scope := reportScope(t)
+	first := observation(scope, 1, "metric", scope.Range.Start)
+	second := observation(scope, 2, "metric", first.Time.Add(time.Second))
+	second.MetricValue = 1
+	report, err := Build(scope, []contextbuilder.Observation{first, second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	refs := []contextbuilder.CitationReference{second.Reference, first.Reference}
+	if Validate(scope, report, refs) != nil {
+		t.Fatal("valid report rejected or reference order affected authority")
+	}
+	for _, mutate := range []func(*Report){
+		func(value *Report) { value.Hypotheses[0].Qualified = false },
+		func(value *Report) { value.Hypotheses[0].Rank = 2 },
+		func(value *Report) { value.Hypotheses[0].Code = "oom_proven" },
+		func(value *Report) { value.Hypotheses[0].Supporting[0] = "ev_unknown" },
+		func(value *Report) { value.Hypotheses[0].Contrary = []string{first.Reference.ID} },
+		func(value *Report) { value.Gaps = nil },
+		func(value *Report) { value.NextReads[0] = "run_shell" },
+		func(value *Report) { value.Timeline[0].Reference.ObservedAt = value.Timeline[0].Reference.ObservedAt.Add(-time.Second) },
+		func(value *Report) { slices.Reverse(value.Timeline) },
+		func(value *Report) { value.Timeline = value.Timeline[:1] },
+	} {
+		changed := report.Clone()
+		mutate(&changed)
+		if !errors.Is(Validate(scope, changed, refs), ErrInvalid) {
+			t.Fatal("forged, reordered, missing or unqualified report accepted")
+		}
+	}
+	if !errors.Is(Validate(scope, report, []contextbuilder.CitationReference{first.Reference, first.Reference}), ErrInvalid) {
+		t.Fatal("duplicate authority set accepted")
+	}
+	second.Time = scope.Range.End
+	if _, err := Build(scope, []contextbuilder.Observation{second}); !errors.Is(err, ErrInvalid) {
+		t.Fatal("exclusive evidence end became a closed interval")
 	}
 }

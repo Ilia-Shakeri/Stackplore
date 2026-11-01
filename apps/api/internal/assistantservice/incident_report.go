@@ -38,7 +38,7 @@ func (service *Service) incidentReport(entry *memoryRun) (*incidentreport.Report
 		observations = append(observations, items...)
 		clear(items)
 	}
-	report, err := incidentreport.Build(scope, observations)
+	report, err := incidentreport.Build(incidentreport.Scope{Source: scope.Source, ResourceID: scope.Resources[0].ID, ConfigurationVersion: scope.ConfigurationVersion, PolicyVersion: scope.PolicyVersion, RestoreGeneration: scope.RestoreGeneration, Range: scope.Range, ObservedAt: scope.ObservedAt}, observations)
 	if err != nil {
 		return nil, assistant.ErrUnavailable
 	}

@@ -495,3 +495,11 @@ and uses the existing pre/post-publication proof fences. Ordinary explanations
 do not acquire reports. The report is still internal; public transport and
 desktop integration remain pending. New lifecycle tests require fresh hosted
 checks; an earlier partial source run cannot accept this slice.
+
+The next core boundary uses a native-handle-free scope binding and independently
+validates a report against its exact freshly authorized reference set. It
+recomputes deterministic ranking/support/contrary/gaps/next-read codes, rejects
+reordered or incomplete timelines and preserves the evidence window's exclusive
+end. Native provider identity is not required to validate the report transport.
+These are internal source changes pending fresh hosted checks; no report route
+or desktop workflow is shipped by them.

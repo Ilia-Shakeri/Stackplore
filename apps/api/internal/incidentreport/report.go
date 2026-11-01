@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -18,6 +19,18 @@ import (
 const MaximumObservations = 64
 
 var ErrInvalid = errors.New("incident_report.invalid")
+
+// Scope contains only the already authorized selected identity and versions.
+// Native provider handles and browser-selected query arguments are absent.
+type Scope struct {
+	Source               domain.ProviderRef
+	ResourceID           domain.ResourceID
+	ConfigurationVersion int64
+	PolicyVersion        int64
+	RestoreGeneration    int64
+	Range                domain.TimeRange
+	ObservedAt           time.Time
+}
 
 type Hypothesis struct {
 	Code       string
@@ -55,9 +68,8 @@ func (report Report) Clone() Report {
 
 // Build grants no authority. The owning service must retain and freshly check
 // every sealed read proof before invoking it and before any publication.
-func Build(scope contextbuilder.Scope, observations []contextbuilder.Observation) (Report, error) {
-	if scope.RunID.Validate() != nil || scope.Source.Validate() != nil || scope.ConfigurationVersion < 1 || scope.PolicyVersion < 1 || scope.RestoreGeneration < 0 ||
-		len(scope.Resources) != 1 || scope.Resources[0].Validate() != nil || !scope.Source.Matches(scope.Resources[0]) ||
+func Build(scope Scope, observations []contextbuilder.Observation) (Report, error) {
+	if scope.Source.Validate() != nil || scope.ConfigurationVersion < 1 || scope.PolicyVersion < 1 || scope.RestoreGeneration < 0 || scope.ResourceID.Validate() != nil ||
 		scope.Range.ValidateLookback(24*time.Hour) != nil || !timestamp(scope.ObservedAt) || scope.Range.End.After(scope.ObservedAt) || len(observations) > MaximumObservations {
 		return Report{}, ErrInvalid
 	}
@@ -93,12 +105,42 @@ func Build(scope contextbuilder.Scope, observations []contextbuilder.Observation
 	return result, nil
 }
 
+// Validate binds every observation to the exact freshly authorized reference
+// set, then independently recomputes all claims, ranks, gaps and recommendations.
+func Validate(scope Scope, report Report, references []contextbuilder.CitationReference) error {
+	if len(references) > MaximumObservations || len(report.Timeline) != len(references) || len(report.Hypotheses) > 4 || len(report.Gaps) > 12 || len(report.NextReads) != 5 {
+		return ErrInvalid
+	}
+	allowed := make(map[string]contextbuilder.CitationReference, len(references))
+	for _, ref := range references {
+		if _, duplicate := allowed[ref.ID]; duplicate {
+			return ErrInvalid
+		}
+		allowed[ref.ID] = ref
+	}
+	for _, item := range report.Timeline {
+		if expected, exists := allowed[item.Reference.ID]; !exists || expected != item.Reference {
+			return ErrInvalid
+		}
+	}
+	for _, hypothesis := range report.Hypotheses {
+		if len(hypothesis.Supporting) > 2 || len(hypothesis.Contrary) > 2 {
+			return ErrInvalid
+		}
+	}
+	expected, err := Build(scope, report.Timeline)
+	if err != nil || !reflect.DeepEqual(expected, report) {
+		return ErrInvalid
+	}
+	return nil
+}
+
 func timestamp(value time.Time) bool {
 	_, offset := value.Zone()
 	return !value.IsZero() && offset == 0 && value.Year() >= 1970 && value.Year() <= 9999 && value.Nanosecond()%1000 == 0
 }
 
-func validObservation(scope contextbuilder.Scope, item contextbuilder.Observation) bool {
+func validObservation(scope Scope, item contextbuilder.Observation) bool {
 	ref := item.Reference
 	if len(ref.ID) != 67 || !strings.HasPrefix(ref.ID, "ev_") || strings.ToLower(ref.ID) != ref.ID {
 		return false
@@ -115,7 +157,7 @@ func validObservation(scope contextbuilder.Scope, item contextbuilder.Observatio
 		if ref.ResourceID != "" {
 			return false
 		}
-	} else if ref.ResourceID != scope.Resources[0].ID {
+	} else if ref.ResourceID != scope.ResourceID {
 		return false
 	}
 	expected := contextbuilder.Observation{Reference: ref, Time: item.Time, TimeBasis: "observed", Availability: item.Availability, Completeness: item.Completeness, Synthetic: item.Synthetic}
@@ -154,7 +196,7 @@ func validObservation(scope contextbuilder.Scope, item contextbuilder.Observatio
 	default:
 		return false
 	}
-	if expected.TimeBasis != "observed" && (item.Time.Before(scope.Range.Start) || item.Time.After(scope.Range.End)) {
+	if expected.TimeBasis != "observed" && (item.Time.Before(scope.Range.Start) || !item.Time.Before(scope.Range.End)) {
 		return false
 	}
 	return item == expected
