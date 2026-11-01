@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Preserve the failed real-browser checkpoint and add bounded, metadata-only browser/database diagnostics plus an Actions formatting-patch artifact. Failed revisions remain failed; no local validation or relaxed deadline is introduced.
+
 - Add an explicit hosted-only real application/browser mode with immutable processor pins, actual isolated PostgreSQL, exact evidence-supported resource-name replies, fresh citations and text cleanup. Keep generated replies out of public receipts. The new source awaits hosted acceptance.
 
 - Move new validation to Actions only, add a pinned real bilingual processor protocol job on a disposable hosted Windows runner, and prioritize the desktop resource journey with a short mobile smoke check. Whole-stage acceptance remains open.

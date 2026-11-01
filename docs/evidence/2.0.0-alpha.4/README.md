@@ -14,6 +14,14 @@ Its [CI receipt](hosted-protocol-ci.json) and [real protocol receipt](hosted-pro
 retain exact source, both languages and owned shutdown. The new application
 and actual-processor browser extension is not part of that accepted source.
 
+The first actual application/browser increment `ec90463`,
+[run 41281261749](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41281261749),
+failed: source formatting and both real browser cases. The
+[failure receipt](hosted-journey-failed.json) proves the separate real protocol
+cases passed and both PostgreSQL 17.11 and processor shutdown were owned.
+Neither that partial result nor a correction is whole-stage acceptance. New
+diagnostics retain only fixed states, counts and booleans, never raw replies.
+
 Date: **2026-10-28**. Development version **2.0.0-alpha.4**, schema18.
 
 The foundation prepares a snapshot-only, default-off loopback profile parser and

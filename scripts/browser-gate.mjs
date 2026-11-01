@@ -46,6 +46,42 @@ function sql(command) {
         : 'Disposable browser database command failed',
     );
 }
+
+async function recordHostedDatabase(databaseName, mode) {
+  const query = `SELECT json_build_object(
+    'runs', COALESCE((SELECT json_agg(row_to_json(r)) FROM (
+      SELECT state, tool_calls, inference_calls, usage_unknown, usage_conservative
+      FROM public.assistant_runs ORDER BY created_at_us LIMIT 8
+    ) r), '[]'::json),
+    'steps', COALESCE((SELECT json_agg(row_to_json(s)) FROM (
+      SELECT kind, state, units, maximum_units
+      FROM public.assistant_steps ORDER BY started_at_us LIMIT 16
+    ) s), '[]'::json)
+  )`;
+  const result = spawnSync(
+    'psql',
+    ['--no-psqlrc', '--set', 'ON_ERROR_STOP=on', '--tuples-only', '--no-align', '-c', query],
+    {
+      env: { ...pgEnvironment, PGDATABASE: databaseName, PGOPTIONS: '-c statement_timeout=3000' },
+      encoding: 'utf8',
+      timeout: 5000,
+      maxBuffer: 16_384,
+    },
+  );
+  let snapshot = { status: 'unavailable' };
+  if (result.status === 0) {
+    try {
+      snapshot = { status: 'observed', ...JSON.parse(result.stdout) };
+    } catch {
+      // No SQL error, row identity or private payload is emitted.
+    }
+  }
+  await writeFile(
+    resolve(root, '.tmp', `hosted-database-${mode}.json`),
+    `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, ...snapshot })}\n`,
+    { mode: 0o600 },
+  );
+}
 const binary = resolve(work, process.platform === 'win32' ? 'server.exe' : 'server');
 const build = spawnSync(
   'go',
@@ -225,6 +261,13 @@ for (const mode of requestedModes) {
       });
     }
     if (created) {
+      if (realAssistant) {
+        try {
+          await recordHostedDatabase(ownedDatabase, mode);
+        } catch {
+          process.stderr.write('Hosted aggregate database metadata unavailable.\n');
+        }
+      }
       try {
         sql(`DROP DATABASE ${ownedDatabase} WITH (FORCE)`);
       } catch (error) {

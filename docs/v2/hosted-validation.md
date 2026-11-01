@@ -52,6 +52,15 @@ Closing/reopening must erase text without resubmission. Raw replies are neither
 screenshotted nor uploaded; only aggregate case metadata is retained. This
 candidate awaits its own exact-source run and is not yet accepted.
 
+Source `ec90463` failed its first full gate on test-file formatting. Its real
+protocol still passed, and PostgreSQL **17.11** and the processor both stopped
+with ownership proven, but both real application browser cases failed.
+[The failed receipt](../evidence/2.0.0-alpha.4/hosted-journey-failed.json) stays
+failed. New source retains bounded state/count-only diagnostics, with no
+question, answer, owner ID or raw provider payload. A failed formatting gate
+can publish a source patch from Actions; applying that patch requires a new
+commit and complete revalidation. It cannot make the failed revision pass.
+
 Even passing these bounded Demo cases is not human quality, a held-out incident
 evaluation, soak/capacity or whole-version acceptance. Failed attempts remain
 recorded. Desktop themes/accessibility remain covered by the separate complete

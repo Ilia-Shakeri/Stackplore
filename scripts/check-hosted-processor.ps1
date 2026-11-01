@@ -153,7 +153,7 @@ try {
         $metadataInvalid=$true
       }
     }
-    $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $publicReceipt -Encoding utf8NoBOM
+    $report | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $publicReceipt -Encoding utf8NoBOM
     if($metadataInvalid){throw 'hosted_processor.browser_receipt_invalid'}
   }
 }
