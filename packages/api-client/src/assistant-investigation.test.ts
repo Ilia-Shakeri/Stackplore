@@ -118,7 +118,9 @@ describe('bounded multi-family investigation transport', () => {
     const client = createAssistantClient(createApiClient({ fetch: fetcher }));
     const options = { csrfToken: 'A'.repeat(43), idempotencyKey: 'c'.repeat(64) };
     await client.admit(input, options);
-    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual(input);
+    const body = fetcher.mock.calls[0]?.[1]?.body;
+    if (typeof body !== 'string') throw new Error('Missing bounded request body');
+    expect(JSON.parse(body)).toEqual(input);
     for (const invalid of [
       { goal: 'shell' },
       { goal: 'explain_resource' },
