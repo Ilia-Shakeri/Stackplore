@@ -80,9 +80,9 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	notes := localInstructions(request.Locale)
 	if len(request.Outcomes) > 0 {
 		if request.Locale == "fa" {
-			notes += " نتیجهٔ خواندن فقط پوشش داده را نشان می‌دهد؛ نبود رکورد، اثبات نبودن نیست. دادهٔ ناقص یا بیرون سقف را با gaps روشن کن."
+			notes += " پوشش خواندن جداگانه نمایش داده می‌شود. قالب و شمار بخش‌های خواسته‌شده را رعایت کن؛ فقط کمبودهای مرتبط با ادعاهای پاسخ را بیاور. نبود رکورد، اثبات نبودن نیست."
 		} else {
-			notes += " Read outcomes describe coverage; missing records are gaps, not proof of absence. Qualify partial or bounded reads."
+			notes += " Read coverage is displayed separately. Follow the requested answer form and section count; include only gaps relevant to its claims. Missing records never prove absence."
 		}
 	}
 	payload, err := json.Marshal(struct {

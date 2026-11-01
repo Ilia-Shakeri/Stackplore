@@ -113,3 +113,12 @@ investigation, and strict source-bound metadata. The previous four alpha.4
 journeys remain historical evidence for their own source, not proof of this mode.
 Contract derivation and formatting corrections are generated on Actions only;
 a failed revision stays failed until the corrected committed source passes.
+
+## First real new-mode receipt
+
+At `4eb5d7e`, the hosted processor/application job passes eight real desktop
+journeys, five-read/one-generation SQL accounting, current citations and private
+cleanup. [Receipt and open full-source failure](../evidence/2.0.0-alpha.5/README.md).
+The full source gate remains failed on a malformed concurrent-test timestamp
+fixture. Corrected fixture/instruction/format bytes require new exact-source
+validation. No alpha.5 tag or full-stage acceptance is claimed.

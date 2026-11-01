@@ -281,7 +281,11 @@ for (const mode of requestedModes) {
     }
     if (observer) {
       await observer.stop();
-      await writeFile(resolve(root, '.tmp', `hosted-inference-${mode}.json`), `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, calls: observer.snapshot(), stopped: true })}\n`, { mode: 0o600 });
+      await writeFile(
+        resolve(root, '.tmp', `hosted-inference-${mode}.json`),
+        `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, calls: observer.snapshot(), stopped: true })}\n`,
+        { mode: 0o600 },
+      );
     }
   }
   if (failure !== undefined) throw failure;

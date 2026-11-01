@@ -42,3 +42,24 @@ raw bodies, identities or credentials. No response is mocked and no retry occurs
 It is a diagnostic fixture, not a customer service or another product runtime.
 Per-call, run, output and evidence caps remain unchanged while the failure is
 measured; no deadline or expected answer is relaxed.
+
+Source `4eb5d7e1e9d88314747c2f77bf516e890f37fb74`, run `41296000755`,
+[passes the real processor/application job](hosted-investigation.json): all six
+direct events and all eight actual desktop journeys (two goals, two roles, both
+languages), current citation/focus and private cleanup. Actual SQL proves five
+reserved reads and one reconciled generation per investigation. The real engine
+observer reports 1159/1181 English and 1413/1403 Persian input tokens, with
+26.05/27.61 and 32.67/32.40 second generation times respectively, complete HTTP
+200 responses and one actual citation. No payloads are retained. Both observers,
+engine and owned database stop. This is not a p95 or customer-capacity claim.
+
+[Full CI still fails](investigation-fixture-failed-ci.json) in the new concurrent
+service test. Its fake health/event responses took independent current timestamps
+for enclosing status and nested evidence; preemption could make evidence newer
+than its own envelope. Strict domain checks correctly reject this malformed
+fixture. The correction captures one timestamp per response and preserves all
+validation/concurrency assertions. Consented logs, changed privacy/permission,
+unknown-use and source-revocation tests otherwise pass in that focused run.
+The next source also clarifies that coverage is displayed separately and answer
+form/section count still follows the user's question. Neither failed revision
+nor the newer instruction/fixture bytes receive whole-source acceptance yet.

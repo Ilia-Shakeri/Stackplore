@@ -126,7 +126,7 @@ func TestInvestigationGoalAndConsentBindIdempotency(t *testing.T) {
 
 func TestConcurrentInvestigationsNeverShareRunBoundEvidence(t *testing.T) {
 	t.Parallel()
-	service, _, authority, model := fixtureService(t, func(options *Options, _ *modelFixture) { options.Workers = 2 })
+	service, repository, authority, model := fixtureService(t, func(options *Options, _ *modelFixture) { options.Workers = 2 })
 	authority.reads.extraReads = true
 	inputs := []Input{inputFixture(t, 1), inputFixture(t, 2)}
 	for index := range inputs {
@@ -149,6 +149,10 @@ func TestConcurrentInvestigationsNeverShareRunBoundEvidence(t *testing.T) {
 		select {
 		case err := <-done:
 			if err != nil {
+				repository.mu.Lock()
+				trace := slices.Clone(repository.trace)
+				repository.mu.Unlock()
+				t.Logf("bounded step trace: %v; counts: %d; dispatches: %d", trace, model.counts.Load(), model.calls.Load())
 				t.Fatal(err)
 			}
 		case <-time.After(3 * time.Second):

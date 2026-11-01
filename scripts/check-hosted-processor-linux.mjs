@@ -478,7 +478,12 @@ async function main() {
         SP_BROWSER_WORK_ROOT: temporary,
       },
     });
-    report.application_browser = { cases: [], journeys: [], database_metadata: [], inference_metadata: [] };
+    report.application_browser = {
+      cases: [],
+      journeys: [],
+      database_metadata: [],
+      inference_metadata: [],
+    };
     for (const locale of ['en', 'fa']) {
       const results = JSON.parse(
         await readFile(resolve(root, `.tmp/browser-results-normal-${locale}.json`), 'utf8'),
@@ -521,7 +526,9 @@ async function main() {
       report.application_browser.database_metadata.push(
         await metadata(`hosted-database-normal-${locale}.json`),
       );
-      report.application_browser.inference_metadata.push(await metadata(`hosted-inference-normal-${locale}.json`));
+      report.application_browser.inference_metadata.push(
+        await metadata(`hosted-inference-normal-${locale}.json`),
+      );
     }
     if (
       browser.status !== 0 ||
