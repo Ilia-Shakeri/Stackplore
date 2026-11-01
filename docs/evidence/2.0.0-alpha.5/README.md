@@ -110,3 +110,20 @@ size error. The next workflow uses the repository's unique-file formatter on
 Actions. No local formatter runs; a failed formatting revision is not accepted.
 The current real job is superseded by fresh exact-source checks after this
 workflow correction; interrupted execution cannot claim owned cleanup proof.
+
+Source `e07c2e2a0cf73d30bbe67f9457bcbcc823cfc9fc`, run `41300600334`,
+[passes seven jobs but fails the full code gate](sql-wire-failed-ci.json).
+[The real processor receipt](hosted-lossless-wire.json) passes six direct events,
+eight bilingual desktop journeys, known SQL accounting and all owned cleanup.
+Measured investigation generation takes about 17 seconds in English and
+23 seconds in Persian on this runner. These observations are not a percentile,
+capacity or human-quality acceptance claim.
+
+The complete Go suite exposes three PostgreSQL integration cases whose synthetic
+HTTP server still decodes the former escaped-string evidence and canonical
+private handles. The next revision reconstructs the closed twelve-field evidence
+from seven shared fields and five item fields, checks the original canonical
+record ID, and requires the exact short-handle generation schema. It returns the
+private handle so production expansion is exercised; existing public canonical
+citation and committed SQL reservation assertions stay intact. Fresh full
+source/race/browser validation and the signed security trial remain required.

@@ -457,3 +457,9 @@ source score, immutable exact-tag verification and publication. No alpha.5 tag
 or stage-6–10 acceptance exists. Held-out human quality, pilot/soak and stable
 artifact consumption remain independent future gates. All execution stays on
 Actions; only file reads/edits and lightweight Git occur on the workstation.
+
+At `e07c2e2`, run `41300600334`, all real profile journeys and seven jobs pass.
+The full code gate finds three outdated synthetic PostgreSQL wire fixtures;
+their decoder must track lossless common-scope encoding and request-local handles
+while retaining original canonical citation and committed reservation checks.
+The candidate remains 8/10 pending that correction and fresh complete gates.

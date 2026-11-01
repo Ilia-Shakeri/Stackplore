@@ -70,11 +70,15 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 				return
 			}
 			var input struct {
-				Locale   string                      `json:"locale"`
-				Question string                      `json:"question"`
-				Evidence []struct{ ID, Text string } `json:"evidence"`
+				Locale   string                     `json:"locale"`
+				Question string                     `json:"question"`
+				Scope    map[string]json.RawMessage `json:"scope"`
+				Evidence []struct {
+					ID   string          `json:"id"`
+					Text json.RawMessage `json:"text"`
+				} `json:"evidence"`
 			}
-			if !decode([]byte(request.Messages[1].Content), &input) || input.Locale != "en" || input.Question != "Explain the selected resource." || len(input.Evidence) != 1 || len(input.Evidence[0].Text) > 8192 {
+			if !decode([]byte(request.Messages[1].Content), &input) || input.Locale != "en" || input.Question != "Explain the selected resource." || len(input.Evidence) != 1 || input.Evidence[0].ID != "e1" || len(input.Evidence[0].Text) > 8192 || len(input.Scope) != 7 {
 				reject()
 				return
 			}
@@ -83,9 +87,16 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 			}
 			// Explicit keys below preserve the closed projection's snake-case wire.
 			var fields map[string]json.RawMessage
-			if json.Unmarshal([]byte(input.Evidence[0].Text), &fields) != nil || len(fields) != 12 {
+			if !inference.UniqueJSON(input.Evidence[0].Text) || json.Unmarshal(input.Evidence[0].Text, &fields) != nil || len(fields) != 5 {
 				reject()
 				return
+			}
+			for key, value := range input.Scope {
+				if _, exists := fields[key]; exists {
+					reject()
+					return
+				}
+				fields[key] = value
 			}
 			allowed := []string{"version", "source_reference", "provider", "configuration_version", "policy_version", "restore_generation", "range", "quality", "more_available", "records", "item_index", "item_count"}
 			for _, key := range allowed {
@@ -93,6 +104,10 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 					reject()
 					return
 				}
+			}
+			if string(fields["version"]) != "1" {
+				reject()
+				return
 			}
 			if json.Unmarshal(fields["records"], &document.Records) != nil || len(document.Records) != 1 {
 				reject()
@@ -105,12 +120,15 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 				Quality    json.RawMessage `json:"quality"`
 				Health     string          `json:"health"`
 			}
-			if !decode(document.Records[0], &record) || record.CitationID != input.Evidence[0].ID || record.Kind != "resource" || record.Health != "healthy" {
+			backend.mu.Lock()
+			ref := backend.ref
+			backend.mu.Unlock()
+			if !decode(document.Records[0], &record) || record.CitationID != ref || record.Kind != "resource" || record.Health != "healthy" {
 				reject()
 				return
 			}
 			for _, forbidden := range []string{"Fixture service", "native_fixture", "annotations", "labels", "kubeconfig", "endpoint", "href"} {
-				if strings.Contains(input.Evidence[0].Text, forbidden) {
+				if strings.Contains(request.Messages[1].Content, forbidden) {
 					reject()
 					return
 				}
@@ -142,10 +160,12 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 				reject()
 				return
 			}
-			backend.mu.Lock()
-			ref := backend.ref
-			backend.mu.Unlock()
-			content, _ := json.Marshal(inference.Answer{Sections: []inference.Section{{Kind: inference.SectionFacts, Text: "Health is healthy.", Citations: []string{ref}}}})
+			expectedSchema, err := inference.AnswerSchemaForReferences([]string{"e1"})
+			if err != nil || !bytes.Equal(request.Schema, expectedSchema) {
+				reject()
+				return
+			}
+			content, _ := json.Marshal(inference.Answer{Sections: []inference.Section{{Kind: inference.SectionFacts, Text: "Health is healthy.", Citations: []string{"e1"}}}})
 			_ = json.NewEncoder(w).Encode(map[string]any{"content": string(content), "tokens_predicted": 10, "tokens_evaluated": 3, "truncated": false, "stop_type": "eos", "model": alias})
 		default:
 			reject()
