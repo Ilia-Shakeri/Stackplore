@@ -67,9 +67,13 @@ func TestReportRejectsForgedClaimsReferencesAndSharedOutputOverflow(t *testing.T
 		func(snapshot *assistantservice.Snapshot) { snapshot.Report.Hypotheses[0].Rank = 4 },
 		func(snapshot *assistantservice.Snapshot) { snapshot.Report.Hypotheses[0].Code = "oom_proven" },
 		func(snapshot *assistantservice.Snapshot) { snapshot.Report.NextReads[0] = "run_shell" },
-		func(snapshot *assistantservice.Snapshot) { snapshot.Report.Timeline[0].Reference.ID = "ev_" + strings.Repeat("f", 64) },
+		func(snapshot *assistantservice.Snapshot) {
+			snapshot.Report.Timeline[0].Reference.ID = "ev_" + strings.Repeat("f", 64)
+		},
 		func(snapshot *assistantservice.Snapshot) { snapshot.Report.Timeline[0].Reference.PolicyVersion++ },
-		func(snapshot *assistantservice.Snapshot) { snapshot.Report.Timeline[0].Time = snapshot.Run.UpdatedAt.Add(time.Second) },
+		func(snapshot *assistantservice.Snapshot) {
+			snapshot.Report.Timeline[0].Time = snapshot.Run.UpdatedAt.Add(time.Second)
+		},
 		func(snapshot *assistantservice.Snapshot) { snapshot.Run.OwnerID = "other_owner" },
 		func(snapshot *assistantservice.Snapshot) { snapshot.Run.Goal = assistant.ExplainResource },
 		func(snapshot *assistantservice.Snapshot) { snapshot.Volatile = false },

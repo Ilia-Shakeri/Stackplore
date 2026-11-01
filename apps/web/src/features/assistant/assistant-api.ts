@@ -100,6 +100,10 @@ export function createAssistantApi(
         async (signal) => (await runs.get(runId, { signal })).data,
       );
     },
+    report(owner: AssistantOwner, runId: string, signal?: AbortSignal) {
+      return owned(owner, signal, 15_000,
+        async (signal) => (await runs.report(runId, { signal })).data);
+    },
     cancel(owner: AssistantOwner, runId: string, signal?: AbortSignal) {
       return owned(owner, signal, 15_000, (signal) =>
         auth.runSessionAction(

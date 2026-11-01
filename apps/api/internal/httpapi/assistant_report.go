@@ -49,16 +49,16 @@ type assistantIncidentHypothesisJSON struct {
 type assistantIncidentReportJSON struct {
 	Timeline   []assistantIncidentObservationJSON `json:"timeline"`
 	Hypotheses []assistantIncidentHypothesisJSON  `json:"hypotheses"`
-	Gaps       []string                          `json:"gaps"`
-	NextReads  []string                          `json:"next_reads"`
+	Gaps       []string                           `json:"gaps"`
+	NextReads  []string                           `json:"next_reads"`
 }
 
 type assistantIncidentReplyJSON struct {
 	Run          assistantRunJSON             `json:"run"`
 	ContentState string                       `json:"content_state"`
-	Report       *assistantIncidentReportJSON  `json:"report,omitempty"`
-	Citations    []assistantCitationJSON        `json:"citations,omitempty"`
-	Coverage     []inference.ToolOutcome       `json:"coverage,omitempty"`
+	Report       *assistantIncidentReportJSON `json:"report,omitempty"`
+	Citations    []assistantCitationJSON      `json:"citations,omitempty"`
+	Coverage     []inference.ToolOutcome      `json:"coverage,omitempty"`
 }
 
 func (assistantIncidentReplyJSON) Format(state fmt.State, _ rune) {

@@ -73,6 +73,7 @@ export function controlledConversationApi() {
     },
     admit: vi.fn<AssistantApi['admit']>().mockResolvedValue({ run: resourceRun() }),
     get: vi.fn<AssistantApi['get']>().mockResolvedValue(lostResponse()),
+    report: vi.fn<AssistantApi['report']>().mockRejectedValue(new Error('Unexpected synthetic report call')),
     cancel: vi
       .fn<AssistantApi['cancel']>()
       .mockResolvedValue({ run: { ...resourceRun(), state: 'cancelled', version: 4 } }),

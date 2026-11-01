@@ -4,6 +4,8 @@
 
 ### Smart Analysis — internal preparation, not a released workflow
 
+- Add strict detached typed report parsing and explicit session-bound client reads. Validate half-open chronology, scoped unique references, pressure/health/restart support and contrary facts, qualifiers, deterministic ranks and closed inert recommendations. Reject getter/coercion hooks and lost-memory content. Apply hosted contract derivation/formatting; new source requires its own full checks.
+
 - Add an explicit owner-only report-read contract with typed chronology and qualified hypotheses, independent reference/claim validation, private metadata-only failure states and a shared report/answer output budget. Hosted contract derivation and desktop integration remain pending.
 
 - Add pure bounded incident correlation with actual chronology, deterministic qualified ranking, later contrary evidence, reset/conflict handling and explicit unread/missing families. Pressure needs a matching positive limit; absent metrics, warning events and stale/partial/old data cannot establish a cause. Public report integration and held-out quality remain pending.

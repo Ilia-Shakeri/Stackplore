@@ -28,6 +28,7 @@ export {
   type AssistantStatusMessage,
 } from './assistant-status';
 export { readAssistantStatus, type AssistantStatusReadOptions } from './assistant-stream';
+export { parseAssistantIncidentReportResponse } from './assistant-report-response';
 export {
   createAssistantClient,
   createAssistantIdempotencyKey,

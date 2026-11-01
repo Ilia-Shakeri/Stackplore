@@ -515,6 +515,15 @@ overflow. OpenAPI policy tests bind fields, enums, qualifiers and caps. Generate
 client types, formatting, desktop integration and complete hosted gates remain
 pending; this source is not stage-6 acceptance.
 
+At `d2729ab`, hosted focused report/route/domain/lifecycle tests pass. The code
+gate stops at formatting; the inspected Actions patch supplies canonical Go,
+OpenAPI/policy formatting and 187 generated client-type lines. The next source
+adds strict detached report parsing, typed explicit client reads and an owning
+session wrapper. Tests reject forged scope/time/family, pressure without a
+matching positive limit, unknown causal claims, unqualified/ranked output,
+unknown references, prototype getters/coercion hooks and content in lost-memory
+states. Fresh full checks and desktop integration remain pending.
+
 ## Stage-5 acceptance followup — 2026-11-01
 
 The correction passes eight source jobs `41301657316` and signed trial

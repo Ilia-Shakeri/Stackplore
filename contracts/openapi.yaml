@@ -3296,7 +3296,18 @@ components:
       properties:
         name:
           type: string
-          enum: [cpu.usage.cores, memory.usage.bytes, restart.count, network.receive.bytes_total, network.send.bytes_total, cpu.request.cores, cpu.limit.cores, memory.request.bytes, memory.limit.bytes]
+          enum:
+            [
+              cpu.usage.cores,
+              memory.usage.bytes,
+              restart.count,
+              network.receive.bytes_total,
+              network.send.bytes_total,
+              cpu.request.cores,
+              cpu.limit.cores,
+              memory.request.bytes,
+              memory.limit.bytes,
+            ]
         unit:
           type: string
           enum: [cores, bytes, count]
@@ -3311,7 +3322,21 @@ components:
     AssistantIncidentObservation:
       type: object
       additionalProperties: false
-      required: [citation_id, kind, at, time_basis, availability, completeness, synthetic, health, metric, severity, redacted, truncated]
+      required:
+        [
+          citation_id,
+          kind,
+          at,
+          time_basis,
+          availability,
+          completeness,
+          synthetic,
+          health,
+          metric,
+          severity,
+          redacted,
+          truncated,
+        ]
       properties:
         citation_id:
           $ref: '#/components/schemas/AssistantCitationId'
@@ -3352,7 +3377,13 @@ components:
       properties:
         code:
           type: string
-          enum: [memory_pressure_possible, cpu_pressure_possible, restart_related_possible, health_problem_possible]
+          enum:
+            [
+              memory_pressure_possible,
+              cpu_pressure_possible,
+              restart_related_possible,
+              health_problem_possible,
+            ]
         rank:
           type: integer
           minimum: 1
@@ -3397,7 +3428,20 @@ components:
           uniqueItems: true
           items:
             type: string
-            enum: [alerts_not_read, workload_history_not_read, cause_unproven, limited_evidence, matching_limits_missing, metrics_missing, events_missing, conflicting_samples, restart_counter_reset, conflicting_health, out_of_window_observation]
+            enum:
+              [
+                alerts_not_read,
+                workload_history_not_read,
+                cause_unproven,
+                limited_evidence,
+                matching_limits_missing,
+                metrics_missing,
+                events_missing,
+                conflicting_samples,
+                restart_counter_reset,
+                conflicting_health,
+                out_of_window_observation,
+              ]
         next_reads:
           type: array
           minItems: 5
@@ -3405,7 +3449,14 @@ components:
           uniqueItems: true
           items:
             type: string
-            enum: [review_health, review_metrics, review_events, review_alert_history, review_workload_history]
+            enum:
+              [
+                review_health,
+                review_metrics,
+                review_events,
+                review_alert_history,
+                review_workload_history,
+              ]
       description: Volatile selected-resource report. Current unread alert/replica families remain explicit gaps. Suggested reads are inert codes, not routes, commands or tool arguments.
     AssistantIncidentReportReadyResponse:
       type: object

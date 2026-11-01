@@ -187,6 +187,127 @@ export type AssistantRunResponse =
   | AssistantUnavailableResponse
   | AssistantReadyResponse;
 
+export type AssistantIncidentMetric = {
+  name:
+    | 'cpu.usage.cores'
+    | 'memory.usage.bytes'
+    | 'restart.count'
+    | 'network.receive.bytes_total'
+    | 'network.send.bytes_total'
+    | 'cpu.request.cores'
+    | 'cpu.limit.cores'
+    | 'memory.request.bytes'
+    | 'memory.limit.bytes';
+  unit: 'cores' | 'bytes' | 'count';
+  value: number;
+  interval_seconds: number;
+};
+
+/**
+ * Exact typed chronology. Inactive kind-specific fields are empty/null/false. Observations use their observation time; metric/event/log times remain inside the half-open selected window. No prose or native provider identity.
+ */
+export type AssistantIncidentObservation = {
+  citation_id: AssistantCitationId;
+  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log';
+  at: Timestamp;
+  time_basis: 'observed' | 'sampled' | 'occurred';
+  availability: 'available' | 'stale';
+  completeness: Completeness;
+  synthetic: boolean;
+  health: '' | 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  metric: AssistantIncidentMetric | null;
+  severity: '' | 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical' | 'unknown';
+  redacted: boolean;
+  truncated: boolean;
+};
+
+/**
+ * Deterministic presentation rank, never a probability or proven cause. Supporting and later contrary references resolve to this report's actual observations.
+ */
+export type AssistantIncidentHypothesis = {
+  code:
+    | 'memory_pressure_possible'
+    | 'cpu_pressure_possible'
+    | 'restart_related_possible'
+    | 'health_problem_possible';
+  rank: number;
+  qualified: true;
+  supporting: Array<AssistantCitationId>;
+  contrary: Array<AssistantCitationId>;
+};
+
+/**
+ * Volatile selected-resource report. Current unread alert/replica families remain explicit gaps. Suggested reads are inert codes, not routes, commands or tool arguments.
+ */
+export type AssistantIncidentReport = {
+  timeline: Array<AssistantIncidentObservation>;
+  hypotheses: Array<AssistantIncidentHypothesis>;
+  gaps: Array<
+    | 'alerts_not_read'
+    | 'workload_history_not_read'
+    | 'cause_unproven'
+    | 'limited_evidence'
+    | 'matching_limits_missing'
+    | 'metrics_missing'
+    | 'events_missing'
+    | 'conflicting_samples'
+    | 'restart_counter_reset'
+    | 'conflicting_health'
+    | 'out_of_window_observation'
+  >;
+  next_reads: [
+    (
+      | 'review_health'
+      | 'review_metrics'
+      | 'review_events'
+      | 'review_alert_history'
+      | 'review_workload_history'
+    ),
+    (
+      | 'review_health'
+      | 'review_metrics'
+      | 'review_events'
+      | 'review_alert_history'
+      | 'review_workload_history'
+    ),
+    (
+      | 'review_health'
+      | 'review_metrics'
+      | 'review_events'
+      | 'review_alert_history'
+      | 'review_workload_history'
+    ),
+    (
+      | 'review_health'
+      | 'review_metrics'
+      | 'review_events'
+      | 'review_alert_history'
+      | 'review_workload_history'
+    ),
+    (
+      | 'review_health'
+      | 'review_metrics'
+      | 'review_events'
+      | 'review_alert_history'
+      | 'review_workload_history'
+    ),
+  ];
+};
+
+export type AssistantIncidentReportReadyResponse = {
+  run: AssistantCompletedRun;
+  content_state: 'ready';
+  report: AssistantIncidentReport;
+  citations: Array<AssistantResourceCitation>;
+  coverage: Array<AssistantReadCoverage>;
+};
+
+export type AssistantIncidentReportResponse =
+  | AssistantPendingResponse
+  | AssistantLostResponse
+  | AssistantUnavailableResponse
+  | AssistantIncidentReportReadyResponse;
+
 /**
  * Owner-and-run-scoped status only; no question, answer, citation or evidence fields.
  */
@@ -6470,6 +6591,72 @@ export type GetAssistantRunResponses = {
 };
 
 export type GetAssistantRunResponse = GetAssistantRunResponses[keyof GetAssistantRunResponses];
+
+export type GetAssistantIncidentReportData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path: {
+    /**
+     * One owner-private server-issued run reference.
+     */
+    run_id: AssistantRunId;
+  };
+  query?: never;
+  url: '/assistant/runs/{run_id}/report';
+};
+
+export type GetAssistantIncidentReportErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type GetAssistantIncidentReportError =
+  GetAssistantIncidentReportErrors[keyof GetAssistantIncidentReportErrors];
+
+export type GetAssistantIncidentReportResponses = {
+  /**
+   * Private metadata or a complete freshly authorized incident report.
+   */
+  200: AssistantIncidentReportResponse;
+};
+
+export type GetAssistantIncidentReportResponse =
+  GetAssistantIncidentReportResponses[keyof GetAssistantIncidentReportResponses];
 
 export type CancelAssistantRunData = {
   body?: never;

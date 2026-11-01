@@ -451,10 +451,17 @@ export const inspectAssistantPolicy = (document) => {
   closed('AssistantIncidentMetric', ['name', 'unit', 'value', 'interval_seconds']);
   check(
     same(schemas.AssistantIncidentMetric?.properties?.name?.enum, [
-      'cpu.usage.cores', 'memory.usage.bytes', 'restart.count',
-      'network.receive.bytes_total', 'network.send.bytes_total',
-      'cpu.request.cores', 'cpu.limit.cores', 'memory.request.bytes', 'memory.limit.bytes',
-    ]) && same(schemas.AssistantIncidentMetric?.properties?.unit?.enum, ['cores', 'bytes', 'count']) &&
+      'cpu.usage.cores',
+      'memory.usage.bytes',
+      'restart.count',
+      'network.receive.bytes_total',
+      'network.send.bytes_total',
+      'cpu.request.cores',
+      'cpu.limit.cores',
+      'memory.request.bytes',
+      'memory.limit.bytes',
+    ]) &&
+      same(schemas.AssistantIncidentMetric?.properties?.unit?.enum, ['cores', 'bytes', 'count']) &&
       schemas.AssistantIncidentMetric?.properties?.value?.type === 'number' &&
       schemas.AssistantIncidentMetric.properties.value.minimum === 0 &&
       schemas.AssistantIncidentMetric.properties.value.maximum === 9007199254740991 &&
@@ -462,20 +469,48 @@ export const inspectAssistantPolicy = (document) => {
     'report.metric',
   );
   closed('AssistantIncidentObservation', [
-    'citation_id', 'kind', 'at', 'time_basis', 'availability', 'completeness',
-    'synthetic', 'health', 'metric', 'severity', 'redacted', 'truncated',
+    'citation_id',
+    'kind',
+    'at',
+    'time_basis',
+    'availability',
+    'completeness',
+    'synthetic',
+    'health',
+    'metric',
+    'severity',
+    'redacted',
+    'truncated',
   ]);
   ref('AssistantIncidentObservation', 'citation_id', 'AssistantCitationId');
   ref('AssistantIncidentObservation', 'at', 'Timestamp');
   ref('AssistantIncidentObservation', 'completeness', 'Completeness');
   const observation = schemas.AssistantIncidentObservation?.properties;
   check(
-    same(observation?.kind?.enum, ['resource', 'health', 'metric', 'event', 'relationship', 'log']) &&
+    same(observation?.kind?.enum, [
+      'resource',
+      'health',
+      'metric',
+      'event',
+      'relationship',
+      'log',
+    ]) &&
       same(observation?.time_basis?.enum, ['observed', 'sampled', 'occurred']) &&
       same(observation?.availability?.enum, ['available', 'stale']) &&
       same(observation?.health?.enum, ['', 'healthy', 'degraded', 'unhealthy', 'unknown']) &&
-      same(observation?.severity?.enum, ['', 'trace', 'debug', 'info', 'warning', 'error', 'critical', 'unknown']) &&
-      ['synthetic', 'redacted', 'truncated'].every((key) => observation?.[key]?.type === 'boolean') &&
+      same(observation?.severity?.enum, [
+        '',
+        'trace',
+        'debug',
+        'info',
+        'warning',
+        'error',
+        'critical',
+        'unknown',
+      ]) &&
+      ['synthetic', 'redacted', 'truncated'].every(
+        (key) => observation?.[key]?.type === 'boolean',
+      ) &&
       observation?.metric?.oneOf?.length === 2 &&
       observation.metric.oneOf[0].$ref === schemaRef('AssistantIncidentMetric') &&
       observation.metric.oneOf[1].type === 'null',
@@ -484,42 +519,95 @@ export const inspectAssistantPolicy = (document) => {
   closed('AssistantIncidentHypothesis', ['code', 'rank', 'qualified', 'supporting', 'contrary']);
   const hypothesis = schemas.AssistantIncidentHypothesis?.properties;
   check(
-    same(hypothesis?.code?.enum, ['memory_pressure_possible', 'cpu_pressure_possible', 'restart_related_possible', 'health_problem_possible']) &&
-      bounded(hypothesis?.rank, 1, 4) && hypothesis?.qualified?.type === 'boolean' && hypothesis.qualified.const === true &&
-      ['supporting', 'contrary'].every((key) => hypothesis?.[key]?.type === 'array' &&
-        hypothesis[key].maxItems === 2 && hypothesis[key].uniqueItems === true &&
-        hypothesis[key].items?.$ref === schemaRef('AssistantCitationId')) &&
-      hypothesis.supporting.minItems === 1 && (hypothesis.contrary.minItems ?? 0) === 0,
+    same(hypothesis?.code?.enum, [
+      'memory_pressure_possible',
+      'cpu_pressure_possible',
+      'restart_related_possible',
+      'health_problem_possible',
+    ]) &&
+      bounded(hypothesis?.rank, 1, 4) &&
+      hypothesis?.qualified?.type === 'boolean' &&
+      hypothesis.qualified.const === true &&
+      ['supporting', 'contrary'].every(
+        (key) =>
+          hypothesis?.[key]?.type === 'array' &&
+          hypothesis[key].maxItems === 2 &&
+          hypothesis[key].uniqueItems === true &&
+          hypothesis[key].items?.$ref === schemaRef('AssistantCitationId'),
+      ) &&
+      hypothesis.supporting.minItems === 1 &&
+      (hypothesis.contrary.minItems ?? 0) === 0,
     'report.hypothesis',
   );
   closed('AssistantIncidentReport', ['timeline', 'hypotheses', 'gaps', 'next_reads']);
   const report = schemas.AssistantIncidentReport?.properties;
   check(
-    report?.timeline?.type === 'array' && report.timeline.minItems === 1 && report.timeline.maxItems === 64 &&
+    report?.timeline?.type === 'array' &&
+      report.timeline.minItems === 1 &&
+      report.timeline.maxItems === 64 &&
       report.timeline.items?.$ref === schemaRef('AssistantIncidentObservation') &&
-      report?.hypotheses?.type === 'array' && report.hypotheses.maxItems === 4 &&
+      report?.hypotheses?.type === 'array' &&
+      report.hypotheses.maxItems === 4 &&
       report.hypotheses.items?.$ref === schemaRef('AssistantIncidentHypothesis') &&
-      report?.gaps?.type === 'array' && report.gaps.minItems === 3 && report.gaps.maxItems === 12 && report.gaps.uniqueItems === true &&
-      same(report.gaps.items?.enum, ['alerts_not_read', 'workload_history_not_read', 'cause_unproven', 'limited_evidence',
-        'matching_limits_missing', 'metrics_missing', 'events_missing', 'conflicting_samples', 'restart_counter_reset',
-        'conflicting_health', 'out_of_window_observation']) &&
-      report?.next_reads?.type === 'array' && report.next_reads.minItems === 5 && report.next_reads.maxItems === 5 && report.next_reads.uniqueItems === true &&
-      same(report.next_reads.items?.enum, ['review_health', 'review_metrics', 'review_events', 'review_alert_history', 'review_workload_history']),
+      report?.gaps?.type === 'array' &&
+      report.gaps.minItems === 3 &&
+      report.gaps.maxItems === 12 &&
+      report.gaps.uniqueItems === true &&
+      same(report.gaps.items?.enum, [
+        'alerts_not_read',
+        'workload_history_not_read',
+        'cause_unproven',
+        'limited_evidence',
+        'matching_limits_missing',
+        'metrics_missing',
+        'events_missing',
+        'conflicting_samples',
+        'restart_counter_reset',
+        'conflicting_health',
+        'out_of_window_observation',
+      ]) &&
+      report?.next_reads?.type === 'array' &&
+      report.next_reads.minItems === 5 &&
+      report.next_reads.maxItems === 5 &&
+      report.next_reads.uniqueItems === true &&
+      same(report.next_reads.items?.enum, [
+        'review_health',
+        'review_metrics',
+        'review_events',
+        'review_alert_history',
+        'review_workload_history',
+      ]),
     'report.bounds',
   );
-  closed('AssistantIncidentReportReadyResponse', ['run', 'content_state', 'report', 'citations', 'coverage']);
+  closed('AssistantIncidentReportReadyResponse', [
+    'run',
+    'content_state',
+    'report',
+    'citations',
+    'coverage',
+  ]);
   ref('AssistantIncidentReportReadyResponse', 'run', 'AssistantCompletedRun');
   ref('AssistantIncidentReportReadyResponse', 'report', 'AssistantIncidentReport');
   const reportReady = schemas.AssistantIncidentReportReadyResponse?.properties;
   check(
-    reportReady?.content_state?.const === 'ready' && reportReady?.citations?.type === 'array' &&
-      reportReady.citations.minItems === 1 && reportReady.citations.maxItems === 64 &&
+    reportReady?.content_state?.const === 'ready' &&
+      reportReady?.citations?.type === 'array' &&
+      reportReady.citations.minItems === 1 &&
+      reportReady.citations.maxItems === 64 &&
       reportReady.citations.items?.$ref === schemaRef('AssistantResourceCitation') &&
-      reportReady?.coverage?.type === 'array' && reportReady.coverage.minItems === 5 && reportReady.coverage.maxItems === 6 &&
+      reportReady?.coverage?.type === 'array' &&
+      reportReady.coverage.minItems === 5 &&
+      reportReady.coverage.maxItems === 6 &&
       reportReady.coverage.items?.$ref === schemaRef('AssistantReadCoverage') &&
-      same(schemas.AssistantIncidentReportResponse?.oneOf?.map((item) => item.$ref), [
-        'AssistantPendingResponse', 'AssistantLostResponse', 'AssistantUnavailableResponse', 'AssistantIncidentReportReadyResponse',
-      ].map(schemaRef)),
+      same(
+        schemas.AssistantIncidentReportResponse?.oneOf?.map((item) => item.$ref),
+        [
+          'AssistantPendingResponse',
+          'AssistantLostResponse',
+          'AssistantUnavailableResponse',
+          'AssistantIncidentReportReadyResponse',
+        ].map(schemaRef),
+      ),
     'report.response',
   );
   closed('AssistantStatusEvent', ['run_id', 'sequence', 'version', 'state', 'at']);
@@ -611,9 +699,9 @@ export const inspectAssistantPolicy = (document) => {
           ? 'AssistantResourceCitation'
           : path.endsWith('/report')
             ? 'AssistantIncidentReportResponse'
-          : method === 'get'
-            ? 'AssistantRunResponse'
-            : 'AssistantRunReceipt';
+            : method === 'get'
+              ? 'AssistantRunResponse'
+              : 'AssistantRunReceipt';
         check(
           response?.headers?.['Cache-Control']?.schema?.const === 'no-store' &&
             response.headers?.['Set-Cookie']?.$ref === '#/components/headers/BrowserStateUpdate' &&
