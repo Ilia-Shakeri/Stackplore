@@ -235,6 +235,7 @@ const verificationFixture = async (
     'docker-provider',
     ...(missing ? [] : ['kubernetes-provider']),
     'processor-tool',
+    'processor-runtime',
   ].map((name) => ({ name, status: 'completed', conclusion: 'success' }));
   const jobListing = listing ?? { total_count: jobs.length, jobs };
   const hook = path.join(fixtureData.root, 'mock-github.mjs');
@@ -278,10 +279,10 @@ test('moved annotated tag and missing exact-tag provider check keep publication 
   }
 });
 
-test('current checkpoint accepts exactly seven unique completed successful jobs', async (context) => {
-  const version = '2.0.0-alpha.1';
+test('current checkpoint accepts exactly eight unique completed successful jobs', async (context) => {
+  const version = '2.0.0-alpha.4';
   const complete = () => ({
-    total_count: 7,
+    total_count: 8,
     jobs: [
       'processor-tool',
       'kubernetes-provider',
@@ -290,10 +291,40 @@ test('current checkpoint accepts exactly seven unique completed successful jobs'
       'compose-install',
       'deploy',
       'code',
+      'processor-runtime',
     ].map((name) => ({ name, status: 'completed', conclusion: 'success' })),
   });
   const cases = [
     ['complete-reordered', true, () => {}],
+    [
+      'missing-processor-runtime',
+      false,
+      (listing) => {
+        listing.jobs.pop();
+        listing.total_count--;
+      },
+    ],
+    [
+      'skipped-processor-runtime',
+      false,
+      (listing) => {
+        listing.jobs.at(-1).conclusion = 'skipped';
+      },
+    ],
+    [
+      'failed-processor-runtime',
+      false,
+      (listing) => {
+        listing.jobs.at(-1).conclusion = 'failure';
+      },
+    ],
+    [
+      'incomplete-processor-runtime',
+      false,
+      (listing) => {
+        listing.jobs.at(-1).status = 'in_progress';
+      },
+    ],
     [
       'missing-processor-tool',
       false,
@@ -370,7 +401,7 @@ test('current checkpoint accepts exactly seven unique completed successful jobs'
       'string-total',
       false,
       (listing) => {
-        listing.total_count = '7';
+        listing.total_count = '8';
       },
     ],
   ];

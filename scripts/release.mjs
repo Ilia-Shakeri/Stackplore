@@ -60,6 +60,7 @@ const awaitVerification = async () => {
   }
   const required = [
     'processor-tool',
+    'processor-runtime',
     'code',
     'deploy',
     'compose-install',

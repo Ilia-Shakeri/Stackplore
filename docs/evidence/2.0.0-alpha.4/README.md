@@ -1,12 +1,16 @@
 # Smart Assistant — stage 4 development checkpoint
 
-**2026-11-01 continuation:** new validation is hosted-only; no local service,
-test, build, install or scan is permitted. The real processor protocol passes
-at `5cebad7`; [its receipt](hosted-protocol.json) retains public pins, both
-language cases and proven owned shutdown. Newer actual application/browser
-source awaits its own exact-source hosted result.
-[Policy and scope](../../v2/hosted-validation.md). The earlier seven-job
-checkpoint does not certify this eighth job or whole-stage acceptance.
+**2026-11-01 continuation:** validation is hosted-only. No local service, test,
+build, install or scan is permitted. The real processor/application job passes
+at `1e21b3695970f54185244925d2cd5096dcb861e8`,
+[run 41288750885](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41288750885).
+[The runtime receipt](hosted-desktop.json) proves both strict direct languages
+and all four actual desktop role/language journeys, current citations and
+volatile cleanup, completed known-usage records and owned process/database stop.
+Its Linux CPU budget is explicitly 40 seconds; defaults remain 25 seconds.
+[All eight source jobs](hosted-desktop-ci.json) also pass at that exact source. This is no Windows capacity, remote
+profile/templates, held-out quality, artifact or whole-stage acceptance.
+[Policy and scope](../../v2/hosted-validation.md).
 
 The first hosted-only source `5cebad7` now passes all eight jobs in
 [run 41279900515](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41279900515).
@@ -477,3 +481,19 @@ Source `9bd9042`, [run 41288259353](https://github.com/Ilia-Shakeri/Stackplore/a
 under its explicit 40-second profile. The job remains failed on citation focus
 before viewer cases; source lint also fails three explicit Node globals.
 A bounded asynchronous focus assertion and lint correction require fresh checks.
+
+## Scoped review after corrections
+
+Review of the bounded local resource journey and hosted validation at `1e21b36`:
+**9/10**. [All eight jobs](hosted-desktop-ci.json) pass, including complete
+source/build checks, real PostgreSQL, race detection, synthetic desktop/theme/
+accessibility/offline coverage, Docker/Kubernetes, Compose/Helm and the separate
+real processor/browser proof. This score is not whole-stage/version acceptance.
+Remote profile/templates, independently reviewed quality, Windows processor
+capacity, soak/pilot and public artifact gates remain outside this scope.
+
+Review before tagging found a separate publication defect: the exact-tag guard
+still required seven jobs although verification now has eight. New source adds
+`processor-runtime` to the exact required set and tests missing/skipped/failed/
+incomplete real-runtime jobs. Unknown, duplicated and extra jobs remain denied.
+That correction needs fresh CI and trial artifact validation before any tag.

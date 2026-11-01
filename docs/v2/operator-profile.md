@@ -96,3 +96,42 @@ Defaults stay 25 seconds. A CPU operator selecting 40s must provision a server
 HTTP timeout beyond that value; the hosted candidate uses 45 seconds. Token,
 worker, queue, authority and 120-second run bounds stay unchanged. Old 25-second
 failures are not accepted under the new profile. Actual capacity remains measured.
+
+## Hosted-verified development profile
+
+The [real desktop receipt](../evidence/2.0.0-alpha.4/hosted-desktop.json)
+verifies this explicit development profile at source `1e21b36` on disposable
+Linux compute. It is not a customer hardware or always-on service acceptance.
+The model is not bundled, installed or started by the application. Provision a
+separate owned process on the application host, bound only to loopback, using
+the [pinned archive/model and launch policy](hosted-validation.md).
+Use one slot, context 20480, four threads, no cache, disabled reasoning, no
+web interface, no tools, no downloads after startup and a 45-second server
+HTTP timeout. Do not expose the processor listener to the browser or network.
+The hosted script is intentionally forbidden outside its disposable runner;
+its checks and immutable pins document the development profile, not an installer.
+
+```dotenv
+STACKPLORE_ASSISTANT_ENABLED=true
+STACKPLORE_ASSISTANT_ORIGIN=http://127.0.0.1:58102
+STACKPLORE_ASSISTANT_MODEL_SHA256=061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a
+STACKPLORE_ASSISTANT_BUILD=b11729-412a363c6
+STACKPLORE_ASSISTANT_TEMPLATE_SHA256=57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361
+STACKPLORE_ASSISTANT_CONTEXT_TOKENS=20480
+STACKPLORE_ASSISTANT_GENERATION=1
+STACKPLORE_ASSISTANT_OUTPUT_TOKENS=512
+STACKPLORE_ASSISTANT_CALL_TIMEOUT=40s
+```
+
+Enable only in normal authenticated mode; guest composition is rejected.
+Changing identity or limits changes the trusted configuration binding. Opening
+or typing in the view does not dispatch. Pre-dispatch counting rejects unavailable or mismatched processors. Failures
+after dispatch retain uncertain usage and are never automatically repeated.
+A container deployment must deliberately share the application's loopback
+namespace with its owned processor; a public or arbitrary container DNS origin
+is not accepted by this configuration parser. Default deployment stays disabled.
+
+این نمونه فقط در میزبان موقت لینوکس سنجیده شده است؛ نصب‌کننده یا تضمین ظرفیت
+مشتری نیست. برنامه مدل را نصب یا شروع نمی‌کند. مقصد فقط loopback همان میزبانِ
+برنامه است؛ مرورگر به سرویس مدل وصل نشود. فعال‌سازی فقط برای حالت عادیِ دارای
+ورود است. در این گفت‌وگوی توسعه، هیچ سرویس یا تستی روی سیستم کاربر اجرا نشود.

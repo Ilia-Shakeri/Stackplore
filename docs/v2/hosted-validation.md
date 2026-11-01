@@ -280,3 +280,27 @@ same exact focus, emitting only a fixed error and citation HTTP status. It does
 not replace the authority request, mutate focus, or relax the expected target.
 Three Node global lint names are made explicit. New source requires all gates.
 Model and database cleanup remain proven in the failed receipt.
+
+## First complete real desktop result
+
+Source `1e21b3695970f54185244925d2cd5096dcb861e8`
+([run 41288750885](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41288750885))
+[passes the real processor/application job](../evidence/2.0.0-alpha.4/hosted-desktop.json):
+all six direct events, exact English/Persian evidence in 14.48/17.34 seconds,
+and both actual administrator/viewer journeys per locale. Each admits once,
+completes with ready evidence-supported content, resolves its citation with
+HTTP 200 and correct focus, clears private text and does not resend. Database
+metadata confirms known reconciled usage, one tool and one inference per run.
+The owned model and patched database fixture stop. This is the explicit
+40-second Linux profile; these timings do not establish p95, Windows capacity,
+held-out quality, remote templates or customer deployment. Complete source CI
+and whole-stage/release acceptance remain separate.
+
+All eight jobs for `1e21b36` now pass in the same run; the
+[complete CI receipt](../evidence/2.0.0-alpha.4/hosted-desktop-ci.json) includes
+the full source/build, race, synthetic browser/offline, installation/provider
+and real processor gates. The pre-tag review separately found the release guard
+still required exactly seven jobs. New source requires all eight, explicitly
+including `processor-runtime`, with missing/skipped/failed/incomplete regression
+cases. Extra and duplicate jobs remain denied. This correction requires fresh
+checks; a green parent revision is not acceptance of newer release code.

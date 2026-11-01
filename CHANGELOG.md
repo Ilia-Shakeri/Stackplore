@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Pass complete hosted source/race/install/provider and real bilingual desktop journeys at 1e21b36. Require the real processor job in exact-tag publication verification; reject its absence, skipped, failed or incomplete state. Keep later profile/quality/artifact gates explicit.
+
 - Preserve 25-second operator/adapter defaults and introduce an explicit 40-second call ceiling under ADR-0017, within the existing 120-second run bound. The hosted CPU profile requests 40s and records that budget; old 25-second failures remain failed. Preserve cancellation, strict output and all usage/resource limits.
 
 - Add a guarded Linux hosted compute path with pinned CPU archive/model, bounded extraction and metadata-only bilingual protocol/desktop checks using the owned patched PostgreSQL fixture. Retain failed Windows capacity receipts and native launcher checks; no customer or workstation process starts.

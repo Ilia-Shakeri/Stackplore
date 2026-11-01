@@ -1,17 +1,20 @@
 # Version 2 implementation ledger
 
 **Execution boundary, 2026-11-01:** local file editing and lightweight Git only.
-All services, tests, builds, installs and scans run on GitHub Actions. Desktop
-is primary. The eighth job's pinned bilingual real protocol probe passes at
-`5cebad7`; its metadata receipt proves owned shutdown. Newer source extends the
-job to actual PostgreSQL, application and desktop browser journeys, without
-intercepted private replies. That extension failed at ec90463 and 65014a1. A direct evidence probe at 4a0a013 isolated invalid citations and an impossible private-name assertion; b1d49d9 constrains citation generation and requests only the typed identity already present in evidence. Fresh exact-source verification remains required.
-The Windows capacity comparisons remain failed. New source moves only the disposable real compute gate to Linux with the same bilingual/desktop and output/deadline criteria; Windows launcher checks stay separate. Remaining profile and whole-stage acceptance remain separate.
+All services, tests, builds, installs and scans run on Actions. Desktop is
+primary; mobile has one brief smoke check. At `1e21b3695970f54185244925d2cd5096dcb861e8`,
+the real hosted processor job passes all six direct events and all four actual
+application journeys: both languages/roles, exact grounded identity, current
+citation/focus, private text cleanup, known reconciled usage and owned shutdown.
+[Runtime receipt](../evidence/2.0.0-alpha.4/hosted-desktop.json).
+The Linux profile explicitly requests 40 seconds under
+[ADR-0017](../adr/0017-profile-call-budgets.md); defaults remain 25 seconds.
+Historical Windows/25-second failures remain failed. [All eight source jobs](../evidence/2.0.0-alpha.4/hosted-desktop-ci.json) pass at that exact source, including race and desktop/offline checks. Remaining profile, artifact and whole-stage acceptance stay open.
 [Hosted validation policy](hosted-validation.md).
 
 Stage-3 source checkpoint, **2026-10-28**: **2.0.0-alpha.3** is published at immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`, schema18. Full local verification, seven main and seven tag jobs, signed trial/publication, 39 public assets, 30 checksums, 31 provenance subjects, seven signed SBOMs, eight strict scan reports and actual public Windows restart/replay/native backup/restore/session-revocation/ownership-loss checks pass. Standard package-manager audit, fresh source dependency scans and canonical whole-history secret checks also pass. [Public acceptance](../evidence/2.0.0-alpha.3/published-release.json) is limited to that recorded artifact/source scope. Accepted branch measurement, human quality, current engine, public OCI/capacity and later roadmap gates remain separate.
 
-Stage-4 development **2.0.0-alpha.4** prepares default-off loopback profile parsing, closed private conversation contracts/types, explicit protected client requests, validated detached replies and pure bounded status decoding. Earlier full clean-snapshot and scan receipts bind their own source. The explicit admission increment at 8ba404a passed all seven hosted jobs. Newer source now owns enabled startup, current source/restore fences, retained operator stops and joined shutdown, plus one bounded explicit client status connection. Earlier receipts do not certify these later bytes. Application composition has its own full source receipt. Newer source adds bounded private server status, fresh metadata authority, replay/reset, clean EOF and SQL/TCP/shared-client checks. Private status at c3d4812 passed complete source checks and all seven hosted jobs with the refreshed dependency graph. Browser ownership at 6e2f177 passed complete source and all seven hosted checks. It supplies an opaque volatile session fence and bounded private calls. Newer source mounts the owning bilingual resource view, bounded volatile turns and explicit status/retry/cancel/citation controls. Scope/session/page-exit cleanup and plain-text rendering have focused checks. The view has complete local and synthetic-protocol real browser receipts; exact hosted checks remain separate; no current processor or whole-stage acceptance is claimed. No alpha.4 tag or whole-stage acceptance is claimed. [Development evidence](../evidence/2.0.0-alpha.4/README.md).
+Stage-4 development **2.0.0-alpha.4** prepares default-off loopback profile parsing, closed private conversation contracts/types, explicit protected client requests, validated detached replies and pure bounded status decoding. Earlier full clean-snapshot and scan receipts bind their own source. The explicit admission increment at 8ba404a passed all seven hosted jobs. Newer source now owns enabled startup, current source/restore fences, retained operator stops and joined shutdown, plus one bounded explicit client status connection. Earlier receipts do not certify these later bytes. Application composition has its own full source receipt. Newer source adds bounded private server status, fresh metadata authority, replay/reset, clean EOF and SQL/TCP/shared-client checks. Private status at c3d4812 passed complete source checks and all seven hosted jobs with the refreshed dependency graph. Browser ownership at 6e2f177 passed complete source and all seven hosted checks. It supplies an opaque volatile session fence and bounded private calls. Newer source mounts the owning bilingual resource view, bounded volatile turns and explicit status/retry/cancel/citation controls. Scope/session/page-exit cleanup and plain-text rendering have focused checks. The view has complete local and synthetic-protocol real browser receipts; the exact real Linux processor/application job now passes at 1e21b36. Complete source, remaining profile and artifact/whole-stage acceptance stay separate. No alpha.4 tag or whole-stage acceptance is claimed. [Development evidence](../evidence/2.0.0-alpha.4/README.md).
 
 Current published checkpoint, **2026-10-28**: **2.0.0-alpha.3**, schema18,
 immutable source `21475ec1135c0496c5929329738142f3c0d5a9d0`. Recorded public
@@ -55,7 +58,7 @@ not accept the correction.
 | 1 | `2.0.0-alpha.1` | Published; recorded scope accepted | Current host restart and global quality/branch gates remain separate |
 | 2 | `2.0.0-alpha.2` | Published; recorded artifact scope accepted | Global branch/quality, current engine and capacity gates remain separate |
 | 3 | `2.0.0-alpha.3` | Published; recorded artifact scope accepted | Accepted branch/quality and current engine remain separate |
-| 4 | `2.0.0-alpha.4` | Resource journey in development | Remaining profile behavior, current processor and whole-stage acceptance |
+| 4 | `2.0.0-alpha.4` | Real local journey passes hosted | Remaining profile/templates, artifact and whole-stage acceptance |
 | 5     | `2.0.0-alpha.5`        | Not delivered                | Bounded investigation loop                                 |
 | 6     | `2.0.0-alpha.6`        | Not delivered                | Incident analysis                                          |
 | 7     | `2.0.0-alpha.7`        | Not delivered                | Approved corpus and safe history                           |
@@ -417,3 +420,12 @@ remain open; no question dispatch or new live profile is enabled.
 
 نامزد گام۲ منبع جدا و طرح۱۸ دارد؛ تست واحد، پایگاه، سه قطع، ارتقا، بازیابی و
 گیت کامل پاس. CI و اسکن و نسخهٔ خود گام هنوز لازم؛ قابلیت گفت‌وگو فعال نیست.
+
+## Exact-tag guard correction — 2026-11-01
+
+The bounded local resource/hosted validation review scores 9/10 at `1e21b36`
+within its recorded scope; all eight main jobs pass. This is not whole-version
+acceptance. A pre-tag review found the publication guard still expected seven
+exact jobs. Its new required set includes `processor-runtime`; regression cases
+reject absent, skipped, failed or incomplete processor evidence. A fresh source
+run and signed trial are required before tagging. No alpha.4 tag is claimed.

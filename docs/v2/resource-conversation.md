@@ -1,17 +1,22 @@
 # Smart Assistant — selected-resource conversation
 
-Development **2.0.0-alpha.4**, schema **18**, 2026-10-31. This source adds the
+Development **2.0.0-alpha.4**, schema **18**, 2026-11-01. This source adds the
 owning bilingual view to a resource detail page. Full verification, real browser
 checks and exact-commit hosted evidence are separate gates; this document does
 not mark stage 4 or version 2 complete. See [development evidence](../evidence/2.0.0-alpha.4/README.md).
 
 From 2026-11-01, [validation runs only on Actions](hosted-validation.md).
 Desktop is primary; mobile retains a brief input/overflow smoke check.
-The next hosted real mode exercises the production service and processor with
-actual PostgreSQL and synthetic Demo inventory, without private-route mocks.
-It checks an exact evidence-supported resource name and a fresh citation in
-both roles/languages. Its separate source acceptance is pending; protocol-only
-receipts do not certify this application journey.
+The independent real hosted job passes at `1e21b3695970f54185244925d2cd5096dcb861e8`:
+actual PostgreSQL, production service, pinned processor and desktop browser,
+without intercepted private replies. It checks exact evidence-supported resource
+identity, fresh citation focus and volatile text cleanup in both roles/languages.
+[Its receipt](../evidence/2.0.0-alpha.4/hosted-desktop.json) records completed
+runs, known reconciled usage and owned model/database cleanup. The explicit
+Linux CPU profile uses a 40-second bound under [ADR-0017](../adr/0017-profile-call-budgets.md);
+product defaults remain 25 seconds and disabled. Full source CI is separate.
+This does not establish Windows processor capacity, remote templates, human
+quality, customer-scale capacity or whole-stage/version acceptance.
 
 ## Use
 
@@ -90,9 +95,9 @@ reset/EOF, malformed text, stale replies, citation binding, localization and
 plain-text display. The browser journey uses the production application/client
 and actual disposable PostgreSQL for normal authentication and exploration,
 but **synthetic intercepted private HTTP replies** for conversation. It checks
-both roles/languages, mobile keyboard operation, both themes, accessibility,
+both roles/languages, desktop keyboard operation, both themes, accessibility,
 current citation focus, history re-entry and lack of conversation resend. It
-starts no processor. Those fixtures cannot prove current engine operation,
+starts no processor and keeps one brief mobile input/overflow smoke check. Those synthetic fixtures cannot prove current engine operation,
 grounding, human output quality, production workload, soak or stage acceptance.
 
 ## فارسی — راهنمای منبع انتخاب‌شده
@@ -119,5 +124,9 @@ grounding, human output quality, production workload, soak or stage acceptance.
 
 متن و کلید تکرار در نشانی، ذخیرهٔ مرورگر یا پوستهٔ آفلاین ذخیره نمی‌شوند.
 شناسه‌های فنی و بازه جهت مستقل دارند؛ تم، فوکوس و کنترل‌ها از سامانهٔ مشترک
-پروژه‌اند. تست مرورگر از پاسخ‌های خصوصی ساختگی استفاده می‌کند؛ شاهد موتور
-واقعی، کیفیت انسانی، ظرفیت یا پایان مرحله نیست. نسخهٔ دو هنوز کامل نشده است.
+پروژه‌اند. تست دسکتاپِ ساختگی برای تم، دسترس‌پذیری و حالت‌های خطا جداست.
+تست واقعیِ میزبانی‌شده در ۲۰۲۶-۱۱-۰۱ برای هر دو زبان و هر دو نقش پاس شد:
+پاسخ دقیق، ارجاع تازه، تمرکز درست، پاک‌شدن متن و توقف مدل و پایگاهِ خودِ تست.
+این شاهد فقط برای پروفایل لینوکس با بودجهٔ صریح ۴۰ ثانیه است؛ پیش‌فرض ۲۵
+ثانیه بماند. کیفیت انسانی، ظرفیت ویندوز، پروفایل راه دور و پایان کل نسخه را
+ثابت نمی‌کند. نسخهٔ دو هنوز کامل نشده است.
