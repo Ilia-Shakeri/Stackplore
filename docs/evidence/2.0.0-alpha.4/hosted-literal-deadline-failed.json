@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "source_revision": "8b49f29d5c9e0f33a127945519fd72acbdd9d704",
+  "recorded_at": "2026-11-01T07:48:56.6458369Z",
+  "status": "failed",
+  "phase": "protocol",
+  "scope": "Real bilingual protocol and application browser with synthetic Demo evidence; not general quality acceptance",
+  "archive_sha256": "aef737d26bffd08ceeb7be75f045bdef6d1ecc3187e0f4a1a3b0d878a03d2550",
+  "model_sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+  "model_revision": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+  "model_license": "Apache-2.0",
+  "model_bytes": 1834426016,
+  "context_tokens": 20480,
+  "threads": 4,
+  "cases": [
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 11.02
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 17.78
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration",
+      "status": "pass",
+      "elapsed_seconds": 28.8
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/en",
+      "status": "fail",
+      "elapsed_seconds": 25.01
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/fa",
+      "status": "fail",
+      "elapsed_seconds": 25.04
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration",
+      "status": "fail",
+      "elapsed_seconds": 50.05
+    }
+  ],
+  "stopped": true,
+  "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+  "build": "b11729-412a363c6",
+  "evidence_probes": [
+    {
+      "citations_valid": false,
+      "locale": "en",
+      "json_valid": false,
+      "gateway_fault": "uncertain",
+      "text_bytes": 0,
+      "identity_contained": false,
+      "backend_fault": "uncertain",
+      "facts_kind": false,
+      "output_tokens": 0,
+      "input_tokens": 675,
+      "input_match": false,
+      "complete": false,
+      "identity_matches": false,
+      "sections": 0
+    },
+    {
+      "citations_valid": false,
+      "locale": "fa",
+      "json_valid": false,
+      "gateway_fault": "uncertain",
+      "text_bytes": 0,
+      "identity_contained": false,
+      "backend_fault": "uncertain",
+      "facts_kind": false,
+      "output_tokens": 0,
+      "input_tokens": 984,
+      "input_match": false,
+      "complete": false,
+      "identity_matches": false,
+      "sections": 0
+    }
+  ],
+  "empty_probes": [
+    {
+      "locale": "en",
+      "text_bytes": 37,
+      "text_exact": true,
+      "gateway_fault": "none",
+      "gaps_kind": true,
+      "text_contains": true,
+      "sections": 1,
+      "empty_citations": true
+    },
+    {
+      "locale": "fa",
+      "text_bytes": 44,
+      "text_exact": true,
+      "gateway_fault": "none",
+      "gaps_kind": true,
+      "text_contains": true,
+      "sections": 1,
+      "empty_citations": true
+    }
+  ],
+  "error_code": "hosted_processor.protocol_failed"
+}

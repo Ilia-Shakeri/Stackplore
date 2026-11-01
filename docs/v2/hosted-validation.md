@@ -203,3 +203,15 @@ above, whose exact bilingual evidence cases already passed at `06499cf`.
 Generic prefix/suffix/punctuation examples clarify the task contract without
 embedding any expected probe answer or resource value. The unchanged assertions,
 budgets and complete real-application gate still require fresh acceptance.
+
+Source `8b49f29` [passes both exact empty-evidence cases](../evidence/2.0.0-alpha.4/hosted-literal-deadline-failed.json),
+but both evidence calls hit the unchanged 25-second bound. The protocol source
+at the pinned revision shows `/apply-template` uses the same initialized chat
+parameters, including the launcher's disabled thinking mode
+([upstream handler](https://github.com/ggml-org/llama.cpp/blob/412a363c655b479279d3050d0d1c67a5733697b4/tools/server/server-context.cpp#L5195)).
+Missing inheritance is therefore not an established defect and no speculative
+protocol flag is added. The next candidate removes redundant contract prose
+while preserving trust, locale, citation, abstention and exact-copy rules. It
+compares two allowed hosted threads and records runner logical-processor count.
+The model pins, schema, budgets, no-retry policy and semantic assertions stay
+unchanged. Successful execution and bounded latency still require real receipts.

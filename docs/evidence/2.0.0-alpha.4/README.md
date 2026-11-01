@@ -447,3 +447,8 @@ The Q4 candidate `b039068`, [run 41285584742](https://github.com/Ilia-Shakeri/St
 [remains failed](hosted-quantized-failed.json). The current profile returns to
 the official pinned Q8 model. A generic exact-copy contract example changes
 no expected answer, literal equality assertion, output bound or call deadline.
+
+Source `8b49f29`, [run 41286186028](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41286186028),
+[passes both empty-evidence literal cases](hosted-literal-deadline-failed.json)
+but both evidence calls time out. A shorter equivalent task contract and two
+hosted threads require new validation. No timing or semantic gate is relaxed.
