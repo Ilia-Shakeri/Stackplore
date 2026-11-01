@@ -116,7 +116,7 @@ type ReadRequest struct {
 	Destination contextbuilder.Destination
 	LogConsent  bool
 	RecordLimit int
-	ByteLimit int
+	ByteLimit   int
 }
 
 func (ReadRequest) Format(state fmt.State, _ rune) {
@@ -143,17 +143,17 @@ func (Reader) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 // Consumers receive copies of references; caller-provided references cannot be
 // turned into a sealed citation set.
 type Evidence struct {
-	reader     *Reader
-	actor      assistant.Actor
-	run        assistant.Run
-	scope      contextbuilder.Scope
-	bundle     contextbuilder.Bundle
-	kind       assistant.StepKind
-	logConsent bool
-	logPolicy  [32]byte
+	reader      *Reader
+	actor       assistant.Actor
+	run         assistant.Run
+	scope       contextbuilder.Scope
+	bundle      contextbuilder.Bundle
+	kind        assistant.StepKind
+	logConsent  bool
+	logPolicy   [32]byte
 	recordLimit int
-	byteLimit int
-	expires    time.Time
+	byteLimit   int
+	expires     time.Time
 }
 
 func (Evidence) Format(state fmt.State, _ rune) {

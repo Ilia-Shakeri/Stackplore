@@ -37,9 +37,9 @@ separate retained proofs, closed coverage metadata and a single final dispatch.
 Focused tests are authored for reservation order, actual/unsupported families,
 later health revocation, denied partial collection, consent identity and bounded
 query/log reauthorization. They are not yet accepted until hosted execution.
-The public contract, desktop control, new-mode SQL/browser journeys, signed
+The public contract and desktop control are now candidates. Derived types, hosted new-mode SQL/browser journeys, signed
 package/security trial and immutable alpha.5 tag remain pending. Ordinary alpha.4
-explanation remains the only reachable browser mode in this increment.
+explanation remains the accepted released mode; the branch adds an unaccepted investigation mode.
 
 1. Add the bounded plan and combined evidence/proof ownership with focused
    rejection, truncation, unsupported, revocation and budget tests.
@@ -65,3 +65,45 @@ keeps a brief smoke check. Optional remote profiles remain disabled/unshipped.
 محلی خوانده شود. دادهٔ گم‌شده یا ممنوع، کامل و سالم نام نگیرد.
 شاهدهای چند مرحله قبل از ارسال و نمایش و ارجاع دوباره سنجیده شوند.
 تست و ساخت فقط روی Actions؛ دسکتاپ اول. گام ۵ هنوز کامل نشده است.
+
+## Candidate desktop flow and tool catalog
+
+Open Smart Assistant on an authenticated selected-resource page. Read mode
+starts as **Explain resource**. Choose **Investigate resource** explicitly,
+select the window and submit once. No mode/window/consent change submits work.
+Those changes replace and clear the volatile view and its admission material.
+For local policy-filtered logs, select the unchecked consent only with a five-
+or fifteen-minute window. A wider window clears and disables that consent.
+Coverage lists each attempted family, availability, record count, partial status
+and any additional data outside the bounded read. All citations open the same
+freshly authorized selected-resource view; no generated URL or adjacent-resource
+navigation is allowed. This branch remains a candidate pending hosted proof.
+
+| Family | Fixed query | Per-read bound | Stop/coverage behavior |
+| --- | --- | --- | --- |
+| Inventory | One selected normalized resource | One actual required record | Missing authority/identity stops the run |
+| Health | Selected resource only | Eight records, 8192 projected bytes | Unsupported is a zero-record gap |
+| Metrics | CPU usage, memory usage, restart count; pinned window | Eight points total, 8192 projected bytes | No cursor; a full point cap marks more data possible |
+| Events | Selected resource and pinned window, no search | One page of eight, 8192 projected bytes | Returned continuation is not followed |
+| Topology | Selected resource, only edges with both endpoints authorized | One page of eight, 8192 projected bytes | Outside endpoints are omitted and coverage marks more data |
+| Local logs | Explicit same-run consent, shared effective privacy policy | At most eight lines/8192 bytes and 15 minutes; stricter policy wins | No remote transmission; fresh log policy remains bound |
+
+The internal one-resource workflow retains at most six separate proofs and one
+final generation. Denial, revocation, cancel, expiry, quota failure or uncertain
+usage prevents partial publication. Unsupported/unavailable families may still
+support a bounded answer that honestly lists gaps; they cannot generate records
+or authorize another tool. Every logical step has durable reservation before
+provider work; fresh authority checks may perform additional bounded reads.
+
+A publication race is covered separately: durable completion can precede the
+last fresh proof check. A result read waits on the owned completion signal within
+its existing bounded request context. Timeout is transient unavailability, not
+permanent text loss. Cancellation/invalidation closes that wait and erases all
+retained material before producer cancellation.
+
+The hosted candidate now requires eight real desktop journeys (two goals × two
+roles × two languages), actual SQL reservations for five reads/one generation per
+investigation, and strict source-bound metadata. The previous four alpha.4
+journeys remain historical evidence for their own source, not proof of this mode.
+Contract derivation and formatting corrections are generated on Actions only;
+a failed revision stays failed until the corrected committed source passes.

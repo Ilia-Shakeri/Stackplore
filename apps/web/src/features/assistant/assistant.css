@@ -54,6 +54,28 @@
   outline: 2px solid var(--sp-focus);
   outline-offset: 3px;
 }
+.assistant__consent {
+  display: flex;
+  align-items: start;
+  gap: 0.625rem;
+  margin-block: 1rem;
+}
+.assistant__consent input {
+  accent-color: var(--sp-focus);
+  min-width: 1rem;
+  min-height: 1rem;
+}
+.assistant__consent input:focus-visible {
+  outline: 2px solid var(--sp-focus);
+  outline-offset: 3px;
+}
+.assistant__coverage > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(0, 3fr);
+  gap: 1rem;
+  padding-block: 0.5rem;
+  border-block-end: 1px solid var(--sp-border);
+}
 .assistant__turns {
   padding-inline-start: 1.5rem;
 }

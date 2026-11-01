@@ -167,11 +167,15 @@ func (handler assistantHTTP) citation(w http.ResponseWriter, r *http.Request) {
 		writeAssistantProblem(w, r, err)
 		return
 	}
-	if reply.ContentState != "ready" || len(reply.Citations) != 1 || reply.Citations[0].ID != citationID {
-		writeProblem(w, r, notFoundProblem)
-		return
+	if reply.ContentState == "ready" {
+		for _, citation := range reply.Citations {
+			if citation.ID == citationID {
+				writeJSON(w, http.StatusOK, citation)
+				return
+			}
+		}
 	}
-	writeJSON(w, http.StatusOK, reply.Citations[0])
+	writeProblem(w, r, notFoundProblem)
 }
 
 func (handler assistantHTTP) cancel(w http.ResponseWriter, r *http.Request) {

@@ -72,14 +72,8 @@ func (request Request) Validate() error {
 		seen[item.ID] = struct{}{}
 		bytes += len(item.ID) + len(item.Text)
 	}
-	if len(request.Outcomes) > 0 {
-		records := 0
-		for _, outcome := range request.Outcomes {
-			records += outcome.Records
-		}
-		if records != len(request.Evidence) {
-			return ErrInvalid
-		}
+	if err := ValidateOutcomes(request.Outcomes, len(request.Evidence)); err != nil {
+		return err
 	}
 	if bytes > MaximumInputBytes {
 		return ErrInputLimit

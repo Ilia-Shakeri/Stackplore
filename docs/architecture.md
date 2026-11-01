@@ -161,7 +161,7 @@ extra read reserves its durable step and uses eight-record/8-KiB caps without
 cursor following. Typed coverage and actual items enter the same exact-token
 gateway; one final generation remains bounded by the existing run limits.
 Ordinary resource explanation retains its single read. Public investigation
-transport and desktop controls are still pending; [current work](v2/investigation.md)
+transport and desktop controls are candidates awaiting hosted acceptance; [current work](v2/investigation.md)
 distinguishes implemented internals from acceptance. All validation runs hosted.
 
 ## Persistence

@@ -24,6 +24,27 @@ const templateHash = '57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e2
 const modelRevision = '90862c4b9d2787eaed51d12237eafdfe7c5f6077';
 const build = 'b11729-412a363c6';
 
+// Metadata-only SQL acceptance: four explicitly admitted runs, no uncertain work.
+export function validHostedDatabaseMetadata(value, source) {
+  if (value?.status !== 'observed' || value.source_revision !== source ||
+    !Array.isArray(value.runs) || value.runs.length !== 4 ||
+    !Array.isArray(value.steps) || value.steps.length !== 16) return false;
+  for (const goal of ['explain_resource', 'investigate_incident']) {
+    const runs = value.runs.filter((run) => run.goal === goal);
+    if (runs.length !== 2 || runs.some((run) => run.state !== 'completed' ||
+      run.tool_calls !== (goal === 'explain_resource' ? 1 : 5) || run.inference_calls !== 1 ||
+      run.usage_unknown !== false || run.usage_conservative !== false)) return false;
+  }
+  const counts = { inventory: 4, health: 2, metrics: 2, events: 2, topology: 2, inference: 4 };
+  for (const [kind, count] of Object.entries(counts)) {
+    if (value.steps.filter((step) => step.kind === kind).length !== count) return false;
+  }
+  return value.steps.every((step) => step.state === 'completed' &&
+    (step.kind === 'inference'
+      ? Number.isInteger(step.units) && Number.isInteger(step.maximum_units) && step.units > 0 && step.maximum_units <= 20096 && step.units <= step.maximum_units
+      : step.units === 0 && step.maximum_units === 0));
+}
+
 // Guard before filesystem, network or subprocess work. Imported tests do no I/O.
 export function assertHostedProcessorEnvironment(platform, environment) {
   if (
@@ -447,13 +468,17 @@ async function main() {
         ),
       });
       for (const role of ['administrator', 'viewer']) {
+        for (const goal of ['explain_resource', 'investigate_incident']) {
         try {
-          const journey = await metadata(`hosted-live-${locale}-${role}.json`);
+          const journey = await metadata(`hosted-live-${locale}-${role}-${goal}.json`);
           report.application_browser.journeys.push(
             Object.fromEntries(
               [
                 'locale',
                 'role',
+                'goal',
+                'coverage_valid',
+                'citation_count',
                 'admissions',
                 'admission_status',
                 'run_state',
@@ -467,7 +492,8 @@ async function main() {
             ),
           );
         } catch {
-          /* A missing role fails the complete journey below. */
+          /* A missing role or goal fails the complete journey below. */
+        }
         }
       }
       report.application_browser.database_metadata.push(
@@ -476,7 +502,9 @@ async function main() {
     }
     if (
       browser.status !== 0 ||
-      report.application_browser.journeys.length !== 4 ||
+      report.application_browser.database_metadata.some((value) => !validHostedDatabaseMetadata(value, process.env.GITHUB_SHA)) ||
+      report.application_browser.journeys.length !== 8 ||
+      report.application_browser.journeys.some((value) => !value.coverage_valid || value.admissions !== 1 || value.admission_status !== 202 || value.run_state !== 'completed' || value.content_state !== 'ready' || !value.resource_identity_supported || !value.citation_current || value.citation_status !== 200 || !value.cleared) ||
       report.application_browser.cases.some(
         (value) =>
           value.expected !== 1 ||

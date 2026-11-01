@@ -7,11 +7,15 @@ export async function assistantLiveJourney(
   page: Page,
   locale: 'en' | 'fa',
   role: 'administrator' | 'viewer',
+  goal: 'explain_resource' | 'investigate_incident' = 'explain_resource',
 ) {
   const metadata = {
     source_revision: process.env.GITHUB_SHA,
     locale,
     role,
+    goal,
+    coverage_valid: goal === 'explain_resource',
+    citation_count: 0,
     admissions: 0,
     admission_status: 0,
     run_state: 'not_observed',
@@ -49,6 +53,13 @@ export async function assistantLiveJourney(
         .then((value: unknown) => {
           if (typeof value !== 'object' || value === null) return;
           const body = value as Record<string, unknown>;
+          if (body.content_state === 'ready' && Array.isArray(body.citations)) {
+            metadata.citation_count = body.citations.length;
+            if (goal === 'investigate_incident' && Array.isArray(body.coverage)) {
+              const expected = ['inventory', 'health', 'metrics', 'events', 'topology'];
+              metadata.coverage_valid = body.coverage.length === expected.length && body.coverage.every((item: unknown, index) => typeof item === 'object' && item !== null && (item as Record<string, unknown>).tool === expected[index]);
+            }
+          }
           if (typeof body.run === 'object' && body.run !== null) {
             const state = (body.run as Record<string, unknown>).state;
             if (
@@ -105,6 +116,10 @@ export async function assistantLiveJourney(
   try {
     await page.getByRole('button', { name: label('assistant.open'), exact: true }).click();
     const panel = page.locator('.assistant');
+    if (goal === 'investigate_incident') {
+      await panel.getByRole('combobox', { name: label('assistant.mode'), exact: true }).selectOption(goal);
+      expect(await panel.getByRole('checkbox').isChecked()).toBe(false);
+    }
     const input = panel.getByRole('textbox', { name: label('assistant.question'), exact: true });
     const question =
       locale === 'fa'
@@ -134,8 +149,14 @@ export async function assistantLiveJourney(
     expect(supported).toBe(true);
     metadata.resource_identity_supported = supported;
     const citation = panel.getByRole('button', { name: label('assistant.citation'), exact: true });
-    expect(await citation.count()).toBe(1);
-    await citation.click();
+    const count = await citation.count();
+    if (goal === 'explain_resource') expect(count).toBe(1);
+    else {
+      expect(count).toBeGreaterThanOrEqual(1);
+      expect(count).toBeLessThanOrEqual(64);
+      expect(await panel.getByRole('heading', { name: label('assistant.coverage'), exact: true }).count()).toBe(1);
+    }
+    await citation.last().click();
     try {
       await page.waitForFunction(
         () => document.activeElement?.id === 'resource-detail-name',
@@ -181,7 +202,7 @@ export async function assistantLiveJourney(
       metadata.view_state = 'not_visible';
     }
     writeFileSync(
-      resolve(`../../.tmp/hosted-live-${locale}-${role}.json`),
+      resolve(`../../.tmp/hosted-live-${locale}-${role}-${goal}.json`),
       `${JSON.stringify(metadata)}\n`,
       { mode: 0o600 },
     );

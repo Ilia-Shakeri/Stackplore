@@ -25,6 +25,8 @@ const bodyFields = new Set([
   'locale',
   'question',
   'conversation_id',
+  'goal',
+  'log_consent',
 ]);
 
 export interface AssistantReadOptions {
@@ -106,10 +108,15 @@ const closedInput = (value: unknown): AssistantRunRequest => {
   )
     return invalid();
   const conversation = Object.hasOwn(input, 'conversation_id') ? input.conversation_id : undefined;
+  const goal = Object.hasOwn(input, 'goal') ? input.goal : 'explain_resource';
+  const consent = Object.hasOwn(input, 'log_consent') ? input.log_consent : false;
   if (
     !exact(input.source_id, sourcePattern) ||
     !exact(input.resource_id, resourcePattern) ||
     !validWindow(input.window_minutes) ||
+    (goal !== 'explain_resource' && goal !== 'investigate_incident') ||
+    typeof consent !== 'boolean' ||
+    (consent && (goal !== 'investigate_incident' || input.window_minutes > 15)) ||
     (input.locale !== 'en' && input.locale !== 'fa') ||
     typeof input.question !== 'string' ||
     input.question.length > 8192 ||
@@ -128,6 +135,8 @@ const closedInput = (value: unknown): AssistantRunRequest => {
     locale: input.locale,
     question: input.question,
     ...(typeof conversation === 'string' ? { conversation_id: conversation } : {}),
+    ...(Object.hasOwn(input, 'goal') ? { goal } : {}),
+    ...(Object.hasOwn(input, 'log_consent') ? { log_consent: consent } : {}),
   };
 };
 
@@ -186,6 +195,7 @@ export const createAssistantClient = (client: ApiClient): AssistantClient => {
             data.run.scope.source_id !== body.source_id ||
             data.run.scope.resource_id !== body.resource_id ||
             data.run.scope.window_minutes !== body.window_minutes ||
+            data.run.goal !== (body.goal ?? 'explain_resource') ||
             (body.conversation_id !== undefined &&
               data.run.conversation_id !== body.conversation_id)
           )

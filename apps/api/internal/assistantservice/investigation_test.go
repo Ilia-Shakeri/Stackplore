@@ -117,7 +117,7 @@ func TestInvestigationGoalAndConsentBindIdempotency(t *testing.T) {
 		t.Fatal("ordinary explanation acquired log consent")
 	}
 	changed.Admission.Goal = assistant.InvestigateIncident
-	changed.Scope.Range.Start = changed.Scope.Range.End.Add(-16*time.Minute)
+	changed.Scope.Range.Start = changed.Scope.Range.End.Add(-16 * time.Minute)
 	changed.Admission.From = changed.Scope.Range.Start
 	if _, err := service.Submit(context.Background(), changed); err != assistant.ErrInvalid || repository.admissions != 1 || model.calls.Load() != 0 {
 		t.Fatal("oversized log window reached admission")

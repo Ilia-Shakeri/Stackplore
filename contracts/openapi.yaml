@@ -2959,11 +2959,21 @@ components:
             Kept only in bounded volatile memory; never logged, persisted or put in a URL.
         conversation_id:
           $ref: '#/components/schemas/AssistantConversationId'
+        goal:
+          type: string
+          enum: [explain_resource, investigate_incident]
+          default: explain_resource
+        log_consent:
+          type: boolean
+          default: false
       description: >-
-        One explicit local explain_resource request. Omit conversation_id to start a server-owned
+        One explicit local selected-resource request. Omitted goal means explain_resource.
+        investigate_incident selects a fixed bounded read recipe. Explicit log_consent true
+        requires that goal and a window of at most 15 minutes; logs otherwise remain excluded.
+        Omit conversation_id to start a server-owned
         conversation; otherwise it must be a live owner-authorized server-issued conversation.
         Retries retain the first admitted conversation and exact window. Reusing the key with
-        changed question, locale, selected scope or explicit conversation conflicts. Text loss
+        changed question, locale, goal, log consent, selected scope or explicit conversation conflicts. Text loss
         never authorizes another dispatch, including after restart, session change or pruning.
     AssistantTimeRange:
       type: object
@@ -3010,7 +3020,7 @@ components:
           $ref: '#/components/schemas/AssistantConversationId'
         goal:
           type: string
-          const: explain_resource
+          enum: [explain_resource, investigate_incident]
         state:
           $ref: '#/components/schemas/AssistantRunState'
         version:
@@ -3158,7 +3168,7 @@ components:
             $ref: '#/components/schemas/AssistantAnswerSection'
       description: >-
         One complete validated answer, at most 64 KiB of serialized UTF-8 JSON, released after
-        current authority checks. Every citation ID must match the single resolved selected-resource
+        current authority checks. Every citation ID must match an actual resolved selected-resource
         citation returned alongside it. Unknown, duplicate, forged or out-of-scope references fail
         closed. A hypothesis is not an observation, and missing evidence remains explicit.
     AssistantResourceCitation:
@@ -3170,7 +3180,7 @@ components:
           $ref: '#/components/schemas/AssistantCitationId'
         kind:
           type: string
-          const: resource
+          enum: [resource, health, metric, event, relationship, log]
         source_id:
           $ref: '#/components/schemas/SourceId'
         resource_id:
@@ -3179,7 +3189,28 @@ components:
           $ref: '#/components/schemas/Timestamp'
         range:
           $ref: '#/components/schemas/AssistantTimeRange'
-      description: One exact normalized selected-resource locator, with no href, path or observation text.
+      description: Exact observation family mapped to the authorized selected-resource view; no href, path or raw observation text. Ordinary explanations return only resource citations.
+    AssistantReadCoverage:
+      type: object
+      additionalProperties: false
+      required: [tool, availability, completeness, records, more_available]
+      properties:
+        tool:
+          type: string
+          enum: [inventory, health, metrics, events, topology, logs]
+        availability:
+          type: string
+          enum: [available, stale, unavailable, unsupported]
+        completeness:
+          type: string
+          enum: [complete, partial]
+        records:
+          type: integer
+          minimum: 0
+          maximum: 8
+        more_available:
+          type: boolean
+      description: Typed coverage without raw text or invented citation IDs. Unsupported/unavailable families have zero records and complete status; partial applies only to available/stale data.
     AssistantReadyResponse:
       type: object
       additionalProperties: false
@@ -3195,9 +3226,16 @@ components:
         citations:
           type: array
           minItems: 1
-          maxItems: 1
+          maxItems: 64
           items:
             $ref: '#/components/schemas/AssistantResourceCitation'
+        coverage:
+          type: array
+          minItems: 5
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/AssistantReadCoverage'
+      description: Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage and retains one resource citation. All references share the admitted selected-resource scope and exact range.
     AssistantRunResponse:
       oneOf:
         - $ref: '#/components/schemas/AssistantPendingResponse'

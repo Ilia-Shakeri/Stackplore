@@ -154,7 +154,7 @@ func (service *Service) Submit(ctx context.Context, actor assistant.Actor, reque
 		if existing.ID != id || existing.OwnerID != actor.UserID {
 			return assistant.Run{}, assistant.ErrDenied
 		}
-		if existing.SourceID != string(request.SourceID) || existing.ResourceID != string(request.ResourceID) || existing.Until.Sub(existing.From) != time.Duration(request.WindowMinutes)*time.Minute || (request.ConversationID != "" && existing.ConversationID != request.ConversationID) {
+		if existing.Goal != request.EffectiveGoal() || existing.SourceID != string(request.SourceID) || existing.ResourceID != string(request.ResourceID) || existing.Until.Sub(existing.From) != time.Duration(request.WindowMinutes)*time.Minute || (request.ConversationID != "" && existing.ConversationID != request.ConversationID) {
 			return assistant.Run{}, assistant.ErrConflict
 		}
 		if !conversationID.MatchString(existing.ConversationID) || !assistant.Timestamp(existing.From) || !assistant.Timestamp(existing.Until) || existing.Until.After(at) {
@@ -182,8 +182,8 @@ func (service *Service) Submit(ctx context.Context, actor assistant.Actor, reque
 	if closed {
 		return assistant.Run{}, assistant.ErrUnavailable
 	}
-	a := assistant.Admission{ID: id, ConversationID: conversation, Actor: actor, IdempotencyDigest: derive("conversation-idempotency-v1"), Goal: assistant.ExplainResource, SourceID: string(request.SourceID), SourceVersion: scope.ConfigurationVersion, ResourceID: string(request.ResourceID), From: selected.Start, Until: selected.End, RestoreGeneration: scope.RestoreGeneration, PolicyVersion: service.binding.PolicyVersion, ProfileID: service.binding.ProfileID, ProfileVersion: service.binding.ProfileVersion, ReservedUnits: service.binding.ReservedUnits, RequireExisting: requireExisting}
-	return service.runtime.Submit(work, assistantservice.Input{Admission: a, Scope: scope, Locale: request.Locale, Question: request.Question, RequireExistingConversation: request.ConversationID != ""})
+	a := assistant.Admission{ID: id, ConversationID: conversation, Actor: actor, IdempotencyDigest: derive("conversation-idempotency-v1"), Goal: request.EffectiveGoal(), SourceID: string(request.SourceID), SourceVersion: scope.ConfigurationVersion, ResourceID: string(request.ResourceID), From: selected.Start, Until: selected.End, RestoreGeneration: scope.RestoreGeneration, PolicyVersion: service.binding.PolicyVersion, ProfileID: service.binding.ProfileID, ProfileVersion: service.binding.ProfileVersion, ReservedUnits: service.binding.ReservedUnits, RequireExisting: requireExisting}
+	return service.runtime.Submit(work, assistantservice.Input{Admission: a, Scope: scope, Locale: request.Locale, Question: request.Question, LogConsent: request.LogConsent, RequireExistingConversation: request.ConversationID != ""})
 }
 
 func ownedError(err error) error {

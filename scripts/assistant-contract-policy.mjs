@@ -90,6 +90,7 @@ export const assistantSchemaNames = [
   'AssistantAnswerSection',
   'AssistantAnswer',
   'AssistantResourceCitation',
+  'AssistantReadCoverage',
   'AssistantReadyResponse',
   'AssistantRunResponse',
   'AssistantStatusEvent',
@@ -144,7 +145,7 @@ export const inspectAssistantPolicy = (document) => {
 
   closed(
     'AssistantRunRequest',
-    ['source_id', 'resource_id', 'window_minutes', 'locale', 'question', 'conversation_id'],
+    ['source_id', 'resource_id', 'window_minutes', 'locale', 'question', 'conversation_id', 'goal', 'log_consent'],
     ['source_id', 'resource_id', 'window_minutes', 'locale', 'question'],
   );
   ref('AssistantRunRequest', 'source_id', 'SourceId');
@@ -152,6 +153,8 @@ export const inspectAssistantPolicy = (document) => {
   ref('AssistantRunRequest', 'window_minutes', 'AssistantWindowMinutes');
   ref('AssistantRunRequest', 'locale', 'AssistantLocale');
   ref('AssistantRunRequest', 'conversation_id', 'AssistantConversationId');
+  check(same(schemas.AssistantRunRequest?.properties?.goal?.enum, ['explain_resource', 'investigate_incident']) && schemas.AssistantRunRequest.properties.goal.default === 'explain_resource', 'request.goal');
+  check(schemas.AssistantRunRequest?.properties?.log_consent?.type === 'boolean' && schemas.AssistantRunRequest.properties.log_consent.default === false, 'request.log_consent');
   const question = schemas.AssistantRunRequest?.properties?.question;
   check(
     question?.type === 'string' &&
@@ -221,7 +224,7 @@ export const inspectAssistantPolicy = (document) => {
     'usage_uncertain',
     'usage_conservative',
   ]);
-  check(schemas.AssistantRun?.properties?.goal?.const === 'explain_resource', 'goal.fixed');
+  check(same(schemas.AssistantRun?.properties?.goal?.enum, ['explain_resource', 'investigate_incident']), 'goal.fixed');
   check(bounded(schemas.AssistantRun?.properties?.version, 1, 64), 'version.bounded');
   ref('AssistantRun', 'id', 'AssistantRunId');
   ref('AssistantRun', 'conversation_id', 'AssistantConversationId');
@@ -256,7 +259,7 @@ export const inspectAssistantPolicy = (document) => {
     ref(name, 'run', runType);
     check(schemas[name]?.properties?.content_state?.const === contentState, `${name}.state`);
   }
-  closed('AssistantReadyResponse', ['run', 'content_state', 'answer', 'citations']);
+  closed('AssistantReadyResponse', ['run', 'content_state', 'answer', 'citations', 'coverage'], ['run', 'content_state', 'answer', 'citations']);
   ref('AssistantReadyResponse', 'run', 'AssistantCompletedRun');
   ref('AssistantReadyResponse', 'answer', 'AssistantAnswer');
   const citations = schemas.AssistantReadyResponse?.properties?.citations;
@@ -264,7 +267,7 @@ export const inspectAssistantPolicy = (document) => {
     schemas.AssistantReadyResponse?.properties?.content_state?.const === 'ready' &&
       citations?.type === 'array' &&
       citations.minItems === 1 &&
-      citations.maxItems === 1 &&
+      citations.maxItems === 64 &&
       citations.items?.$ref === schemaRef('AssistantResourceCitation'),
     'ready.exact_resource',
   );
@@ -289,9 +292,16 @@ export const inspectAssistantPolicy = (document) => {
     'range',
   ]);
   check(
-    schemas.AssistantResourceCitation?.properties?.kind?.const === 'resource',
+    same(schemas.AssistantResourceCitation?.properties?.kind?.enum, ['resource', 'health', 'metric', 'event', 'relationship', 'log']),
     'citation.resource',
   );
+  closed('AssistantReadCoverage', ['tool', 'availability', 'completeness', 'records', 'more_available']);
+  check(same(schemas.AssistantReadCoverage?.properties?.tool?.enum, ['inventory', 'health', 'metrics', 'events', 'topology', 'logs']), 'coverage.tools');
+  check(same(schemas.AssistantReadCoverage?.properties?.availability?.enum, ['available', 'stale', 'unavailable', 'unsupported']), 'coverage.availability');
+  check(same(schemas.AssistantReadCoverage?.properties?.completeness?.enum, ['complete', 'partial']), 'coverage.completeness');
+  check(bounded(schemas.AssistantReadCoverage?.properties?.records, 0, 8) && schemas.AssistantReadCoverage?.properties?.more_available?.type === 'boolean', 'coverage.fields');
+  const coverage = schemas.AssistantReadyResponse?.properties?.coverage;
+  check(coverage?.type === 'array' && coverage.minItems === 5 && coverage.maxItems === 6 && coverage.items?.$ref === schemaRef('AssistantReadCoverage'), 'coverage.bounded');
   for (const [field, target] of [
     ['id', 'AssistantCitationId'],
     ['source_id', 'SourceId'],
@@ -519,8 +529,14 @@ export const runAssistantPolicySelfTests = (document) => {
     value.components.schemas.AssistantCompletedRun.allOf[1].properties.state.const = 'running';
   });
   reject('ready.exact_resource', (value) => {
-    value.components.schemas.AssistantReadyResponse.properties.citations.maxItems = 64;
+    value.components.schemas.AssistantReadyResponse.properties.citations.maxItems = 65;
   });
+  reject('request.goal', (value) => { value.components.schemas.AssistantRunRequest.properties.goal.enum.push('shell'); });
+  reject('request.log_consent', (value) => { value.components.schemas.AssistantRunRequest.properties.log_consent.default = true; });
+  reject('coverage.tools', (value) => { value.components.schemas.AssistantReadCoverage.properties.tool.enum.push('sql'); });
+  reject('coverage.availability', (value) => { value.components.schemas.AssistantReadCoverage.properties.availability.enum.push('healthy'); });
+  reject('coverage.fields', (value) => { value.components.schemas.AssistantReadCoverage.properties.records.maximum = 9; });
+  reject('coverage.bounded', (value) => { value.components.schemas.AssistantReadyResponse.properties.coverage.maxItems = 7; });
   reject('AssistantResourceCitation.closed', (value) => {
     value.components.schemas.AssistantResourceCitation.properties.href = {
       type: 'string',

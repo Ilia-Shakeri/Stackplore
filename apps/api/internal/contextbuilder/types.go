@@ -101,9 +101,9 @@ func (bundle Bundle) RecordCount() int { return len(bundle.document.Records) }
 // Summary exposes only typed coverage metadata, including for an empty bundle.
 // It cannot invent a citation or expose names, raw errors, logs or identities.
 type Summary struct {
-	Availability domain.AvailabilityState
-	Completeness domain.Completeness
-	Records int
+	Availability  domain.AvailabilityState
+	Completeness  domain.Completeness
+	Records       int
 	MoreAvailable bool
 }
 

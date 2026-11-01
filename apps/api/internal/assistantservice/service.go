@@ -63,10 +63,10 @@ func (Options) Format(state fmt.State, _ rune) {
 }
 
 type Input struct {
-	Admission assistant.Admission
-	Scope     contextbuilder.Scope
-	Locale    string
-	Question  string
+	Admission  assistant.Admission
+	Scope      contextbuilder.Scope
+	Locale     string
+	Question   string
 	LogConsent bool
 	// Trusted transport presence flag; never accepted as a browser policy field.
 	RequireExistingConversation bool
@@ -82,7 +82,7 @@ type Snapshot struct {
 	Answer    *inference.Answer
 	Citations []contextbuilder.CitationReference
 	Volatile  bool
-	Outcomes []inference.ToolOutcome
+	Outcomes  []inference.ToolOutcome
 }
 
 func (Snapshot) Format(state fmt.State, _ rune) {

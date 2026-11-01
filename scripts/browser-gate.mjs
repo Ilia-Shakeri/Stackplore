@@ -50,12 +50,12 @@ function sql(command) {
 async function recordHostedDatabase(databaseName, mode) {
   const query = `SELECT json_build_object(
     'runs', COALESCE((SELECT json_agg(row_to_json(r)) FROM (
-      SELECT state, tool_calls, inference_calls, usage_unknown, usage_conservative
+      SELECT goal, state, tool_calls, inference_calls, usage_unknown, usage_conservative
       FROM public.assistant_runs ORDER BY created_at_us LIMIT 8
     ) r), '[]'::json),
     'steps', COALESCE((SELECT json_agg(row_to_json(s)) FROM (
       SELECT kind, state, units, maximum_units
-      FROM public.assistant_steps ORDER BY started_at_us LIMIT 16
+      FROM public.assistant_steps ORDER BY started_at_us LIMIT 32
     ) s), '[]'::json)
   )`;
   const result = spawnSync(

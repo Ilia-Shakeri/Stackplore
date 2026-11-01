@@ -2,7 +2,7 @@
 
 > Development preparation: branch `v2/alpha5` targets **2.0.0-alpha.5**, schema
 > **18**. The alpha.4 tag points immutably to `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`;
-> its exact-tag verification/publication are separate. This version bump does
+> exact-tag verification and signed publication pass. This version bump does
 > not deliver an investigation loop. [Stage-5 plan](investigation.md).
 
 **Execution boundary, 2026-11-01:** local file editing and lightweight Git only.
@@ -61,7 +61,7 @@ not accept the correction.
 | 2 | `2.0.0-alpha.2` | Published; recorded artifact scope accepted | Global branch/quality, current engine and capacity gates remain separate |
 | 3 | `2.0.0-alpha.3` | Published; recorded artifact scope accepted | Accepted branch/quality and current engine remain separate |
 | 4 | `2.0.0-alpha.4` | Chosen local checkpoint published | Optional remote disabled; independent public consumption and whole-version gates separate |
-| 5     | `2.0.0-alpha.5`        | Not delivered                | Bounded investigation loop                                 |
+| 5 | `2.0.0-alpha.5` | Candidate in separate branch | New-mode hosted source, SQL/browser, scan and exact-tag acceptance |
 | 6     | `2.0.0-alpha.6`        | Not delivered                | Incident analysis                                          |
 | 7     | `2.0.0-alpha.7`        | Not delivered                | Approved corpus and safe history                           |
 | 8     | `2.0.0-alpha.8`        | Not delivered                | Held-out quality, attack and failure gates                 |

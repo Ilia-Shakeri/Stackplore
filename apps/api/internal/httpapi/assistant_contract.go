@@ -13,6 +13,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantconversation"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantplan"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -84,6 +85,7 @@ type assistantReplyJSON struct {
 	ContentState string                  `json:"content_state"`
 	Answer       *inference.Answer       `json:"answer,omitempty"`
 	Citations    []assistantCitationJSON `json:"citations,omitempty"`
+	Coverage     []inference.ToolOutcome `json:"coverage,omitempty"`
 }
 
 func (assistantReplyJSON) Format(state fmt.State, _ rune) {
@@ -106,7 +108,7 @@ func assistantMetadata(run assistant.Run, owner, id string) (assistantRunJSON, e
 		return assistantRunJSON{}, assistant.ErrDenied
 	}
 	if !assistantPublicRunID.MatchString(run.ID) || !assistantPublicConversationID.MatchString(run.ConversationID) ||
-		run.Goal != assistant.ExplainResource || run.Version < 1 || run.Version > assistant.MaximumStatusVersions ||
+		(run.Goal != assistant.ExplainResource && run.Goal != assistant.InvestigateIncident) || run.Version < 1 || run.Version > assistant.MaximumStatusVersions ||
 		run.SourceVersion < 1 || run.PolicyVersion < 1 || run.ProfileVersion < 1 || run.RestoreGeneration < 0 ||
 		(!run.State.Terminal() && run.State != assistant.Queued && run.State != assistant.Running) ||
 		!assistantPublicSourceID.MatchString(run.SourceID) || domain.ResourceID(run.ResourceID).Validate() != nil {
@@ -136,14 +138,20 @@ func assistantMetadata(run assistant.Run, owner, id string) (assistantRunJSON, e
 
 func assistantCitation(run assistant.Run, ref contextbuilder.CitationReference) (assistantCitationJSON, error) {
 	_, offset := ref.ObservedAt.Zone()
-	if !assistantPublicCitationID.MatchString(ref.ID) || ref.Kind != "resource" || ref.Source.Validate() != nil ||
-		string(ref.Source.SourceID) != run.SourceID || string(ref.ResourceID) != run.ResourceID || ref.ObjectID != run.ResourceID ||
+	resourceMatches := string(ref.ResourceID) == run.ResourceID
+	if ref.Kind == "relationship" && run.Goal == assistant.InvestigateIncident {
+		resourceMatches = ref.ResourceID == ""
+	}
+	if !assistantPublicCitationID.MatchString(ref.ID) || !slices.Contains([]string{"resource", "health", "metric", "event", "relationship", "log"}, ref.Kind) ||
+		run.Goal == assistant.ExplainResource && ref.Kind != "resource" || ref.Source.Validate() != nil ||
+		string(ref.Source.SourceID) != run.SourceID || !resourceMatches || !assistant.Identifier(ref.ObjectID) ||
+		(ref.Kind == "resource" || ref.Kind == "health") && ref.ObjectID != run.ResourceID ||
 		ref.ConfigurationVersion != run.SourceVersion || ref.PolicyVersion != run.PolicyVersion || ref.RestoreGeneration != run.RestoreGeneration ||
 		ref.ObservedAt.IsZero() || offset != 0 || ref.ObservedAt.Year() < 1970 || ref.ObservedAt.Year() > 9999 ||
 		!ref.Range.Start.Equal(run.From) || !ref.Range.End.Equal(run.Until) {
 		return assistantCitationJSON{}, assistant.ErrUnavailable
 	}
-	return assistantCitationJSON{ID: ref.ID, Kind: "resource", SourceID: run.SourceID, ResourceID: run.ResourceID, ObservedAt: ref.ObservedAt.Format(time.RFC3339Nano), Range: assistantTimeRangeJSON{From: run.From.Format(time.RFC3339Nano), To: run.Until.Format(time.RFC3339Nano)}}, nil
+	return assistantCitationJSON{ID: ref.ID, Kind: ref.Kind, SourceID: run.SourceID, ResourceID: run.ResourceID, ObservedAt: ref.ObservedAt.Format(time.RFC3339Nano), Range: assistantTimeRangeJSON{From: run.From.Format(time.RFC3339Nano), To: run.Until.Format(time.RFC3339Nano)}}, nil
 }
 
 // Only the explicit publication path receives a serializable answer projection.
@@ -153,7 +161,7 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 		return assistantReplyJSON{}, err
 	}
 	reply := assistantReplyJSON{Run: run, ContentState: "unavailable"}
-	if !snapshot.Volatile && (snapshot.Answer != nil || len(snapshot.Citations) != 0) {
+	if !snapshot.Volatile && (snapshot.Answer != nil || len(snapshot.Citations) != 0 || len(snapshot.Outcomes) != 0) {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
 	if snapshot.Run.State == assistant.Completed && !snapshot.Volatile {
@@ -170,12 +178,46 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 	if snapshot.Run.State != assistant.Completed || snapshot.Answer == nil {
 		return reply, nil
 	}
-	if len(snapshot.Citations) != 1 || len(snapshot.Answer.Sections) < 1 || len(snapshot.Answer.Sections) > inference.MaximumSections {
+	if len(snapshot.Citations) < 1 || len(snapshot.Citations) > inference.MaximumEvidence || len(snapshot.Answer.Sections) < 1 || len(snapshot.Answer.Sections) > inference.MaximumSections {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
-	citation, err := assistantCitation(snapshot.Run, snapshot.Citations[0])
-	if err != nil {
-		return assistantReplyJSON{}, err
+	if run.Goal == assistant.ExplainResource && (len(snapshot.Citations) != 1 || len(snapshot.Outcomes) != 0) {
+		return assistantReplyJSON{}, assistant.ErrUnavailable
+	}
+	citations := make([]assistantCitationJSON, 0, len(snapshot.Citations))
+	allowed := make(map[string]struct{}, len(snapshot.Citations))
+	for _, ref := range snapshot.Citations {
+		citation, err := assistantCitation(snapshot.Run, ref)
+		if err != nil {
+			return assistantReplyJSON{}, err
+		}
+		if _, duplicate := allowed[citation.ID]; duplicate {
+			return assistantReplyJSON{}, assistant.ErrUnavailable
+		}
+		allowed[citation.ID] = struct{}{}
+		citations = append(citations, citation)
+	}
+	if run.Goal == assistant.InvestigateIncident {
+		plan, _ := assistantplan.Reads(run.Goal, len(snapshot.Outcomes) == assistantplan.MaximumReads)
+		if len(snapshot.Outcomes) != len(plan) || inference.ValidateOutcomes(snapshot.Outcomes, len(citations)) != nil || len(plan) == assistantplan.MaximumReads && run.Scope.WindowMinutes > 15 {
+			return assistantReplyJSON{}, assistant.ErrUnavailable
+		}
+		for index, outcome := range snapshot.Outcomes {
+			if outcome.Tool != string(plan[index]) {
+				return assistantReplyJSON{}, assistant.ErrUnavailable
+			}
+			kind := map[string]string{"inventory": "resource", "health": "health", "metrics": "metric", "events": "event", "topology": "relationship", "logs": "log"}[outcome.Tool]
+			count := 0
+			for _, citation := range citations {
+				if citation.Kind == kind {
+					count++
+				}
+			}
+			if outcome.Records != count || index == 0 && count != 1 {
+				return assistantReplyJSON{}, assistant.ErrUnavailable
+			}
+		}
+		reply.Coverage = slices.Clone(snapshot.Outcomes)
 	}
 	answer := inference.Answer{Sections: slices.Clone(snapshot.Answer.Sections)}
 	for index := range answer.Sections {
@@ -184,7 +226,7 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 		}
 		answer.Sections[index].Citations = slices.Clone(answer.Sections[index].Citations)
 	}
-	if inference.ValidateAnswer(answer, map[string]struct{}{citation.ID: {}}) != nil {
+	if inference.ValidateAnswer(answer, allowed) != nil {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
 	encoded, err := json.Marshal(answer)
@@ -193,6 +235,6 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
 	clear(encoded)
-	reply.ContentState, reply.Answer, reply.Citations = "ready", &answer, []assistantCitationJSON{citation}
+	reply.ContentState, reply.Answer, reply.Citations = "ready", &answer, citations
 	return reply, nil
 }

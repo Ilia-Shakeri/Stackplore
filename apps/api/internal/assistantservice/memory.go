@@ -19,22 +19,24 @@ type conversation struct {
 }
 
 type memoryRun struct {
-	input      Input
-	run        assistant.Run
-	ready      chan struct{}
-	readyOnce  sync.Once
-	admitting  bool
-	revoked    bool
-	active     bool
-	finishing  bool
-	cancel     context.CancelFunc
-	expires    time.Time
-	answer     *inference.Answer
-	citations  []contextbuilder.CitationReference
-	evidence   *assistantevidence.Evidence
+	input         Input
+	run           assistant.Run
+	ready         chan struct{}
+	readyOnce     sync.Once
+	finished      chan struct{}
+	finishedOnce  sync.Once
+	admitting     bool
+	revoked       bool
+	active        bool
+	finishing     bool
+	cancel        context.CancelFunc
+	expires       time.Time
+	answer        *inference.Answer
+	citations     []contextbuilder.CitationReference
+	evidence      *assistantevidence.Evidence
 	extraEvidence []assistantevidence.Evidence
-	outcomes []inference.ToolOutcome
-	operations chan struct{}
+	outcomes      []inference.ToolOutcome
+	operations    chan struct{}
 }
 
 func (service *Service) stage(input Input) (*memoryRun, bool, error) {
@@ -81,7 +83,7 @@ func (service *Service) stage(input Input) (*memoryRun, bool, error) {
 		c = conversation{owner: input.Admission.Actor.UserID, at: service.time()}
 		service.conversations[input.Admission.ConversationID] = c
 	}
-	entry := &memoryRun{input: input, ready: make(chan struct{}), admitting: true, expires: c.at.Add(MemoryLifetime), operations: make(chan struct{}, 1)}
+	entry := &memoryRun{input: input, ready: make(chan struct{}), finished: make(chan struct{}), admitting: true, expires: c.at.Add(MemoryLifetime), operations: make(chan struct{}, 1)}
 	service.entries[input.Admission.ID] = entry
 	return entry, true, nil
 }
@@ -140,6 +142,7 @@ func (service *Service) eraseLocked(entry *memoryRun) {
 	entry.outcomes = nil
 	entry.input.LogConsent = false
 	entry.readyOnce.Do(func() { close(entry.ready) })
+	entry.finishedOnce.Do(func() { close(entry.finished) })
 }
 
 func (service *Service) prune() {
@@ -248,12 +251,24 @@ func (service *Service) Get(ctx context.Context, actor assistant.Actor, id strin
 		return Snapshot{Run: run, Volatile: false}, nil
 	}
 	content := run.State == assistant.Completed && (entry.answer != nil || len(entry.citations) > 0)
+	finishing := run.State == assistant.Completed && entry.active && entry.answer == nil
+	finished := entry.finished
 	seal := entry.evidence
 	var proofs []assistantevidence.Evidence
 	if content {
 		proofs = service.evidenceSetLocked(entry)
 	}
 	service.mu.Unlock()
+	if finishing {
+		// Durable completion can precede the final fresh-authority check. Never
+		// report permanent content loss while this owned publication is active.
+		select {
+		case <-finished:
+			return service.Get(work, actor, id)
+		case <-work.Done():
+			return Snapshot{}, assistant.ErrUnavailable
+		}
+	}
 	if content {
 		err = service.authorizeProofs(ctx, actor, run, proofs)
 	}

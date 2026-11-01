@@ -53,3 +53,24 @@ func TestRequestDecodeIsClosedBoundedAndProtected(t *testing.T) {
 		t.Fatal("valid escaped byte-boundary question rejected")
 	}
 }
+
+func TestInvestigationRequestRequiresExactGoalAndLocalLogConsent(t *testing.T) {
+	base := `{"source_id":"source_demo","resource_id":"r1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","window_minutes":15,"locale":"en","question":"Check selected facts"`
+	for _, suffix := range []string{`}`, `,"goal":"explain_resource"}`, `,"goal":"investigate_incident"}`, `,"goal":"investigate_incident","log_consent":true}`} {
+		var request Request
+		if json.Unmarshal([]byte(base+suffix), &request) != nil || !request.Valid() {
+			t.Fatal("explicit bounded mode rejected")
+		}
+	}
+	for _, suffix := range []string{`,"goal":null}`, `,"goal":""}`, `,"goal":"shell"}`, `,"log_consent":true}`, `,"log_consent":null}`, `,"log_consent":"true"}`, `,"goal":"investigate_incident","log_consent":1}`, `,"goal":"investigate_incident","log_consent":true,"tools":["shell"]}`} {
+		var request Request
+		if json.Unmarshal([]byte(base+suffix), &request) == nil {
+			t.Fatal("invalid goal, consent or free-form tool list accepted")
+		}
+	}
+	var request Request
+	wide := strings.Replace(base, `"window_minutes":15`, `"window_minutes":60`, 1)
+	if json.Unmarshal([]byte(wide+`,"goal":"investigate_incident","log_consent":true}`), &request) == nil {
+		t.Fatal("explicit consent widened the log window")
+	}
+}

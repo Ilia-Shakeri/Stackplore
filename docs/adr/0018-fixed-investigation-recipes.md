@@ -1,7 +1,7 @@
 # ADR-0018: Fixed bounded investigation recipes
 
 - Status: Accepted
-- Implementation: Stage-5 internal candidate; public mode remains unshipped
+- Implementation: Stage-5 source/desktop candidate; hosted and release acceptance pending
 - Date: 2026-11-01
 - Owners: Project maintainers
 

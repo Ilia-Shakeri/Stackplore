@@ -149,9 +149,12 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
         .locator('tbody tr')
         .first(),
     ).toBeVisible();
-    if (process.env.SP_BROWSER_REAL_ASSISTANT === 'true')
+    if (process.env.SP_BROWSER_REAL_ASSISTANT === 'true') {
+      // Four independent runs retain their existing per-run deadlines.
+      test.setTimeout(360_000);
       await assistantLiveJourney(page, locale, 'administrator');
-    else await assistantJourney(page, locale, 'administrator', label('insight.healthHistory'));
+      await assistantLiveJourney(page, locale, 'administrator', 'investigate_incident');
+    } else await assistantJourney(page, locale, 'administrator', label('insight.healthHistory'));
     await page.locator('main a[href^="/logs?"]').click();
     const pendingDownload = page.waitForEvent('download');
     await page.getByRole('button', { name: label('explore.logs.download'), exact: true }).click();
@@ -184,9 +187,10 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     ).toHaveCount(0);
     await page.goto('/resources');
     await page.locator('main a[href^="/resources/"]').first().click();
-    if (process.env.SP_BROWSER_REAL_ASSISTANT === 'true')
+    if (process.env.SP_BROWSER_REAL_ASSISTANT === 'true') {
       await assistantLiveJourney(page, locale, 'viewer');
-    else await assistantJourney(page, locale, 'viewer', label('insight.healthHistory'));
+      await assistantLiveJourney(page, locale, 'viewer', 'investigate_incident');
+    } else await assistantJourney(page, locale, 'viewer', label('insight.healthHistory'));
     const cachePaths = await page.evaluate(async () => {
       const paths: string[] = [];
       for (const name of await caches.keys())

@@ -28,6 +28,15 @@ type Request struct {
 	Locale         string
 	Question       string
 	ConversationID string
+	Goal           assistant.Goal
+	LogConsent     bool
+}
+
+func (request Request) EffectiveGoal() assistant.Goal {
+	if request.Goal == "" {
+		return assistant.ExplainResource
+	}
+	return request.Goal
 }
 
 func (Request) Format(state fmt.State, _ rune) {
@@ -39,6 +48,8 @@ func (request Request) Valid() bool {
 	return sourceID.MatchString(string(request.SourceID)) && len(request.ResourceID) == 46 && request.ResourceID.Validate() == nil &&
 		slices.Contains([]int{5, 15, 60, 360, 1440}, request.WindowMinutes) &&
 		(inference.Request{Locale: request.Locale, Question: request.Question, OutputLimit: 1}).Validate() == nil &&
+		(request.EffectiveGoal() == assistant.ExplainResource || request.EffectiveGoal() == assistant.InvestigateIncident) &&
+		(!request.LogConsent || request.EffectiveGoal() == assistant.InvestigateIncident && request.WindowMinutes <= 15) &&
 		(request.ConversationID == "" || conversationID.MatchString(request.ConversationID))
 }
 
@@ -53,10 +64,10 @@ func (request *Request) UnmarshalJSON(contents []byte) error {
 			clear(field)
 		}
 	}()
-	if json.Unmarshal(contents, &fields) != nil || len(fields) < 5 || len(fields) > 6 {
+	if json.Unmarshal(contents, &fields) != nil || len(fields) < 5 || len(fields) > 8 {
 		return assistant.ErrInvalid
 	}
-	allowed := []string{"source_id", "resource_id", "window_minutes", "locale", "question", "conversation_id"}
+	allowed := []string{"source_id", "resource_id", "window_minutes", "locale", "question", "conversation_id", "goal", "log_consent"}
 	for key := range fields {
 		if !slices.Contains(allowed, key) {
 			return assistant.ErrInvalid
@@ -82,6 +93,18 @@ func (request *Request) UnmarshalJSON(contents []byte) error {
 		if json.Unmarshal(raw, &decoded.ConversationID) != nil || decoded.ConversationID == "" {
 			return assistant.ErrInvalid
 		}
+	}
+	if raw, exists := fields["goal"]; exists {
+		if json.Unmarshal(raw, &decoded.Goal) != nil || decoded.Goal == "" {
+			return assistant.ErrInvalid
+		}
+	}
+	if raw, exists := fields["log_consent"]; exists {
+		var consent *bool
+		if json.Unmarshal(raw, &consent) != nil || consent == nil {
+			return assistant.ErrInvalid
+		}
+		decoded.LogConsent = *consent
 	}
 	if !decoded.Valid() {
 		return assistant.ErrInvalid

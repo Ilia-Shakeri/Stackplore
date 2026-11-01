@@ -27,7 +27,7 @@ func (stub *runtimeStub) Submit(_ context.Context, input assistantservice.Input)
 		return stub.onSubmit(input)
 	}
 	a := input.Admission
-	return assistant.Run{ID: a.ID, ConversationID: a.ConversationID, OwnerID: a.Actor.UserID, SourceID: a.SourceID, ResourceID: a.ResourceID, From: a.From, Until: a.Until}, nil
+	return assistant.Run{ID: a.ID, ConversationID: a.ConversationID, OwnerID: a.Actor.UserID, Goal: a.Goal, SourceID: a.SourceID, ResourceID: a.ResourceID, From: a.From, Until: a.Until}, nil
 }
 
 type lookupFunc func(context.Context, assistant.Actor, string, time.Time) (assistant.Run, error)
@@ -91,6 +91,27 @@ func TestAdmissionDerivesServerIdentitiesAndNeverAcceptsBrowserScope(t *testing.
 	other, err := service.Submit(context.Background(), actor, request, nonce)
 	if err != nil || other.ID == run.ID || other.ConversationID == run.ConversationID {
 		t.Fatal("different owners shared opaque identities")
+	}
+}
+
+func TestInvestigationSelectionReachesTrustedRuntimeAndCannotChangeReplayGoal(t *testing.T) {
+	options, request, actor, runtime := conversationFixture(t)
+	var saved assistant.Run
+	options.Repository = lookupFunc(func(context.Context, assistant.Actor, string, time.Time) (assistant.Run, error) {
+		if saved.ID == "" { return assistant.Run{}, assistant.ErrDenied }
+		return saved, nil
+	})
+	service, err := New(options)
+	if err != nil { t.Fatal(err) }
+	defer service.Close()
+	request.Goal, request.LogConsent = assistant.InvestigateIncident, true
+	saved, err = service.Submit(context.Background(), actor, request, strings.Repeat("c", 64))
+	if err != nil || runtime.input.Admission.Goal != assistant.InvestigateIncident || !runtime.input.LogConsent {
+		t.Fatal("explicit selection lost its trusted binding")
+	}
+	request.Goal, request.LogConsent = assistant.ExplainResource, false
+	if _, err := service.Submit(context.Background(), actor, request, strings.Repeat("c", 64)); err != assistant.ErrConflict || runtime.calls != 1 {
+		t.Fatal("goal-changing retry reached collection")
 	}
 }
 

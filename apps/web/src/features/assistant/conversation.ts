@@ -16,6 +16,8 @@ export interface ConversationScope {
   readonly resourceId: string;
   readonly windowMinutes: AssistantWindowMinutes;
   readonly locale: 'en' | 'fa';
+  readonly goal?: AssistantRun['goal'];
+  readonly logConsent?: boolean;
 }
 export type ConversationState =
   | 'idle'
@@ -63,6 +65,7 @@ const denied = (error: unknown) => {
 };
 const sameRun = (a: AssistantRun, b: AssistantRun) =>
   a.id === b.id &&
+  a.goal === b.goal &&
   a.conversation_id === b.conversation_id &&
   a.scope.source_id === b.scope.source_id &&
   a.scope.resource_id === b.scope.resource_id &&
@@ -230,6 +233,7 @@ export class AssistantConversation {
           window_minutes: this.#scope.windowMinutes,
           locale: this.#scope.locale,
           question,
+          ...(this.#scope.goal === 'investigate_incident' ? { goal: this.#scope.goal, log_consent: this.#scope.logConsent === true } : {}),
           ...(this.#conversation === undefined ? {} : { conversation_id: this.#conversation }),
         }),
       };
@@ -265,6 +269,7 @@ export class AssistantConversation {
         run.scope.source_id !== this.#scope.sourceId ||
         run.scope.resource_id !== this.#scope.resourceId ||
         run.scope.window_minutes !== this.#scope.windowMinutes ||
+        run.goal !== (this.#scope.goal ?? 'explain_resource') ||
         (this.#conversation !== undefined && run.conversation_id !== this.#conversation)
       )
         throw new ApiTransportError('unexpected_response');

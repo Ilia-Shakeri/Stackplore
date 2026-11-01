@@ -198,6 +198,7 @@ export type {
   AssistantLostResponse,
   AssistantOtherSection,
   AssistantPendingResponse,
+  AssistantReadCoverage,
   AssistantResetEvent,
   AssistantResourceCitation,
   AssistantRun,
@@ -227,7 +228,7 @@ export type AssistantReadyResponse = Omit<
   'answer' | 'citations'
 > & {
   answer: AssistantAnswer;
-  citations: [Derived.AssistantResourceCitation];
+  citations: [Derived.AssistantResourceCitation, ...Derived.AssistantResourceCitation[]];
 };
 
 export type AssistantRunResponse =

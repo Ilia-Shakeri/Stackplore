@@ -4,9 +4,9 @@ package assistantplan
 import "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 
 const (
-	MaximumReads = 6
+	MaximumReads   = 6
 	RecordsPerRead = 8
-	BytesPerRead = 8 * 1024
+	BytesPerRead   = 8 * 1024
 )
 
 // Reads returns a fresh server-owned plan. No model text or browser tool list

@@ -128,6 +128,7 @@ func (service *Service) runOne(ctx context.Context, workerID string) (bool, erro
 	if err != nil {
 		service.eraseLocked(entry)
 	}
+	entry.finishedOnce.Do(func() { close(entry.finished) })
 	service.mu.Unlock()
 	if err != nil && !latest.State.Terminal() {
 		state := assistant.Failed

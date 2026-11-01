@@ -44,6 +44,15 @@ const sectionKeys = {
   gaps: 'assistant.gaps',
   next_checks: 'assistant.nextChecks',
 } as const satisfies Record<string, MessageKey>;
+const toolKeys = {
+  inventory: 'assistant.tool.inventory', health: 'assistant.tool.health',
+  metrics: 'assistant.tool.metrics', events: 'assistant.tool.events',
+  topology: 'assistant.tool.topology', logs: 'assistant.tool.logs',
+} as const satisfies Record<string, MessageKey>;
+const availabilityKeys = {
+  available: 'assistant.coverage.available', stale: 'assistant.coverage.stale',
+  unavailable: 'assistant.coverage.unavailable', unsupported: 'assistant.coverage.unsupported',
+} as const satisfies Record<string, MessageKey>;
 
 export function AssistantResourcePanel({ resource }: { readonly resource: ProductResource }) {
   const api = useOptionalAssistantApi();
@@ -95,16 +104,18 @@ function ConversationView({
 }) {
   const { t, locale, direction, formatNumber } = useLocale();
   const [windowMinutes, setWindowMinutes] = useState<AssistantWindowMinutes>(15);
+  const [goal, setGoal] = useState<'explain_resource' | 'investigate_incident'>('explain_resource');
+  const [logConsent, setLogConsent] = useState(false);
   const citationAttempt = useRef(0);
   const [citationWarning, setCitationWarning] = useState<symbol | null>(null);
   const conversation = useMemo(
     () =>
       new AssistantConversation(
         api,
-        { sourceId: resource.source_id, resourceId: resource.id, windowMinutes, locale },
+        { sourceId: resource.source_id, resourceId: resource.id, windowMinutes, locale, goal, logConsent },
         owner,
       ),
-    [api, owner, resource.source_id, resource.id, windowMinutes, locale],
+    [api, owner, resource.source_id, resource.id, windowMinutes, locale, goal, logConsent],
   );
   const snapshot = useSyncExternalStore(
     conversation.subscribe,
@@ -167,6 +178,20 @@ function ConversationView({
           </dd>
         </div>
       </dl>
+      <label className="assistant__field" htmlFor={`${panelId}-goal`}>
+        <span>{t('assistant.mode')}</span>
+        <select id={`${panelId}-goal`} value={goal} onChange={(event) => {
+          if (event.target.value === 'explain_resource' || event.target.value === 'investigate_incident') {
+            setCitationWarning(null);
+            setLogConsent(false);
+            setGoal(event.target.value);
+          }
+        }}>
+          <option value="explain_resource">{t('assistant.mode.explain')}</option>
+          <option value="investigate_incident">{t('assistant.mode.investigate')}</option>
+        </select>
+      </label>
+      {goal === 'investigate_incident' ? <p>{t('assistant.investigationScope')}</p> : null}
       <label className="assistant__field" htmlFor={`${panelId}-window`}>
         <span>{t('assistant.window')}</span>
         <select
@@ -176,6 +201,7 @@ function ConversationView({
             const next = windows.find((value) => String(value) === event.target.value);
             if (next !== undefined) {
               setCitationWarning(null);
+              setLogConsent(false);
               setWindowMinutes(next);
             }
           }}
@@ -187,6 +213,16 @@ function ConversationView({
           ))}
         </select>
       </label>
+      {goal === 'investigate_incident' ? (
+        <label className="assistant__consent" htmlFor={`${panelId}-logs`}>
+          <input id={`${panelId}-logs`} type="checkbox" checked={logConsent}
+            disabled={windowMinutes > 15} onChange={(event) => {
+              setCitationWarning(null);
+              setLogConsent(event.target.checked);
+            }} />
+          <span>{t('assistant.logConsent')}</span>
+        </label>
+      ) : null}
       <p id={`${panelId}-state`} role="status" aria-live="polite">
         {t(stateKeys[snapshot.state])}
       </p>
@@ -201,6 +237,22 @@ function ConversationView({
             </p>
             {turn.response?.content_state === 'ready' ? (
               <>
+                {turn.response.coverage !== undefined ? (
+                  <section aria-label={t('assistant.coverage')}>
+                    <h3>{t('assistant.coverage')}</h3>
+                    <dl className="assistant__coverage">
+                      {turn.response.coverage.map((item) => (
+                        <div key={item.tool}>
+                          <dt>{t(toolKeys[item.tool])}</dt>
+                          <dd>{t(availabilityKeys[item.availability])}; {t('assistant.coverage.records', { count: formatNumber(item.records) })}
+                            {item.completeness === 'partial' ? `; ${t('assistant.coverage.partial')}` : ''}
+                            {item.more_available ? `; ${t('assistant.coverage.more')}` : ''}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                ) : null}
                 <h3>{t('assistant.range')}</h3>
                 <dl className="assistant__range">
                   <div>

@@ -142,16 +142,18 @@ func TestInvestigationCoverageIsCountedAsTypedInertInput(t *testing.T) {
 		if request.URL.Path != "/apply-template" {
 			return false
 		}
-		var body struct { Messages []message `json:"messages"` }
+		var body struct {
+			Messages []message `json:"messages"`
+		}
 		if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 {
 			t.Error("invalid bounded framing")
 			response.WriteHeader(http.StatusBadRequest)
 			return true
 		}
 		var wire struct {
-			Locale string `json:"locale"`
-			Question string `json:"question"`
-			Evidence []port.Evidence `json:"evidence"`
+			Locale   string             `json:"locale"`
+			Question string             `json:"question"`
+			Evidence []port.Evidence    `json:"evidence"`
 			Outcomes []port.ToolOutcome `json:"outcomes"`
 		}
 		if decodeClosed := json.Unmarshal([]byte(body.Messages[1].Content), &wire); decodeClosed != nil || len(wire.Evidence) != 1 || len(wire.Outcomes) != 2 || wire.Outcomes[1].Tool != "health" || wire.Outcomes[1].Availability != domain.AvailabilityUnsupported || !strings.Contains(body.Messages[0].Content, "coverage") {
