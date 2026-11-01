@@ -5,7 +5,7 @@ All services, tests, builds, installs and scans run on GitHub Actions. Desktop
 is primary. The eighth job's pinned bilingual real protocol probe passes at
 `5cebad7`; its metadata receipt proves owned shutdown. Newer source extends the
 job to actual PostgreSQL, application and desktop browser journeys, without
-intercepted private replies. That extension awaits exact-source verification.
+intercepted private replies. That extension failed at ec90463 and 65014a1. A direct evidence probe at 4a0a013 isolated invalid citations and an impossible private-name assertion; b1d49d9 constrains citation generation and requests only the typed identity already present in evidence. Fresh exact-source verification remains required.
 Remaining profile and whole-stage acceptance remain separate.
 [Hosted validation policy](hosted-validation.md).
 

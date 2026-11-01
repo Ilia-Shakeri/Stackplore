@@ -15,17 +15,17 @@ import (
 )
 
 type evidenceProbeMetadata struct {
-	Locale         string `json:"locale"`
-	BackendFault   string `json:"backend_fault"`
-	GatewayFault   string `json:"gateway_fault"`
-	InputTokens    int    `json:"input_tokens"`
-	OutputTokens   int    `json:"output_tokens"`
-	InputMatch     bool   `json:"input_match"`
-	Complete       bool   `json:"complete"`
-	JSONValid      bool   `json:"json_valid"`
-	Sections       int    `json:"sections"`
-	CitationsValid bool   `json:"citations_valid"`
-	IdentityMatches    bool   `json:"identity_matches"`
+	Locale          string `json:"locale"`
+	BackendFault    string `json:"backend_fault"`
+	GatewayFault    string `json:"gateway_fault"`
+	InputTokens     int    `json:"input_tokens"`
+	OutputTokens    int    `json:"output_tokens"`
+	InputMatch      bool   `json:"input_match"`
+	Complete        bool   `json:"complete"`
+	JSONValid       bool   `json:"json_valid"`
+	Sections        int    `json:"sections"`
+	CitationsValid  bool   `json:"citations_valid"`
+	IdentityMatches bool   `json:"identity_matches"`
 }
 
 type evidenceProbeBackend struct {
