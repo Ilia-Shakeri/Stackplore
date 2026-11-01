@@ -65,7 +65,7 @@ test('real investigation SQL proof requires exact reservations and known single 
       v.source_revision = 'b'.repeat(40);
     },
   ]) {
-    const changed = structuredClone(value);
+    const changed = globalThis.structuredClone(value);
     mutate(changed);
     assert.equal(validHostedDatabaseMetadata(changed, source), false);
   }

@@ -67,7 +67,7 @@ export function AssistantResourcePanel({ resource }: { readonly resource: Produc
     [api],
   );
   const owner = useSyncExternalStore(subscribe, api?.getOwner ?? absentOwner, absentOwner);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const panelId = useId();
   const [open, setOpen] = useState(false);
   if (api === null || owner === null || auth?.status !== 'authenticated') return null;
@@ -90,7 +90,13 @@ export function AssistantResourcePanel({ resource }: { readonly resource: Produc
         </Button>
       </header>
       {open ? (
-        <ConversationView api={api} owner={owner} resource={resource} panelId={panelId} />
+        <ConversationView
+          key={`${resource.source_id}:${resource.id}:${locale}`}
+          api={api}
+          owner={owner}
+          resource={resource}
+          panelId={panelId}
+        />
       ) : null}
     </section>
   );
@@ -110,7 +116,8 @@ function ConversationView({
   const { t, locale, direction, formatNumber } = useLocale();
   const [windowMinutes, setWindowMinutes] = useState<AssistantWindowMinutes>(15);
   const [goal, setGoal] = useState<'explain_resource' | 'investigate_incident'>('explain_resource');
-  const [logConsent, setLogConsent] = useState(false);
+  const [consentingOwner, setConsentingOwner] = useState<AssistantOwner | null>(null);
+  const logConsent = consentingOwner === owner;
   const citationAttempt = useRef(0);
   const [citationWarning, setCitationWarning] = useState<symbol | null>(null);
   const conversation = useMemo(
@@ -201,7 +208,7 @@ function ConversationView({
               event.target.value === 'investigate_incident'
             ) {
               setCitationWarning(null);
-              setLogConsent(false);
+              setConsentingOwner(null);
               setGoal(event.target.value);
             }
           }}
@@ -220,7 +227,7 @@ function ConversationView({
             const next = windows.find((value) => String(value) === event.target.value);
             if (next !== undefined) {
               setCitationWarning(null);
-              setLogConsent(false);
+              setConsentingOwner(null);
               setWindowMinutes(next);
             }
           }}
@@ -241,7 +248,7 @@ function ConversationView({
             disabled={windowMinutes > 15}
             onChange={(event) => {
               setCitationWarning(null);
-              setLogConsent(event.target.checked);
+              setConsentingOwner(event.target.checked ? owner : null);
             }}
           />
           <span>{t('assistant.logConsent')}</span>

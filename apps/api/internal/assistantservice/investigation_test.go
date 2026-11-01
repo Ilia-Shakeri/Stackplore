@@ -123,3 +123,78 @@ func TestInvestigationGoalAndConsentBindIdempotency(t *testing.T) {
 		t.Fatal("oversized log window reached admission")
 	}
 }
+
+func TestConcurrentInvestigationsNeverShareRunBoundEvidence(t *testing.T) {
+	t.Parallel()
+	service, _, authority, model := fixtureService(t, func(options *Options, _ *modelFixture) { options.Workers = 2 })
+	authority.reads.extraReads = true
+	inputs := []Input{inputFixture(t, 1), inputFixture(t, 2)}
+	for index := range inputs {
+		inputs[index].Admission.Goal = assistant.InvestigateIncident
+		if _, err := service.Submit(context.Background(), inputs[index]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	done := make(chan error, 2)
+	for _, worker := range []string{"worker_one", "worker_two"} {
+		go func() {
+			found, err := service.runOne(context.Background(), worker)
+			if !found && err == nil {
+				err = assistant.ErrUnavailable
+			}
+			done <- err
+		}()
+	}
+	for range 2 {
+		select {
+		case err := <-done:
+			if err != nil {
+				t.Fatal(err)
+			}
+		case <-time.After(3 * time.Second):
+			t.Fatal("bounded concurrent investigation stalled")
+		}
+	}
+	seen := map[string]bool{}
+	for _, input := range inputs {
+		snapshot, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID)
+		if err != nil || snapshot.Answer == nil || snapshot.Run.ToolCalls != 5 || len(snapshot.Citations) != 4 {
+			t.Fatal("concurrent proof set failed publication", err)
+		}
+		for _, reference := range snapshot.Citations {
+			if seen[reference.ID] {
+				t.Fatal("run-bound citation crossed concurrent ownership")
+			}
+			seen[reference.ID] = true
+		}
+	}
+	if model.calls.Load() != 2 {
+		t.Fatal("concurrent read caused another dispatch")
+	}
+}
+
+func TestSourceRevocationDuringExtraReadPreventsLatePublication(t *testing.T) {
+	t.Parallel()
+	for _, stopAt := range []assistant.StepKind{assistant.Health, assistant.Metrics, assistant.Events, assistant.Topology} {
+		service, _, _, model := fixtureService(t, nil)
+		original := service.collector
+		service.collector = collectorFunc(func(ctx context.Context, request assistantevidence.ReadRequest) (assistantevidence.Evidence, error) {
+			if request.Kind == stopAt {
+				service.InvalidateSource(string(request.Scope.Source.SourceID))
+			}
+			return original.Read(ctx, request)
+		})
+		input := inputFixture(t, 1)
+		input.Admission.Goal = assistant.InvestigateIncident
+		if _, err := service.Submit(context.Background(), input); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := service.runOne(context.Background(), "worker"); err == nil || model.counts.Load() != 0 || model.calls.Load() != 0 {
+			t.Fatal("revoked partial context reached dispatch")
+		}
+		snapshot, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID)
+		if err != nil || snapshot.Volatile || snapshot.Answer != nil || len(snapshot.Citations) != 0 || len(snapshot.Outcomes) != 0 {
+			t.Fatal("revoked extra read published late output")
+		}
+	}
+}

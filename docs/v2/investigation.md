@@ -37,6 +37,10 @@ separate retained proofs, closed coverage metadata and a single final dispatch.
 Focused tests are authored for reservation order, actual/unsupported families,
 later health revocation, denied partial collection, consent identity and bounded
 query/log reauthorization. They are not yet accepted until hosted execution.
+Additional tests cover concurrent run-bound citation isolation, revocation during
+each extra family, complete consented/masked log context, log permission/privacy
+policy changes and uncertain single-dispatch behavior. They remain candidate tests
+until their own exact-source hosted execution passes.
 The public contract and desktop control are now candidates. Derived types, hosted new-mode SQL/browser journeys, signed
 package/security trial and immutable alpha.5 tag remain pending. Ordinary alpha.4
 explanation remains the accepted released mode; the branch adds an unaccepted investigation mode.
@@ -72,6 +76,8 @@ Open Smart Assistant on an authenticated selected-resource page. Read mode
 starts as **Explain resource**. Choose **Investigate resource** explicitly,
 select the window and submit once. No mode/window/consent change submits work.
 Those changes replace and clear the volatile view and its admission material.
+Changing resource or language remounts the controls; log consent is bound to the
+opaque current session owner and cannot carry into a replacement session.
 For local policy-filtered logs, select the unchecked consent only with a five-
 or fifteen-minute window. A wider window clears and disables that consent.
 Coverage lists each attempted family, availability, record count, partial status

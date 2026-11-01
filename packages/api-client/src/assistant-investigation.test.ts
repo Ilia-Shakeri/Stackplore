@@ -104,19 +104,17 @@ describe('bounded multi-family investigation transport', () => {
       goal: 'investigate_incident',
       log_consent: true,
     };
-    const fetcher = vi
-      .fn<typeof fetch>()
-      .mockImplementation(() =>
-        Promise.resolve(
-          new Response(JSON.stringify({ run: fixture().run }), {
-            status: 202,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Request-ID': 'req_investigation_test',
-            },
-          }),
-        ),
-      );
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ run: fixture().run }), {
+          status: 202,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Request-ID': 'req_investigation_test',
+          },
+        }),
+      ),
+    );
     const client = createAssistantClient(createApiClient({ fetch: fetcher }));
     const options = { csrfToken: 'A'.repeat(43), idempotencyKey: 'c'.repeat(64) };
     await client.admit(input, options);

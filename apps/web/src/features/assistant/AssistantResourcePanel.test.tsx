@@ -81,6 +81,27 @@ afterEach(() => {
 });
 
 describe('owning resource view', () => {
+  it('drops local log consent on owner change and locale remount without dispatch', () => {
+    const { api, setOwner } = mount();
+    fireEvent.click(screen.getByRole('button', { name: language.en.open }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Read mode' }), {
+      target: { value: 'investigate_incident' },
+    });
+    fireEvent.click(screen.getByRole('checkbox'));
+    expect(screen.getByRole('checkbox')).toHaveProperty('checked', true);
+    act(() => {
+      setOwner(Symbol());
+    });
+    expect(screen.getByRole('checkbox')).toHaveProperty('checked', false);
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Change test locale' }));
+    expect(screen.getByRole('combobox', { name: 'حالت خواندن' })).toHaveProperty(
+      'value',
+      'explain_resource',
+    );
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(api.admit).not.toHaveBeenCalled();
+  });
   it.each(['en', 'fa'] as const)(
     'requires explicit mode and local log consent in %s, then erases on change',
     (locale) => {

@@ -6,6 +6,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import process from 'node:process';
 import { hostedAssistantProfile } from './hosted-assistant-profile.mjs';
+import { startHostedProcessorObserver } from './hosted-processor-observer.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const assistantProfile = hostedAssistantProfile(process.env);
@@ -117,10 +118,12 @@ for (const mode of requestedModes) {
   const proof = guest ? '' : randomBytes(32).toString('base64url');
   let server;
   let proxy;
+  let observer;
   let startupReason = 'unknown';
   let created = false;
   let failure;
   try {
+    if (realAssistant) observer = await startHostedProcessorObserver(process.env);
     sql(`CREATE DATABASE ${ownedDatabase}`);
     created = true;
     if (guest) {
@@ -182,6 +185,7 @@ for (const mode of requestedModes) {
         STACKPLORE_DATABASE_URL: database.toString(),
         STACKPLORE_DATA_DIRECTORY: resolve(work, `${mode}-runtime`),
         ...assistantProfile,
+        ...(observer === undefined ? {} : { STACKPLORE_ASSISTANT_ORIGIN: observer.origin }),
         ...(guest
           ? {
               STACKPLORE_DEMO_DEPLOYMENT: 'true',
@@ -274,6 +278,10 @@ for (const mode of requestedModes) {
         if (failure === undefined) failure = error;
         else process.stderr.write('Disposable browser database cleanup also failed.\n');
       }
+    }
+    if (observer) {
+      await observer.stop();
+      await writeFile(resolve(root, '.tmp', `hosted-inference-${mode}.json`), `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, calls: observer.snapshot(), stopped: true })}\n`, { mode: 0o600 });
     }
   }
   if (failure !== undefined) throw failure;
