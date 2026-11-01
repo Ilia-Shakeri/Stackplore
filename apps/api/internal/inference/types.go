@@ -21,7 +21,8 @@ const (
 	MaximumEvidence        = 64
 	MaximumReferenceLength = 128
 	MaximumSections        = 12
-	MaximumCallDuration    = 25 * time.Second
+	DefaultCallDuration    = 25 * time.Second
+	MaximumCallDuration    = 40 * time.Second
 	PreparationLifetime    = time.Minute
 )
 

@@ -465,3 +465,9 @@ The next source moves only disposable real computation to Linux and retains
 Windows launcher checks. It keeps both languages, roles, desktop journey and
 strict output/deadline gates. Linux results cannot accept Windows capacity,
 public artifacts or later roadmap stages.
+
+The first Linux `e29e1c2`, [run 41287638018](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41287638018),
+[retains a 25-second Persian evidence failure](hosted-linux-budget-failed.json).
+Exact gaps and English evidence pass; cleanup is proven. The current profile
+uses the explicitly amended 40-second ceiling in [ADR-0017](../../adr/0017-profile-call-budgets.md),
+while defaults stay 25 seconds. A new result cannot rewrite this failed receipt.

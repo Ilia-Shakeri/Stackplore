@@ -26,7 +26,7 @@ Every key starts with `STACKPLORE_ASSISTANT_`:
 | `CONTEXT_TOKENS` | Canonical decimal, 20,096–65,536; exact server context pin |
 | `GENERATION` | Canonical decimal, 1–9,007,199,254,740,991 |
 | `OUTPUT_TOKENS` | Optional downward bound, 1–4,096 |
-| `CALL_TIMEOUT` | Optional canonical duration, 1 ms–25 s |
+| `CALL_TIMEOUT` | Optional canonical duration, 1 ms–40 s; default 25 s |
 
 Only the last two values have enabled-profile defaults. All identity pins are
 required when enabled. Limits retain the existing 64 KiB/16,000 input-token,
@@ -89,3 +89,10 @@ source receipts. New application composition requires its own complete gates.
 statement است؛ اثبات شاخه، موتور واقعی، شروع برنامه یا گفت‌وگوی عمومی نیست.
 اتصال اصلی، قفل توقف و پایان کارگر ساخته شده؛ جریان سمت سرور شاهد جدا دارد؛ مرورگر
 دوزبانه هنوز مانده. نصب یا شروع پردازنده از تنظیم برنامه انجام نشود.
+
+
+The explicit 40-second ceiling follows [ADR-0017](../adr/0017-profile-call-budgets.md).
+Defaults stay 25 seconds. A CPU operator selecting 40s must provision a server
+HTTP timeout beyond that value; the hosted candidate uses 45 seconds. Token,
+worker, queue, authority and 120-second run bounds stay unchanged. Old 25-second
+failures are not accepted under the new profile. Actual capacity remains measured.

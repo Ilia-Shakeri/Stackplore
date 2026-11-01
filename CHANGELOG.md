@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Preserve 25-second operator/adapter defaults and introduce an explicit 40-second call ceiling under ADR-0017, within the existing 120-second run bound. The hosted CPU profile requests 40s and records that budget; old 25-second failures remain failed. Preserve cancellation, strict output and all usage/resource limits.
+
 - Add a guarded Linux hosted compute path with pinned CPU archive/model, bounded extraction and metadata-only bilingual protocol/desktop checks using the owned patched PostgreSQL fixture. Retain failed Windows capacity receipts and native launcher checks; no customer or workstation process starts.
 
 - Keep bilingual semantic failures explicit and move only the disposable hosted candidate to independently pinned 1.7B weights. Preserve customer defaults, original operator pins and strict deadlines. Localize the task contract while keeping evidence instructions separate; use an atomic test observer.

@@ -85,7 +85,7 @@ func NewLocal(profile Profile, options Options) (*Local, error) {
 		approved[address] = true
 	}
 	if options.Timeout == 0 {
-		options.Timeout = port.MaximumCallDuration
+		options.Timeout = port.DefaultCallDuration
 	}
 	if options.Timeout < time.Millisecond || options.Timeout > port.MaximumCallDuration {
 		return nil, port.ErrInvalid

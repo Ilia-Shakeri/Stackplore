@@ -31,11 +31,19 @@ func pinnedIntegrationLocal(t *testing.T) *Local {
 	if err != nil || strconv.Itoa(contextTokens) != os.Getenv("STACKPLORE_TEST_INFERENCE_CONTEXT_TOKENS") {
 		t.Fatal("integration context pin is invalid")
 	}
+	callTimeout := port.DefaultCallDuration
+	if value := os.Getenv("STACKPLORE_TEST_INFERENCE_CALL_TIMEOUT"); value != "" {
+		parsedTimeout, err := time.ParseDuration(value)
+		if err != nil || parsedTimeout.String() != value || parsedTimeout < time.Millisecond || parsedTimeout > port.MaximumCallDuration {
+			t.Fatal("integration call budget is invalid")
+		}
+		callTimeout = parsedTimeout
+	}
 	local, err := NewLocal(Profile{
 		ID: "operator_integration", Origin: origin, ApprovedAddresses: []netip.Addr{address.Unmap()},
 		ExpectedAlias: os.Getenv("STACKPLORE_TEST_INFERENCE_ALIAS"), ExpectedBuild: os.Getenv("STACKPLORE_TEST_INFERENCE_BUILD"),
 		ExpectedTemplateSHA256: os.Getenv("STACKPLORE_TEST_INFERENCE_TEMPLATE_SHA256"), ExpectedContextTokens: contextTokens, Generation: 1,
-	}, Options{})
+	}, Options{Timeout: callTimeout})
 	if err != nil {
 		t.Fatal("integration profile is invalid")
 	}

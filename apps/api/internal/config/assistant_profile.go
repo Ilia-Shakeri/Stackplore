@@ -62,7 +62,7 @@ type AssistantLocalProfile struct {
 }
 
 // AssistantLimits reports enforceable existing gateway and service bounds.
-// Only output tokens and call timeout are configurable, and only downwards.
+// Output tokens and call timeout are configurable within fixed ceilings; timeout defaults to 25 seconds.
 type AssistantLimits struct {
 	InputBytes, InputTokens, OutputBytes, OutputTokens int
 	InferenceCalls, ToolCalls                          int
@@ -187,7 +187,7 @@ func loadAssistantProfileEntries(entries []string) (AssistantProfile, error) {
 			return AssistantProfile{}, err
 		}
 	}
-	callTimeout := inference.MaximumCallDuration
+	callTimeout := inference.DefaultCallDuration
 	if value, found := values[assistantCallTimeoutKey]; found {
 		callTimeout, err = time.ParseDuration(value)
 		if len(value) > 32 || err != nil || callTimeout.String() != value || callTimeout < time.Millisecond || callTimeout > inference.MaximumCallDuration {

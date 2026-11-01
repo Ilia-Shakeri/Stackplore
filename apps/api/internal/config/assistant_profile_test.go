@@ -60,7 +60,7 @@ func TestAssistantProfileDisabledAndSingleSnapshot(t *testing.T) {
 		t.Fatal("trusted identity pins changed")
 	}
 	limits := profile.Limits()
-	if limits.InputBytes != inference.MaximumInputBytes || limits.InputTokens != inference.MaximumInputTokens || limits.OutputBytes != inference.MaximumOutputBytes || limits.OutputTokens != inference.MaximumOutputTokens || limits.CallTimeout != inference.MaximumCallDuration || limits.RunTimeout != assistant.MaximumRunDuration || limits.InferenceCalls != assistant.MaximumInferenceCalls || limits.ToolCalls != assistant.MaximumToolCalls {
+	if limits.InputBytes != inference.MaximumInputBytes || limits.InputTokens != inference.MaximumInputTokens || limits.OutputBytes != inference.MaximumOutputBytes || limits.OutputTokens != inference.MaximumOutputTokens || limits.CallTimeout != inference.DefaultCallDuration || limits.RunTimeout != assistant.MaximumRunDuration || limits.InferenceCalls != assistant.MaximumInferenceCalls || limits.ToolCalls != assistant.MaximumToolCalls {
 		t.Fatal("gateway or runtime limit drift")
 	}
 	local.Origin = "https://example.invalid"
@@ -120,7 +120,7 @@ func TestAssistantProfileCanonicalOriginsAndPins(t *testing.T) {
 		assistantContextTokensKey:  {"0", "+24576", "024576", "24576.0", strconv.Itoa(inference.MaximumInputTokens + inference.MaximumOutputTokens - 1), strconv.Itoa(maximumAssistantContextTokens + 1)},
 		assistantGenerationKey:     {"0", "-1", "01", "+1", strconv.FormatInt(maximumAssistantGeneration+1, 10), strings.Repeat("9", 17)},
 		assistantOutputTokensKey:   {"0", "-1", "01", strconv.Itoa(inference.MaximumOutputTokens + 1)},
-		assistantCallTimeoutKey:    {"0s", "1us", "1000ms", "26s", "bad", strings.Repeat("1", 33)},
+		assistantCallTimeoutKey:    {"0s", "1us", "1000ms", "41s", "bad", strings.Repeat("1", 33)},
 	}
 	for key, inputs := range cases {
 		for index, input := range inputs {

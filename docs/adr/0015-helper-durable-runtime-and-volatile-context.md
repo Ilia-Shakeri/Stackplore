@@ -203,3 +203,11 @@ admission blocking. No claim above is implemented by accepting this record.
 - [Existing notification leases](../../apps/api/internal/postgres/notification_delivery.go)
 - [Existing uncertain-operation recovery](../../apps/api/internal/postgres/operation_recovery.go)
 - [Version 2 roadmap](../roadmap-v2.md)
+
+
+## Inference time-budget amendment — 2026-11-01
+
+[ADR-0017](0017-profile-call-budgets.md) partially supersedes only the original
+inference-call ceiling. The original decision above remains historical. Defaults
+stay 25 seconds; explicit profiles may request at most 40 seconds. The 120-second
+run, call counts, ownership, reservations and other limits remain unchanged.

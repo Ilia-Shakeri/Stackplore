@@ -34,6 +34,7 @@ test('hosted profile ignores ambient endpoint and identity overrides', () => {
   });
   assert.equal(profile.STACKPLORE_ASSISTANT_ORIGIN, 'http://127.0.0.1:58102');
   assert.equal(profile.STACKPLORE_ASSISTANT_OUTPUT_TOKENS, '512');
+  assert.equal(profile.STACKPLORE_ASSISTANT_CALL_TIMEOUT, '40s');
   assert.equal(Object.isFrozen(profile), true);
   assert.throws(() => {
     profile.STACKPLORE_ASSISTANT_ORIGIN = 'http://127.0.0.1:1';

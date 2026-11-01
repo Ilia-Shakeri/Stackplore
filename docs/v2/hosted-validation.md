@@ -7,6 +7,12 @@ runs on Actions. Earlier local receipts remain historical.
 
 ## Real processor gate
 
+**Current budget amendment:** [ADR-0017](../adr/0017-profile-call-budgets.md)
+keeps the default 25 seconds and permits explicit profiles up to 40 seconds.
+The current Linux candidate explicitly uses 40s in both direct and application
+paths. Its receipt records the budget. Every 25-second failure below retains
+its original criterion; none is relabelled passed. Whole-stage acceptance is open.
+
 The current `processor-runtime` job uses disposable `ubuntu-24.04` compute.
 [`check-hosted-processor-linux.mjs`](../../scripts/check-hosted-processor-linux.mjs)
 refuses workstation execution before filesystem, network or process operations.
@@ -30,7 +36,7 @@ The original Windows launcher checks 51 files; the Linux path checks the pinned 
 one-slot identity. `TestPinnedLocalRuntimeIntegration` must execute both
 languages: exact empty-evidence semantics, counts, closed output and single-use
 preparations. Skipped/missing cases, nonzero exit, identity mismatch or unproven
-owned shutdown fail the job. No deadline or assertion is relaxed.
+owned shutdown fail the job. Strict JSON, citation and semantic assertions remain. The explicit time-budget amendment above is recorded separately.
 
 Only `.tmp/hosted-processor.json` is uploaded: source revision, public pins,
 bounded case results and shutdown status. Private receipts, local paths, raw
@@ -244,3 +250,20 @@ script publishes only metadata. Neither generated answers nor browser DOM,
 private paths, credential URLs, model files or raw logs are uploaded. Fixture
 cleanup also has an independent always-run workflow step. Existing Windows
 scripts are preserved for their recorded scope; none runs on the workstation.
+
+## Explicit CPU budget correction
+
+The first Linux source `e29e1c2`
+([run 41287638018](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41287638018))
+[still fails the original 25-second Persian evidence deadline](../evidence/2.0.0-alpha.4/hosted-linux-budget-failed.json).
+Exact gaps and English evidence pass; both model and database are stopped.
+Its source formatting failure is corrected using the Actions-generated patch.
+The new script also rejects unsafe link targets before extraction and keeps
+fixture credentials out of the processor environment.
+
+The current candidate explicitly requests the new bounded 40-second profile,
+not the unchanged 25-second default. Configuration and adapter tests verify
+both defaults and the hard ceiling. The gateway and parent run remain bounded;
+120-second overall timeout, strict output, usage reservations, cancellation,
+heartbeats and authority fencing remain mandatory. This is an explicit policy
+change, not acceptance of the old failed timing gate. New real results are pending.

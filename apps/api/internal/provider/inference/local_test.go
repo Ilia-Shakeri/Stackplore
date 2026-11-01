@@ -631,3 +631,17 @@ func TestLocalTaskContractLocalizesWithoutPromotingEvidenceInstructions(t *testi
 		})
 	}
 }
+
+func TestLocalTimeoutDefaultAndExplicitCeiling(t *testing.T) {
+	t.Parallel()
+	for _, duration := range []time.Duration{0, port.MaximumCallDuration} {
+		local, _ := fixtureLocal(t, &protocolFixture{}, Options{Timeout: duration})
+		want := duration
+		if duration == 0 {
+			want = port.DefaultCallDuration
+		}
+		if local.timeout != want || port.DefaultCallDuration != 25*time.Second || port.MaximumCallDuration != 40*time.Second {
+			t.Fatal("default or explicit call budget drift")
+		}
+	}
+}

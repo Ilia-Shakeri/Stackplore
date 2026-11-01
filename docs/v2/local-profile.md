@@ -61,7 +61,7 @@ The fixed protocol is:
 
 Every request resolves and validates its destination again, pins the approved
 address for that attempt, rejects redirects, ignores ambient proxies and caps
-wire input at 1 MiB. Count and generation each have a maximum 25-second context;
+wire input at 1 MiB. Count and generation default to 25 seconds; explicit operator profiles may request at most 40 seconds under [ADR-0017](../adr/0017-profile-call-budgets.md);
 the complete run has its own 120-second cap and renewable lease. No network I/O
 belongs inside a database transaction. One prepared request is usable once,
 including when a caller copies its wrapper.
@@ -131,7 +131,7 @@ context دقیق و نسل پروفایل بسته شوند؛ پاسخ metadata 
 مرورگر، مسیر فایل و آدرس ندهد. HTTP فقط loopback؛ شبکهٔ خصوصی با TLS معتبر.
 
 قالب کامل ساخته، همان tokenها پیش از ارسال شمرده و هنگام اجرا فرستاده شوند.
-۶۴ KiB و ۱۶٬۰۰۰ token ورودی، ۴٬۰۹۶ token و ۶۴ KiB خروجی، هر فراخوان ۲۵ ثانیه
+۶۴ KiB و ۱۶٬۰۰۰ token ورودی، ۴٬۰۹۶ token و ۶۴ KiB خروجی، هر فراخوان پیش‌فرض ۲۵ ثانیه؛ سقف صریح پروفایل ۴۰ ثانیه
 و کل اجرا ۱۲۰ ثانیه سقف‌اند؛ توان سخت‌افزار نیستند. بودجه پیش از ارسال رزرو؛
 درخواست نامعلوم خودکار تکرار یا آزاد نشود. تغییر هویت، redirect، مقصد نامجاز
 و پاسخ ناسازگار، رد شوند. متن خام در پایگاه یا رسید عمومی نرود.
