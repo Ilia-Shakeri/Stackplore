@@ -299,7 +299,7 @@ func AnswerSchemaForReferences(ids []string) (json.RawMessage, error) {
 		if err != nil {
 			return nil, ErrInvalid
 		}
-		citations = `{"type":"array","maxItems":64,"uniqueItems":true,"items":{"type":"string","enum":` + string(encoded) + `}}`
+		citations = `{"type":"array","maxItems":` + fmt.Sprint(len(ids)) + `,"uniqueItems":true,"items":{"type":"string","enum":` + string(encoded) + `}}`
 	}
 	original := `{"type":"array","maxItems":64,"uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":128}}`
 	base := string(AnswerSchema())

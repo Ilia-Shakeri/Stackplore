@@ -408,3 +408,9 @@ JSON and exact input counts from invalid citations. Review found the name
 assertion requested a field excluded by the privacy projection. New cases ask
 for the existing typed resource identity, with an independent expected value.
 No failed source is relabelled accepted; alpha.4 remains development.
+
+The next `2ac7b01` [run 41283575323](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41283575323)
+failed the evidence-call deadline in both languages; the
+[immutable failed receipt](hosted-evidence-deadline-failed.json) records unknown
+usage and owned processor shutdown. The array bound and hosted thread correction
+require fresh validation; neither deadline nor output validation was relaxed.

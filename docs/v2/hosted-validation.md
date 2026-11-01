@@ -117,3 +117,13 @@ release gates. Alpha.4 waits for its exit criteria. Stages 5–10 remain open.
 امنِ نسخهٔ منبع، هش عمومی، نتیجه و توقف مالکیت‌دار بارگذاری شود؛ مسیر خصوصی،
 پاسخ خام و مدل بارگذاری نشوند. دسکتاپ اول باشد؛ موبایل چک کوتاه داشته باشد.
 این تست، کیفیت پاسخ یا پایان گام ۴ را ثابت نمی‌کند.
+
+The `2ac7b01` [deadline failure](../evidence/2.0.0-alpha.4/hosted-evidence-deadline-failed.json)
+retains two uncertain evidence calls at 25 seconds and owned shutdown; neither
+is accepted or retried. Generation's citation array is now also capped at the
+number of authorized distinct IDs, because grammar implementations need not
+enforce `uniqueItems`. With one supplied ID, no more than one citation can be
+generated. Output parsing still independently rejects duplicates and invalid
+references. The disposable hosted profile uses four allowed CPU threads;
+workstation execution remains forbidden and the 25-second call bound remains.
+This correction requires a new exact-source result.

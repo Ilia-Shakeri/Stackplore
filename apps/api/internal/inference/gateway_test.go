@@ -395,7 +395,7 @@ func TestBoundSchemaRestrictsReferencesAndRejectsInvalidSets(t *testing.T) {
 			}
 		} else {
 			allowed := citations["items"].(map[string]any)["enum"].([]any)
-			if len(allowed) != 2 || allowed[0] != "e_1" || allowed[1] != "e_2" {
+			if citations["maxItems"] != float64(2) || len(allowed) != 2 || allowed[0] != "e_1" || allowed[1] != "e_2" {
 				t.Fatal("schema can invent citation IDs")
 			}
 		}
