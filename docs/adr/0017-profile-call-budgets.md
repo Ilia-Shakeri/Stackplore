@@ -1,7 +1,7 @@
 # ADR-0017: Explicit bounded processor call budgets
 
 - Status: Accepted
-- Implementation: Exact-source acceptance pending
+- Implementation: Chosen Linux profile verified at immutable alpha.4; broader capacity remains separate
 - Date: 2026-11-01
 - Owners: Project maintainers
 - Partially supersedes: [ADR-0015](0015-helper-durable-runtime-and-volatile-context.md), inference-call time ceiling only

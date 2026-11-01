@@ -497,3 +497,22 @@ still required seven jobs although verification now has eight. New source adds
 `processor-runtime` to the exact required set and tests missing/skipped/failed/
 incomplete real-runtime jobs. Unknown, duplicated and extra jobs remain denied.
 That correction needs fresh CI and trial artifact validation before any tag.
+
+## Immutable chosen-local checkpoint publication
+
+The eight-job publication correction passed fresh source CI `41290087508` and
+signed package/security trial `41290209858` at
+`1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`. Immutable annotated tag
+`v2.0.0-alpha.4` points to that exact source. [Tag verification](tag-ci.json)
+passes all eight required jobs; [tag release](tag-release.json) passes packaging
+and actual publication. The [public prerelease](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.4)
+is non-draft and contains 39 assets: archives, signed provenance/SBOMs, strict
+scan reports, metadata and checksums. Publication was checked through the release
+API; this does not claim an independent public download/native acceptance run.
+
+This checkpoint accepts the chosen local conversation foundation and recorded
+hosted/packaging scope. Stage 1 explicitly permits remote profiles to remain
+optional; they and their structured templates remain disabled/unshipped.
+Windows processor capacity, held-out human quality, soak/pilot, independent
+public consumption and the remaining v2 stages are not accepted by this tag.
+No service, test, build, generator or scan ran on the user's workstation.
