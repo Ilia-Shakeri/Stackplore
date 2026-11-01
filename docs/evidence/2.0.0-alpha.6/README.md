@@ -45,3 +45,19 @@ scoped citations, quotas, pins, deadlines and no-retry rules stay unchanged.
 Safe diagnostics add only expected-value containment, byte count and a closed
 identity-shape label; no raw question, generated answer or identifier is saved.
 The new source requires its own complete validation.
+
+## Report-core scoped source review
+
+At `d1e080be3b9884936576bc764760515474e29060`, [all eight source jobs](report-core-ci.json)
+pass, including full source/build, real PostgreSQL, race, desktop/offline,
+provider and installation gates. [The real report receipt](hosted-report-core.json)
+passes all six direct events and eight application journeys. All four actual
+investigation role/language combinations require report HTTP 200, two retained
+inventory/health rows, fresh current citations and clearing; owned cleanup passes.
+Mixed metric/event/log report semantics have focused tests, not new positive
+real-provider report acceptance in this fixture. Review of this bounded typed
+report/authority/client/lifecycle source: **9/10**. This is not complete stage-6
+or whole-version acceptance. Its signed trial is separately pending.
+
+The next history-port preparation has its own source and tests. Parent report
+receipts do not accept new SQL, ports, migrations, read plans or later features.

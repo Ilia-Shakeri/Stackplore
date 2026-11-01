@@ -552,6 +552,23 @@ A clearer synthetic structured-path question and metadata-only diagnostics need
 fresh source proof; no expected identifier is placed in the question and no
 assertion, deadline, usage or model/profile pin is relaxed. Review remains 8/10.
 
+At `d1e080b`, run `41312175218`, all eight jobs pass, including full source,
+race/browser/install/provider and actual bilingual report/processor proof.
+The bounded typed report/authority/lifecycle source review is **9/10**; signed
+packaging is independently pending. [Exact source evidence](../evidence/2.0.0-alpha.6/README.md).
+The remaining stage-6 history, taxonomy, quality and publication gates stay open.
+
+The next slice prepares a narrow selected-resource alert transition query and
+PostgreSQL adapter. Query bounds are one source/provider/resource, a half-open
+window of at most 24 hours, and at most eight returned records. SQL applies
+scope/window predicates, ordinal tie ordering and LIMIT+1 inside one bounded
+read-only snapshot. Only historical transition state/time is returned; current
+severity/rule kind, actors and prose cannot masquerade as historical facts.
+Current policy loss returns no data. Domain and real PostgreSQL tests cover
+caps, chronology, adjacent resource exclusion, policy/cancel/closed-store cases.
+This port is not yet registered in the assistant plan or public report. Schema
+remains 18; separate reservation/proof/read-plan integration still needs work.
+
 ## Stage-5 acceptance followup — 2026-11-01
 
 The correction passes eight source jobs `41301657316` and signed trial

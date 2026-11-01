@@ -94,6 +94,25 @@ failure. Bounds and limited sampling remain visible in every report.
 
 ## Bounds, security and retention
 
+### Selected alert-history port preparation
+
+The candidate `IncidentAlertHistoryReader` selects actual transitions by source,
+provider, exact current resource identity and a half-open window of at most 24
+hours. It returns at most eight records with explicit partial/more coverage and
+ordinal time/ID ordering. The adapter uses a bounded repeatable-read read-only
+snapshot and SQL predicates, not source-wide pages or application filtering.
+Current source policy denial produces empty metadata. Callers still need current
+actor/source/resource authority and a separately reserved typed read proof.
+
+Transition state and occurrence time are historical facts. Current alert severity
+and rule kind can change after a transition and are deliberately absent. Actor,
+acknowledging identity, private reason codes and prose are also absent. The last
+provider collection time is not substituted for a later local transition time.
+The new port is not yet connected to the fixed plan or public timeline; no new
+read authority, schema migration or alert-correlation acceptance is implied.
+
+### Existing execution limits
+
 Retain the existing 120-second run limit, one final generation, current token and
 byte caps, queue/concurrency limits and unknown-use no-retry rule. Report data
 shares the same 64-KiB canonical output budget; it cannot create a second hidden

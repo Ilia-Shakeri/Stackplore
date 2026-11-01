@@ -4,6 +4,8 @@
 
 ### Smart Analysis — development candidate
 
+- Pass all eight source jobs and actual bilingual report/citation/clearing checks at `d1e080b` in the recorded report-core scope. Prepare a separate typed resource/window-bound alert-transition read with protected formatting, bounded read-only SQL and real database tests. Historical state/time stay distinct from current rule/severity. This port is not yet a registered tool; schema remains 18 and full stage-6 quality/publication remain open.
+
 - Add an explicit bilingual desktop report panel with typed chronology, quality flags, qualified hypotheses, fresh supporting/contrary citations and inert next reads. Abort and fence closed/expired/foreign/lost replies, share the retained answer's output cap, and require actual report read/render/citation/clearing receipts on the hosted real journey. New source and stage-6 quality/publication remain pending.
 
 - Add strict detached typed report parsing and explicit session-bound client reads. Validate half-open chronology, scoped unique references, pressure/health/restart support and contrary facts, qualifiers, deterministic ranks and closed inert recommendations. Reject getter/coercion hooks and lost-memory content. Apply hosted contract derivation/formatting; new source requires its own full checks.
