@@ -1,5 +1,10 @@
 # Version 2 implementation ledger
 
+> Development preparation: branch `v2/alpha5` targets **2.0.0-alpha.5**, schema
+> **18**. The alpha.4 tag points immutably to `1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`;
+> its exact-tag verification/publication are separate. This version bump does
+> not deliver an investigation loop. [Stage-5 plan](investigation.md).
+
 **Execution boundary, 2026-11-01:** local file editing and lightweight Git only.
 All services, tests, builds, installs and scans run on Actions. Desktop is
 primary; mobile has one brief smoke check. At `1e21b3695970f54185244925d2cd5096dcb861e8`,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-alpha.5] - 2026-11-01
+
+### Smart Assistant — development preparation
+
+- Prepare the next bounded read-only investigation checkpoint on a separate branch. No new investigation mode or later-stage acceptance is claimed by the version change.
+- Allow verification of development branches under `v2/**`; retain the exact eight-job publication gate and immutable alpha.4 source.
+
 ## [2.0.0-alpha.4] - 2026-10-28
 
 ### Smart Assistant — development in progress
