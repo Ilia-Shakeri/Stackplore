@@ -22,6 +22,13 @@ cases passed and both PostgreSQL 17.11 and processor shutdown were owned.
 Neither that partial result nor a correction is whole-stage acceptance. New
 diagnostics retain only fixed states, counts and booleans, never raw replies.
 
+Source `65014a1`, [run 41282140175](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41282140175),
+also remains failed: one unnecessary optional chain in the test and both real
+browser cases. [Its diagnostic receipt](hosted-journey-diagnostic-failed.json)
+shows successful admission/inventory and uncertain inference, with both owned
+processes stopped. New source adds a direct canonical-evidence probe to
+classify the completion boundary; it does not accept either failed revision.
+
 Date: **2026-10-28**. Development version **2.0.0-alpha.4**, schema18.
 
 The foundation prepares a snapshot-only, default-off loopback profile parser and

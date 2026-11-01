@@ -45,7 +45,16 @@ export async function assistantLiveJourney(
             const state = (body.run as Record<string, unknown>).state;
             if (
               typeof state === 'string' &&
-              ['queued', 'running', 'completed', 'failed', 'cancelled', 'expired'].includes(state)
+              [
+                'queued',
+                'running',
+                'completed',
+                'failed',
+                'cancelled',
+                'expired',
+                'interrupted',
+                'uncertain',
+              ].includes(state)
             ) {
               metadata.run_state = state;
             }
@@ -111,7 +120,7 @@ export async function assistantLiveJourney(
     }
     const supported = await panel.evaluate((element, expected) => {
       const texts = element.querySelectorAll('.assistant__turns .assistant__text');
-      return texts.length === 1 && texts[0]?.textContent?.trim() === expected;
+      return texts.length === 1 && texts[0]?.textContent.trim() === expected;
     }, name);
     expect(supported).toBe(true);
     metadata.resource_name_supported = supported;

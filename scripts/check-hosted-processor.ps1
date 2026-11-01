@@ -91,16 +91,23 @@ try {
   $env:STACKPLORE_TEST_INFERENCE_TEMPLATE_SHA256=$ready.template_sha256
   $env:STACKPLORE_TEST_INFERENCE_CONTEXT_TOKENS='20480'
   $report.phase='protocol'
-  $events=@(& go -C (Join-Path $repository 'apps/api') test ./internal/provider/inference -run '^TestPinnedLocalRuntimeIntegration$' -count=1 -timeout=3m -json 2>$null)
+  $events=@(& go -C (Join-Path $repository 'apps/api') test ./internal/provider/inference -run '^TestPinnedLocal(Runtime|Evidence)Integration$' -count=1 -timeout=3m -json 2>$null)
   $goExit=$LASTEXITCODE
   $decoded=@($events | ForEach-Object {$_ | ConvertFrom-Json})
-  foreach($name in @('TestPinnedLocalRuntimeIntegration/en','TestPinnedLocalRuntimeIntegration/fa','TestPinnedLocalRuntimeIntegration')){
+  foreach($name in @('TestPinnedLocalRuntimeIntegration/en','TestPinnedLocalRuntimeIntegration/fa','TestPinnedLocalRuntimeIntegration','TestPinnedLocalEvidenceIntegration/en','TestPinnedLocalEvidenceIntegration/fa','TestPinnedLocalEvidenceIntegration')){
     $finished=@($decoded | Where-Object {$_.Action -in @('pass','fail','skip') -and $_.PSObject.Properties.Name -contains 'Test' -and $_.Test -ceq $name})
     if($finished.Count -eq 1){
       $elapsed=0
       if($finished[0].PSObject.Properties.Name -contains 'Elapsed'){$elapsed=$finished[0].Elapsed}
       $report.cases+=@{name=$name;status=$finished[0].Action;elapsed_seconds=$elapsed}
     } else {$report.cases+=@{name=$name;status='missing_or_duplicate';elapsed_seconds=0}}
+  }
+  $report['evidence_probes']=@()
+  foreach($event in $decoded){
+    if($event.PSObject.Properties.Name -contains 'Output' -and $event.Output -match 'evidence_probe=(\{[^\r\n]+\})'){
+      $flags=$Matches[1] | ConvertFrom-Json
+      $report.evidence_probes+=@{locale=$flags.locale;backend_fault=$flags.backend_fault;gateway_fault=$flags.gateway_fault;input_tokens=$flags.input_tokens;output_tokens=$flags.output_tokens;input_match=$flags.input_match;complete=$flags.complete;json_valid=$flags.json_valid;sections=$flags.sections;citations_valid=$flags.citations_valid;name_matches=$flags.name_matches}
+    }
   }
   if($goExit -ne 0){throw 'hosted_processor.protocol_failed'}
   if(@($decoded | Where-Object {$_.Action -in @('skip','fail')}).Count -ne 0 -or @($report.cases | Where-Object {$_.status -cne 'pass'}).Count -ne 0){throw 'hosted_processor.incomplete_probe'}

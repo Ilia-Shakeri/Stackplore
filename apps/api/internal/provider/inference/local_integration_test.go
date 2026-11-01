@@ -15,10 +15,8 @@ import (
 
 // This gate uses an already running, operator-pinned disposable local runtime.
 // It never launches a process, downloads a model, or reads infrastructure data.
-func TestPinnedLocalRuntimeIntegration(t *testing.T) {
-	if os.Getenv("STACKPLORE_TEST_LOCAL_INFERENCE") != "true" {
-		t.Skip("operator-pinned local inference integration is not configured")
-	}
+func pinnedIntegrationLocal(t *testing.T) *Local {
+	t.Helper()
 	origin := os.Getenv("STACKPLORE_TEST_INFERENCE_ORIGIN")
 	parsed, err := url.Parse(origin)
 	if err != nil || parsed == nil {
@@ -40,6 +38,14 @@ func TestPinnedLocalRuntimeIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal("integration profile is invalid")
 	}
+	return local
+}
+
+func TestPinnedLocalRuntimeIntegration(t *testing.T) {
+	if os.Getenv("STACKPLORE_TEST_LOCAL_INFERENCE") != "true" {
+		t.Skip("operator-pinned local inference integration is not configured")
+	}
+	local := pinnedIntegrationLocal(t)
 	gateway, err := port.New(local, time.Now)
 	if err != nil {
 		t.Fatal("integration gateway is invalid")

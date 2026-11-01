@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "source_revision": "65014a13dc280e76b17943fea67bec63143007a5",
+  "recorded_at": "2026-11-01T06:47:17.3724711Z",
+  "status": "failed",
+  "phase": "application_browser",
+  "scope": "Real bilingual protocol and application browser with synthetic Demo evidence; not general quality acceptance",
+  "archive_sha256": "aef737d26bffd08ceeb7be75f045bdef6d1ecc3187e0f4a1a3b0d878a03d2550",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "model_revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+  "model_license": "Apache-2.0",
+  "model_bytes": 639446688,
+  "context_tokens": 20480,
+  "cases": [
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/en",
+      "elapsed_seconds": 1.9,
+      "status": "pass"
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/fa",
+      "elapsed_seconds": 2.84,
+      "status": "pass"
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration",
+      "elapsed_seconds": 4.74,
+      "status": "pass"
+    }
+  ],
+  "stopped": true,
+  "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+  "build": "b11729-412a363c6",
+  "error_code": "hosted_browser.verification_failed",
+  "application_browser": {
+    "cases": [
+      {
+        "locale": "en",
+        "flaky": 0,
+        "roles": 2,
+        "skipped": 0,
+        "expected": 0,
+        "status": "fail",
+        "unexpected": 1
+      },
+      {
+        "locale": "fa",
+        "flaky": 0,
+        "roles": 2,
+        "skipped": 0,
+        "expected": 0,
+        "status": "fail",
+        "unexpected": 1
+      }
+    ],
+    "postgres_stopped": true,
+    "error_code": "hosted_browser.journey_failed",
+    "phase": "browser",
+    "database_metadata": [
+      {
+        "snapshot": {
+          "source_revision": "65014a13dc280e76b17943fea67bec63143007a5",
+          "status": "observed",
+          "runs": [
+            {
+              "state": "uncertain",
+              "tool_calls": 1,
+              "inference_calls": 1,
+              "usage_unknown": true,
+              "usage_conservative": false
+            }
+          ],
+          "steps": [
+            {
+              "kind": "inventory",
+              "state": "completed",
+              "units": 0,
+              "maximum_units": 0
+            },
+            {
+              "kind": "inference",
+              "state": "uncertain",
+              "units": 0,
+              "maximum_units": 16512
+            }
+          ]
+        },
+        "locale": "en"
+      },
+      {
+        "snapshot": {
+          "source_revision": "65014a13dc280e76b17943fea67bec63143007a5",
+          "status": "observed",
+          "runs": [
+            {
+              "state": "uncertain",
+              "tool_calls": 1,
+              "inference_calls": 1,
+              "usage_unknown": true,
+              "usage_conservative": false
+            }
+          ],
+          "steps": [
+            {
+              "kind": "inventory",
+              "state": "completed",
+              "units": 0,
+              "maximum_units": 0
+            },
+            {
+              "kind": "inference",
+              "state": "uncertain",
+              "units": 0,
+              "maximum_units": 16512
+            }
+          ]
+        },
+        "locale": "fa"
+      }
+    ],
+    "journeys": [
+      {
+        "role": "administrator",
+        "view_state": "assistant.state.unavailable",
+        "run_state": "not_observed",
+        "admission_status": 202,
+        "admissions": 1,
+        "resource_name_supported": false,
+        "citation_current": false,
+        "locale": "en",
+        "cleared": false,
+        "content_state": "unavailable"
+      },
+      {
+        "role": "administrator",
+        "view_state": "assistant.state.unavailable",
+        "run_state": "not_observed",
+        "admission_status": 202,
+        "admissions": 1,
+        "resource_name_supported": false,
+        "citation_current": false,
+        "locale": "fa",
+        "cleared": false,
+        "content_state": "unavailable"
+      }
+    ],
+    "status": "failed",
+    "schema_version": 1,
+    "source_revision": "65014a13dc280e76b17943fea67bec63143007a5",
+    "postgres_version": "postgres (PostgreSQL) 17.11"
+  }
+}

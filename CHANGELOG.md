@@ -4,6 +4,8 @@
 
 ### Smart Assistant — development in progress
 
+- Add a hosted canonical-evidence probe with safe completion, token, JSON, citation and exact-name diagnostics; preserve uncertain usage and original failures. Correct a redundant optional chain in the browser test without relaxing its assertions.
+
 - Preserve the failed real-browser checkpoint and add bounded, metadata-only browser/database diagnostics plus an Actions formatting-patch artifact. Failed revisions remain failed; no local validation or relaxed deadline is introduced.
 
 - Add an explicit hosted-only real application/browser mode with immutable processor pins, actual isolated PostgreSQL, exact evidence-supported resource-name replies, fresh citations and text cleanup. Keep generated replies out of public receipts. The new source awaits hosted acceptance.

@@ -61,6 +61,21 @@ question, answer, owner ID or raw provider payload. A failed formatting gate
 can publish a source patch from Actions; applying that patch requires a new
 commit and complete revalidation. It cannot make the failed revision pass.
 
+The next diagnostic source `65014a1` passed formatting but failed one redundant
+optional-chain lint check in the test. Its bounded metadata confirmed HTTP 202
+admission, completed inventory reads and an uncertain inference step in both
+languages. Unknown usage remained reserved; it was not silently refunded or
+resent. [That failed receipt](../evidence/2.0.0-alpha.4/hosted-journey-diagnostic-failed.json)
+is retained separately. The lint correction does not relax any output rule.
+
+A new direct real-evidence probe projects one actual typed Demo inventory item
+through the production context builder and gateway in each language. It emits
+only completion/count/JSON/reference/name-match flags and fixed fault classes,
+never text or evidence IDs. This separates adapter protocol, exact token
+accounting, schema/citation validation and semantic name matching without
+repeating a failed model request. All six named protocol/evidence test events
+must pass before the application browser runs. Its first result is pending.
+
 Even passing these bounded Demo cases is not human quality, a held-out incident
 evaluation, soak/capacity or whole-version acceptance. Failed attempts remain
 recorded. Desktop themes/accessibility remain covered by the separate complete
