@@ -45,7 +45,7 @@ $report=[ordered]@{
   model_license='Apache-2.0'
   model_bytes=1834426016
   context_tokens=20480
-  threads=2
+  threads=4
   logical_processors=[Environment]::ProcessorCount
   cases=@()
   stopped=$false
@@ -80,7 +80,7 @@ try {
   } finally {$zip.Dispose()}
 
   $report.phase='launch'
-  $ready=(& $launcher -Action Start -Archive $archive -RuntimeDirectory $runtime -Model $model -ModelSHA256 $modelDigest -ReceiptPath $ownerReceipt -Threads 2) | ConvertFrom-Json
+  $ready=(& $launcher -Action Start -Archive $archive -RuntimeDirectory $runtime -Model $model -ModelSHA256 $modelDigest -ReceiptPath $ownerReceipt -Threads 4) | ConvertFrom-Json
   if($ready.status -cne 'ready' -or $ready.template_sha256 -cnotmatch '\A[a-f0-9]{64}\z'){
     throw 'hosted_processor.start_failed'
   }

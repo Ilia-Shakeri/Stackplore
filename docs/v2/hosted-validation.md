@@ -215,3 +215,9 @@ while preserving trust, locale, citation, abstention and exact-copy rules. It
 compares two allowed hosted threads and records runner logical-processor count.
 The model pins, schema, budgets, no-retry policy and semantic assertions stay
 unchanged. Successful execution and bounded latency still require real receipts.
+
+The short contract at `73601cd` [passes both literal gap cases and exact English evidence](../evidence/2.0.0-alpha.4/hosted-thread-comparison-failed.json).
+The two-thread candidate still times out on Persian evidence. The receipt
+confirms four logical processors; the next candidate uses all four allowed
+threads with the shorter contract. This is a profile comparison, not proof of
+capacity. The 25-second ceiling and every exact assertion remain unchanged.

@@ -452,3 +452,9 @@ Source `8b49f29`, [run 41286186028](https://github.com/Ilia-Shakeri/Stackplore/a
 [passes both empty-evidence literal cases](hosted-literal-deadline-failed.json)
 but both evidence calls time out. A shorter equivalent task contract and two
 hosted threads require new validation. No timing or semantic gate is relaxed.
+
+Source `73601cd`, [run 41286622926](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41286622926),
+[passes both gap literals and exact English evidence](hosted-thread-comparison-failed.json).
+The remaining Persian evidence call reaches the fixed deadline. Four logical
+processors are available; the next candidate compares four allowed threads
+with the shorter contract. Whole-stage and timing acceptance remain open.
