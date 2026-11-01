@@ -477,3 +477,12 @@ checks and the rest of the design land; it does not close stage 6. Alert and
 replica history, report correlation/contract/desktop integration, comprehensive
 incident fixtures and independently reviewed held-out quality remain required.
 Stage-5 exact-source acceptance and immutable publication stay independent.
+
+The next internal slice introduces pure bounded correlation with at most 64
+typed observations. It keeps actual chronology, detects counter resets and
+conflicting samples, requires matching positive limits for pressure, and ranks
+only qualified possibilities with retained later contrary references. Stale,
+partial, old or insufficient data cannot become a complete diagnosis. Warning
+events alone cannot establish OOM or connectivity failure. Alert/replica history
+remain explicitly unread; no public report or stage-6 quality acceptance exists.
+New focused tests and all source gates must pass on Actions before integration.
