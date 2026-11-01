@@ -127,3 +127,26 @@ record ID, and requires the exact short-handle generation schema. It returns the
 private handle so production expansion is exercised; existing public canonical
 citation and committed SQL reservation assertions stay intact. Fresh full
 source/race/browser validation and the signed security trial remain required.
+
+## Published bounded investigation checkpoint
+
+Review of fixed reads, authority, coverage and private transport at
+`3038a64d500e044802e7fa43035695f7bf6c2a35`: **9/10** in that bounded scope.
+[Eight source jobs](source-ci.json) pass: complete source/build, real PostgreSQL,
+race, desktop/offline, Docker/Kubernetes and Compose/Helm. The [real processor](hosted-source.json)
+passes six direct events and eight bilingual/role/mode desktop journeys,
+known actual SQL usage and owned cleanup. [Signed trial](source-trial.json)
+passes native archive/database smoke, dependency/database/history-secret scans,
+SBOM/provenance/checksums and signing.
+
+Immutable annotated `v2.0.0-alpha.5` identifies that source.
+[Exact-tag CI](tag-ci.json) passes eight jobs; [release](tag-release.json) passes
+packaging and publication. The [public prerelease](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.5)
+is non-draft, release ID `430556512`, with 39 assets checked through the release
+API. This does not claim an independent public download/native consumption run.
+
+Stage 5 is accepted in this chosen-local scope. Earlier failures stay failed.
+Incident/alert/replica reports, runbooks, held-out human quality, broader
+adversarial/capacity/soak/pilot and stable artifact consumption remain later gates.
+Windows engine capacity and optional remote profiles remain unproven. All
+execution was on Actions; no local service, test, build or scan ran.

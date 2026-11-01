@@ -8,20 +8,21 @@
 
 Stackplore is a self-hosted infrastructure visibility workspace. It normalizes source inventory, health, topology, logs, current metrics, and events into one versioned API and a responsive English/Persian interface.
 
-**Published prerelease: 2.0.0-alpha.4**, schema **18**, immutable source
-`1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`.
-[Chosen-local checkpoint evidence](docs/evidence/2.0.0-alpha.4/README.md) records
+**Published prerelease: 2.0.0-alpha.5**, schema **18**, immutable source
+`3038a64d500e044802e7fa43035695f7bf6c2a35`.
+[Bounded investigation evidence](docs/evidence/2.0.0-alpha.5/README.md) records
 eight green exact-tag jobs, real bilingual desktop/processor journeys and signed
 package/security publication. The default-off resource conversation is available
 only with an explicit operator-bound local profile. Independent public artifact
 consumption, optional remote profiles, Windows processor capacity and whole-v2
 quality/capacity remain separate gates.
 
-**Development candidate: 2.0.0-alpha.5**, schema **18**, branch `v2/alpha5`.
+**Published bounded investigation: 2.0.0-alpha.5**, schema **18**.
 The [bounded investigation](docs/v2/investigation.md) adds fixed typed reads,
 separate proof authorization, honest coverage and explicit local log consent.
-It remains unaccepted until the new source, generated types, real SQL/desktop
-journeys, scans and exact-tag gates pass. All tests/builds/services/generators
+All eight source and exact-tag jobs, signed trial and publication pass; the
+public prerelease has 39 assets. Stage 6 prepares on `v2/alpha6`; incident
+reports and later stages remain unaccepted. All tests/builds/services/generators
 for this development run on Actions; the workstation is limited to reading,
 editing and lightweight Git. Desktop is primary. Follow the
 [stage ledger](docs/v2/implementation.md); stable 2.0 and later stages remain open.

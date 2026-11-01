@@ -2,14 +2,14 @@
 
 **2026-11-01 execution rule:** local reads, edits and lightweight Git only;
 tests, services, builds, installs and scans use Actions. Desktop comes first.
-Published **2.0.0-alpha.4**, schema **18**, is immutable at
-`1f65ffdb337b3ea19ebfc43eb6ab597169bf8d32`. [Recorded evidence](docs/evidence/2.0.0-alpha.4/README.md)
+Published **2.0.0-alpha.5**, schema **18**, is immutable at
+`3038a64d500e044802e7fa43035695f7bf6c2a35`. [Recorded evidence](docs/evidence/2.0.0-alpha.5/README.md)
 binds eight green exact-tag jobs, real local processor/desktop journeys and
 signed package/security publication. Optional remote profiles remain disabled;
 independent public consumption, broader quality/capacity and stable-v2 acceptance
-remain separate. The bounded investigation candidate develops on `v2/alpha5`,
-version **2.0.0-alpha.5**, with focused/full hosted gates and new actual SQL/browser
-journeys still required. [Implementation ledger](docs/v2/implementation.md),
+remain separate. Bounded investigation passes all eight source and exact-tag
+jobs, signed trial and publication with 39 public assets. Stage 6 prepares on
+`v2/alpha6`; later stages remain unaccepted. [Implementation ledger](docs/v2/implementation.md),
 [stage-5 catalog and stop rules](docs/v2/investigation.md),
 [validation policy](docs/v2/hosted-validation.md).
 Canonical project: `D:\Projects\Stackplore\repository`; isolated development

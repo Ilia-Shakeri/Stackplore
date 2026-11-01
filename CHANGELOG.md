@@ -14,12 +14,12 @@
 
 ## [2.0.0-alpha.5] - 2026-11-01
 
-### Smart Assistant — development candidate
+### Smart Assistant — published bounded checkpoint
 
-- Reduce private citation output work with request-local handles; strictly restore canonical IDs and recheck expansion bounds. Freeze count-backend reference authority and retain fresh family/time matching on citation navigation. Exact hosted source/profile acceptance remains pending.
+- Publish immutable alpha.5 at `3038a64`: eight source and exact-tag jobs, signed trial and actual 39-asset publication pass. Later incident, held-out quality, capacity, pilot and independent public consumption remain separate.
 
-- Add fixed investigation recipes, per-read caps, separate proof reauthorization, typed coverage and an explicit bilingual desktop mode with local log consent. Preserve ordinary explanation. Hosted verification, generated transport and alpha.5 acceptance remain pending. Fix the bounded result read during final publication.
-- Prepare the next bounded read-only investigation checkpoint on a separate branch. No new investigation mode or later-stage acceptance is claimed by the version change.
+- Add fixed investigation recipes, per-read caps, separate proof reauthorization, typed coverage and an explicit bilingual desktop mode with local log consent. Preserve ordinary explanation and bounded final-publication reads.
+- Use request-local compact handles and lossless identical-scope encoding with independent canonical validation, expansion bounds and immutable count-backend reference authority. Keep deadlines, privacy, quotas and strict semantic/citation assertions.
 - Allow verification of development branches under `v2/**`; retain the exact eight-job publication gate and immutable alpha.4 source.
 
 ## [2.0.0-alpha.4] - 2026-10-28
