@@ -138,7 +138,7 @@ func TestPinnedLocalEvidenceIntegration(t *testing.T) {
 			}
 			question := "Return exactly one facts section. Its text must be exactly the resource_id in the evidence. Cite its evidence id once. No health, cause or other claims."
 			if locale == "fa" {
-				question = "فقط یک بخش facts بده. متن آن دقیقاً resource_id در شاهد باشد؛ همان شناسه شاهد را یک بار ارجاع بده. هیچ ادعای سلامت یا علت یا متن دیگر نده."
+				question = "فقط یک بخش facts بده. در text فقط مقدار فیلد resource_id از رکورد اول شاهد را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار id همان شاهد را فقط یک بار بگذار."
 			}
 			prepared, err := gateway.Prepare(ctx, port.Request{Locale: locale, Question: question, Evidence: []port.Evidence{{ID: items[0].ID, Text: items[0].Text}}, OutputLimit: 512})
 			if err != nil {

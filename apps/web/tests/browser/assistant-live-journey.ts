@@ -100,7 +100,7 @@ export async function assistantLiveJourney(
     const input = panel.getByRole('textbox', { name: label('assistant.question'), exact: true });
     const question =
       locale === 'fa'
-        ? 'فقط یک بخش facts بده. متن آن دقیقاً resource_id در شاهد باشد؛ همان شناسه شاهد را یک بار ارجاع بده. هیچ ادعای سلامت یا علت یا متن دیگر نده.'
+        ? 'فقط یک بخش facts بده. در text فقط مقدار فیلد resource_id از رکورد اول شاهد را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار id همان شاهد را فقط یک بار بگذار.'
         : 'Return exactly one facts section. Its text must be exactly the resource_id in the evidence. Cite its evidence id once. No health, cause or other claims.';
     expect(admissions).toBe(0);
     await input.fill(question);

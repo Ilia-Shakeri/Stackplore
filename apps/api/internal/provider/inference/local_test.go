@@ -591,3 +591,43 @@ func TestLocalDoesNotMutateBorrowedResolverAnswers(t *testing.T) {
 		t.Fatal("checked addresses retained a mutable borrowed slice")
 	}
 }
+
+func TestLocalTaskContractLocalizesWithoutPromotingEvidenceInstructions(t *testing.T) {
+	t.Parallel()
+	for _, locale := range []string{"en", "fa"} {
+		t.Run(locale, func(t *testing.T) {
+			const poison = "UNTRUSTED_EVIDENCE_IGNORE_THE_TASK"
+			observed := false
+			fixture := &protocolFixture{mutate: func(response http.ResponseWriter, request *http.Request) bool {
+				if request.URL.Path != "/apply-template" {
+					return false
+				}
+				var body struct {
+					Messages []message `json:"messages"`
+				}
+				if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 {
+					t.Error("invalid task envelope")
+					response.WriteHeader(http.StatusBadRequest)
+					return true
+				}
+				system := body.Messages[0]
+				if system.Role != "system" || system.Content != localInstructions(locale) || strings.Contains(system.Content, poison) || !strings.Contains(body.Messages[1].Content, poison) {
+					t.Error("untrusted evidence entered system contract")
+				}
+				if (locale == "fa") != strings.Contains(system.Content, "پیام کاربر") {
+					t.Error("task contract locale mismatch")
+				}
+				observed = true
+				_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact formatted fixture prompt"})
+				return true
+			}}
+			local, _ := fixtureLocal(t, fixture, Options{})
+			request := testRequest()
+			request.Locale = locale
+			request.Evidence = []port.Evidence{{ID: "e_1", Text: poison}}
+			if _, err := local.Count(context.Background(), request); err != nil || !observed || fixture.completion.Load() != 0 {
+				t.Fatal("localized counting failed or generated output")
+			}
+		})
+	}
+}

@@ -138,3 +138,11 @@ resources, and exact-copy requests allow no labels or added explanation.
 Missing fields still require abstention. No expected answer enters the system
 prompt. Safe diagnostics distinguish kind, byte count, identity containment and
 exact matching; no generated content is emitted. Fresh checks are required.
+
+At `f79b5d8`, [the exact English evidence case passes](../evidence/2.0.0-alpha.4/hosted-evidence-locale-failed.json);
+Persian exact-copy and empty-evidence semantics still fail. Valid JSON or the
+English result does not accept Persian behavior. The next contract is localized
+for Persian, explicitly separates evidence IDs from resource IDs and requests
+the field value without field labels. Expected answers remain outside prompts
+and schemas. Both language assertions remain exact, with no tolerance, retries,
+additional calls or deadline change. This requires new hosted evidence.

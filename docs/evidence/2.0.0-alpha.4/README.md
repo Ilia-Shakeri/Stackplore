@@ -420,3 +420,8 @@ passes the source full gate and both real protocol/citation boundaries. Its
 [semantic failure](hosted-evidence-semantic-failed.json) remains failed: the
 expected typed identity was not copied exactly. Both calls finished below the
 unchanged deadline. The system-contract clarification requires fresh validation.
+
+Source `f79b5d8`, [run 41284460229](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41284460229),
+remains failed. [English exact evidence semantics pass](hosted-evidence-locale-failed.json),
+but Persian empty-evidence and exact-copy cases fail. The localized contract
+correction requires fresh source validation and does not certify whole-stage quality.
