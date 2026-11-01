@@ -12,8 +12,10 @@ The new `processor-runtime` job uses a disposable `windows-2025` runner.
 workstation execution before filesystem or process work. It requires a hosted
 Actions context, fixed archive/model hashes and size bounds, and uses the
 existing owner-checked launcher. No public listener or profile default changes.
-Inputs remain the exact `b11729` CPU archive and Qwen3-0.6B Q8 revision recorded
-in the [operator guide](local-processor.md).
+The CPU archive remains `b11729`. The original 0.6B operator profile and its
+historical receipts remain in the [operator guide](local-processor.md).
+The current hosted-only candidate is Qwen3-1.7B Q8, pinned below; it is not an
+automatic customer upgrade and is not downloaded onto the workstation.
 
 Downloads have HTTPS-only redirects, finite attempts and time/size limits.
 The launcher checks all 51 files, model digest, build, template, context and
@@ -146,3 +148,24 @@ for Persian, explicitly separates evidence IDs from resource IDs and requests
 the field value without field labels. Expected answers remain outside prompts
 and schemas. Both language assertions remain exact, with no tolerance, retries,
 additional calls or deadline change. This requires new hosted evidence.
+
+## Hosted profile candidate change
+
+The localized `2f8491b` [failed receipt](../evidence/2.0.0-alpha.4/hosted-evidence-prefix-failed.json)
+shows correct Persian identity containment and citation, but an extra prefix
+still violates exact-copy semantics; the Persian empty-evidence case also fails.
+The strict assertions remain. Further acceptance uses a stronger hosted-only
+candidate rather than declaring those failures acceptable.
+
+The [official immutable model file](https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/blob/90862c4b9d2787eaed51d12237eafdfe7c5f6077/Qwen3-1.7B-Q8_0.gguf)
+provides Qwen3-1.7B Q8_0, Apache-2.0, revision
+`90862c4b9d2787eaed51d12237eafdfe7c5f6077`, SHA-256
+`061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a`.
+The [publisher metadata](https://huggingface.co/api/models/Qwen/Qwen3-1.7B-GGUF)
+records 1,834,426,016 bytes. Downloaded size and digest must both match before
+startup. The same owned launcher, loopback-only one-slot context, four hosted
+threads, 512-output-token budget and 25-second call bound remain. Runtime
+identity/template are independently checked; no failed case is skipped. This
+candidate is unaccepted until all six direct events and the real application
+journeys pass at the exact source. Only the hosted test profile changes; product
+startup stays disabled by default and customer pins are not rewritten.

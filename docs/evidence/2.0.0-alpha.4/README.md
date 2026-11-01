@@ -425,3 +425,9 @@ Source `f79b5d8`, [run 41284460229](https://github.com/Ilia-Shakeri/Stackplore/a
 remains failed. [English exact evidence semantics pass](hosted-evidence-locale-failed.json),
 but Persian empty-evidence and exact-copy cases fail. The localized contract
 correction requires fresh source validation and does not certify whole-stage quality.
+
+The `2f8491b` [run 41284688838](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41284688838)
+also remains failed: [Persian identity and citation are present](hosted-evidence-prefix-failed.json)
+but exact text and empty-evidence semantics are not accepted. The next hosted
+candidate uses independently pinned 1.7B weights; the historical 0.6B receipts
+and original operator profile are preserved. New source requires fresh checks.

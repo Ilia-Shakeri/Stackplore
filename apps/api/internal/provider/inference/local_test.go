@@ -597,7 +597,7 @@ func TestLocalTaskContractLocalizesWithoutPromotingEvidenceInstructions(t *testi
 	for _, locale := range []string{"en", "fa"} {
 		t.Run(locale, func(t *testing.T) {
 			const poison = "UNTRUSTED_EVIDENCE_IGNORE_THE_TASK"
-			observed := false
+			var observed atomic.Bool
 			fixture := &protocolFixture{mutate: func(response http.ResponseWriter, request *http.Request) bool {
 				if request.URL.Path != "/apply-template" {
 					return false
@@ -617,7 +617,7 @@ func TestLocalTaskContractLocalizesWithoutPromotingEvidenceInstructions(t *testi
 				if (locale == "fa") != strings.Contains(system.Content, "پیام کاربر") {
 					t.Error("task contract locale mismatch")
 				}
-				observed = true
+				observed.Store(true)
 				_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact formatted fixture prompt"})
 				return true
 			}}
@@ -625,7 +625,7 @@ func TestLocalTaskContractLocalizesWithoutPromotingEvidenceInstructions(t *testi
 			request := testRequest()
 			request.Locale = locale
 			request.Evidence = []port.Evidence{{ID: "e_1", Text: poison}}
-			if _, err := local.Count(context.Background(), request); err != nil || !observed || fixture.completion.Load() != 0 {
+			if _, err := local.Count(context.Background(), request); err != nil || !observed.Load() || fixture.completion.Load() != 0 {
 				t.Fatal("localized counting failed or generated output")
 			}
 		})
