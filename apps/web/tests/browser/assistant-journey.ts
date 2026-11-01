@@ -150,7 +150,7 @@ export async function assistantJourney(
   page.on('response', observe);
   page.on('request', observeRequest);
   try {
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize({ width: 1536, height: 960 });
     const historyTable = page.getByRole('table', { name: healthHistoryLabel, exact: true });
     await expect(historyTable).toBeVisible();
     expect(
@@ -228,9 +228,16 @@ export async function assistantJourney(
         .scrollIntoViewIfNeeded();
       await page.screenshot({
         fullPage: false,
-        path: test.info().outputPath(`assistant-${locale}-${role}-${theme}-mobile.png`),
+        path: test.info().outputPath(`assistant-${locale}-${role}-${theme}-desktop.png`),
       });
     }
+    // Keep one narrow-screen smoke check; the complete journey above is desktop.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(input).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+      true,
+    );
+    await page.setViewportSize({ width: 1536, height: 960 });
     const resourceUrl = page.url();
     const routeText = JSON.parse(
       readFileSync(resolve(`src/routes/messages.${locale}.json`), 'utf8'),

@@ -1,9 +1,9 @@
 # Documentation
 
-Current prerelease: **2.0.0-alpha.1**, schema17;
-[public evidence](evidence/2.0.0-alpha.1/published-release.json).
-Current schema18 durable-runtime candidate: **2.0.0-alpha.2**;
-[local gates and remaining acceptance](evidence/2.0.0-alpha.2/README.md),
+Current published prerelease: **2.0.0-alpha.3**, schema18;
+[public evidence](evidence/2.0.0-alpha.3/published-release.json).
+Current development: **2.0.0-alpha.4**;
+[stage ledger](v2/implementation.md), [hosted-only validation](v2/hosted-validation.md),
 [English runtime guide](v2/runtime.md), [راهنمای اجرا](v2/runtime.fa.md).
 Stable2.0, quality, new-runtime branch measurement and pilot acceptance remain open.
 

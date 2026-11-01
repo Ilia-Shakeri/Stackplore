@@ -1,0 +1,137 @@
+#Requires -Version 7.4
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+
+# Refuse accidental workstation use before any filesystem or process operation.
+if(-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted'){
+  throw 'hosted_processor.runner_required'
+}
+if($env:GITHUB_SHA -cnotmatch '\A[a-f0-9]{40}\z' -or [string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)){
+  throw 'hosted_processor.context_required'
+}
+
+$repository=(Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+$temporary=(Resolve-Path -LiteralPath $env:RUNNER_TEMP).Path
+$private=Join-Path $temporary ('stackplore-profile-'+[guid]::NewGuid().ToString('N'))
+$privateFull=[IO.Path]::GetFullPath($private)
+if(-not $privateFull.StartsWith($temporary.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){
+  throw 'hosted_processor.private_path'
+}
+$null=New-Item -ItemType Directory -Path $privateFull
+$outputDirectory=Join-Path $repository '.tmp'
+$null=New-Item -ItemType Directory -Path $outputDirectory -Force
+$publicReceipt=Join-Path $outputDirectory 'hosted-processor.json'
+if(Test-Path -LiteralPath $publicReceipt){throw 'hosted_processor.receipt_exists'}
+$launcher=Join-Path $PSScriptRoot 'local-processor.ps1'
+$ownerReceipt=Join-Path $privateFull 'owner.json'
+$archive=Join-Path $privateFull 'processor.zip'
+$runtime=Join-Path $privateFull 'runtime'
+$model=Join-Path $privateFull 'model.gguf'
+$modelDigest='9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031'
+$archiveDigest='aef737d26bffd08ceeb7be75f045bdef6d1ecc3187e0f4a1a3b0d878a03d2550'
+$report=[ordered]@{
+  schema_version=1
+  source_revision=$env:GITHUB_SHA
+  recorded_at=[DateTime]::UtcNow.ToString('o')
+  status='failed'
+  phase='archive'
+  scope='Real bilingual empty-evidence protocol only; not grounded browser or human quality acceptance'
+  archive_sha256=$archiveDigest
+  model_sha256=$modelDigest
+  model_revision='23749fefcc72300e3a2ad315e1317431b06b590a'
+  model_license='Apache-2.0'
+  model_bytes=639446688
+  context_tokens=20480
+  cases=@()
+  stopped=$false
+}
+
+function Receive-PinnedAsset([string]$Uri,[string]$Destination,[string]$Digest,[long]$Maximum,[long]$Exact=0){
+  & curl.exe --fail --silent --location --proto '=https' --proto-redir '=https' --max-redirs 5 --retry 2 --max-time 300 --max-filesize $Maximum --output $Destination $Uri *> $null
+  if($LASTEXITCODE -ne 0){throw 'hosted_processor.download_failed'}
+  $item=Get-Item -LiteralPath $Destination -Force
+  if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $item.Length -lt 1048576 -or $item.Length -gt $Maximum -or ($Exact -ne 0 -and $item.Length -ne $Exact)){
+    throw 'hosted_processor.asset_size'
+  }
+  if((Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant() -cne $Digest){
+    throw 'hosted_processor.asset_digest'
+  }
+}
+
+try {
+  Receive-PinnedAsset 'https://github.com/ggml-org/llama.cpp/releases/download/b11729/llama-b11729-bin-win-cpu-x64.zip' $archive $archiveDigest 268435456
+  $report.phase='model'
+  Receive-PinnedAsset 'https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf?download=true' $model $modelDigest 639446688 639446688
+  $report.phase='extract'
+  $zip=[IO.Compression.ZipFile]::OpenRead($archive)
+  try {
+    if($zip.Entries.Count -ne 51){throw 'hosted_processor.archive_inventory'}
+    foreach($entry in $zip.Entries){
+      if($entry.FullName -cnotmatch '\A[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\z' -or $entry.FullName.EndsWith('.') -or $entry.Length -lt 1 -or $entry.Length -gt 33554432){
+        throw 'hosted_processor.archive_entry'
+      }
+    }
+    [IO.Compression.ZipFileExtensions]::ExtractToDirectory($zip,$runtime)
+  } finally {$zip.Dispose()}
+
+  $report.phase='launch'
+  $ready=(& $launcher -Action Start -Archive $archive -RuntimeDirectory $runtime -Model $model -ModelSHA256 $modelDigest -ReceiptPath $ownerReceipt -Threads 2) | ConvertFrom-Json
+  if($ready.status -cne 'ready' -or $ready.template_sha256 -cnotmatch '\A[a-f0-9]{64}\z'){
+    throw 'hosted_processor.start_failed'
+  }
+  $report['template_sha256']=$ready.template_sha256
+  $report['build']=$ready.build
+  $env:STACKPLORE_TEST_LOCAL_INFERENCE='true'
+  $env:STACKPLORE_TEST_INFERENCE_ORIGIN='http://127.0.0.1:58102'
+  $env:STACKPLORE_TEST_INFERENCE_ALIAS='sha256-'+$modelDigest
+  $env:STACKPLORE_TEST_INFERENCE_BUILD=$ready.build
+  $env:STACKPLORE_TEST_INFERENCE_TEMPLATE_SHA256=$ready.template_sha256
+  $env:STACKPLORE_TEST_INFERENCE_CONTEXT_TOKENS='20480'
+  $report.phase='protocol'
+  $events=@(& go -C (Join-Path $repository 'apps/api') test ./internal/provider/inference -run '^TestPinnedLocalRuntimeIntegration$' -count=1 -timeout=3m -json 2>$null)
+  $goExit=$LASTEXITCODE
+  $decoded=@($events | ForEach-Object {$_ | ConvertFrom-Json})
+  foreach($name in @('TestPinnedLocalRuntimeIntegration/en','TestPinnedLocalRuntimeIntegration/fa','TestPinnedLocalRuntimeIntegration')){
+    $finished=@($decoded | Where-Object {$_.Action -in @('pass','fail','skip') -and $_.PSObject.Properties.Name -contains 'Test' -and $_.Test -ceq $name})
+    if($finished.Count -eq 1){
+      $elapsed=0
+      if($finished[0].PSObject.Properties.Name -contains 'Elapsed'){$elapsed=$finished[0].Elapsed}
+      $report.cases+=@{name=$name;status=$finished[0].Action;elapsed_seconds=$elapsed}
+    } else {$report.cases+=@{name=$name;status='missing_or_duplicate';elapsed_seconds=0}}
+  }
+  if($goExit -ne 0){throw 'hosted_processor.protocol_failed'}
+  if(@($decoded | Where-Object {$_.Action -in @('skip','fail')}).Count -ne 0 -or @($report.cases | Where-Object {$_.status -cne 'pass'}).Count -ne 0){throw 'hosted_processor.incomplete_probe'}
+  $report.status='passed'
+  $report.phase='complete'
+} catch {
+  $report.status='failed'
+  $report['error_code']='hosted_processor.operation_failed'
+  if($_.Exception.Message -cmatch '\Ahosted_processor\.[a-z_]+\z'){$report['error_code']=$_.Exception.Message}
+  throw 'hosted_processor.verification_failed'
+} finally {
+  foreach($name in @('LOCAL_INFERENCE','INFERENCE_ORIGIN','INFERENCE_ALIAS','INFERENCE_BUILD','INFERENCE_TEMPLATE_SHA256','INFERENCE_CONTEXT_TOKENS')){
+    Remove-Item -LiteralPath ('Env:STACKPLORE_TEST_'+$name) -ErrorAction SilentlyContinue
+  }
+  try {
+    if(Test-Path -LiteralPath $ownerReceipt){
+      $owned=Get-Content -LiteralPath $ownerReceipt -Raw | ConvertFrom-Json
+      if($owned.status -ceq 'ready'){
+        $stopped=(& $launcher -Action Stop -ReceiptPath $ownerReceipt) | ConvertFrom-Json
+        if($stopped.status -cne 'stopped' -or -not $stopped.owned){throw 'hosted_processor.stop_failed'}
+        $report.stopped=$true
+      } elseif($owned.PSObject.Properties.Name -contains 'owned_process_stopped' -and $owned.owned_process_stopped -eq $true){
+        $report.stopped=$true
+      }
+    }
+    if($report.status -ceq 'passed' -and -not $report.stopped){throw 'hosted_processor.stop_unproven'}
+  } catch {
+    $report.status='failed'
+    $report['cleanup_error_code']='hosted_processor.cleanup_failed'
+    throw 'hosted_processor.cleanup_failed'
+  } finally {
+    $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $publicReceipt -Encoding utf8NoBOM
+  }
+}

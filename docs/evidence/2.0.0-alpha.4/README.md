@@ -1,5 +1,11 @@
 # Smart Assistant — stage 4 development checkpoint
 
+**2026-11-01 continuation:** new validation is hosted-only; no local service,
+test, build, install or scan is permitted. The new real processor job and
+desktop-first browser source await their own exact-source hosted result.
+[Policy and scope](../../v2/hosted-validation.md). The earlier seven-job
+checkpoint does not certify this eighth job or whole-stage acceptance.
+
 Date: **2026-10-28**. Development version **2.0.0-alpha.4**, schema18.
 
 The foundation prepares a snapshot-only, default-off loopback profile parser and

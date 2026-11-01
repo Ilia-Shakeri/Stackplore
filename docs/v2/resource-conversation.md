@@ -5,6 +5,9 @@ owning bilingual view to a resource detail page. Full verification, real browser
 checks and exact-commit hosted evidence are separate gates; this document does
 not mark stage 4 or version 2 complete. See [development evidence](../evidence/2.0.0-alpha.4/README.md).
 
+From 2026-11-01, [validation runs only on Actions](hosted-validation.md).
+Desktop is primary; mobile retains a brief input/overflow smoke check.
+
 ## Use
 
 1. Sign in, open **Resources**, and select one resource. Administrators and
