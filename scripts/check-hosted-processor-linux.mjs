@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
@@ -142,7 +143,7 @@ async function main() {
     if (hash.digest('hex') !== digest) throw new Error('hosted_processor.asset_digest');
   };
   const getJSON = async (path) => {
-    const response = await fetch(`http://127.0.0.1:58102${path}`, {
+    const response = await globalThis.fetch(`http://127.0.0.1:58102${path}`, {
       redirect: 'error',
       signal: globalThis.AbortSignal.timeout(1000),
     });
@@ -459,6 +460,7 @@ async function main() {
                 'content_state',
                 'resource_identity_supported',
                 'citation_current',
+                'citation_status',
                 'cleared',
                 'view_state',
               ].map((key) => [key, journey[key]]),
@@ -515,7 +517,7 @@ async function main() {
     }
     await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
   }
-  if (report.status !== 'passed') console.error('hosted_processor.verification_failed');
+  if (report.status !== 'passed') globalThis.console.error('hosted_processor.verification_failed');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

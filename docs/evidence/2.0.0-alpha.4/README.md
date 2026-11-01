@@ -471,3 +471,9 @@ The first Linux `e29e1c2`, [run 41287638018](https://github.com/Ilia-Shakeri/Sta
 Exact gaps and English evidence pass; cleanup is proven. The current profile
 uses the explicitly amended 40-second ceiling in [ADR-0017](../../adr/0017-profile-call-budgets.md),
 while defaults stay 25 seconds. A new result cannot rewrite this failed receipt.
+
+Source `9bd9042`, [run 41288259353](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41288259353),
+[passes all six direct events and both actual administrator answers](hosted-desktop-focus-failed.json)
+under its explicit 40-second profile. The job remains failed on citation focus
+before viewer cases; source lint also fails three explicit Node globals.
+A bounded asynchronous focus assertion and lint correction require fresh checks.

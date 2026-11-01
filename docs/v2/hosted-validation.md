@@ -267,3 +267,16 @@ both defaults and the hard ceiling. The gateway and parent run remain bounded;
 120-second overall timeout, strict output, usage reservations, cancellation,
 heartbeats and authority fencing remain mandatory. This is an explicit policy
 change, not acceptance of the old failed timing gate. New real results are pending.
+
+The 40-second candidate `9bd9042`
+([run 41288259353](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41288259353))
+[passes all six strict direct events](../evidence/2.0.0-alpha.4/hosted-desktop-focus-failed.json).
+Exact grounded English/Persian cases take 23.14/28.99 seconds. The actual
+administrator journeys publish correct ready answers in both languages, with
+completed durable runs and reconciled known usage. The browser then reads focus
+immediately after the asynchronous citation click and fails before viewers run.
+The correction waits at most the ordinary five-second assertion budget for the
+same exact focus, emitting only a fixed error and citation HTTP status. It does
+not replace the authority request, mutate focus, or relax the expected target.
+Three Node global lint names are made explicit. New source requires all gates.
+Model and database cleanup remain proven in the failed receipt.

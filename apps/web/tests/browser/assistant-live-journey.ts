@@ -18,12 +18,20 @@ export async function assistantLiveJourney(
     content_state: 'not_observed',
     resource_identity_supported: false,
     citation_current: false,
+    citation_status: 0,
     cleared: false,
     view_state: 'not_visible',
   };
   const reads: Promise<void>[] = [];
   const observeReply = (response: Response) => {
     const path = new URL(response.url()).pathname;
+    if (
+      response.request().method() === 'GET' &&
+      /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/citations\/ev_[a-f0-9]{64}$/u.test(path)
+    ) {
+      metadata.citation_status = response.status();
+      return;
+    }
     if (response.request().method() === 'POST' && path === '/api/v1/assistant/runs') {
       metadata.admission_status = response.status();
       return;
@@ -128,6 +136,15 @@ export async function assistantLiveJourney(
     const citation = panel.getByRole('button', { name: label('assistant.citation'), exact: true });
     expect(await citation.count()).toBe(1);
     await citation.click();
+    try {
+      await page.waitForFunction(
+        () => document.activeElement?.id === 'resource-detail-name',
+        undefined,
+        { timeout: 5000 },
+      );
+    } catch {
+      throw new Error('Real citation authority focus did not settle');
+    }
     metadata.citation_current = await heading.evaluate(
       (element) => document.activeElement === element,
     );

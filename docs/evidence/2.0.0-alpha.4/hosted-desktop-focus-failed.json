@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "source_revision": "9bd90420728db00e7cae07eb07f41789aa4f967d",
+  "recorded_at": "2026-11-01T08:18:54.836Z",
+  "platform": "linux-x64",
+  "status": "failed",
+  "phase": "application_browser",
+  "stopped": true,
+  "postgres_stopped": true,
+  "scope": "Real bilingual protocol and desktop application with synthetic Demo evidence; not Windows runtime or general quality acceptance",
+  "archive_sha256": "ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25",
+  "model_sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+  "model_revision": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+  "model_license": "Apache-2.0",
+  "model_bytes": 1834426016,
+  "context_tokens": 20480,
+  "call_timeout_seconds": 40,
+  "build": "b11729-412a363c6",
+  "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+  "cases": [
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 6.03
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 11.34
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration",
+      "status": "pass",
+      "elapsed_seconds": 17.37
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 23.14
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 28.99
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration",
+      "status": "pass",
+      "elapsed_seconds": 52.13
+    }
+  ],
+  "evidence_probes": [
+    {
+      "locale": "en",
+      "backend_fault": "none",
+      "gateway_fault": "none",
+      "input_tokens": 606,
+      "output_tokens": 128,
+      "input_match": true,
+      "complete": true,
+      "json_valid": true,
+      "sections": 1,
+      "citations_valid": true,
+      "identity_matches": true,
+      "identity_contained": true,
+      "facts_kind": true,
+      "text_bytes": 46
+    },
+    {
+      "locale": "fa",
+      "backend_fault": "none",
+      "gateway_fault": "none",
+      "input_tokens": 802,
+      "output_tokens": 128,
+      "input_match": true,
+      "complete": true,
+      "json_valid": true,
+      "sections": 1,
+      "citations_valid": true,
+      "identity_matches": true,
+      "identity_contained": true,
+      "facts_kind": true,
+      "text_bytes": 46
+    }
+  ],
+  "empty_probes": [
+    {
+      "locale": "en",
+      "gateway_fault": "none",
+      "sections": 1,
+      "gaps_kind": true,
+      "empty_citations": true,
+      "text_exact": true,
+      "text_contains": true,
+      "text_bytes": 37
+    },
+    {
+      "locale": "fa",
+      "gateway_fault": "none",
+      "sections": 1,
+      "gaps_kind": true,
+      "empty_citations": true,
+      "text_exact": true,
+      "text_contains": true,
+      "text_bytes": 44
+    }
+  ],
+  "application_browser": {
+    "cases": [
+      {
+        "locale": "en",
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0
+      },
+      {
+        "locale": "fa",
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0
+      }
+    ],
+    "journeys": [
+      {
+        "locale": "en",
+        "role": "administrator",
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "citation_current": false,
+        "cleared": false,
+        "view_state": "assistant.state.ready"
+      },
+      {
+        "locale": "fa",
+        "role": "administrator",
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "citation_current": false,
+        "cleared": false,
+        "view_state": "assistant.state.ready"
+      }
+    ],
+    "database_metadata": [
+      {
+        "source_revision": "9bd90420728db00e7cae07eb07f41789aa4f967d",
+        "status": "observed",
+        "runs": [
+          {
+            "state": "completed",
+            "tool_calls": 1,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          }
+        ],
+        "steps": [
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 716,
+            "maximum_units": 16512
+          }
+        ]
+      },
+      {
+        "source_revision": "9bd90420728db00e7cae07eb07f41789aa4f967d",
+        "status": "observed",
+        "runs": [
+          {
+            "state": "completed",
+            "tool_calls": 1,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          }
+        ],
+        "steps": [
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 930,
+            "maximum_units": 16512
+          }
+        ]
+      }
+    ]
+  },
+  "error_code": "hosted_processor.browser_failed"
+}
