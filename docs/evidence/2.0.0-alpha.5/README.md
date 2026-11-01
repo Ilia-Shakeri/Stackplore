@@ -102,3 +102,11 @@ canonical JSON data. Different/unrecognized scopes fall back to unchanged opaque
 text. Tests reconstruct all original fields and preserve escaped role delimiters.
 Timeouts, evidence, model pins, usage rules and exact semantic/citation assertions
 remain unchanged; the new private encoding requires fresh complete validation.
+
+Source `9d41856` reaches focused Go success and then fails expected formatting.
+Its correction step also fails: overlapping directory/file arguments sent the
+same Go file to the formatter more than once, causing a concurrent-read/write
+size error. The next workflow uses the repository's unique-file formatter on
+Actions. No local formatter runs; a failed formatting revision is not accepted.
+The current real job is superseded by fresh exact-source checks after this
+workflow correction; interrupted execution cannot claim owned cleanup proof.
