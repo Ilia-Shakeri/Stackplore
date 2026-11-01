@@ -442,3 +442,8 @@ Source `421a851`, [run 41285247489](https://github.com/Ilia-Shakeri/Stackplore/a
 one evidence call also times out. The next probe quotes the unchanged target
 and the hosted profile evaluates an independently pinned Q4_K_M conversion.
 Neither capacity nor whole-stage acceptance is claimed.
+
+The Q4 candidate `b039068`, [run 41285584742](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41285584742),
+[remains failed](hosted-quantized-failed.json). The current profile returns to
+the official pinned Q8 model. A generic exact-copy contract example changes
+no expected answer, literal equality assertion, output bound or call deadline.

@@ -14,7 +14,7 @@ Actions context, fixed archive/model hashes and size bounds, and uses the
 existing owner-checked launcher. No public listener or profile default changes.
 The CPU archive remains `b11729`. The original 0.6B operator profile and its
 historical receipts remain in the [operator guide](local-processor.md).
-The current hosted-only candidate is Qwen3-1.7B Q4_K_M, pinned below; it is not an
+The current hosted-only candidate is the official Qwen3-1.7B Q8, pinned below; it is not an
 automatic customer upgrade and is not downloaded onto the workstation.
 
 Downloads have HTTPS-only redirects, finite attempts and time/size limits.
@@ -192,3 +192,14 @@ revision `daeb8e2d528a760970442092f6bf1e55c3b659eb`, file
 Apache-2.0. Lower file size is not evidence of faster or acceptable behavior;
 actual hosted checks must establish both. Q8 receipts above remain historical.
 All limits and strict semantic assertions remain; no workstation download occurs.
+
+The Q4 candidate at `b039068` [remains unaccepted](../evidence/2.0.0-alpha.4/hosted-quantized-failed.json):
+English exact-copy cases pass; Persian gaps include the requested literal with
+extra text, and the Persian resource identity differs. Its actual template hash
+is `87a2728cb8dc9fe424d624542f6060ec05a1d285ebbec578bb078900e33396b5`;
+this does not match the application profile and must not be silently substituted.
+The current candidate returns to the official Q8 revision/hash/size recorded
+above, whose exact bilingual evidence cases already passed at `06499cf`.
+Generic prefix/suffix/punctuation examples clarify the task contract without
+embedding any expected probe answer or resource value. The unchanged assertions,
+budgets and complete real-application gate still require fresh acceptance.
