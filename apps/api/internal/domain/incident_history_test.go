@@ -139,7 +139,9 @@ func TestIncidentWorkloadHistoryEnforcesScopeTimeAndCoverage(t *testing.T) {
 		func(value *IncidentWorkloadHistory) { value.Samples[0].Status.ObservedAt = query.Range.End },
 		func(value *IncidentWorkloadHistory) { value.Samples = append(value.Samples, value.Samples[0]) },
 		func(value *IncidentWorkloadHistory) { value.MoreAvailable = true },
-		func(value *IncidentWorkloadHistory) { value.Status.State, value.Status.ReasonCode = AvailabilityPermissionDenied, "source.denied" },
+		func(value *IncidentWorkloadHistory) {
+			value.Status.State, value.Status.ReasonCode = AvailabilityPermissionDenied, "source.denied"
+		},
 	} {
 		changed := history
 		changed.Samples = append([]WorkloadReplicaSnapshot{}, history.Samples...)
