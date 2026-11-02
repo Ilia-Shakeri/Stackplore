@@ -627,3 +627,8 @@ history coverage cannot make the existing public route claim unread families
 were read. Publication still needs separate reserved and freshly authorized
 history proofs. This test awaits hosted verification; public integration and
 stage-6 acceptance remain open.
+
+The pure report boundary now independently limits each history family to eight
+observations, even when the total remains below the global report cap. Exact-cap
+and over-cap cases need hosted verification. This does not register a read or
+complete public history integration.

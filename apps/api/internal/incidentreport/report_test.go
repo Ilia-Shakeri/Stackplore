@@ -142,6 +142,29 @@ func TestHistoryCorrelationRejectsConflictAndUnavailableCounts(t *testing.T) {
 	}
 }
 
+func TestHistoryReportKeepsIndependentFamilyRecordCaps(t *testing.T) {
+	scope := reportScope(t)
+	for _, kind := range []string{"alert", "workload"} {
+		var items []contextbuilder.Observation
+		for index := 1; index <= domain.MaximumIncidentHistory+1; index++ {
+			item := observation(scope, index, kind, scope.Range.Start.Add(time.Duration(index)*time.Second))
+			if kind == "alert" {
+				item.TimeBasis, item.AlertTo = "occurred", domain.AlertFiring
+			} else {
+				item.TimeBasis, item.WorkloadCounts, item.Desired, item.Ready = "sampled", true, 1, 1
+			}
+			items = append(items, item)
+		}
+		coverage := HistoryCoverage{AlertsRead: true, WorkloadRead: true}
+		if _, err := BuildWithHistory(scope, items[:domain.MaximumIncidentHistory], coverage); err != nil {
+			t.Fatal("exact family cap rejected", err)
+		}
+		if _, err := BuildWithHistory(scope, items, coverage); !errors.Is(err, ErrInvalid) {
+			t.Fatal("history exceeded its independent family cap")
+		}
+	}
+}
+
 func TestQualifiedRestartAndHealthKeepActualChronologyAndContraryEvidence(t *testing.T) {
 	scope := reportScope(t)
 	early := observation(scope, 1, "metric", scope.Range.Start.Add(time.Second))

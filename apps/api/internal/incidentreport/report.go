@@ -96,11 +96,18 @@ func BuildWithHistory(scope Scope, observations []contextbuilder.Observation, hi
 	}
 	result.gap("cause_unproven")
 	seen := make(map[string]bool, len(observations))
+	historyCounts := map[string]int{}
 	for _, item := range observations {
 		if !validObservation(scope, item) || seen[item.Reference.ID] || item.Reference.Kind == "alert" && !history.AlertsRead || item.Reference.Kind == "workload" && !history.WorkloadRead {
 			return Report{}, ErrInvalid
 		}
 		seen[item.Reference.ID] = true
+		if item.Reference.Kind == "alert" || item.Reference.Kind == "workload" {
+			historyCounts[item.Reference.Kind]++
+			if historyCounts[item.Reference.Kind] > domain.MaximumIncidentHistory {
+				return Report{}, ErrInvalid
+			}
+		}
 		if item.Availability != domain.AvailabilityAvailable || item.Completeness != domain.CompletenessComplete {
 			result.gap("limited_evidence")
 		}
