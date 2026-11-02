@@ -48,18 +48,18 @@ type Scope struct {
 }
 
 type Request struct {
-	Scope         Scope
-	Destination   Destination
-	Status        domain.ObservationStatus
-	Resources     []domain.ResourceSnapshot
-	Health        []domain.HealthSnapshot
-	Metrics       []domain.MetricSample
-	Events        []domain.InfrastructureEvent
-	Relationships []domain.Relationship
-	AlertHistory  *domain.IncidentAlertHistory
+	Scope           Scope
+	Destination     Destination
+	Status          domain.ObservationStatus
+	Resources       []domain.ResourceSnapshot
+	Health          []domain.HealthSnapshot
+	Metrics         []domain.MetricSample
+	Events          []domain.InfrastructureEvent
+	Relationships   []domain.Relationship
+	AlertHistory    *domain.IncidentAlertHistory
 	WorkloadHistory *domain.IncidentWorkloadHistory
-	Logs          *logpolicy.Capture
-	LogConsent    bool
+	Logs            *logpolicy.Capture
+	LogConsent      bool
 	// MoreAvailable carries source page/cap bounds; projection does not claim a full estate scan.
 	MoreAvailable bool
 	RecordLimit   int
