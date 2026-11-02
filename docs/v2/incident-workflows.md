@@ -113,6 +113,13 @@ provider collection time is not substituted for a later local transition time.
 The new port is not yet connected to the fixed plan or public timeline; no new
 read authority, schema migration or alert-correlation acceptance is implied.
 
+The candidate workload-history port applies the same resource, time and record
+bounds. It checks the exact current resource reference in the same read-only
+snapshot and reports partial coverage when an extra row exists. Historical
+sample time and desired/ready counts remain separate from current replica state.
+Unavailable current collection or policy loss returns no history. The new port
+is preparation only; it does not authorize or register a report read.
+
 ### Existing execution limits
 
 Retain the existing 120-second run limit, one final generation, current token and

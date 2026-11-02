@@ -125,3 +125,38 @@ func TestIncidentHistoryRejectsDuplicateTieOrderAndNoDataFabrication(t *testing.
 		t.Fatal("denied history advertised another page")
 	}
 }
+
+func TestIncidentWorkloadHistoryEnforcesScopeTimeAndCoverage(t *testing.T) {
+	query := IncidentWorkloadHistoryQuery(incidentQuery(t))
+	history := IncidentWorkloadHistory{Status: fixtureStatus(), Samples: []WorkloadReplicaSnapshot{
+		{Resource: query.Resource, Desired: 3, Ready: 2, Status: fixtureStatus()},
+	}}
+	if history.ValidateFor(query) != nil {
+		t.Fatal("valid bounded workload history rejected")
+	}
+	for _, mutate := range []func(*IncidentWorkloadHistory){
+		func(value *IncidentWorkloadHistory) { value.Samples[0].Resource.ID = "other" },
+		func(value *IncidentWorkloadHistory) { value.Samples[0].Status.ObservedAt = query.Range.End },
+		func(value *IncidentWorkloadHistory) { value.Samples = append(value.Samples, value.Samples[0]) },
+		func(value *IncidentWorkloadHistory) { value.MoreAvailable = true },
+		func(value *IncidentWorkloadHistory) { value.Status.State, value.Status.ReasonCode = AvailabilityPermissionDenied, "source.denied" },
+	} {
+		changed := history
+		changed.Samples = append([]WorkloadReplicaSnapshot{}, history.Samples...)
+		mutate(&changed)
+		if changed.ValidateFor(query) == nil {
+			t.Fatal("forged workload history accepted")
+		}
+	}
+	query.Limit = 1
+	history.MoreAvailable, history.Status.Completeness, history.Status.ReasonCode = true, CompletenessPartial, "source.workload_history_limited"
+	if history.ValidateFor(query) != nil {
+		t.Fatal("honest limited workload page rejected")
+	}
+	for _, value := range []any{query, history} {
+		encoded, err := json.Marshal(value)
+		if err != nil || string(encoded) != "{}" || strings.Contains(fmt.Sprintf("%+v", value), "private_incident_native") {
+			t.Fatal("workload history formatting disclosed scope")
+		}
+	}
+}

@@ -588,3 +588,9 @@ page. A valid indication requires both a full page and partial coverage. This
 candidate needs fresh hosted validation and does not register a new read tool.
 
 At `1e9720f`, hosted run `41404501002` passes all eight jobs, including actual bilingual report journeys and the bounded alert-history PostgreSQL tests. The history port still needs independent authority, reservation, report integration and complete stage-6 acceptance. This receipt does not accept later changes.
+
+The next candidate adds a bounded workload-history port with exact current
+resource matching, half-open time filtering, independent sample timestamps,
+limited-page metadata and policy fencing in one read-only PostgreSQL snapshot.
+Domain and actual database tests need fresh hosted execution. This is not yet a
+registered tool, authority proof, report integration or stage-6 acceptance.

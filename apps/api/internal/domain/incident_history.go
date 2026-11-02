@@ -90,3 +90,47 @@ func incidentHistoryTime(value time.Time) bool {
 type IncidentAlertHistoryReader interface {
 	GetIncidentAlertHistory(context.Context, IncidentAlertHistoryQuery) (IncidentAlertHistory, error)
 }
+
+// IncidentWorkloadHistoryQuery has the same selected-resource and time bounds.
+type IncidentWorkloadHistoryQuery IncidentAlertHistoryQuery
+
+func (query IncidentWorkloadHistoryQuery) Validate() error {
+	return IncidentAlertHistoryQuery(query).Validate()
+}
+
+func (IncidentWorkloadHistoryQuery) Format(state fmt.State, _ rune) {
+	_, _ = io.WriteString(state, "[protected workload history query]")
+}
+func (IncidentWorkloadHistoryQuery) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
+
+type IncidentWorkloadHistory struct {
+	Status        ObservationStatus
+	Samples       []WorkloadReplicaSnapshot
+	MoreAvailable bool
+}
+
+func (IncidentWorkloadHistory) Format(state fmt.State, _ rune) {
+	_, _ = io.WriteString(state, "[protected incident workload history]")
+}
+func (IncidentWorkloadHistory) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
+
+func (history IncidentWorkloadHistory) ValidateFor(query IncidentWorkloadHistoryQuery) error {
+	if query.Validate() != nil || history.Status.Validate() != nil || !incidentHistoryTime(history.Status.ObservedAt) ||
+		len(history.Samples) > query.Limit || !history.Status.AllowsData() && (len(history.Samples) != 0 || history.MoreAvailable) ||
+		history.MoreAvailable && (history.Status.Completeness != CompletenessPartial || len(history.Samples) != query.Limit) {
+		return ErrRepositoryInvalidInput
+	}
+	for index, sample := range history.Samples {
+		at := sample.Status.ObservedAt
+		if sample.ValidateFor(ResourceDetailQuery{Source: query.Source, ResourceID: query.Resource.ID}) != nil || sample.Resource != query.Resource ||
+			!incidentHistoryTime(at) || at.Before(query.Range.Start) || !at.Before(query.Range.End) ||
+			index > 0 && !at.After(history.Samples[index-1].Status.ObservedAt) {
+			return ErrRepositoryInvalidInput
+		}
+	}
+	return nil
+}
+
+type IncidentWorkloadHistoryReader interface {
+	GetIncidentWorkloadHistory(context.Context, IncidentWorkloadHistoryQuery) (IncidentWorkloadHistory, error)
+}
