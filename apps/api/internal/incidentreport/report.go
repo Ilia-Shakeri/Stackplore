@@ -128,6 +128,14 @@ func BuildWithHistory(scope Scope, observations []contextbuilder.Observation, hi
 // Validate binds every observation to the exact freshly authorized reference
 // set, then independently recomputes all claims, ranks, gaps and recommendations.
 func Validate(scope Scope, report Report, references []contextbuilder.CitationReference) error {
+	return ValidateWithHistory(scope, report, references, HistoryCoverage{})
+}
+
+// ValidateWithHistory requires coverage from the owning authorized read proofs.
+func ValidateWithHistory(scope Scope, report Report, references []contextbuilder.CitationReference, history HistoryCoverage) error {
+	if report.history != history {
+		return ErrInvalid
+	}
 	if len(references) > MaximumObservations || len(report.Timeline) != len(references) || len(report.Hypotheses) > 5 || len(report.Gaps) > 12 || len(report.NextReads) != 5 {
 		return ErrInvalid
 	}
@@ -148,7 +156,7 @@ func Validate(scope Scope, report Report, references []contextbuilder.CitationRe
 			return ErrInvalid
 		}
 	}
-	expected, err := BuildWithHistory(scope, report.Timeline, report.history)
+	expected, err := BuildWithHistory(scope, report.Timeline, history)
 	if err != nil || !reflect.DeepEqual(expected, report) {
 		return ErrInvalid
 	}

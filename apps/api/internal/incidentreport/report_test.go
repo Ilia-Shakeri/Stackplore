@@ -91,12 +91,15 @@ func TestHistoryCorrelationRequiresCoverageAndKeepsRecovery(t *testing.T) {
 		t.Fatal("qualified shortfall or recovery lost", err)
 	}
 	refs := []contextbuilder.CitationReference{alert.Reference, short.Reference, recovered.Reference}
-	if Validate(scope, report, refs) != nil {
+	if ValidateWithHistory(scope, report, refs, coverage) != nil {
 		t.Fatal("exact authorized history rejected")
+	}
+	if !errors.Is(Validate(scope, report, refs), ErrInvalid) {
+		t.Fatal("legacy publication accepted unverified history coverage")
 	}
 	forged := report.Clone()
 	forged.history.AlertsRead = false
-	if !errors.Is(Validate(scope, forged, refs), ErrInvalid) {
+	if !errors.Is(ValidateWithHistory(scope, forged, refs, coverage), ErrInvalid) {
 		t.Fatal("history report lost its family coverage")
 	}
 	empty, err := BuildWithHistory(scope, nil, coverage)
@@ -125,6 +128,17 @@ func TestHistoryCorrelationRejectsConflictAndUnavailableCounts(t *testing.T) {
 	report, err = BuildWithHistory(scope, []contextbuilder.Observation{missing}, coverage)
 	if err != nil || len(report.Hypotheses) != 0 || !slices.Contains(report.Gaps, "limited_evidence") {
 		t.Fatal("unavailable sample did not remain an explicit gap")
+	}
+	for _, change := range []func(*contextbuilder.Observation){
+		func(item *contextbuilder.Observation) { item.Availability = domain.AvailabilityStale },
+		func(item *contextbuilder.Observation) { item.Completeness = domain.CompletenessPartial },
+	} {
+		limited := first
+		change(&limited)
+		report, err := BuildWithHistory(scope, []contextbuilder.Observation{limited}, coverage)
+		if err != nil || len(report.Hypotheses) != 0 || !slices.Contains(report.Gaps, "limited_evidence") {
+			t.Fatal("stale or partial sample produced a qualified shortfall")
+		}
 	}
 }
 

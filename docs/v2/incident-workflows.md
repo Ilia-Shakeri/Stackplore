@@ -129,6 +129,9 @@ The shortfall hypothesis is qualified and cites an actual fresh sample; a
 later recovery is contrary evidence and conflicting same-time values suppress
 the hypothesis. This pure function is not a read proof and the public report
 does not yet consume these records.
+The legacy report validator rejects nonempty history coverage. A future
+history-aware call must receive coverage independently from the owning,
+freshly authorized proofs instead of trusting the report's own flags.
 
 ### Existing execution limits
 
