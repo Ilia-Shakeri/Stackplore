@@ -91,9 +91,14 @@ func TestIncidentHistoryPreservesActualTransitionsWithoutCurrentRuleMetadata(t *
 		t.Fatal("non-transition accepted")
 	}
 	history.Transitions[1].From = &from
+	query.Limit = len(history.Transitions)
 	history.MoreAvailable, history.Status.Completeness, history.Status.ReasonCode = true, CompletenessPartial, "source.alert_history_limited"
 	if history.ValidateFor(query) != nil {
 		t.Fatal("honest bounded partial history rejected")
+	}
+	query.Limit++
+	if history.ValidateFor(query) == nil {
+		t.Fatal("incomplete page advertised additional history")
 	}
 }
 

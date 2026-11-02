@@ -101,6 +101,8 @@ provider, exact current resource identity and a half-open window of at most 24
 hours. It returns at most eight records with explicit partial/more coverage and
 ordinal time/ID ordering. The adapter uses a bounded repeatable-read read-only
 snapshot and SQL predicates, not source-wide pages or application filtering.
+An additional-record indication is valid only for a full bounded page marked
+partial; a shorter page cannot claim more records.
 Current source policy denial produces empty metadata. Callers still need current
 actor/source/resource authority and a separately reserved typed read proof.
 

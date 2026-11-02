@@ -60,7 +60,7 @@ func (IncidentAlertHistory) MarshalJSON() ([]byte, error) { return []byte("{}"),
 func (history IncidentAlertHistory) ValidateFor(query IncidentAlertHistoryQuery) error {
 	if query.Validate() != nil || history.Status.Validate() != nil || !incidentHistoryTime(history.Status.ObservedAt) ||
 		len(history.Transitions) > query.Limit || !history.Status.AllowsData() && (len(history.Transitions) != 0 || history.MoreAvailable) ||
-		history.MoreAvailable && history.Status.Completeness != CompletenessPartial {
+		history.MoreAvailable && (history.Status.Completeness != CompletenessPartial || len(history.Transitions) != query.Limit) {
 		return ErrRepositoryInvalidInput
 	}
 	seen := make(map[AlertTransitionID]bool, len(history.Transitions))

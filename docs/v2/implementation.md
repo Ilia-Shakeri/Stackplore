@@ -582,3 +582,7 @@ quality, pilot and independent public artifact gates remain open. Earlier
 candidate failures and 8/10 reviews remain historical.
 
 At `a2169ca`, hosted focused history and PostgreSQL tests pass, but full verification fails on Go formatting and a Persian browser answer with an extra section. The next source applies the hosted formatting patch and clarifies the synthetic request without weakening the exact-identity assertion. The signed package trial for prior report-core source `d1e080b` passed as run `41313911509`; fresh acceptance for later changes remains required.
+
+The history boundary also rejects an additional-record indication on a short
+page. A valid indication requires both a full page and partial coverage. This
+candidate needs fresh hosted validation and does not register a new read tool.
