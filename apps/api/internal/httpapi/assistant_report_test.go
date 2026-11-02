@@ -60,6 +60,20 @@ func TestReportProjectionProtectsOrdinaryFormattingAndDetachesTypedData(t *testi
 	}
 }
 
+func TestReportPublicationRequiresIndependentHistoryReadAuthority(t *testing.T) {
+	snapshot := reportSnapshot(t)
+	run := snapshot.Run
+	scope := incidentreport.Scope{Source: snapshot.Citations[0].Source, ResourceID: domain.ResourceID(run.ResourceID), ConfigurationVersion: run.SourceVersion, PolicyVersion: run.PolicyVersion, RestoreGeneration: run.RestoreGeneration, Range: domain.TimeRange{Start: run.From, End: run.Until}, ObservedAt: run.UpdatedAt}
+	report, err := incidentreport.BuildWithHistory(scope, snapshot.Report.Timeline, incidentreport.HistoryCoverage{AlertsRead: true, WorkloadRead: true})
+	if err != nil {
+		t.Fatal("construct internally valid history coverage fixture", err)
+	}
+	snapshot.Report = &report
+	if reply, err := incidentReply(snapshot, "user_helper", helperRunID); err == nil || reply.Report != nil {
+		t.Fatal("report flags substituted for independent reserved history proofs")
+	}
+}
+
 func TestReportRejectsForgedClaimsReferencesAndSharedOutputOverflow(t *testing.T) {
 	for _, mutate := range []func(*assistantservice.Snapshot){
 		func(snapshot *assistantservice.Snapshot) { snapshot.Report = nil },

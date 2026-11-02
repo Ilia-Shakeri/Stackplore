@@ -621,3 +621,9 @@ produce a gap. Demo origin is independently checked. This pure contract grants
 no read authority and is not wired to a public report or user interface. The
 caller must derive coverage from separately reserved, freshly checked proofs;
 contract, client and route updates and hosted validation remain necessary.
+
+The next transport regression checks that an internally valid report carrying
+history coverage cannot make the existing public route claim unread families
+were read. Publication still needs separate reserved and freshly authorized
+history proofs. This test awaits hosted verification; public integration and
+stage-6 acceptance remain open.
