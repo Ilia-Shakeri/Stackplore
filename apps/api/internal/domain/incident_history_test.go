@@ -24,7 +24,9 @@ func TestIncidentHistoryHasOneBoundedResourceWindowAndProtectedFormatting(t *tes
 		func(value *IncidentAlertHistoryQuery) { value.Source.SourceID = "other_source" },
 		func(value *IncidentAlertHistoryQuery) { value.Resource.ID = "" },
 		func(value *IncidentAlertHistoryQuery) { value.Range.End = value.Range.Start },
-		func(value *IncidentAlertHistoryQuery) { value.Range.End = value.Range.Start.Add(24*time.Hour + time.Microsecond) },
+		func(value *IncidentAlertHistoryQuery) {
+			value.Range.End = value.Range.Start.Add(24*time.Hour + time.Microsecond)
+		},
 		func(value *IncidentAlertHistoryQuery) { value.Range.Start = value.Range.Start.Add(time.Nanosecond) },
 	} {
 		changed := query
@@ -60,12 +62,20 @@ func TestIncidentHistoryPreservesActualTransitionsWithoutCurrentRuleMetadata(t *
 		func(value *IncidentAlertHistory) { value.Transitions[0].To = "unknown" },
 		func(value *IncidentAlertHistory) { value.Transitions[0].Synthetic = false },
 		func(value *IncidentAlertHistory) { value.Transitions[0].OccurredAt = query.Range.End },
-		func(value *IncidentAlertHistory) { value.Transitions[0].OccurredAt = query.Range.Start.Add(-time.Microsecond) },
-		func(value *IncidentAlertHistory) { value.Transitions[0].OccurredAt = query.Range.Start.Add(time.Nanosecond) },
+		func(value *IncidentAlertHistory) {
+			value.Transitions[0].OccurredAt = query.Range.Start.Add(-time.Microsecond)
+		},
+		func(value *IncidentAlertHistory) {
+			value.Transitions[0].OccurredAt = query.Range.Start.Add(time.Nanosecond)
+		},
 		func(value *IncidentAlertHistory) { value.Transitions[0].ID = value.Transitions[1].ID },
-		func(value *IncidentAlertHistory) { value.Transitions[0], value.Transitions[1] = value.Transitions[1], value.Transitions[0] },
+		func(value *IncidentAlertHistory) {
+			value.Transitions[0], value.Transitions[1] = value.Transitions[1], value.Transitions[0]
+		},
 		func(value *IncidentAlertHistory) { value.MoreAvailable = true },
-		func(value *IncidentAlertHistory) { value.Status.State, value.Status.ReasonCode = AvailabilityUnsupported, "source.unsupported" },
+		func(value *IncidentAlertHistory) {
+			value.Status.State, value.Status.ReasonCode = AvailabilityUnsupported, "source.unsupported"
+		},
 		func(value *IncidentAlertHistory) { value.Status.ObservedAt = time.Time{} },
 	} {
 		changed := history

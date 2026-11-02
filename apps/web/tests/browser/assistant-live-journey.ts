@@ -146,8 +146,8 @@ export async function assistantLiveJourney(
     const input = panel.getByRole('textbox', { name: label('assistant.question'), exact: true });
     const question =
       locale === 'fa'
-        ? 'یک بخش facts بساز: citations فقط [evidence[0].id]. مقدار text را عیناً از evidence[0].text.records[0].resource_id کپی کن؛ فقط همان مقدار، بدون نقل‌قول یا توضیح.'
-        : 'Return one facts section: citations is [evidence[0].id]. Copy text exactly from evidence[0].text.records[0].resource_id; only that value, without quotes or explanation.';
+        ? 'فقط یک بخش facts بده. در text فقط مقدار فیلد resource_id از رکورد اول شاهد اول را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار id همان شاهد را فقط یک بار بگذار. هیچ بخش gaps، فرضیه یا بخش دیگری اضافه نکن؛ این درخواست فقط کپی یک مقدار است.'
+        : 'Return exactly one facts section. In text copy only the resource_id value from the first record of the first evidence item; no field name or explanation. In citations put that evidence item id exactly once. Do not add gaps, hypotheses or any other section; this request only copies one value.';
     expect(admissions).toBe(0);
     await input.fill(question);
     await input.press('Tab');

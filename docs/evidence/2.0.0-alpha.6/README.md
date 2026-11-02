@@ -61,3 +61,7 @@ or whole-version acceptance. Its signed trial is separately pending.
 
 The next history-port preparation has its own source and tests. Parent report
 receipts do not accept new SQL, ports, migrations, read plans or later features.
+
+At `a2169ca`, run `41313921618`, focused domain and real PostgreSQL history tests pass. The full source gate stops on Go formatting. The real processor/browser gate fails when a Persian investigation produces an extra section despite returning the correct resource value. [Failure receipt](hosted-extra-section-failed.json) and [workflow state](history-port-ci.json) preserve that result. The followup applies the hosted formatting patch and makes the synthetic copy request explicitly exclude additional sections; exact identity and all existing assertions remain unchanged. Fresh verification is required.
+
+The signed package trial for report-core source `d1e080b` passed in [run 41313911509](report-core-package-ci.json); this does not accept later history work or complete stage 6.
