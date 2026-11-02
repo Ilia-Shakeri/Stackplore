@@ -62,10 +62,16 @@ func TestIncidentHistoryProjectionRejectsForeignResourceAndWindow(t *testing.T) 
 	request.Resources, request.Health, request.Metrics = nil, nil, nil
 	request.Events, request.Relationships = nil, nil
 	request.Scope.Resources = request.Scope.Resources[:1]
-	request.AlertHistory = &domain.IncidentAlertHistory{Status: request.Status, Transitions: []domain.IncidentAlertTransition{
-		{ID: "transition", AlertID: "alert", ResourceID: "foreign", To: domain.AlertFiring, OccurredAt: request.Scope.Range.End, Synthetic: true},
-	}}
-	if _, err := Build(context.Background(), request); err == nil {
-		t.Fatal("foreign and out-of-window history projected")
+	transition := domain.IncidentAlertTransition{ID: "transition", AlertID: "alert", ResourceID: request.Scope.Resources[0].ID, To: domain.AlertFiring, OccurredAt: request.Scope.Range.End.Add(-time.Second), Synthetic: true}
+	for _, change := range []func(*domain.IncidentAlertTransition){
+		func(value *domain.IncidentAlertTransition) { value.ResourceID = "foreign" },
+		func(value *domain.IncidentAlertTransition) { value.OccurredAt = request.Scope.Range.End },
+	} {
+		altered := transition
+		change(&altered)
+		request.AlertHistory = &domain.IncidentAlertHistory{Status: request.Status, Transitions: []domain.IncidentAlertTransition{altered}}
+		if _, err := Build(context.Background(), request); err == nil {
+			t.Fatal("foreign or out-of-window history projected")
+		}
 	}
 }
