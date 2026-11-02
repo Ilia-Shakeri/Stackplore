@@ -15,6 +15,7 @@ const required = [
   'SECURITY.md',
   'THIRD_PARTY_NOTICES.md',
   'docs/README.md',
+  'docs/product-introduction.fa.md',
   'docs/roadmap.md',
   'docs/roadmap.fa.md',
   'docs/codebase-audit.md',
