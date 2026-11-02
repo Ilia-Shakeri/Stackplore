@@ -586,3 +586,5 @@ At `a2169ca`, hosted focused history and PostgreSQL tests pass, but full verific
 The history boundary also rejects an additional-record indication on a short
 page. A valid indication requires both a full page and partial coverage. This
 candidate needs fresh hosted validation and does not register a new read tool.
+
+At `1e9720f`, hosted run `41404501002` passes all eight jobs, including actual bilingual report journeys and the bounded alert-history PostgreSQL tests. The history port still needs independent authority, reservation, report integration and complete stage-6 acceptance. This receipt does not accept later changes.
