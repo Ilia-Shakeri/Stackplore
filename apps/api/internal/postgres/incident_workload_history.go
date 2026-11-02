@@ -34,6 +34,9 @@ func (store *Store) GetIncidentWorkloadHistory(ctx context.Context, query domain
 			result.Status = current.Status
 			return result, nil
 		}
+		if current.Status.State == domain.AvailabilityStale {
+			result.Status.State, result.Status.ReasonCode = current.Status.State, current.Status.ReasonCode
+		}
 		rows, err := reader.queries.Query(ctx, `SELECT sample.sampled_at_us,sample.desired_replicas,sample.ready_replicas,sample.availability,sample.completeness,sample.reason_code FROM workload_replica_history AS sample JOIN resources AS resource ON resource.id=sample.resource_id WHERE resource.source_id=$1 AND resource.provider=$2 AND resource.id=$3 AND sample.sampled_at_us>=$4 AND sample.sampled_at_us<$5 ORDER BY sample.sampled_at_us LIMIT $6`, string(query.Source.SourceID), string(query.Source.Provider), string(query.Resource.ID), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), query.Limit+1)
 		if err != nil {
 			return domain.IncidentWorkloadHistory{}, mapRepositoryReadError(ctx, err)

@@ -61,6 +61,20 @@ func TestIncidentAlertHistoryFiltersInSQLAndPreservesHalfOpenChronology(t *testi
 	if err != nil || len(empty.Transitions) != 0 || empty.MoreAvailable {
 		t.Fatal("source-wide or adjacent-resource history escaped SQL predicate")
 	}
+	if _, err := fixture.store.pool.Exec(fixture.ctx, `UPDATE resource_snapshots SET availability='stale',reason_code='source.stale' WHERE resource_id=$1`, string(query.Resource.ID)); err != nil {
+		t.Fatal("mark current resource observation stale")
+	}
+	stale, err := fixture.store.GetIncidentAlertHistory(fixture.ctx, query)
+	if err != nil || stale.Status.State != domain.AvailabilityStale || stale.Status.ReasonCode != "source.alert_history_limited" || !stale.MoreAvailable {
+		t.Fatal("stale resource status was hidden by history", err)
+	}
+	if _, err := fixture.store.pool.Exec(fixture.ctx, `UPDATE resource_snapshots SET completeness='partial',reason_code='source.partial' WHERE resource_id=$1`, string(query.Resource.ID)); err != nil {
+		t.Fatal("mark current resource observation partial")
+	}
+	partial, err := fixture.store.GetIncidentAlertHistory(fixture.ctx, window)
+	if err != nil || partial.Status.State != domain.AvailabilityStale || partial.Status.Completeness != domain.CompletenessPartial || partial.Status.ReasonCode != "source.partial" || len(partial.Transitions) != 1 {
+		t.Fatal("partial resource status was hidden by history", err)
+	}
 	foreign := query
 	foreign.Source.SourceID = "foreign_source"
 	if _, err := fixture.store.GetIncidentAlertHistory(fixture.ctx, foreign); !errors.Is(err, domain.ErrRepositoryInvalidInput) {

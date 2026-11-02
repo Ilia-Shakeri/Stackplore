@@ -34,6 +34,12 @@ func (store *Store) GetIncidentAlertHistory(ctx context.Context, query domain.In
 			result.Status = current.Status
 			return result, nil
 		}
+		if current.Status.State == domain.AvailabilityStale {
+			result.Status.State, result.Status.ReasonCode = current.Status.State, current.Status.ReasonCode
+		}
+		if current.Status.Completeness == domain.CompletenessPartial {
+			result.Status.Completeness, result.Status.ReasonCode = current.Status.Completeness, current.Status.ReasonCode
+		}
 		rows, err := reader.queries.Query(ctx, `SELECT transition.id,transition.alert_id,alert.resource_id,transition.from_state,transition.to_state,transition.occurred_at_us,alert.synthetic FROM alert_transitions AS transition JOIN alerts AS alert ON alert.id=transition.alert_id JOIN resources AS resource ON resource.id=alert.resource_id AND resource.source_id=alert.source_id WHERE alert.source_id=$1 AND alert.resource_id=$2 AND resource.provider=$3 AND transition.occurred_at_us>=$4 AND transition.occurred_at_us<$5 ORDER BY transition.occurred_at_us,transition.id COLLATE "C" LIMIT $6`, string(query.Source.SourceID), string(query.Resource.ID), string(query.Source.Provider), query.Range.Start.UnixMicro(), query.Range.End.UnixMicro(), query.Limit+1)
 		if err != nil {
 			return domain.IncidentAlertHistory{}, mapRepositoryReadError(ctx, err)

@@ -105,6 +105,7 @@ An additional-record indication is valid only for a full bounded page marked
 partial; a shorter page cannot claim more records.
 Current source policy denial produces empty metadata. Callers still need current
 actor/source/resource authority and a separately reserved typed read proof.
+Stale resource status marks the returned history stale, including a limited page.
 
 Transition state and occurrence time are historical facts. Current alert severity
 and rule kind can change after a transition and are deliberately absent. Actor,
@@ -119,6 +120,7 @@ snapshot and reports partial coverage when an extra row exists. Historical
 sample time and desired/ready counts remain separate from current replica state.
 Unavailable current collection or policy loss returns no history. The new port
 is preparation only; it does not authorize or register a report read.
+Stale current replica data marks the result stale even if source metadata is fresh.
 
 ### Existing execution limits
 

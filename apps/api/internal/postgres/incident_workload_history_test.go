@@ -54,6 +54,13 @@ func TestIncidentWorkloadHistoryUsesSelectedResourceWindowAndPolicy(t *testing.T
 	if err != nil || len(complete.Samples) != 2 || complete.MoreAvailable || complete.Samples[1].Ready != 3 {
 		t.Fatal("history lost actual recovery sample", err)
 	}
+	if _, err := fixture.store.pool.Exec(fixture.ctx, `UPDATE resource_snapshots SET replicas_availability='stale',replicas_reason_code='source.stale' WHERE resource_id=$1`, string(query.Resource.ID)); err != nil {
+		t.Fatal("mark current replica observation stale")
+	}
+	stale, err := fixture.store.GetIncidentWorkloadHistory(fixture.ctx, query)
+	if err != nil || stale.Status.State != domain.AvailabilityStale || stale.Status.ReasonCode != "source.stale" || len(stale.Samples) != 2 {
+		t.Fatal("stale current replica status was hidden", err)
+	}
 	foreign := query
 	foreign.Source.SourceID = "foreign_source"
 	if _, err := fixture.store.GetIncidentWorkloadHistory(fixture.ctx, foreign); !errors.Is(err, domain.ErrRepositoryInvalidInput) {

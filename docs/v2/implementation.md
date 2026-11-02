@@ -597,3 +597,8 @@ registered tool, authority proof, report integration or stage-6 acceptance.
 The database fixture also creates a later recovery sample, checks that a full
 limited page truthfully reports more data and retains the earlier replica count,
 then reads both actual samples. Fresh hosted proof is required.
+
+A followup fixes source quality propagation for both history adapters: a stale
+selected resource or current replica state cannot be published as fresh, and
+partial selected-resource coverage stays partial for alert history. The scoped
+PostgreSQL regressions require fresh hosted proof; report integration remains open.
