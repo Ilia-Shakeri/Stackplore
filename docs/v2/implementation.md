@@ -602,3 +602,12 @@ A followup fixes source quality propagation for both history adapters: a stale
 selected resource or current replica state cannot be published as fresh, and
 partial selected-resource coverage stays partial for alert history. The scoped
 PostgreSQL regressions require fresh hosted proof; report integration remains open.
+
+The next candidate adds pure, bounded projection of alert transitions and
+replica samples into scoped evidence items. Transition occurrence remains
+distinct from the fenced read time; samples retain their actual timestamps and
+unavailable sample counts are omitted. Scope, chronology and record caps are
+checked before projection; source identifiers and alert actor or reason text
+are not sent as history facts. These functions grant no authority and are not
+registered as reads. Separate reservation, live authorization, report and
+client integration remain necessary; hosted proof for this candidate is pending.

@@ -27,6 +27,12 @@ type Observation struct {
 	LogSeverity     domain.LogSeverity
 	Redacted        bool
 	Truncated       bool
+	AlertFrom       domain.AlertState
+	AlertHasFrom    bool
+	AlertTo         domain.AlertState
+	WorkloadCounts  bool
+	Desired         uint64
+	Ready           uint64
 }
 
 func (Observation) Format(state fmt.State, _ rune) {
@@ -75,6 +81,22 @@ func (bundle Bundle) Observations() ([]Observation, error) {
 		case "relationship":
 			if record.Relationship == nil {
 				return nil, ErrInvalid
+			}
+		case "alert":
+			if record.Alert == nil {
+				return nil, ErrInvalid
+			}
+			item.Time, item.TimeBasis, item.AlertTo = record.Alert.OccurredAt, "occurred", record.Alert.To
+			if record.Alert.From != nil {
+				item.AlertHasFrom, item.AlertFrom = true, *record.Alert.From
+			}
+		case "workload":
+			if record.Workload == nil || (record.Workload.Desired == nil) != (record.Workload.Ready == nil) {
+				return nil, ErrInvalid
+			}
+			item.Time, item.TimeBasis = record.Workload.SampledAt, "sampled"
+			if record.Workload.Desired != nil {
+				item.WorkloadCounts, item.Desired, item.Ready = true, *record.Workload.Desired, *record.Workload.Ready
 			}
 		default:
 			return nil, ErrInvalid

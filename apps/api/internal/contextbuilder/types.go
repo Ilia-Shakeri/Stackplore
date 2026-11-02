@@ -56,6 +56,8 @@ type Request struct {
 	Metrics       []domain.MetricSample
 	Events        []domain.InfrastructureEvent
 	Relationships []domain.Relationship
+	AlertHistory  *domain.IncidentAlertHistory
+	WorkloadHistory *domain.IncidentWorkloadHistory
 	Logs          *logpolicy.Capture
 	LogConsent    bool
 	// MoreAvailable carries source page/cap bounds; projection does not claim a full estate scan.
@@ -147,6 +149,20 @@ type record struct {
 	Event            *eventFact         `json:"event,omitempty"`
 	Relationship     *relationshipFact  `json:"relationship,omitempty"`
 	Log              *logFact           `json:"log,omitempty"`
+	Alert            *alertFact         `json:"alert,omitempty"`
+	Workload         *workloadFact      `json:"workload,omitempty"`
+}
+
+type alertFact struct {
+	From       *domain.AlertState `json:"from,omitempty"`
+	To         domain.AlertState  `json:"to"`
+	OccurredAt time.Time          `json:"occurred_at"`
+}
+
+type workloadFact struct {
+	SampledAt time.Time `json:"sampled_at"`
+	Desired   *uint64   `json:"desired,omitempty"`
+	Ready     *uint64   `json:"ready,omitempty"`
 }
 
 type metricFact struct {
