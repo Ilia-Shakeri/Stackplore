@@ -594,3 +594,6 @@ resource matching, half-open time filtering, independent sample timestamps,
 limited-page metadata and policy fencing in one read-only PostgreSQL snapshot.
 Domain and actual database tests need fresh hosted execution. This is not yet a
 registered tool, authority proof, report integration or stage-6 acceptance.
+The database fixture also creates a later recovery sample, checks that a full
+limited page truthfully reports more data and retains the earlier replica count,
+then reads both actual samples. Fresh hosted proof is required.

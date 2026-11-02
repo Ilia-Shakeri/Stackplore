@@ -28,6 +28,32 @@ func TestIncidentWorkloadHistoryUsesSelectedResourceWindowAndPolicy(t *testing.T
 	if err != nil || len(out.Samples) != 0 {
 		t.Fatal("exclusive window end returned a sample", err)
 	}
+	token, err := fixture.store.BeginCapture(fixture.ctx, fixture.source.Source.ID, 1, fixture.at.Add(time.Second))
+	if err != nil {
+		t.Fatal("begin later capture")
+	}
+	batch := fixture.batch
+	batch.Token = token
+	batch.WorkloadReplicas = append([]domain.WorkloadReplicaSnapshot{}, fixture.batch.WorkloadReplicas...)
+	batch.WorkloadReplicas[0].Status.ObservedAt = fixture.at.Add(time.Second)
+	batch.WorkloadReplicas[0].Ready = 3
+	if err := fixture.store.SaveCapture(fixture.ctx, batch); err != nil {
+		t.Fatal("save later capture")
+	}
+	completion := fixture.completion
+	completion.Token = token
+	if err := fixture.store.FinishCapture(fixture.ctx, completion); err != nil {
+		t.Fatal("finish later capture")
+	}
+	capped, err := fixture.store.GetIncidentWorkloadHistory(fixture.ctx, query)
+	if err != nil || len(capped.Samples) != 1 || !capped.MoreAvailable || capped.Status.Completeness != domain.CompletenessPartial || capped.Samples[0].Ready != 2 {
+		t.Fatal("bounded history hid a later recovery or rewrote the earlier count", err)
+	}
+	query.Limit = 2
+	complete, err := fixture.store.GetIncidentWorkloadHistory(fixture.ctx, query)
+	if err != nil || len(complete.Samples) != 2 || complete.MoreAvailable || complete.Samples[1].Ready != 3 {
+		t.Fatal("history lost actual recovery sample", err)
+	}
 	foreign := query
 	foreign.Source.SourceID = "foreign_source"
 	if _, err := fixture.store.GetIncidentWorkloadHistory(fixture.ctx, foreign); !errors.Is(err, domain.ErrRepositoryInvalidInput) {
