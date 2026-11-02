@@ -47,6 +47,14 @@ type Report struct {
 	Hypotheses []Hypothesis
 	Gaps       []string
 	NextReads  []string
+	history    HistoryCoverage
+}
+
+// HistoryCoverage is supplied only after the owning read proof is checked.
+// A true value means that family was actually readable, including an empty read.
+type HistoryCoverage struct {
+	AlertsRead   bool
+	WorkloadRead bool
 }
 
 func (Report) Format(state fmt.State, _ rune) {
@@ -69,16 +77,27 @@ func (report Report) Clone() Report {
 // Build grants no authority. The owning service must retain and freshly check
 // every sealed read proof before invoking it and before any publication.
 func Build(scope Scope, observations []contextbuilder.Observation) (Report, error) {
+	return BuildWithHistory(scope, observations, HistoryCoverage{})
+}
+
+// BuildWithHistory correlates typed facts only; it neither reads nor authorizes them.
+func BuildWithHistory(scope Scope, observations []contextbuilder.Observation, history HistoryCoverage) (Report, error) {
 	if scope.Source.Validate() != nil || scope.ConfigurationVersion < 1 || scope.PolicyVersion < 1 || scope.RestoreGeneration < 0 || scope.ResourceID.Validate() != nil ||
 		scope.Range.ValidateLookback(24*time.Hour) != nil || !timestamp(scope.ObservedAt) || scope.Range.End.After(scope.ObservedAt) || len(observations) > MaximumObservations {
 		return Report{}, ErrInvalid
 	}
-	result := Report{Timeline: slices.Clone(observations), Hypotheses: []Hypothesis{},
-		Gaps:      []string{"alerts_not_read", "workload_history_not_read", "cause_unproven"},
-		NextReads: []string{"review_health", "review_metrics", "review_events", "review_alert_history", "review_workload_history"}}
+	result := Report{Timeline: slices.Clone(observations), Hypotheses: []Hypothesis{}, history: history,
+		Gaps: []string{}, NextReads: []string{"review_health", "review_metrics", "review_events", "review_alert_history", "review_workload_history"}}
+	if !history.AlertsRead {
+		result.gap("alerts_not_read")
+	}
+	if !history.WorkloadRead {
+		result.gap("workload_history_not_read")
+	}
+	result.gap("cause_unproven")
 	seen := make(map[string]bool, len(observations))
 	for _, item := range observations {
-		if !validObservation(scope, item) || seen[item.Reference.ID] {
+		if !validObservation(scope, item) || seen[item.Reference.ID] || item.Reference.Kind == "alert" && !history.AlertsRead || item.Reference.Kind == "workload" && !history.WorkloadRead {
 			return Report{}, ErrInvalid
 		}
 		seen[item.Reference.ID] = true
@@ -96,6 +115,7 @@ func Build(scope Scope, observations []contextbuilder.Observation) (Report, erro
 	result.pressure(domain.MetricCPUUsageCores, domain.MetricCPULimitCores, "cpu_pressure_possible")
 	result.restarts()
 	result.health()
+	result.workload()
 	if !slices.ContainsFunc(result.Timeline, func(item contextbuilder.Observation) bool { return item.Reference.Kind == "metric" }) {
 		result.gap("metrics_missing")
 	}
@@ -108,7 +128,7 @@ func Build(scope Scope, observations []contextbuilder.Observation) (Report, erro
 // Validate binds every observation to the exact freshly authorized reference
 // set, then independently recomputes all claims, ranks, gaps and recommendations.
 func Validate(scope Scope, report Report, references []contextbuilder.CitationReference) error {
-	if len(references) > MaximumObservations || len(report.Timeline) != len(references) || len(report.Hypotheses) > 4 || len(report.Gaps) > 12 || len(report.NextReads) != 5 {
+	if len(references) > MaximumObservations || len(report.Timeline) != len(references) || len(report.Hypotheses) > 5 || len(report.Gaps) > 12 || len(report.NextReads) != 5 {
 		return ErrInvalid
 	}
 	allowed := make(map[string]contextbuilder.CitationReference, len(references))
@@ -128,7 +148,7 @@ func Validate(scope Scope, report Report, references []contextbuilder.CitationRe
 			return ErrInvalid
 		}
 	}
-	expected, err := Build(scope, report.Timeline)
+	expected, err := BuildWithHistory(scope, report.Timeline, report.history)
 	if err != nil || !reflect.DeepEqual(expected, report) {
 		return ErrInvalid
 	}
@@ -150,7 +170,10 @@ func validObservation(scope Scope, item contextbuilder.Observation) bool {
 	}
 	if ref.Source != scope.Source || ref.ConfigurationVersion != scope.ConfigurationVersion || ref.PolicyVersion != scope.PolicyVersion || ref.RestoreGeneration != scope.RestoreGeneration ||
 		ref.Range != scope.Range || !assistant.Identifier(ref.ObjectID) || !timestamp(ref.ObservedAt) || ref.ObservedAt.After(scope.ObservedAt) ||
-		!timestamp(item.Time) || item.Time.After(ref.ObservedAt) || item.Availability != domain.AvailabilityAvailable && item.Availability != domain.AvailabilityStale || item.Completeness.Validate() != nil {
+		item.Synthetic != (scope.Source.Provider == domain.ProviderDemo) ||
+		!timestamp(item.Time) || item.Time.After(ref.ObservedAt) || item.Availability.Validate() != nil || item.Availability == domain.AvailabilityPermissionDenied ||
+		item.Availability != domain.AvailabilityAvailable && item.Availability != domain.AvailabilityStale && ref.Kind != "workload" || item.Completeness.Validate() != nil ||
+		item.Completeness == domain.CompletenessPartial && item.Availability != domain.AvailabilityAvailable && item.Availability != domain.AvailabilityStale {
 		return false
 	}
 	if ref.Kind == "relationship" {
@@ -193,6 +216,17 @@ func validObservation(scope Scope, item contextbuilder.Observation) bool {
 		if !item.Time.Equal(ref.ObservedAt) {
 			return false
 		}
+	case "alert":
+		if item.AlertTo.Validate() != nil || item.AlertHasFrom && (item.AlertFrom.Validate() != nil || item.AlertFrom == item.AlertTo) || !item.AlertHasFrom && item.AlertFrom != "" {
+			return false
+		}
+		expected.TimeBasis, expected.AlertFrom, expected.AlertHasFrom, expected.AlertTo = "occurred", item.AlertFrom, item.AlertHasFrom, item.AlertTo
+	case "workload":
+		allowsCounts := item.Availability == domain.AvailabilityAvailable || item.Availability == domain.AvailabilityStale
+		if item.WorkloadCounts != allowsCounts || item.Desired > 9_007_199_254_740_991 || item.Ready > 9_007_199_254_740_991 || !allowsCounts && (item.Desired != 0 || item.Ready != 0) {
+			return false
+		}
+		expected.TimeBasis, expected.WorkloadCounts, expected.Desired, expected.Ready = "sampled", item.WorkloadCounts, item.Desired, item.Ready
 	default:
 		return false
 	}
@@ -217,6 +251,40 @@ func (report *Report) add(code string, support, contrary []string) {
 		return
 	}
 	report.Hypotheses = append(report.Hypotheses, Hypothesis{Code: code, Rank: len(report.Hypotheses) + 1, Qualified: true, Supporting: slices.Clone(support), Contrary: slices.Clone(contrary)})
+}
+
+func (report *Report) workload() {
+	var last *contextbuilder.Observation
+	var support, contrary []string
+	for index := range report.Timeline {
+		item := &report.Timeline[index]
+		if item.Reference.Kind != "workload" || !usable(*item) || !item.WorkloadCounts {
+			continue
+		}
+		if last != nil && item.Time.Equal(last.Time) && (item.Desired != last.Desired || item.Ready != last.Ready) {
+			report.gap("conflicting_samples")
+			return
+		}
+		last = item
+	}
+	if last == nil {
+		return
+	}
+	// Only an observed shortfall supports this provisional claim. A later
+	// sample can show recovery; it does not prove the earlier cause.
+	for _, item := range report.Timeline {
+		if item.Reference.Kind != "workload" || !usable(item) || !item.WorkloadCounts {
+			continue
+		}
+		if item.Desired > item.Ready {
+			support, contrary = []string{item.Reference.ID}, nil
+		} else if len(support) > 0 {
+			contrary = []string{item.Reference.ID}
+		}
+	}
+	if len(support) > 0 {
+		report.add("workload_shortfall_possible", support, contrary)
+	}
 }
 
 func (report *Report) metric(name domain.MetricName) []contextbuilder.Observation {

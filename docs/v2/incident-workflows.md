@@ -122,6 +122,14 @@ Unavailable current collection or policy loss returns no history. The new port
 is preparation only; it does not authorize or register a report read.
 Stale current replica data marks the result stale even if source metadata is fresh.
 
+The pure report candidate can correlate typed history when an owning caller
+supplies readable-family coverage. Empty readable history stays distinct from
+an unread family; unavailable individual samples contain no replica counts.
+The shortfall hypothesis is qualified and cites an actual fresh sample; a
+later recovery is contrary evidence and conflicting same-time values suppress
+the hypothesis. This pure function is not a read proof and the public report
+does not yet consume these records.
+
 ### Existing execution limits
 
 Retain the existing 120-second run limit, one final generation, current token and

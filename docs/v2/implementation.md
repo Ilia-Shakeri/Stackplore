@@ -611,3 +611,13 @@ checked before projection; source identifiers and alert actor or reason text
 are not sent as history facts. These functions grant no authority and are not
 registered as reads. Separate reservation, live authorization, report and
 client integration remain necessary; hosted proof for this candidate is pending.
+
+The next pure report candidate accepts transition and workload observations
+only when its caller explicitly supplies readable-family coverage. It retains
+an honest empty-read distinction, exact reference validation, actual times and
+missing-data flags. A fresh complete replica shortfall may support a qualified
+possibility; a later recovery is contrary evidence, and equal-time conflicts
+produce a gap. Demo origin is independently checked. This pure contract grants
+no read authority and is not wired to a public report or user interface. The
+caller must derive coverage from separately reserved, freshly checked proofs;
+contract, client and route updates and hosted validation remain necessary.

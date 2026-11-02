@@ -50,6 +50,84 @@ func observation(scope Scope, index int, kind string, at time.Time) contextbuild
 	return item
 }
 
+func TestReportRejectsForgedSyntheticOrigin(t *testing.T) {
+	scope := reportScope(t)
+	item := observation(scope, 1, "health", scope.ObservedAt)
+	if _, err := Build(scope, []contextbuilder.Observation{item}); err != nil {
+		t.Fatal("valid demo origin rejected", err)
+	}
+	item.Synthetic = false
+	if _, err := Build(scope, []contextbuilder.Observation{item}); !errors.Is(err, ErrInvalid) {
+		t.Fatal("demo observation misrepresented as real")
+	}
+	scope.Source.Provider = domain.ProviderDocker
+	item.Reference.Source, item.Synthetic = scope.Source, false
+	if _, err := Build(scope, []contextbuilder.Observation{item}); err != nil {
+		t.Fatal("valid real origin rejected", err)
+	}
+	item.Synthetic = true
+	if _, err := Build(scope, []contextbuilder.Observation{item}); !errors.Is(err, ErrInvalid) {
+		t.Fatal("real observation misrepresented as demo")
+	}
+}
+
+func TestHistoryCorrelationRequiresCoverageAndKeepsRecovery(t *testing.T) {
+	scope := reportScope(t)
+	alert := observation(scope, 1, "alert", scope.Range.Start.Add(time.Second))
+	alert.TimeBasis, alert.AlertHasFrom, alert.AlertFrom, alert.AlertTo = "occurred", true, domain.AlertPending, domain.AlertFiring
+	short := observation(scope, 2, "workload", alert.Time.Add(time.Second))
+	short.TimeBasis, short.WorkloadCounts, short.Desired, short.Ready = "sampled", true, 3, 2
+	recovered := observation(scope, 3, "workload", short.Time.Add(time.Second))
+	recovered.TimeBasis, recovered.WorkloadCounts, recovered.Desired, recovered.Ready = "sampled", true, 3, 3
+	input := []contextbuilder.Observation{recovered, alert, short}
+	if _, err := Build(scope, input); !errors.Is(err, ErrInvalid) {
+		t.Fatal("history without a readable family was accepted")
+	}
+	coverage := HistoryCoverage{AlertsRead: true, WorkloadRead: true}
+	report, err := BuildWithHistory(scope, input, coverage)
+	if err != nil || len(report.Timeline) != 3 || len(report.Hypotheses) != 1 || report.Hypotheses[0].Code != "workload_shortfall_possible" ||
+		!slices.Equal(report.Hypotheses[0].Supporting, []string{short.Reference.ID}) || !slices.Equal(report.Hypotheses[0].Contrary, []string{recovered.Reference.ID}) ||
+		slices.Contains(report.Gaps, "alerts_not_read") || slices.Contains(report.Gaps, "workload_history_not_read") {
+		t.Fatal("qualified shortfall or recovery lost", err)
+	}
+	refs := []contextbuilder.CitationReference{alert.Reference, short.Reference, recovered.Reference}
+	if Validate(scope, report, refs) != nil {
+		t.Fatal("exact authorized history rejected")
+	}
+	forged := report.Clone()
+	forged.history.AlertsRead = false
+	if !errors.Is(Validate(scope, forged, refs), ErrInvalid) {
+		t.Fatal("history report lost its family coverage")
+	}
+	empty, err := BuildWithHistory(scope, nil, coverage)
+	if err != nil || slices.Contains(empty.Gaps, "alerts_not_read") || slices.Contains(empty.Gaps, "workload_history_not_read") || len(empty.Hypotheses) != 0 {
+		t.Fatal("empty readable history became unread or invented a cause")
+	}
+}
+
+func TestHistoryCorrelationRejectsConflictAndUnavailableCounts(t *testing.T) {
+	scope := reportScope(t)
+	first := observation(scope, 1, "workload", scope.Range.Start.Add(time.Second))
+	first.TimeBasis, first.WorkloadCounts, first.Desired, first.Ready = "sampled", true, 3, 2
+	conflict := first
+	conflict.Reference.ID, conflict.Reference.ObjectID, conflict.Ready = fmt.Sprintf("ev_%064x", 2), "fact_2", 3
+	coverage := HistoryCoverage{WorkloadRead: true}
+	report, err := BuildWithHistory(scope, []contextbuilder.Observation{first, conflict}, coverage)
+	if err != nil || len(report.Hypotheses) != 0 || !slices.Contains(report.Gaps, "conflicting_samples") {
+		t.Fatal("conflicting workload samples invented a diagnosis")
+	}
+	missing := first
+	missing.Availability, missing.WorkloadCounts = domain.AvailabilityUnavailable, false
+	if _, err := BuildWithHistory(scope, []contextbuilder.Observation{missing}, coverage); !errors.Is(err, ErrInvalid) {
+		t.Fatal("unavailable sample kept fabricated counts")
+	}
+	missing.Desired, missing.Ready = 0, 0
+	report, err = BuildWithHistory(scope, []contextbuilder.Observation{missing}, coverage)
+	if err != nil || len(report.Hypotheses) != 0 || !slices.Contains(report.Gaps, "limited_evidence") {
+		t.Fatal("unavailable sample did not remain an explicit gap")
+	}
+}
+
 func TestQualifiedRestartAndHealthKeepActualChronologyAndContraryEvidence(t *testing.T) {
 	scope := reportScope(t)
 	early := observation(scope, 1, "metric", scope.Range.Start.Add(time.Second))
