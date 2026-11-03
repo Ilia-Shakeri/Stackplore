@@ -1,7 +1,7 @@
 import { Children, useState, type ReactNode } from 'react';
 import { useLocale } from '../../i18n';
+import { useOptionalAuthSnapshot } from '../auth/auth-context';
 
-const storageKey = 'stackplore.dashboard.layout.v1';
 const titles = [
   'product.trend.cpu',
   'product.trend.memory',
@@ -12,8 +12,9 @@ const titles = [
 type Panel = { id: number; visible: boolean; wide: boolean };
 const defaults = (): Panel[] => titles.map((_, id) => ({ id, visible: true, wide: false }));
 
-const load = (): Panel[] => {
+const load = (storageKey: string | null): Panel[] => {
   try {
+    if (storageKey === null) return defaults();
     const raw = localStorage.getItem(storageKey);
     if (raw === null || raw.length > 2048) return defaults();
     const value: unknown = JSON.parse(raw);
@@ -42,13 +43,25 @@ const load = (): Panel[] => {
 };
 
 export function DashboardLayout({ children }: { readonly children: ReactNode }) {
+  const snapshot = useOptionalAuthSnapshot();
+  const storageKey = snapshot?.status === 'authenticated'
+    ? `stackplore.dashboard.layout.v2.user.${encodeURIComponent(snapshot.user.id)}`
+    : snapshot?.status === 'guest_demo' ? 'stackplore.dashboard.layout.v2.guest' : null;
+  return <BrowserDashboardLayout key={storageKey ?? 'volatile'} storageKey={storageKey}>{children}</BrowserDashboardLayout>;
+}
+
+export function BrowserDashboardLayout({ children, storageKey }: { readonly children: ReactNode; readonly storageKey: string | null }) {
   const { t } = useLocale();
-  const [layout, setLayout] = useState(load);
+  const [layout, setLayout] = useState(() => load(storageKey));
   const [saved, setSaved] = useState(true);
   const panels = Children.toArray(children);
   const update = (next: Panel[]) => {
     setLayout(next);
     try {
+      if (storageKey === null) {
+        setSaved(false);
+        return;
+      }
       localStorage.setItem(storageKey, JSON.stringify(next));
       setSaved(true);
     } catch {

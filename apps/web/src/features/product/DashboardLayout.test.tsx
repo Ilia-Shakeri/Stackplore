@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, within, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { LocaleProvider } from '../../i18n';
-import { DashboardLayout } from './DashboardLayout';
+import { BrowserDashboardLayout as DashboardLayout } from './DashboardLayout';
 
 const key = 'stackplore.dashboard.layout.v1';
-const show = () =>
+const show = (ownerKey: string | null = key) =>
   render(
     <LocaleProvider defaultLocale="en" storageKey="dashboard-test">
-      <DashboardLayout>
+      <DashboardLayout storageKey={ownerKey}>
         {['cpu', 'memory', 'restarts', 'received', 'sent'].map((name) => (
           <p key={name}>{name}</p>
         ))}
@@ -20,6 +20,17 @@ afterEach(() => {
 });
 
 describe('dashboard layout', () => {
+  it('does not reuse a different owner layout', () => {
+    localStorage.setItem('owner-first', JSON.stringify(Array.from({ length: 5 }, (_, id) => ({ id, visible: id !== 0, wide: false }))));
+    const first = show('owner-first');
+    expect(screen.queryByText('cpu')).toBeNull();
+    first.unmount();
+    const second = show('owner-second');
+    expect(screen.getByText('cpu')).not.toBeNull();
+    second.unmount();
+    show(null);
+    expect(screen.getByText('cpu')).not.toBeNull();
+  });
   it('persists only bounded layout and supports reset', () => {
     const view = show();
     fireEvent.click(screen.getByText('Customize dashboard'));

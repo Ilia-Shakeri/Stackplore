@@ -1,7 +1,7 @@
 {
   "dashboard.title": "Monitoring dashboard",
   "dashboard.customize": "Customize dashboard",
-  "dashboard.browserOnly": "Layout only is saved in this browser and shared by accounts using it. Monitoring data is not saved with the layout.",
+  "dashboard.browserOnly": "Layout is saved for this account in this browser only; guest layout is separate. It does not sync across devices or include monitoring data. Browser storage is not a security boundary.",
   "dashboard.visible": "Show panel",
   "dashboard.wide": "Full width",
   "dashboard.up": "Move earlier",
