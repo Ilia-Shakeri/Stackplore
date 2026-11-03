@@ -115,6 +115,14 @@ describe('locale state and formatting', () => {
 
     expect(screen.getByTestId('locale').textContent).toBe('fa');
     expect(document.documentElement.dir).toBe('rtl');
+
+    act(() => {
+      globalThis.dispatchEvent(new StorageEvent('storage', { key: null, newValue: null }));
+    });
+
+    expect(screen.getByTestId('locale').textContent).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+    expect(document.documentElement.dir).toBe('ltr');
   });
 
   it('formats numbers, dates, and plural copy with explicit locale rules', () => {

@@ -33,3 +33,8 @@ changes, recovery and user administration already exist. Display preferences
 include language, calendar, digits and timezone. Theme synchronization now resets
 to the configured default when another tab clears browser storage. Preferences
 remain browser-local; this does not add server-side cross-device settings.
+
+The same clear-storage correction applies to locale and document direction.
+The normal authenticated browser journey now exercises the actual theme select
+on both setup and login, and dismisses the real user-created notification. These
+checks run with English and Persian fixtures; new execution receipts are pending.

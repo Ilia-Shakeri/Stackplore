@@ -48,6 +48,20 @@ async function logout(page: Page) {
   expect((await page.request.get('/api/v1/auth/session')).status()).toBe(401);
 }
 
+async function verifyThemeControl(page: Page) {
+  const theme = page.getByRole('combobox', {
+    name: locale === 'fa' ? 'پوسته' : 'Theme',
+    exact: true,
+  });
+  await theme.selectOption('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await theme.selectOption('light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await theme.selectOption('system');
+  await expect(page.locator('html')).toHaveAttribute('data-theme-preference', 'system');
+  await theme.selectOption('light');
+}
+
 test(`normal ${locale}: setup, recent authentication, role boundaries, history and logout`, async ({
   page,
   context,
@@ -71,6 +85,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
   try {
     await page.goto('/overview');
     await expect(page).toHaveURL(/\/setup/u);
+    await verifyThemeControl(page);
     await page.locator('input[name="display_name"]').fill('Browser Administrator');
     await page.locator('input[name="login_name"]').fill('browser_admin');
     await privateInput(page.locator('input[name="password"]'), administratorPassword);
@@ -127,6 +142,11 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await dialog.getByRole('button', { name: label('users.create.submit'), exact: true }).click();
     await expect(dialog).not.toBeVisible();
     await expect(page.getByText('Browser Viewer', { exact: true })).toBeVisible();
+    const notice = page.locator('.ui-toast');
+    await expect(notice).toHaveCount(1);
+    await expect(notice).toContainText(label('users.create.success'));
+    await notice.getByRole('button').click();
+    await expect(notice).toHaveCount(0);
     expect(
       responses.some(({ path, status }) => path === '/api/v1/auth/recent-grants' && status === 201),
     ).toBe(true);
@@ -190,6 +210,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     );
     await logout(page);
 
+    await verifyThemeControl(page);
     await page.locator('input[name="login_name"]').fill('browser_viewer');
     await privateInput(page.locator('input[name="password"]'), viewerPassword);
     await page.getByRole('button', { name: label('auth.login.submit'), exact: true }).click();

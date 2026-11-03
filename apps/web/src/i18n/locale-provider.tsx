@@ -135,7 +135,7 @@ export function LocaleProvider({
 
   useLayoutEffect(() => {
     const syncStoredLocale = (event: StorageEvent) => {
-      if (event.key !== storageKey) {
+      if (event.key !== null && event.key !== storageKey) {
         return;
       }
       setLocaleState(isLocale(event.newValue) ? event.newValue : defaultLocale);
