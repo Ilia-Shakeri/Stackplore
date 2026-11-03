@@ -6,7 +6,7 @@ import type {
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LocaleProvider } from '../../i18n';
-import { ProductOverviewPage } from './ProductPages';
+import { ProductMonitoringPage, ProductOverviewPage } from './ProductPages';
 import { createProductApi, type ProductApi } from './product-api';
 import { ProductProvider } from './product-context';
 
@@ -79,11 +79,11 @@ function deferred<Value>() {
   });
   return { promise, resolve, reject };
 }
-function mount(api: ProductApi, sourceId = 'source_demo') {
+function mount(api: ProductApi, sourceId = 'source_demo', monitoring = false) {
   return (
     <LocaleProvider defaultLocale="en" storageKey="overview-refresh-test">
       <ProductProvider api={api} sourceId={sourceId} onSourceChange={() => {}}>
-        <ProductOverviewPage />
+        {monitoring ? <ProductMonitoringPage /> : <ProductOverviewPage />}
       </ProductProvider>
     </LocaleProvider>
   );
@@ -112,11 +112,9 @@ describe('overview bounded refresh', () => {
     expect(screen.getByRole('region', { name: 'Current source metrics' })).not.toBeNull();
     expect(api.listSources).toHaveBeenCalledTimes(1);
     expect(api.listMetrics).toHaveBeenCalledTimes(1);
-    expect(api.listMetricHistory).toHaveBeenCalledTimes(1);
-    expect(api.listMetricHistory.mock.calls[0]?.[0]).toMatchObject({
-      from: '2026-08-16T07:00:00.001Z',
-      to: '2026-08-16T08:00:00.001Z',
-    });
+    expect(api.listMetricHistory).not.toHaveBeenCalled();
+    expect(api.listEvents).not.toHaveBeenCalled();
+    expect(screen.queryByRole('combobox', { name: 'Time range' })).toBeNull();
     act(() => {
       Stream.latest.dispatchEvent(new Event('metrics.snapshot.v1'));
       vi.advanceTimersByTime(5000);
@@ -137,7 +135,7 @@ describe('overview bounded refresh', () => {
     await settle();
     expect(api.listMetrics).toHaveBeenCalledTimes(2);
     expect(api.listSources).toHaveBeenCalledTimes(2);
-    expect(api.listMetricHistory).toHaveBeenCalledTimes(2);
+    expect(api.listMetricHistory).not.toHaveBeenCalled();
     act(() => {
       Stream.latest.dispatchEvent(new Event('stream.reset.v1'));
     });
@@ -182,11 +180,11 @@ describe('overview bounded refresh', () => {
   it('does not let a canceled old source failure replace a loaded new source', async () => {
     setup();
     const api = fixture();
-    const old = deferred<ProductMetricHistoryResult>();
-    api.listMetricHistory.mockImplementationOnce(() => old.promise);
+    const old = deferred<ProductMetricResult>();
+    api.listMetrics.mockImplementationOnce(() => old.promise);
     const view = render(mount(api));
     await settle();
-    const signal = api.listMetricHistory.mock.calls[0]?.[0]?.signal;
+    const signal = api.listMetrics.mock.calls[0]?.[0]?.signal;
     view.rerender(mount(api, 'source_docker'));
     await settle();
     expect(signal?.aborted).toBe(true);
@@ -202,7 +200,7 @@ describe('overview bounded refresh', () => {
   it('changes a correlated time range with one batch and the same trusted fixture clock', async () => {
     setup();
     const api = fixture();
-    render(mount(api));
+    render(mount(api, 'source_demo', true));
     await settle();
     fireEvent.change(screen.getByRole('combobox', { name: 'Time range' }), {
       target: { value: '360' },
@@ -213,9 +211,6 @@ describe('overview bounded refresh', () => {
       from: '2026-08-16T02:00:00.001Z',
       to: '2026-08-16T08:00:00.001Z',
     });
-    expect(api.listEvents.mock.calls[1]?.[0]).toMatchObject({
-      from: '2026-08-16T02:00:00.001Z',
-      to: '2026-08-16T08:00:00.001Z',
-    });
+    expect(api.listEvents).not.toHaveBeenCalled();
   });
 });

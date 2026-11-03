@@ -7,7 +7,7 @@ import type {
   ProductResourcePage,
   SourceSummary,
 } from '@stackplore/api-client';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Children, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocale } from '../../i18n';
 import { useProductApi, useProductSource } from './product-context';
 import { useProductStream } from './product-stream';
@@ -23,6 +23,7 @@ import { TimeRangeControl } from './exploration-time';
 import { timeQuery } from './product-api-common';
 import { OverviewInsights } from './OverviewInsights';
 import { DashboardLayout } from './DashboardLayout';
+import { WorkspaceNavigation, WorkspaceShortcuts } from './WorkspaceNavigation';
 export { ProductTopologyPage } from './ExplorationTopologyPage';
 export { ProductLogsPage } from './ExplorationLogsPage';
 export { ProductEventsPage } from './ExplorationEventsPage';
@@ -39,6 +40,15 @@ const MetricTrend = lazy(() =>
 );
 const sourceOptions = (sourceId?: string) => (sourceId === undefined ? {} : { sourceId });
 export function ProductOverviewPage() {
+  return <ProductWorkspacePage page="overview" />;
+}
+export function ProductMonitoringPage() {
+  return <ProductWorkspacePage page="monitoring" />;
+}
+export function ProductInsightsPage() {
+  return <ProductWorkspacePage page="insights" />;
+}
+function ProductWorkspacePage({ page }: { readonly page: 'overview' | 'monitoring' | 'insights' }) {
   const api = useProductApi();
   const { selectSource, selectedSource } = useProductSource();
   const { formatDate, formatNumber, t } = useLocale();
@@ -48,6 +58,7 @@ export function ProductOverviewPage() {
   const to = view.read('to', 30);
   const selectedMinutes = Number(view.read('minutes'));
   const minutes = selectedMinutes === 360 || selectedMinutes === 1440 ? selectedMinutes : 60;
+  const monitor = view.read('monitor') || 'cpu';
   const absoluteRange = useMemo(() => {
     if (from === '' || to === '') return undefined;
     try {
@@ -102,10 +113,10 @@ export function ProductOverviewPage() {
   };
   const [state, setState] = useState<
     LoadState<{
-      readonly alerts: ProductAlertPage;
-      readonly environments: ProductEnvironmentPage;
-      readonly history: ProductMetricHistoryResult;
-      readonly metrics: ProductMetricResult;
+      readonly alerts: ProductAlertPage | null;
+      readonly environments: ProductEnvironmentPage | null;
+      readonly history: ProductMetricHistoryResult | null;
+      readonly metrics: ProductMetricResult | null;
       readonly sources: readonly SourceSummary[];
       readonly events: ProductEventPage | null;
       readonly resources: ProductResourcePage | null;
@@ -117,14 +128,14 @@ export function ProductOverviewPage() {
     activeRead.current = true;
     setState({ kind: 'loading' });
     const read = async () => {
-      const resources = api
+      const resources = page === 'insights' ? api
         .listResources({ signal: controller.signal, ...sourceOptions(selectedSource), limit: 100 })
-        .catch(() => null);
+        .catch(() => null) : Promise.resolve(null);
       const [sources, metrics, alerts, environments] = await Promise.all([
         api.listSources(controller.signal),
-        api.listMetrics({ signal: controller.signal, ...sourceOptions(selectedSource) }),
-        api.listAlerts({ signal: controller.signal, ...sourceOptions(selectedSource) }),
-        api.listEnvironments({ signal: controller.signal, ...sourceOptions(selectedSource) }),
+        page === 'monitoring' ? Promise.resolve(null) : api.listMetrics({ signal: controller.signal, ...sourceOptions(selectedSource) }),
+        page === 'overview' ? api.listAlerts({ signal: controller.signal, ...sourceOptions(selectedSource) }) : Promise.resolve(null),
+        page === 'monitoring' ? Promise.resolve(null) : api.listEnvironments({ signal: controller.signal, ...sourceOptions(selectedSource) }),
       ]);
       if (controller.signal.aborted) return;
       const source =
@@ -139,19 +150,19 @@ export function ProductOverviewPage() {
         to: new Date(now).toISOString(),
       };
       const [history, events, resourcePage] = await Promise.all([
-        api.listMetricHistory({
+        page === 'monitoring' ? api.listMetricHistory({
           signal: controller.signal,
           ...sourceOptions(selectedSource),
           ...range,
-        }),
-        api
+        }) : Promise.resolve(null),
+        page === 'insights' ? api
           .listEvents({
             signal: controller.signal,
             ...sourceOptions(selectedSource),
             ...range,
             limit: 10,
           })
-          .catch(() => null),
+          .catch(() => null) : Promise.resolve(null),
         resources,
       ]);
       return { sources, metrics, alerts, environments, history, events, resources: resourcePage };
@@ -175,16 +186,18 @@ export function ProductOverviewPage() {
     return () => {
       controller.abort();
     };
-  }, [api, selectedSource, revision, absoluteRange, minutes, queueRefresh]);
+  }, [api, selectedSource, revision, absoluteRange, minutes, queueRefresh, page]);
 
+  const history = state.kind === 'ready' ? state.data.history : null;
   return (
     <div className="route-page product-page">
       <header className="route-page__header">
         <p className="route-page__eyebrow">{t('route.overview.eyebrow')}</p>
-        <h1>{t('route.overview.title')}</h1>
-        <p>{t('route.overview.description')}</p>
+        <h1>{t(`route.${page}.title`)}</h1>
+        <p>{t(`route.${page}.description`)}</p>
         <ProductStreamBadge status={stream.status} />
       </header>
+      <WorkspaceNavigation current={page} />
       {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : null}
       {state.kind === 'error' ? (
         <ProductState
@@ -211,22 +224,31 @@ export function ProductOverviewPage() {
               ))}
             </select>
           </label>
-          <MetricSummary
+          {page === 'overview' && state.data.alerts !== null && state.data.environments !== null && state.data.metrics !== null ? <MetricSummary
             alerts={state.data.alerts}
             environments={state.data.environments}
             metrics={state.data.metrics}
             formatNumber={formatNumber}
             t={t}
-          />
-          <div className="exploration-filters">
+          /> : null}
+          {page === 'overview' ? <WorkspaceShortcuts /> : null}
+          {page === 'monitoring' ? <div className="exploration-filters">
             <TimeRangeControl minutes={minutes} select={selectTime} />
-          </div>
+          </div> : null}
+          {page === 'monitoring' && history !== null ? <>
+          <nav className="workspace-navigation" aria-label={t('workspace.metrics')}>
+            {(['cpu', 'memory', 'restarts', 'receive', 'send', 'dashboard'] as const).map((item) => (
+              <a key={item} href={monitorHref(view.search, selectedSource, item)} aria-current={monitor === item ? 'page' : undefined}>
+                {t(`workspace.metric.${item}`)}
+              </a>
+            ))}
+          </nav>
           <Suspense fallback={<ProductState text={t('product.loading')} />}>
-            <DashboardLayout>
+            <MonitoringPanels mode={monitor}>
               <MetricTrend
                 formatDate={formatDate}
                 formatNumber={formatNumber}
-                history={state.data.history}
+                history={history}
                 metric="cpu.usage.cores"
                 title={t('product.trend.cpu')}
                 unit={t('product.metric.cores')}
@@ -237,7 +259,7 @@ export function ProductOverviewPage() {
                 divisor={1024 * 1024}
                 formatDate={formatDate}
                 formatNumber={formatNumber}
-                history={state.data.history}
+                history={history}
                 metric="memory.usage.bytes"
                 title={t('product.trend.memory')}
                 unit={t('product.metric.mib')}
@@ -255,7 +277,7 @@ export function ProductOverviewPage() {
                   key={metric}
                   formatDate={formatDate}
                   formatNumber={formatNumber}
-                  history={state.data.history}
+                  history={history}
                   metric={metric}
                   title={t(
                     metric === 'restart.count'
@@ -269,17 +291,18 @@ export function ProductOverviewPage() {
                   minutes={minutes}
                 />
               ))}
-            </DashboardLayout>
+            </MonitoringPanels>
           </Suspense>
-          <OverviewInsights
+          </> : null}
+          {page === 'insights' && state.data.environments !== null && state.data.metrics !== null ? <OverviewInsights
             environments={state.data.environments}
             events={state.data.events}
             metrics={state.data.metrics}
             resources={state.data.resources}
             {...(selectedSource === undefined ? {} : { source: selectedSource })}
-          />
-          <div className="source-grid">
-            {state.data.sources.map((source) => (
+          /> : null}
+          {page === 'overview' ? <div className="source-grid">
+            {state.data.sources.filter((source) => source.id === (selectedSource ?? state.data.sources[0]?.id)).map((source) => (
               <article className="source-card" key={source.id}>
                 <div className="source-card__heading">
                   <h2>{source.name}</h2>
@@ -324,11 +347,29 @@ export function ProductOverviewPage() {
                 ) : null}
               </article>
             ))}
-          </div>
+          </div> : null}
         </>
       ) : null}
     </div>
   );
+}
+
+function MonitoringPanels({ children, mode }: { readonly children: ReactNode; readonly mode: string }) {
+  const panels = Children.toArray(children);
+  if (mode === 'dashboard') return <DashboardLayout>{children}</DashboardLayout>;
+  const index = ['cpu', 'memory', 'restarts', 'receive', 'send'].indexOf(mode);
+  return <div className="monitoring-panel">{panels[index < 0 ? 0 : index]}</div>;
+}
+
+function monitorHref(search: string, source: string | undefined, mode: string) {
+  const current = new URLSearchParams(search);
+  const parameters = new URLSearchParams({ monitor: mode });
+  for (const key of ['minutes', 'from', 'to']) {
+    const value = current.get(key);
+    if (value !== null) parameters.set(key, value);
+  }
+  if (source !== undefined) parameters.set('source', source);
+  return `/monitoring?${parameters.toString()}`;
 }
 
 function HealthCount({

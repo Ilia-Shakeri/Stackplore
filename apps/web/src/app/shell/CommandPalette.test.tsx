@@ -69,7 +69,7 @@ describe('command palette', () => {
     expect(within(reopened).getByRole<HTMLInputElement>('combobox').value).toBe('');
     await user.keyboard('{ArrowDown}{Enter}');
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/topology');
+      expect(router.state.location.pathname).toBe('/monitoring');
     });
   });
 

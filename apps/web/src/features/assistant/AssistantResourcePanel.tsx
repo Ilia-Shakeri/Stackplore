@@ -60,7 +60,7 @@ const availabilityKeys = {
   unsupported: 'assistant.coverage.unsupported',
 } as const satisfies Record<string, MessageKey>;
 
-export function AssistantResourcePanel({ resource }: { readonly resource: ProductResource }) {
+export function AssistantResourcePanel({ resource, defaultOpen = false }: { readonly resource: ProductResource; readonly defaultOpen?: boolean }) {
   const api = useOptionalAssistantApi();
   const auth = useOptionalAuthSnapshot();
   const subscribe = useCallback(
@@ -70,7 +70,7 @@ export function AssistantResourcePanel({ resource }: { readonly resource: Produc
   const owner = useSyncExternalStore(subscribe, api?.getOwner ?? absentOwner, absentOwner);
   const { t, locale } = useLocale();
   const panelId = useId();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   if (api === null || owner === null || auth?.status !== 'authenticated') return null;
   return (
     <section className="assistant" aria-labelledby={`${panelId}-title`}>

@@ -98,6 +98,10 @@ describe('application shell', () => {
 
   it.each([
     ['/overview', 'Overview'],
+    ['/monitoring', 'Monitoring'],
+    ['/insights', 'Insights'],
+    ['/assistant', 'Smart Assistant'],
+    ['/help', 'Help'],
     ['/topology', 'Topology'],
     ['/resources', 'Resources'],
     ['/search?q=api', 'Search'],
@@ -121,6 +125,10 @@ describe('application shell', () => {
 
   it.each([
     ['/overview', 'نمای کلی'],
+    ['/monitoring', 'پایش'],
+    ['/insights', 'بینش‌ها'],
+    ['/assistant', 'دستیار هوشمند'],
+    ['/help', 'راهنما'],
     ['/topology', 'توپولوژی'],
     ['/resources', 'منابع'],
     ['/search?q=api', 'جست‌وجو'],

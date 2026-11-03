@@ -17,6 +17,10 @@ import { getPageTitle } from './shell/navigation';
 import { NotFoundPage } from '../routes/NotFoundPage';
 import {
   AboutPage,
+  AssistantPage,
+  HelpPage,
+  InsightsPage,
+  MonitoringPage,
   AlertsPage,
   AuditPage,
   ConnectionsSettingsPage,
@@ -311,6 +315,11 @@ const overviewRoute = createRoute({
   component: OverviewPage,
 });
 
+const monitoringRoute = createRoute({ getParentRoute: () => appRoute, path: '/monitoring', component: MonitoringPage });
+const insightsRoute = createRoute({ getParentRoute: () => appRoute, path: '/insights', component: InsightsPage });
+const assistantRoute = createRoute({ getParentRoute: () => appRoute, path: '/assistant', component: AssistantPage });
+const helpRoute = createRoute({ getParentRoute: () => appRoute, path: '/help', component: HelpPage });
+
 const topologyRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/topology',
@@ -459,6 +468,10 @@ const routeTree = rootRoute.addChildren([
   standaloneRoute.addChildren([setupRoute, loginRoute]),
   appRoute.addChildren([
     overviewRoute,
+    monitoringRoute,
+    insightsRoute,
+    assistantRoute,
+    helpRoute,
     topologyRoute,
     resourcesRoute,
     searchRoute,

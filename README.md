@@ -2,6 +2,10 @@
 
 # Stackplore
 
+Development preview **2.0.0-alpha.6.1** separates Overview, Monitoring, Insights,
+Smart Assistant and Help. [Desktop workspace guide](docs/desktop-workspaces.md).
+This is not stable-2.0 acceptance; hosted release checks remain required.
+
 **Explore every service in your stack.**
 
 [فارسی](README.fa.md)

@@ -3,6 +3,8 @@ import {
   Bell,
   Boxes,
   CircleHelp,
+  Command,
+  Gauge,
   Info,
   LayoutDashboard,
   List,
@@ -22,6 +24,10 @@ export interface NavigationItem {
   labelKey: TextMessageKey;
   to:
     | '/overview'
+    | '/monitoring'
+    | '/insights'
+    | '/assistant'
+    | '/help'
     | '/topology'
     | '/resources'
     | '/search'
@@ -38,6 +44,9 @@ export interface NavigationItem {
 
 const primaryNavigation = [
   { icon: LayoutDashboard, labelKey: 'route.overview.title', to: '/overview' },
+  { icon: Gauge, labelKey: 'route.monitoring.title', to: '/monitoring' },
+  { icon: Command, labelKey: 'route.assistant.title', to: '/assistant' },
+  { icon: Activity, labelKey: 'route.insights.title', to: '/insights' },
   { icon: Network, labelKey: 'route.topology.title', to: '/topology' },
   { icon: Boxes, labelKey: 'route.resources.title', to: '/resources' },
   { icon: Activity, labelKey: 'route.logs.title', to: '/logs' },
@@ -47,11 +56,13 @@ const primaryNavigation = [
 ] as const satisfies readonly NavigationItem[];
 
 export const secondaryNavigation = [
+  { icon: CircleHelp, labelKey: 'route.help.title', to: '/help' },
   { icon: Settings, labelKey: 'route.settings.title', to: '/settings' },
   { icon: Info, labelKey: 'route.about.title', to: '/about' },
 ] as const satisfies readonly NavigationItem[];
 
 const viewerSecondaryNavigation = [
+  { icon: CircleHelp, labelKey: 'route.help.title', to: '/help' },
   { icon: Settings, labelKey: 'route.settings.title', to: '/settings/preferences' },
   { icon: Info, labelKey: 'route.about.title', to: '/about' },
 ] as const satisfies readonly NavigationItem[];
@@ -84,6 +95,10 @@ interface BreadcrumbDefinition {
 
 const fixedBreadcrumbs = new Map<string, readonly BreadcrumbDefinition[]>([
   ['/overview', [{ labelKey: 'route.overview.title' }]],
+  ['/monitoring', [{ labelKey: 'route.monitoring.title' }]],
+  ['/insights', [{ labelKey: 'route.insights.title' }]],
+  ['/assistant', [{ labelKey: 'route.assistant.title' }]],
+  ['/help', [{ labelKey: 'route.help.title' }]],
   ['/topology', [{ labelKey: 'route.topology.title' }]],
   ['/resources', [{ labelKey: 'route.resources.title' }]],
   ['/search', [{ labelKey: 'route.search.title' }]],

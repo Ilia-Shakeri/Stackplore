@@ -1,5 +1,8 @@
 # Documentation
 
+- [Desktop workspaces — 2.0.0-alpha.6.1](desktop-workspaces.md)
+- [صفحه‌های جدا برای کار دسکتاپ](desktop-workspaces.fa.md)
+
 Current published prerelease: **2.0.0-alpha.5**, schema18;
 [hosted and publication evidence](evidence/2.0.0-alpha.5/README.md).
 Current development: **2.0.0-alpha.6**; [incident workflow candidate](v2/incident-workflows.md);

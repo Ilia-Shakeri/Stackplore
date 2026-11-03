@@ -13,6 +13,7 @@ const text = Object.assign(
     'auth/messages',
     'users/messages',
     'product/trend.messages',
+    'product/workspace.messages',
     'product/exploration.messages',
   ].map(
     (path) =>
@@ -93,6 +94,9 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await privateInput(page.locator('input[name="bootstrap_proof"]'), proof);
     await page.getByRole('button', { name: label('auth.setup.submit'), exact: true }).click();
     await expect(page).toHaveURL(/\/overview/u);
+    await expect(page.locator('.source-card').first()).toBeVisible();
+    await expect(page.locator('.trend-card')).toHaveCount(0);
+    await page.goto('/monitoring?monitor=dashboard');
     const dashboard = page.getByRole('region', { name: label('dashboard.title'), exact: true });
     await expect(dashboard).toBeVisible();
     await dashboard.getByText(label('dashboard.customize'), { exact: true }).click();
@@ -105,10 +109,11 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     const priorViewport = page.viewportSize();
     await page.setViewportSize({ width: 1280, height: 960 });
     await dashboard.screenshot({
-      path: `../../docs/evidence/2.0.0-alpha.6/screenshots/dashboard-${locale}-1280-light.png`,
+      path: `../../docs/evidence/${process.env.SP_BROWSER_VERSION ?? '2.0.0-alpha.6.1'}/screenshots/dashboard-${locale}-1280-light.png`,
       animations: 'disabled',
     });
     if (priorViewport !== null) await page.setViewportSize(priorViewport);
+    await page.goto('/overview');
     expect(responses.some(({ path, status }) => path === '/api/v1/setup' && status === 201)).toBe(
       true,
     );
@@ -117,6 +122,26 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     };
     expect(setupStatus.state === 'closed').toBe(true);
     await expect(page.locator('html')).toHaveAttribute('dir', locale === 'fa' ? 'rtl' : 'ltr');
+
+    let workspaceAdmissions = 0;
+    const observeWorkspace = (request: import('@playwright/test').Request) => {
+      if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/v1/assistant/runs') workspaceAdmissions += 1;
+    };
+    page.on('request', observeWorkspace);
+    await page.goto('/assistant');
+    const choices = page.locator('.assistant-resource-choices button');
+    await expect(choices.first()).toBeVisible();
+    await choices.first().click();
+    await expect(page.locator('.assistant textarea')).toBeVisible();
+    await page.locator('.assistant textarea').fill('Temporary browser question');
+    await page.getByRole('button', { name: label('assistant.workspace.change'), exact: true }).click();
+    await expect(page.locator('.assistant textarea')).toHaveCount(0);
+    await expect(choices.first()).toBeVisible();
+    await choices.first().click();
+    await expect(page.locator('.assistant textarea')).toHaveValue('');
+    expect(workspaceAdmissions).toBe(0);
+    page.off('request', observeWorkspace);
+    await page.goto('/overview');
 
     const accountMenu = page.getByRole('button', { name: label('auth.userMenu.open') });
     for (let cycle = 0; cycle < 3; cycle += 1) {

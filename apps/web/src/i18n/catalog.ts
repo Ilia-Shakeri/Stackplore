@@ -8,6 +8,8 @@ import topologyEn from '../features/product/topology.messages.en.json';
 import topologyFa from '../features/product/topology.messages.fa.json';
 import trendEn from '../features/product/trend.messages.en.json';
 import trendFa from '../features/product/trend.messages.fa.json';
+import workspaceEn from '../features/product/workspace.messages.en.json';
+import workspaceFa from '../features/product/workspace.messages.fa.json';
 import explorationEn from '../features/product/exploration.messages.en.json';
 import explorationFa from '../features/product/exploration.messages.fa.json';
 import rulesEn from '../features/product/rules.messages.en.json';
@@ -33,6 +35,7 @@ import assistantEn from '../features/assistant/messages.en.json';
 import assistantFa from '../features/assistant/messages.fa.json';
 
 const enCatalog = {
+  ...workspaceEn,
   ...assistantEn,
   ...settingsEn,
   ...operationEn,
@@ -63,6 +66,7 @@ export type TextMessageKey = {
 export type PluralMessageKey = Exclude<MessageKey, TextMessageKey>;
 
 const faCatalog = {
+  ...workspaceFa,
   ...assistantFa,
   ...settingsFa,
   ...operationFa,

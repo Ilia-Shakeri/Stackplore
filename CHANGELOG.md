@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0-alpha.6.1] - 2026-11-03
+
+### Desktop workspaces — development preview
+
+- Shorten Overview to current-source summary, health and links. Move trends to
+  Monitoring and environment/consumer/event detail to Insights. Overview no longer
+  requests metric history, events or the resource inventory.
+- Start Monitoring with one URL-selected metric. Keep the existing account-local
+  customizable five-panel layout under My dashboard.
+- Add a dedicated Smart Assistant page with explicit source/resource selection,
+  ten resource choices per page, bounded pagination, current-resource validation,
+  cancellation and clearing when changing selection. No question is sent on entry.
+- Add bilingual task help, topic URLs and a public issue-report link with privacy
+  guidance. Keep English/Persian navigation, keyboard access and both themes.
+- This preview does not complete incident-history integration or stable 2.0.
+  All tests, builds and packaging run on GitHub Actions; fresh receipts are required.
+
 ## [2.0.0-alpha.6] - 2026-11-01
 
 ### Desktop interface — development candidate
