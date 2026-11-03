@@ -11,7 +11,7 @@ import (
 
 func readCapability(kind assistant.StepKind) (domain.CapabilityName, bool) {
 	switch kind {
-	case assistant.Inventory:
+	case assistant.Inventory, assistant.AlertHistory, assistant.WorkloadHistory:
 		return domain.CapabilityInventoryDetail, true
 	case assistant.Health:
 		return domain.CapabilityHealth, true
@@ -34,8 +34,18 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 	if reader == nil || ctx == nil {
 		return Evidence{}, ErrInvalid
 	}
+	historyRead := request.Kind == assistant.AlertHistory || request.Kind == assistant.WorkloadHistory
+	if historyRead && (request.Run.Goal != assistant.InvestigateIncident || request.Destination != contextbuilder.Local || request.LogConsent || len(request.Scope.Resources) != 1) {
+		return Evidence{}, ErrDenied
+	}
 	if request.RecordLimit == 0 {
 		request.RecordLimit = MaximumRecords
+		if historyRead {
+			request.RecordLimit = domain.MaximumIncidentHistory
+		}
+	}
+	if historyRead && request.RecordLimit > domain.MaximumIncidentHistory {
+		return Evidence{}, ErrInvalid
 	}
 	if request.ByteLimit == 0 {
 		request.ByteLimit = contextbuilder.MaximumBytes
@@ -129,6 +139,8 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 func (reader *Reader) collect(ctx context.Context, source Source, request ReadRequest, resources []domain.ResourceSnapshot, project *contextbuilder.Request) error {
 	scope := request.Scope
 	switch request.Kind {
+	case assistant.AlertHistory, assistant.WorkloadHistory:
+		return reader.collectHistory(ctx, source, request, project)
 	case assistant.Inventory:
 		project.Resources = resources
 		for _, resource := range resources {

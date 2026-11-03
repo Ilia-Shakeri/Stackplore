@@ -87,6 +87,13 @@ type Source struct {
 	Read                 ReadPorts
 	Live                 LiveScopeAuthority
 	Logs                 *logpolicy.Reader
+	History              HistoryPorts
+}
+
+// HistoryPorts contains only bounded selected-resource repository reads.
+type HistoryPorts interface {
+	domain.IncidentAlertHistoryReader
+	domain.IncidentWorkloadHistoryReader
 }
 
 func (Source) Format(state fmt.State, _ rune) {

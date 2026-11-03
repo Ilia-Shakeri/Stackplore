@@ -654,3 +654,12 @@ kind must consume one durable tool call and retain its separate completed step;
 no inference call is consumed. This does not add either kind to the evidence
 reader or fixed plan, so public history access remains unavailable. Fresh
 hosted validation is required before claiming acceptance.
+
+The next candidate registers local-only alert/workload history families in the
+bounded evidence reader, with a separately configured narrow repository port.
+Current live inventory and actor/source/resource fences run before and after
+reads; returned typed history is independently validated before projection.
+Remote, multi-resource, consented-log and over-cap history requests are denied;
+missing ports produce explicit unsupported coverage. The fixed user plan and
+application composition are not yet extended, so public history integration
+remains incomplete. Fresh hosted tests are required.
