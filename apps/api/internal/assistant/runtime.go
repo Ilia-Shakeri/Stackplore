@@ -54,11 +54,13 @@ const (
 	Events    StepKind = "events"
 	Topology  StepKind = "topology"
 	Logs      StepKind = "logs"
+	AlertHistory StepKind = "alert_history"
+	WorkloadHistory StepKind = "workload_history"
 	Inference StepKind = "inference"
 )
 
 func (k StepKind) Valid() bool {
-	return k == Inventory || k == Health || k == Metrics || k == Events || k == Topology || k == Logs || k == Inference
+	return k == Inventory || k == Health || k == Metrics || k == Events || k == Topology || k == Logs || k == AlertHistory || k == WorkloadHistory || k == Inference
 }
 
 const (

@@ -29,7 +29,7 @@ func TestRuntimeTypedStatesAndToolAllowlist(t *testing.T) {
 	if Goal("exec").Valid() {
 		t.Fatal("unknown goal accepted")
 	}
-	for _, kind := range []StepKind{Inventory, Health, Metrics, Events, Topology, Logs, Inference} {
+	for _, kind := range []StepKind{Inventory, Health, Metrics, Events, Topology, Logs, AlertHistory, WorkloadHistory, Inference} {
 		if !kind.Valid() {
 			t.Fatal(kind)
 		}

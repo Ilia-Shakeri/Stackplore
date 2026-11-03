@@ -647,3 +647,10 @@ new read tools, grant authority or expose history through the public report.
 Hosted real-PostgreSQL checks must prove upgrade from 18, unchanged protected
 rows and prior migration history, restart, old-manifest rejection, and the new
 closed constraint. Public history integration and stable 2.0 remain open.
+
+The next schema-19 candidate adds closed runtime step kinds for alert and
+workload history and a real PostgreSQL reservation/settlement regression. Each
+kind must consume one durable tool call and retain its separate completed step;
+no inference call is consumed. This does not add either kind to the evidence
+reader or fixed plan, so public history access remains unavailable. Fresh
+hosted validation is required before claiming acceptance.
