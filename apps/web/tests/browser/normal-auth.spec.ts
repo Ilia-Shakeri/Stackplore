@@ -121,7 +121,9 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     const accountMenu = page.getByRole('button', { name: label('auth.userMenu.open') });
     for (let cycle = 0; cycle < 3; cycle += 1) {
       await accountMenu.click();
-      await page.getByRole('menuitem', { name: label('auth.password.action'), exact: true }).click();
+      await page
+        .getByRole('menuitem', { name: label('auth.password.action'), exact: true })
+        .click();
       const passwordDialog = page.getByRole('dialog');
       await expect(passwordDialog.locator('input[name="current_password"]')).toBeFocused();
       await page.keyboard.press('Escape');
