@@ -7,6 +7,11 @@ release `417182030`; the [active plan](implementation-plan.md) records its check
 This guide and project acceptance do not replace a customer's own runtime and
 deployment verification.
 
+Development alpha.6 additionally resets language, direction and theme when a
+different tab clears browser storage. User-action dialogs restore the invoking
+control's keyboard focus, or the main region when that control is removed. The
+new hosted checks remain separate from the published 1.0.3 receipt above.
+
 ## Who can use each page
 
 Authenticated administrators and viewers can read **Settings → General**.

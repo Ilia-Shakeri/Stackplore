@@ -1,6 +1,6 @@
 # Version 2 implementation ledger
 
-> Development candidate **2.0.0-alpha.6**, schema **18**, branch `v2/alpha6`.
+> Development candidate **2.0.0-alpha.6**, schema **19**, branch `v2/alpha6`.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).

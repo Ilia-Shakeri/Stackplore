@@ -2,6 +2,17 @@
 
 ## [2.0.0-alpha.6] - 2026-11-01
 
+### Desktop interface — development candidate
+
+- Keep frequent command-palette transitions instant and occasional notification
+  fades bounded; respect reduced motion and reduced transparency.
+- Reset theme, language and document direction when another tab clears browser
+  storage. Restore keyboard focus after closing user-action dialogs, with a main
+  region fallback when the invoking control no longer exists.
+- Add hosted regressions for repeated dialog cancellation, shortcut reopening,
+  notification dismissal and actual theme controls on setup and login. Fresh
+  full checks remain required; this is not stable 2.0 acceptance.
+
 ### Smart Analysis — development candidate
 
 - Pass all eight source jobs and actual bilingual report/citation/clearing checks at `d1e080b` in the recorded report-core scope. Prepare a separate typed resource/window-bound alert-transition read with protected formatting, bounded read-only SQL and real database tests. Historical state/time stay distinct from current rule/severity. This port is not yet a registered tool; schema remains 18 and full stage-6 quality/publication remain open.
