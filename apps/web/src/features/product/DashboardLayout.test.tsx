@@ -68,7 +68,7 @@ describe('dashboard layout', () => {
     const { container } = show();
     fireEvent.click(screen.getByText('Customize dashboard'));
     fireEvent.click(screen.getByRole('button', { name: /Move later:.*CPU/ }));
-    expect(container.querySelector('.trend-grid')?.textContent?.startsWith('memory')).toBe(true);
+    expect(container.querySelector('.trend-grid')?.textContent.startsWith('memory')).toBe(true);
     const item = screen.getAllByRole('listitem')[0];
     if (item === undefined) throw new Error('missing layout editor');
     fireEvent.click(within(item).getByLabelText('Full width'));

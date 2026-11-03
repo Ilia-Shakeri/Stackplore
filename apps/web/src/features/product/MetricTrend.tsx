@@ -17,7 +17,7 @@ const seriesStyle = (resourceId: string) => {
   for (const character of resourceId)
     hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
   return {
-    color: `var(--sp-chart-${(hash % 6) + 1})`,
+    color: `var(--sp-chart-${String((hash % 6) + 1)})`,
     dash: ['', '7 3', '2 3'][Math.floor(hash / 6) % 3],
   };
 };

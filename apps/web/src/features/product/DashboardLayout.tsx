@@ -104,13 +104,13 @@ export function BrowserDashboardLayout({
                 <input
                   type="checkbox"
                   checked={panel.visible}
-                  onChange={() =>
+                  onChange={() => {
                     update(
                       layout.map((item) =>
                         item.id === panel.id ? { ...item, visible: !item.visible } : item,
                       ),
-                    )
-                  }
+                    );
+                  }}
                 />
                 {t('dashboard.visible')}
               </label>
@@ -118,20 +118,22 @@ export function BrowserDashboardLayout({
                 <input
                   type="checkbox"
                   checked={panel.wide}
-                  onChange={() =>
+                  onChange={() => {
                     update(
                       layout.map((item) =>
                         item.id === panel.id ? { ...item, wide: !item.wide } : item,
                       ),
-                    )
-                  }
+                    );
+                  }}
                 />
                 {t('dashboard.wide')}
               </label>
               <button
                 type="button"
                 disabled={index === 0}
-                onClick={() => move(index, -1)}
+                onClick={() => {
+                  move(index, -1);
+                }}
                 aria-label={`${t('dashboard.up')}: ${t(titles[panel.id] ?? 'product.trend.cpu')}`}
               >
                 {t('dashboard.up')}
@@ -139,7 +141,9 @@ export function BrowserDashboardLayout({
               <button
                 type="button"
                 disabled={index === layout.length - 1}
-                onClick={() => move(index, 1)}
+                onClick={() => {
+                  move(index, 1);
+                }}
                 aria-label={`${t('dashboard.down')}: ${t(titles[panel.id] ?? 'product.trend.cpu')}`}
               >
                 {t('dashboard.down')}
@@ -147,7 +151,12 @@ export function BrowserDashboardLayout({
             </li>
           ))}
         </ul>
-        <button type="button" onClick={() => update(defaults())}>
+        <button
+          type="button"
+          onClick={() => {
+            update(defaults());
+          }}
+        >
           {t('dashboard.reset')}
         </button>
       </details>
@@ -155,7 +164,12 @@ export function BrowserDashboardLayout({
       {layout.every((panel) => !panel.visible) ? (
         <div role="status" className="trend-card">
           <p>{t('dashboard.empty')}</p>
-          <button type="button" onClick={() => update(defaults())}>
+          <button
+            type="button"
+            onClick={() => {
+              update(defaults());
+            }}
+          >
             {t('dashboard.restore')}
           </button>
         </div>

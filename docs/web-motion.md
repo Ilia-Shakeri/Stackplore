@@ -44,3 +44,9 @@ restores that control on close. If an operation removes or disables the control,
 focus returns to the main region. Both a focused regression and the normal
 browser journey cover three repeated create-dialog cancellations. This closes
 a source-level gap where the modal had no registered trigger for focus return.
+
+Hosted run 41617009582 passed the expanded focused checks and formatting, then
+failed the full lint gate on eight existing dashboard/chart issues: six void
+callback shorthands, one redundant optional chain and one implicit numeric
+template expression. The source correction preserves behavior and all lint rules.
+The failed receipt remains failed; the corrected source requires a fresh run.
