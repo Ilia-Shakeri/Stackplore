@@ -56,7 +56,7 @@ export function validatePostgresImagePolicy(policy) {
   }
   const runtimeMatch =
     typeof policy.runtime_image === 'string'
-      ? /^stackplore-postgres:(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9]\d*))?$/u.exec(
+      ? /^stackplore-postgres:(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?)?$/u.exec(
           policy.runtime_image,
         )
       : null;

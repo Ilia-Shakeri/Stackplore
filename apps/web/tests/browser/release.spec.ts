@@ -289,7 +289,10 @@ for (const locale of ['en', 'fa']) {
             await expect(page.locator('.source-card').first()).toBeVisible();
             await expect(page.locator('.trend-card')).toHaveCount(0);
             await expect(page.locator('#overview-events')).toHaveCount(0);
-            if (width === 1280) expect(await page.locator('main').evaluate((element) => element.scrollHeight)).toBeLessThan(1400);
+            if (width === 1280)
+              expect(
+                await page.locator('main').evaluate((element) => element.scrollHeight),
+              ).toBeLessThan(1400);
           }
           if (route === '/events')
             await expect(page.locator('.event-list article').first()).toBeVisible();
@@ -364,10 +367,15 @@ for (const locale of ['en', 'fa']) {
           await expect(page.locator('main h1')).toBeVisible();
           if (path === '/monitoring') {
             await expect(page.locator('.monitoring-panel .trend-card')).toHaveCount(1);
-            await expect(page.locator('.monitoring-panel svg[role="img"] polyline').first()).toBeVisible();
+            await expect(
+              page.locator('.monitoring-panel svg[role="img"] polyline').first(),
+            ).toBeVisible();
           }
           if (path === '/insights') await expect(page.locator('#overview-events')).toBeVisible();
-          if (path === '/assistant') await expect(page.locator('.assistant-workspace')).toContainText(locale === 'fa' ? 'دستیار در نمایش مهمان' : 'unavailable in the guest demonstration');
+          if (path === '/assistant')
+            await expect(page.locator('.assistant-workspace')).toContainText(
+              locale === 'fa' ? 'دستیار در نمایش مهمان' : 'unavailable in the guest demonstration',
+            );
           if (path === '/help') await expect(page.locator('.help-article')).toBeVisible();
         }
         const paletteTrigger = page.getByRole('button', {

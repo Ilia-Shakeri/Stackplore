@@ -315,10 +315,26 @@ const overviewRoute = createRoute({
   component: OverviewPage,
 });
 
-const monitoringRoute = createRoute({ getParentRoute: () => appRoute, path: '/monitoring', component: MonitoringPage });
-const insightsRoute = createRoute({ getParentRoute: () => appRoute, path: '/insights', component: InsightsPage });
-const assistantRoute = createRoute({ getParentRoute: () => appRoute, path: '/assistant', component: AssistantPage });
-const helpRoute = createRoute({ getParentRoute: () => appRoute, path: '/help', component: HelpPage });
+const monitoringRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/monitoring',
+  component: MonitoringPage,
+});
+const insightsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/insights',
+  component: InsightsPage,
+});
+const assistantRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/assistant',
+  component: AssistantPage,
+});
+const helpRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/help',
+  component: HelpPage,
+});
 
 const topologyRoute = createRoute({
   getParentRoute: () => appRoute,

@@ -14,8 +14,14 @@ const productPage = <Name extends keyof typeof ProductPageExports>(name: Name) =
 const ProductOverviewPage = productPage('ProductOverviewPage');
 const ProductMonitoringPage = productPage('ProductMonitoringPage');
 const ProductInsightsPage = productPage('ProductInsightsPage');
-const AssistantWorkspacePage = lazy(() => import('../features/assistant/AssistantWorkspacePage').then((module) => ({ default: module.AssistantWorkspacePage })));
-const ProductHelpPage = lazy(() => import('./HelpPage').then((module) => ({ default: module.HelpPage })));
+const AssistantWorkspacePage = lazy(() =>
+  import('../features/assistant/AssistantWorkspacePage').then((module) => ({
+    default: module.AssistantWorkspacePage,
+  })),
+);
+const ProductHelpPage = lazy(() =>
+  import('./HelpPage').then((module) => ({ default: module.HelpPage })),
+);
 const ProductTopologyPage = lazy(() =>
   import('../features/product/ExplorationTopologyPage').then((module) => ({
     default: module.ProductTopologyPage,
@@ -150,16 +156,32 @@ export function TopologyPage() {
 }
 
 export function MonitoringPage() {
-  return <ProductBoundary><ProductMonitoringPage /></ProductBoundary>;
+  return (
+    <ProductBoundary>
+      <ProductMonitoringPage />
+    </ProductBoundary>
+  );
 }
 export function InsightsPage() {
-  return <ProductBoundary><ProductInsightsPage /></ProductBoundary>;
+  return (
+    <ProductBoundary>
+      <ProductInsightsPage />
+    </ProductBoundary>
+  );
 }
 export function AssistantPage() {
-  return <ProductBoundary><AssistantWorkspacePage /></ProductBoundary>;
+  return (
+    <ProductBoundary>
+      <AssistantWorkspacePage />
+    </ProductBoundary>
+  );
 }
 export function HelpPage() {
-  return <ProductBoundary><ProductHelpPage /></ProductBoundary>;
+  return (
+    <ProductBoundary>
+      <ProductHelpPage />
+    </ProductBoundary>
+  );
 }
 
 export function ResourcesPage() {

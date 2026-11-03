@@ -5,7 +5,13 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 import { AssistantResourcePanel } from './AssistantResourcePanel';
 import { useAuth } from '../auth/auth-context';
 import { useProductApi, useProductSource } from '../product/product-context';
-import { ObservationNotice, ProductState, availabilityLabel, dataAllowed, useExplorationView } from '../product/exploration-ui';
+import {
+  ObservationNotice,
+  ProductState,
+  availabilityLabel,
+  dataAllowed,
+  useExplorationView,
+} from '../product/exploration-ui';
 import type { PageLoad } from '../product/use-cursor-page';
 import { WorkspaceNavigation } from '../product/WorkspaceNavigation';
 import { useLocale } from '../../i18n';
@@ -20,7 +26,11 @@ export function AssistantWorkspacePage() {
         <p>{t('route.assistant.description')}</p>
       </header>
       <WorkspaceNavigation current="assistant" />
-      {snapshot.status === 'authenticated' ? <AssistantSelection key={snapshot.user.id} /> : <p role="status">{t('assistant.workspace.guest')}</p>}
+      {snapshot.status === 'authenticated' ? (
+        <AssistantSelection key={snapshot.user.id} />
+      ) : (
+        <p role="status">{t('assistant.workspace.guest')}</p>
+      )}
     </div>
   );
 }
@@ -39,14 +49,31 @@ function AssistantSelection() {
     const controller = new AbortController();
     setSources({ kind: 'loading' });
     void api.listSources(controller.signal).then(
-      (data) => { if (!controller.signal.aborted) setSources({ kind: 'ready', data }); },
-      () => { if (!controller.signal.aborted) setSources({ kind: 'error' }); },
+      (data) => {
+        if (!controller.signal.aborted) setSources({ kind: 'ready', data });
+      },
+      () => {
+        if (!controller.signal.aborted) setSources({ kind: 'error' });
+      },
     );
-    return () => { controller.abort(); };
+    return () => {
+      controller.abort();
+    };
   }, [api, revision]);
   if (sources.kind === 'loading') return <ProductState text={t('product.loading')} />;
-  if (sources.kind === 'error') return <ProductState text={t('product.error')} onRetry={() => { setRevision((value) => value + 1); }} />;
-  const source = selectedSource === undefined ? sources.data[0] : sources.data.find((item) => item.id === selectedSource);
+  if (sources.kind === 'error')
+    return (
+      <ProductState
+        text={t('product.error')}
+        onRetry={() => {
+          setRevision((value) => value + 1);
+        }}
+      />
+    );
+  const source =
+    selectedSource === undefined
+      ? sources.data[0]
+      : sources.data.find((item) => item.id === selectedSource);
   const submit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSearch(query.trim());
@@ -55,15 +82,41 @@ function AssistantSelection() {
     <>
       <label className="product-source-select">
         <span>{t('product.source.label')}</span>
-        <select value={source?.id ?? ''} onChange={(event) => { selectSource(event.currentTarget.value); }}>
-          <option value="" disabled>{t('assistant.workspace.source')}</option>
-          {sources.data.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        <select
+          value={source?.id ?? ''}
+          onChange={(event) => {
+            selectSource(event.currentTarget.value);
+          }}
+        >
+          <option value="" disabled>
+            {t('assistant.workspace.source')}
+          </option>
+          {sources.data.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
         </select>
       </label>
-      {source === undefined ? <p role="status">{t('product.source.unavailable')}</p> : !dataAllowed(source.availability) ? <p role="status">{availabilityLabel(source.availability, t)}</p> : resourceId !== '' ? (
+      {source === undefined ? (
+        <p role="status">{t('product.source.unavailable')}</p>
+      ) : !dataAllowed(source.availability) ? (
+        <p role="status">{availabilityLabel(source.availability, t)}</p>
+      ) : resourceId !== '' ? (
         <>
-          <Button variant="outline" onClick={() => { view.write('resource_id', ''); }}>{t('assistant.workspace.change')}</Button>
-          <SelectedAssistantResource key={`${source.id}:${resourceId}`} source={source.id} id={resourceId} />
+          <Button
+            variant="outline"
+            onClick={() => {
+              view.write('resource_id', '');
+            }}
+          >
+            {t('assistant.workspace.change')}
+          </Button>
+          <SelectedAssistantResource
+            key={`${source.id}:${resourceId}`}
+            source={source.id}
+            id={resourceId}
+          />
         </>
       ) : (
         <section aria-labelledby="assistant-resource-choice">
@@ -72,7 +125,13 @@ function AssistantSelection() {
           <form className="exploration-filters" onSubmit={submit}>
             <label>
               <span>{t('assistant.workspace.search')}</span>
-              <Input value={query} maxLength={200} onChange={(event) => { setQuery(event.currentTarget.value); }} />
+              <Input
+                value={query}
+                maxLength={200}
+                onChange={(event) => {
+                  setQuery(event.currentTarget.value);
+                }}
+              />
             </label>
             <Button type="submit">{t('assistant.workspace.find')}</Button>
           </form>
@@ -83,7 +142,13 @@ function AssistantSelection() {
   );
 }
 
-function SelectedAssistantResource({ source, id }: { readonly source: string; readonly id: string }) {
+function SelectedAssistantResource({
+  source,
+  id,
+}: {
+  readonly source: string;
+  readonly id: string;
+}) {
   const api = useProductApi();
   const { t } = useLocale();
   const [state, setState] = useState<PageLoad<ProductResource>>({ kind: 'loading' });
@@ -94,14 +159,28 @@ function SelectedAssistantResource({ source, id }: { readonly source: string; re
     void api.getResource(id, controller.signal, source).then(
       (data) => {
         if (controller.signal.aborted) return;
-        setState(data.id === id && data.source_id === source ? { kind: 'ready', data } : { kind: 'error' });
+        setState(
+          data.id === id && data.source_id === source ? { kind: 'ready', data } : { kind: 'error' },
+        );
       },
-      () => { if (!controller.signal.aborted) setState({ kind: 'error' }); },
+      () => {
+        if (!controller.signal.aborted) setState({ kind: 'error' });
+      },
     );
-    return () => { controller.abort(); };
+    return () => {
+      controller.abort();
+    };
   }, [api, source, id, revision]);
   if (state.kind === 'loading') return <ProductState text={t('product.loading')} />;
-  if (state.kind === 'error') return <ProductState text={t('product.error')} onRetry={() => { setRevision((value) => value + 1); }} />;
+  if (state.kind === 'error')
+    return (
+      <ProductState
+        text={t('product.error')}
+        onRetry={() => {
+          setRevision((value) => value + 1);
+        }}
+      />
+    );
   return (
     <section aria-labelledby="assistant-selected-resource">
       <h2 id="assistant-selected-resource">{state.data.name}</h2>
@@ -123,36 +202,99 @@ function ResourceChoices({ source, search }: { readonly source: string; readonly
   useEffect(() => {
     const controller = new AbortController();
     setState({ kind: 'loading' });
-    void api.listResources({ sourceId: source, search, limit: 10, signal: controller.signal, ...(cursor === undefined ? {} : { cursor }) }).then(
-      (data) => { if (!controller.signal.aborted) setState({ kind: 'ready', data }); },
-      () => { if (!controller.signal.aborted) setState({ kind: 'error' }); },
-    );
-    return () => { controller.abort(); };
+    void api
+      .listResources({
+        sourceId: source,
+        search,
+        limit: 10,
+        signal: controller.signal,
+        ...(cursor === undefined ? {} : { cursor }),
+      })
+      .then(
+        (data) => {
+          if (!controller.signal.aborted) setState({ kind: 'ready', data });
+        },
+        () => {
+          if (!controller.signal.aborted) setState({ kind: 'error' });
+        },
+      );
+    return () => {
+      controller.abort();
+    };
   }, [api, source, search, cursor, revision]);
   return (
     <>
-      {state.kind === 'loading' ? <ProductState text={t('product.loading')} /> : state.kind === 'error' ? <ProductState text={t('product.error')} onRetry={() => { setRevision((value) => value + 1); }} /> : (
+      {state.kind === 'loading' ? (
+        <ProductState text={t('product.loading')} />
+      ) : state.kind === 'error' ? (
+        <ProductState
+          text={t('product.error')}
+          onRetry={() => {
+            setRevision((value) => value + 1);
+          }}
+        />
+      ) : (
         <>
           <ObservationNotice data={state.data} />
-          {dataAllowed(state.data.availability) ? <ul className="assistant-resource-choices">
-            {state.data.items.slice(0, 10).filter((item) => item.source_id === source).map((item) => <li key={item.id}>
-              <Button variant="outline" onClick={() => { view.write('resource_id', item.id); }}>{item.name}</Button>
-            </li>)}
-          </ul> : null}
-          {dataAllowed(state.data.availability) && state.data.items.length === 0 ? <p>{t('insight.empty')}</p> : null}
-          {index === 9 && state.data.page.has_more ? <p role="status">{t('assistant.workspace.refine')}</p> : null}
+          {dataAllowed(state.data.availability) ? (
+            <ul className="assistant-resource-choices">
+              {state.data.items
+                .slice(0, 10)
+                .filter((item) => item.source_id === source)
+                .map((item) => (
+                  <li key={item.id}>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        view.write('resource_id', item.id);
+                      }}
+                    >
+                      {item.name}
+                    </Button>
+                  </li>
+                ))}
+            </ul>
+          ) : null}
+          {dataAllowed(state.data.availability) && state.data.items.length === 0 ? (
+            <p>{t('insight.empty')}</p>
+          ) : null}
+          {index === 9 && state.data.page.has_more ? (
+            <p role="status">{t('assistant.workspace.refine')}</p>
+          ) : null}
         </>
       )}
       <nav className="exploration-pagination" aria-label={t('assistant.workspace.pages')}>
-        <Button variant="outline" disabled={index === 0 || state.kind === 'loading'} onClick={() => { setIndex((value) => value - 1); }}>{t('assistant.workspace.previous')}</Button>
+        <Button
+          variant="outline"
+          disabled={index === 0 || state.kind === 'loading'}
+          onClick={() => {
+            setIndex((value) => value - 1);
+          }}
+        >
+          {t('assistant.workspace.previous')}
+        </Button>
         <span>{formatNumber(index + 1)}</span>
-        <Button variant="outline" disabled={state.kind !== 'ready' || !dataAllowed(state.data.availability) || !state.data.page.has_more || index >= 9} onClick={() => {
-          if (state.kind !== 'ready') return;
-          const next = state.data.page.next_cursor;
-          if (next === undefined || cursors.slice(0, index + 1).includes(next)) { setState({ kind: 'error' }); return; }
-          setCursors([...cursors.slice(0, index + 1), next]);
-          setIndex((value) => value + 1);
-        }}>{t('assistant.workspace.next')}</Button>
+        <Button
+          variant="outline"
+          disabled={
+            state.kind !== 'ready' ||
+            !dataAllowed(state.data.availability) ||
+            !state.data.page.has_more ||
+            index >= 9
+          }
+          onClick={() => {
+            if (state.kind !== 'ready' || !state.data.page.has_more) return;
+            const next = state.data.page.next_cursor;
+            if (cursors.slice(0, index + 1).includes(next)) {
+              setState({ kind: 'error' });
+              return;
+            }
+            setCursors([...cursors.slice(0, index + 1), next]);
+            setIndex((value) => value + 1);
+          }}
+        >
+          {t('assistant.workspace.next')}
+        </Button>
       </nav>
     </>
   );

@@ -61,7 +61,14 @@ test('PostgreSQL policy accepts 17.11 and later minor versions unchanged', () =>
 });
 
 test('runtime image policy accepts canonical stable, alpha, beta and candidate tags', () => {
-  for (const version of ['0.1.0', '2.0.0', '2.0.0-alpha.1', '2.0.0-beta.2', '2.0.0-rc.3']) {
+  for (const version of [
+    '0.1.0',
+    '2.0.0',
+    '2.0.0-alpha.1',
+    '2.0.0-alpha.6.1',
+    '2.0.0-beta.2',
+    '2.0.0-rc.3',
+  ]) {
     const pin = { ...policy(), runtime_image: `stackplore-postgres:${version}` };
     assert.equal(validatePostgresImagePolicy(pin), pin);
     assert.equal(validateRuntimeImageReferences(pin, sources(pin)), pin);
@@ -74,6 +81,9 @@ test('runtime image policy rejects noncanonical or unsafe prerelease tags', () =
     '2.00.0-beta.1',
     '2.0.00-rc.1',
     '2.0.0-alpha.01',
+    '2.0.0-alpha.6.01',
+    '2.0.0-alpha.6.',
+    '2.0.0-alpha.6.1.2',
     '2.0.0-beta.-1',
     '2.0.0-rc',
     '2.0.0-alpha.',

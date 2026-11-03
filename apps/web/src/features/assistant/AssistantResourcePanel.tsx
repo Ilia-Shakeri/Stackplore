@@ -60,7 +60,13 @@ const availabilityKeys = {
   unsupported: 'assistant.coverage.unsupported',
 } as const satisfies Record<string, MessageKey>;
 
-export function AssistantResourcePanel({ resource, defaultOpen = false }: { readonly resource: ProductResource; readonly defaultOpen?: boolean }) {
+export function AssistantResourcePanel({
+  resource,
+  defaultOpen = false,
+}: {
+  readonly resource: ProductResource;
+  readonly defaultOpen?: boolean;
+}) {
   const api = useOptionalAssistantApi();
   const auth = useOptionalAuthSnapshot();
   const subscribe = useCallback(

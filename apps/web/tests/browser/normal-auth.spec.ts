@@ -125,7 +125,11 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
 
     let workspaceAdmissions = 0;
     const observeWorkspace = (request: import('@playwright/test').Request) => {
-      if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/v1/assistant/runs') workspaceAdmissions += 1;
+      if (
+        request.method() === 'POST' &&
+        new URL(request.url()).pathname === '/api/v1/assistant/runs'
+      )
+        workspaceAdmissions += 1;
     };
     page.on('request', observeWorkspace);
     await page.goto('/assistant');
@@ -134,7 +138,9 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await choices.first().click();
     await expect(page.locator('.assistant textarea')).toBeVisible();
     await page.locator('.assistant textarea').fill('Temporary browser question');
-    await page.getByRole('button', { name: label('assistant.workspace.change'), exact: true }).click();
+    await page
+      .getByRole('button', { name: label('assistant.workspace.change'), exact: true })
+      .click();
     await expect(page.locator('.assistant textarea')).toHaveCount(0);
     await expect(choices.first()).toBeVisible();
     await choices.first().click();

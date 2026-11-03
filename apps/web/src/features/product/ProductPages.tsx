@@ -7,7 +7,17 @@ import type {
   ProductResourcePage,
   SourceSummary,
 } from '@stackplore/api-client';
-import { Children, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  Children,
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useLocale } from '../../i18n';
 import { useProductApi, useProductSource } from './product-context';
 import { useProductStream } from './product-stream';
@@ -128,14 +138,27 @@ function ProductWorkspacePage({ page }: { readonly page: 'overview' | 'monitorin
     activeRead.current = true;
     setState({ kind: 'loading' });
     const read = async () => {
-      const resources = page === 'insights' ? api
-        .listResources({ signal: controller.signal, ...sourceOptions(selectedSource), limit: 100 })
-        .catch(() => null) : Promise.resolve(null);
+      const resources =
+        page === 'insights'
+          ? api
+              .listResources({
+                signal: controller.signal,
+                ...sourceOptions(selectedSource),
+                limit: 100,
+              })
+              .catch(() => null)
+          : Promise.resolve(null);
       const [sources, metrics, alerts, environments] = await Promise.all([
         api.listSources(controller.signal),
-        page === 'monitoring' ? Promise.resolve(null) : api.listMetrics({ signal: controller.signal, ...sourceOptions(selectedSource) }),
-        page === 'overview' ? api.listAlerts({ signal: controller.signal, ...sourceOptions(selectedSource) }) : Promise.resolve(null),
-        page === 'monitoring' ? Promise.resolve(null) : api.listEnvironments({ signal: controller.signal, ...sourceOptions(selectedSource) }),
+        page === 'monitoring'
+          ? Promise.resolve(null)
+          : api.listMetrics({ signal: controller.signal, ...sourceOptions(selectedSource) }),
+        page === 'overview'
+          ? api.listAlerts({ signal: controller.signal, ...sourceOptions(selectedSource) })
+          : Promise.resolve(null),
+        page === 'monitoring'
+          ? Promise.resolve(null)
+          : api.listEnvironments({ signal: controller.signal, ...sourceOptions(selectedSource) }),
       ]);
       if (controller.signal.aborted) return;
       const source =
@@ -150,19 +173,23 @@ function ProductWorkspacePage({ page }: { readonly page: 'overview' | 'monitorin
         to: new Date(now).toISOString(),
       };
       const [history, events, resourcePage] = await Promise.all([
-        page === 'monitoring' ? api.listMetricHistory({
-          signal: controller.signal,
-          ...sourceOptions(selectedSource),
-          ...range,
-        }) : Promise.resolve(null),
-        page === 'insights' ? api
-          .listEvents({
-            signal: controller.signal,
-            ...sourceOptions(selectedSource),
-            ...range,
-            limit: 10,
-          })
-          .catch(() => null) : Promise.resolve(null),
+        page === 'monitoring'
+          ? api.listMetricHistory({
+              signal: controller.signal,
+              ...sourceOptions(selectedSource),
+              ...range,
+            })
+          : Promise.resolve(null),
+        page === 'insights'
+          ? api
+              .listEvents({
+                signal: controller.signal,
+                ...sourceOptions(selectedSource),
+                ...range,
+                limit: 10,
+              })
+              .catch(() => null)
+          : Promise.resolve(null),
         resources,
       ]);
       return { sources, metrics, alerts, environments, history, events, resources: resourcePage };
@@ -224,137 +251,166 @@ function ProductWorkspacePage({ page }: { readonly page: 'overview' | 'monitorin
               ))}
             </select>
           </label>
-          {page === 'overview' && state.data.alerts !== null && state.data.environments !== null && state.data.metrics !== null ? <MetricSummary
-            alerts={state.data.alerts}
-            environments={state.data.environments}
-            metrics={state.data.metrics}
-            formatNumber={formatNumber}
-            t={t}
-          /> : null}
+          {page === 'overview' &&
+          state.data.alerts !== null &&
+          state.data.environments !== null &&
+          state.data.metrics !== null ? (
+            <MetricSummary
+              alerts={state.data.alerts}
+              environments={state.data.environments}
+              metrics={state.data.metrics}
+              formatNumber={formatNumber}
+              t={t}
+            />
+          ) : null}
           {page === 'overview' ? <WorkspaceShortcuts /> : null}
-          {page === 'monitoring' ? <div className="exploration-filters">
-            <TimeRangeControl minutes={minutes} select={selectTime} />
-          </div> : null}
-          {page === 'monitoring' && history !== null ? <>
-          <nav className="workspace-navigation" aria-label={t('workspace.metrics')}>
-            {(['cpu', 'memory', 'restarts', 'receive', 'send', 'dashboard'] as const).map((item) => (
-              <a key={item} href={monitorHref(view.search, selectedSource, item)} aria-current={monitor === item ? 'page' : undefined}>
-                {t(`workspace.metric.${item}`)}
-              </a>
-            ))}
-          </nav>
-          <Suspense fallback={<ProductState text={t('product.loading')} />}>
-            <MonitoringPanels mode={monitor}>
-              <MetricTrend
-                formatDate={formatDate}
-                formatNumber={formatNumber}
-                history={history}
-                metric="cpu.usage.cores"
-                title={t('product.trend.cpu')}
-                unit={t('product.metric.cores')}
-                t={t}
-                minutes={minutes}
-              />
-              <MetricTrend
-                divisor={1024 * 1024}
-                formatDate={formatDate}
-                formatNumber={formatNumber}
-                history={history}
-                metric="memory.usage.bytes"
-                title={t('product.trend.memory')}
-                unit={t('product.metric.mib')}
-                t={t}
-                minutes={minutes}
-              />
-              {(
-                [
-                  'restart.count',
-                  'network.receive.bytes_total',
-                  'network.send.bytes_total',
-                ] as const
-              ).map((metric) => (
-                <MetricTrend
-                  key={metric}
-                  formatDate={formatDate}
-                  formatNumber={formatNumber}
-                  history={history}
-                  metric={metric}
-                  title={t(
-                    metric === 'restart.count'
-                      ? 'insight.restarts'
-                      : metric === 'network.receive.bytes_total'
-                        ? 'insight.receive'
-                        : 'insight.send',
-                  )}
-                  unit={t(metric === 'restart.count' ? 'insight.count' : 'insight.bytes')}
-                  t={t}
-                  minutes={minutes}
-                />
-              ))}
-            </MonitoringPanels>
-          </Suspense>
-          </> : null}
-          {page === 'insights' && state.data.environments !== null && state.data.metrics !== null ? <OverviewInsights
-            environments={state.data.environments}
-            events={state.data.events}
-            metrics={state.data.metrics}
-            resources={state.data.resources}
-            {...(selectedSource === undefined ? {} : { source: selectedSource })}
-          /> : null}
-          {page === 'overview' ? <div className="source-grid">
-            {state.data.sources.filter((source) => source.id === (selectedSource ?? state.data.sources[0]?.id)).map((source) => (
-              <article className="source-card" key={source.id}>
-                <div className="source-card__heading">
-                  <h2>{source.name}</h2>
-                  <div>
-                    <span>{source.synthetic ? t('product.demoBadge') : source.provider}</span>
-                    <span className={`source-state source-state--${source.availability}`}>
-                      {availabilityLabel(source.availability, t)}
-                    </span>
-                  </div>
-                </div>
-                <p>
-                  {dataAllowed(source.availability)
-                    ? t('product.resourcesCount', { count: source.resource_count })
-                    : t('explore.count.unavailable')}
-                </p>
-                {source.completeness === 'partial' ? (
-                  <p role="status">{t('explore.count.partial')}</p>
-                ) : null}
-                {dataAllowed(source.availability) ? (
-                  <dl className="health-grid">
-                    <HealthCount
-                      label={t('product.health.healthy')}
-                      value={source.health.healthy}
-                      tone="healthy"
+          {page === 'monitoring' ? (
+            <div className="exploration-filters">
+              <TimeRangeControl minutes={minutes} select={selectTime} />
+            </div>
+          ) : null}
+          {page === 'monitoring' && history !== null ? (
+            <>
+              <nav className="workspace-navigation" aria-label={t('workspace.metrics')}>
+                {(['cpu', 'memory', 'restarts', 'receive', 'send', 'dashboard'] as const).map(
+                  (item) => (
+                    <a
+                      key={item}
+                      href={monitorHref(view.search, selectedSource, item)}
+                      aria-current={monitor === item ? 'page' : undefined}
+                    >
+                      {t(`workspace.metric.${item}`)}
+                    </a>
+                  ),
+                )}
+              </nav>
+              <Suspense fallback={<ProductState text={t('product.loading')} />}>
+                <MonitoringPanels mode={monitor}>
+                  <MetricTrend
+                    formatDate={formatDate}
+                    formatNumber={formatNumber}
+                    history={history}
+                    metric="cpu.usage.cores"
+                    title={t('product.trend.cpu')}
+                    unit={t('product.metric.cores')}
+                    t={t}
+                    minutes={minutes}
+                  />
+                  <MetricTrend
+                    divisor={1024 * 1024}
+                    formatDate={formatDate}
+                    formatNumber={formatNumber}
+                    history={history}
+                    metric="memory.usage.bytes"
+                    title={t('product.trend.memory')}
+                    unit={t('product.metric.mib')}
+                    t={t}
+                    minutes={minutes}
+                  />
+                  {(
+                    [
+                      'restart.count',
+                      'network.receive.bytes_total',
+                      'network.send.bytes_total',
+                    ] as const
+                  ).map((metric) => (
+                    <MetricTrend
+                      key={metric}
+                      formatDate={formatDate}
+                      formatNumber={formatNumber}
+                      history={history}
+                      metric={metric}
+                      title={t(
+                        metric === 'restart.count'
+                          ? 'insight.restarts'
+                          : metric === 'network.receive.bytes_total'
+                            ? 'insight.receive'
+                            : 'insight.send',
+                      )}
+                      unit={t(metric === 'restart.count' ? 'insight.count' : 'insight.bytes')}
+                      t={t}
+                      minutes={minutes}
                     />
-                    <HealthCount
-                      label={t('product.health.degraded')}
-                      value={source.health.degraded}
-                      tone="degraded"
-                    />
-                    <HealthCount
-                      label={t('product.health.unhealthy')}
-                      value={source.health.unhealthy}
-                      tone="unhealthy"
-                    />
-                    <HealthCount
-                      label={t('product.health.unknown')}
-                      value={source.health.unknown}
-                      tone="unknown"
-                    />
-                  </dl>
-                ) : null}
-              </article>
-            ))}
-          </div> : null}
+                  ))}
+                </MonitoringPanels>
+              </Suspense>
+            </>
+          ) : null}
+          {page === 'insights' &&
+          state.data.environments !== null &&
+          state.data.metrics !== null ? (
+            <OverviewInsights
+              environments={state.data.environments}
+              events={state.data.events}
+              metrics={state.data.metrics}
+              resources={state.data.resources}
+              {...(selectedSource === undefined ? {} : { source: selectedSource })}
+            />
+          ) : null}
+          {page === 'overview' ? (
+            <div className="source-grid">
+              {state.data.sources
+                .filter((source) => source.id === (selectedSource ?? state.data.sources[0]?.id))
+                .map((source) => (
+                  <article className="source-card" key={source.id}>
+                    <div className="source-card__heading">
+                      <h2>{source.name}</h2>
+                      <div>
+                        <span>{source.synthetic ? t('product.demoBadge') : source.provider}</span>
+                        <span className={`source-state source-state--${source.availability}`}>
+                          {availabilityLabel(source.availability, t)}
+                        </span>
+                      </div>
+                    </div>
+                    <p>
+                      {dataAllowed(source.availability)
+                        ? t('product.resourcesCount', { count: source.resource_count })
+                        : t('explore.count.unavailable')}
+                    </p>
+                    {source.completeness === 'partial' ? (
+                      <p role="status">{t('explore.count.partial')}</p>
+                    ) : null}
+                    {dataAllowed(source.availability) ? (
+                      <dl className="health-grid">
+                        <HealthCount
+                          label={t('product.health.healthy')}
+                          value={source.health.healthy}
+                          tone="healthy"
+                        />
+                        <HealthCount
+                          label={t('product.health.degraded')}
+                          value={source.health.degraded}
+                          tone="degraded"
+                        />
+                        <HealthCount
+                          label={t('product.health.unhealthy')}
+                          value={source.health.unhealthy}
+                          tone="unhealthy"
+                        />
+                        <HealthCount
+                          label={t('product.health.unknown')}
+                          value={source.health.unknown}
+                          tone="unknown"
+                        />
+                      </dl>
+                    ) : null}
+                  </article>
+                ))}
+            </div>
+          ) : null}
         </>
       ) : null}
     </div>
   );
 }
 
-function MonitoringPanels({ children, mode }: { readonly children: ReactNode; readonly mode: string }) {
+function MonitoringPanels({
+  children,
+  mode,
+}: {
+  readonly children: ReactNode;
+  readonly mode: string;
+}) {
   const panels = Children.toArray(children);
   if (mode === 'dashboard') return <DashboardLayout>{children}</DashboardLayout>;
   const index = ['cpu', 'memory', 'restarts', 'receive', 'send'].indexOf(mode);

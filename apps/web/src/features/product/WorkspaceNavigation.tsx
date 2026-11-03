@@ -21,7 +21,12 @@ export function WorkspaceNavigation({ current }: { readonly current: WorkspacePa
   return (
     <nav className="workspace-navigation" aria-label={t('workspace.navigation')}>
       {destinations.map(({ id, path }) => (
-        <a key={id} href={workspaceHref(path, selectedSource)} aria-label={t('workspace.open', { name: t(`route.${id}.title`) })} aria-current={id === current ? 'page' : undefined}>
+        <a
+          key={id}
+          href={workspaceHref(path, selectedSource)}
+          aria-label={t('workspace.open', { name: t(`route.${id}.title`) })}
+          aria-current={id === current ? 'page' : undefined}
+        >
           {t(`route.${id}.title`)}
         </a>
       ))}
@@ -36,12 +41,14 @@ export function WorkspaceShortcuts() {
     <section aria-labelledby="workspace-shortcuts-title">
       <h2 id="workspace-shortcuts-title">{t('workspace.choose')}</h2>
       <div className="workspace-shortcuts">
-        {destinations.filter(({ id }) => id !== 'overview').map(({ id, path }) => (
-          <a key={id} href={workspaceHref(path, selectedSource)}>
-            <strong>{t(`route.${id}.title`)}</strong>
-            <span>{t(`route.${id}.description`)}</span>
-          </a>
-        ))}
+        {destinations
+          .filter(({ id }) => id !== 'overview')
+          .map(({ id, path }) => (
+            <a key={id} href={workspaceHref(path, selectedSource)}>
+              <strong>{t(`route.${id}.title`)}</strong>
+              <span>{t(`route.${id}.description`)}</span>
+            </a>
+          ))}
       </div>
     </section>
   );

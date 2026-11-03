@@ -11,10 +11,36 @@ import { createProductApi, type ProductApi } from '../product/product-api';
 import { createAuthenticatedAuthStore, createResolvedAuthStore } from '../../test/auth';
 import { LocaleProvider } from '../../i18n';
 
-const observed = { availability: 'available', completeness: 'complete', observed_at: '2026-10-28T10:15:00Z' } as const;
-const resource: ProductResource = { id: scope.resourceId, source_id: scope.sourceId, provider: 'docker', kind: 'docker.container', environment_id: 'env_one', scope_kind: 'project', name: 'Selected service', synthetic: true, observed_at: observed.observed_at };
-const source: SourceSummary = { ...observed, id: scope.sourceId, provider: 'docker', name: 'Source one', synthetic: true, resource_count: 1, health: { healthy: 1, degraded: 0, unhealthy: 0, unknown: 0 } };
-const page = (items: ProductResource[]): ProductResourcePage => ({ ...observed, items, page: { has_more: false, limit: 10 } });
+const observed = {
+  availability: 'available',
+  completeness: 'complete',
+  observed_at: '2026-10-28T10:15:00Z',
+} as const;
+const resource: ProductResource = {
+  id: scope.resourceId,
+  source_id: scope.sourceId,
+  provider: 'docker',
+  kind: 'docker.container',
+  environment_id: 'env_one',
+  scope_kind: 'project',
+  name: 'Selected service',
+  synthetic: true,
+  observed_at: observed.observed_at,
+};
+const source: SourceSummary = {
+  ...observed,
+  id: scope.sourceId,
+  provider: 'docker',
+  name: 'Source one',
+  synthetic: true,
+  resource_count: 1,
+  health: { healthy: 1, degraded: 0, unhealthy: 0, unknown: 0 },
+};
+const page = (items: ProductResource[]): ProductResourcePage => ({
+  ...observed,
+  items,
+  page: { has_more: false, limit: 10 },
+});
 function fixture() {
   return {
     ...createProductApi({ request: () => Promise.reject(new Error('Unexpected workspace read.')) }),
@@ -27,16 +53,31 @@ function show(product: ProductApi, guest = false) {
   const controlled = controlledConversationApi();
   const view = render(
     <LocaleProvider>
-      <AuthProvider store={guest ? createResolvedAuthStore({ status: 'guest_demo' }) : createAuthenticatedAuthStore()}>
+      <AuthProvider
+        store={
+          guest
+            ? createResolvedAuthStore({
+                status: 'guest_demo',
+                fixtureVersion: 'demo-v2',
+                scenarioStep: 0,
+                observedAt: observed.observed_at,
+              })
+            : createAuthenticatedAuthStore()
+        }
+      >
         <ProductProvider api={product}>
-          <AssistantProvider api={controlled.api}><AssistantWorkspacePage /></AssistantProvider>
+          <AssistantProvider api={controlled.api}>
+            <AssistantWorkspacePage />
+          </AssistantProvider>
         </ProductProvider>
       </AuthProvider>
     </LocaleProvider>,
   );
   return { ...view, assistant: controlled.api };
 }
-afterEach(() => { window.history.replaceState(null, '', '/'); });
+afterEach(() => {
+  window.history.replaceState(null, '', '/');
+});
 
 describe('dedicated assistant workspace', () => {
   it('loads bounded choices, requires a selection, and clears the question when changing resource', async () => {
@@ -45,14 +86,26 @@ describe('dedicated assistant workspace', () => {
     const { assistant } = show(product);
     await user.click(await screen.findByRole('button', { name: resource.name }));
     const input = await screen.findByRole('textbox', { name: 'Question about this resource' });
-    expect(product.listResources).toHaveBeenCalledWith(expect.objectContaining({ sourceId: source.id, limit: 10 }));
-    expect(product.getResource).toHaveBeenCalledWith(resource.id, expect.any(AbortSignal), source.id);
+    expect(product.listResources).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: source.id, limit: 10 }),
+    );
+    expect(product.getResource).toHaveBeenCalledWith(
+      resource.id,
+      expect.any(AbortSignal),
+      source.id,
+    );
     await user.type(input, 'Temporary question');
     expect(assistant.admit).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Choose another resource' }));
     expect(screen.queryByRole('textbox', { name: 'Question about this resource' })).toBeNull();
     await user.click(await screen.findByRole('button', { name: resource.name }));
-    expect((await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'Question about this resource' })).value).toBe('');
+    expect(
+      (
+        await screen.findByRole<HTMLTextAreaElement>('textbox', {
+          name: 'Question about this resource',
+        })
+      ).value,
+    ).toBe('');
     expect(assistant.admit).not.toHaveBeenCalled();
   });
 
@@ -69,13 +122,23 @@ describe('dedicated assistant workspace', () => {
   it('ignores a selected-resource completion after the selection is cleared', async () => {
     let finish: ((value: ProductResource) => void) | undefined;
     const product = fixture();
-    product.getResource.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    product.getResource.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
     show(product);
     fireEvent.click(await screen.findByRole('button', { name: resource.name }));
-    await waitFor(() => { expect(product.getResource).toHaveBeenCalledOnce(); });
+    await waitFor(() => {
+      expect(product.getResource).toHaveBeenCalledOnce();
+    });
     const signal = product.getResource.mock.calls[0]?.[1];
     fireEvent.click(screen.getByRole('button', { name: 'Choose another resource' }));
-    await act(async () => { finish?.(resource); await Promise.resolve(); });
+    await act(async () => {
+      finish?.(resource);
+      await Promise.resolve();
+    });
     expect(signal?.aborted).toBe(true);
     expect(screen.queryByRole('textbox', { name: 'Question about this resource' })).toBeNull();
   });
@@ -83,13 +146,20 @@ describe('dedicated assistant workspace', () => {
   it('replaces resource pages instead of appending an endless list', async () => {
     const other = { ...resource, id: `r1_${'B'.repeat(43)}`, name: 'Next service' };
     const product = fixture();
-    product.listResources.mockResolvedValueOnce({ ...page([resource]), page: { has_more: true, next_cursor: 'next_page', limit: 10 } }).mockResolvedValue(page([other]));
+    product.listResources
+      .mockResolvedValueOnce({
+        ...page([resource]),
+        page: { has_more: true, next_cursor: 'next_page', limit: 10 },
+      })
+      .mockResolvedValue(page([other]));
     show(product);
     await screen.findByRole('button', { name: resource.name });
     fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
     await screen.findByRole('button', { name: other.name });
     expect(screen.queryByRole('button', { name: resource.name })).toBeNull();
-    expect(product.listResources).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: 'next_page', limit: 10 }));
+    expect(product.listResources).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cursor: 'next_page', limit: 10 }),
+    );
   });
 
   it('shows the guest limit without opening private or inventory reads', async () => {
