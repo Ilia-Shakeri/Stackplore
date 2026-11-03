@@ -377,6 +377,21 @@ for (const locale of ['en', 'fa']) {
               locale === 'fa' ? 'دستیار در نمایش مهمان' : 'unavailable in the guest demonstration',
             );
           if (path === '/help') await expect(page.locator('.help-article')).toBeVisible();
+          await page.evaluate(axe.source);
+          const workspaceFindings = await page.evaluate(async () => {
+            const result = await window.axe.run(document, {
+              runOnly: {
+                type: 'tag',
+                values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+              },
+            });
+            return result.violations.map(({ id }) => id);
+          });
+          expect(workspaceFindings, `${path} accessibility`).toEqual([]);
+          expect(
+            await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+            `${path} overflow`,
+          ).toBe(true);
         }
         const paletteTrigger = page.getByRole('button', {
           name: locale === 'fa' ? 'بازکردن پالت فرمان' : 'Open command palette',

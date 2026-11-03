@@ -65,5 +65,18 @@ report/citation, ownership, migration, offline, provider and packaging gates rem
 The established eight-route timing receipt keeps its existing scope; the new
 workspace flows add functional checks, not unmeasured capacity claims.
 
+The browser matrix also runs accessibility and horizontal-overflow checks on all
+four new pages after reinjecting the test checker on each full navigation. The
+canonical archive retains exactly its 32 existing profile screenshots; optional
+dashboard images are retained in a separate diagnostic artifact. A hosted step
+validates the generated canonical archive with the consumer, while Windows runs
+its synthetic regression suite. The versioned consumer preserves six jobs for
+immutable alpha.0, seven for alpha.1–3, and requires the real processor as the
+eighth job from alpha.4 onward. Numeric preview patches such as alpha.6.1 are
+validated without allowing malformed or arbitrary tags. Fetch-mode final-browser
+acceptance retains its existing main-only identity requirement; hosted preview
+archive validation proves structure, with source/tag identity handled by the
+verification and release workflows.
+
 Fresh source, tag and package receipts must identify the exact revision before a
 preview release is accepted. A green interface preview is not stable-2.0 acceptance.

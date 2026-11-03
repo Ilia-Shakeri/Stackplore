@@ -57,6 +57,9 @@ jobs:
       - name: Verify native processor launcher without starting a process or network
         shell: pwsh
         run: pwsh -NoProfile -File scripts/local-processor.test.ps1
+      - name: Verify versioned browser evidence policy with synthetic archives
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/verify-browser-evidence.test.ps1
 
   code:
     runs-on: ubuntu-24.04
@@ -124,6 +127,37 @@ jobs:
         run: corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
       - name: Verify production browser and offline shell in disposable PostgreSQL
         run: node scripts/browser-gate.mjs
+      - name: Validate canonical browser archive structure on hosted runner
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression
+          Add-Type -AssemblyName System.IO.Compression.ZipFile
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $proofZip = Join-Path $env:RUNNER_TEMP 'stackplore-browser-proof.zip'
+          $files = @('.tmp/browser-results.json', '.tmp/browser-results-normal-en.json', '.tmp/browser-results-normal-fa.json', "docs/evidence/$version/browser-measurements.json")
+          $files += @(Get-ChildItem -LiteralPath "docs/evidence/$version/screenshots" -Filter '*.png' -File | ForEach-Object { [IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName).Replace('\', '/') })
+          $archive = [IO.Compression.ZipFile]::Open($proofZip, [IO.Compression.ZipArchiveMode]::Create)
+          try {
+            foreach ($entry in $files) {
+              $null = [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path (Get-Location).Path $entry), $entry)
+            }
+          } finally { $archive.Dispose() }
+          $validation = pwsh -NoProfile -File scripts/verify-browser-evidence.ps1 -Version $version -ValidateArchive $proofZip
+          if ($LASTEXITCODE -ne 0) { throw 'Hosted browser archive validation failed.' }
+          $proofDirectory = Join-Path (Get-Location).Path '.tmp/workspace-design'
+          $null = [IO.Directory]::CreateDirectory($proofDirectory)
+          [IO.File]::WriteAllText((Join-Path $proofDirectory 'archive-structure.json'), (($validation -join "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+      - name: Retain workspace interface diagnostics separately from canonical browser proof
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: workspace-interface-evidence
+          path: |
+            .tmp/workspace-design/*.png
+            .tmp/workspace-design/*.json
+          if-no-files-found: ignore
+          retention-days: 14
+          include-hidden-files: true
       - name: Retain sanitized browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

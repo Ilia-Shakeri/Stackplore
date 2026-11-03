@@ -27,9 +27,10 @@ foreach($helper in @('Require','Is-Number','Is-Count','Same-Names','Required-CIJ
 }
 . ([scriptblock]::Create(($policyDefinitions -join "`n")))
 $jobPassed=@()
-function New-CIJobListing([bool]$Modern) {
+function New-CIJobListing([bool]$Modern,[bool]$Runtime=$false) {
   $names=@('code','deploy','compose-install','helm-install','docker-provider','kubernetes-provider')
   if($Modern){$names+='processor-tool'}
+  if($Runtime){$names+='processor-runtime'}
   return @{total_count=$names.Count;jobs=@($names | ForEach-Object {@{name=$_;status='completed';conclusion='success'}})}
 }
 function Check-CIJobCase([string]$Name,$Listing,[string]$ProductVersion,[bool]$Diagnostic,[bool]$Expected) {
@@ -41,10 +42,21 @@ function Check-CIJobCase([string]$Name,$Listing,[string]$ProductVersion,[bool]$D
 
 $legacyNames=@(Required-CIJobs '2.0.0-alpha.0')
 Assert ($legacyNames.Count -eq 6 -and -not ($legacyNames -ccontains 'processor-tool')) 'Immutable alpha.0 must keep exactly six jobs'
-foreach($policyVersion in @('2.0.0-alpha.1','2.0.0-alpha.2','2.0.0-alpha.10','2.0.0-beta.0','2.0.0-rc.1','2.0.0','2.0.1','2.1.0-alpha.0','2.10.30')){
+foreach($policyVersion in @('2.0.0-alpha.1','2.0.0-alpha.2','2.0.0-alpha.3','2.0.0-alpha.3.1')){
   $modernNames=@(Required-CIJobs $policyVersion)
   Assert ($modernNames.Count -eq 7 -and ($modernNames -ccontains 'processor-tool')) 'Later checkpoints require the host tool gate'
   Check-CIJobCase ('version-'+$policyVersion) (New-CIJobListing $true) $policyVersion $false $true
+}
+foreach($policyVersion in @('2.0.0-alpha.4','2.0.0-alpha.5','2.0.0-alpha.6.1','2.0.0-alpha.10','2.0.0-beta.0','2.0.0-rc.1','2.0.0','2.0.1','2.1.0-alpha.0','2.10.30')){
+  $currentNames=@(Required-CIJobs $policyVersion)
+  Assert ($currentNames.Count -eq 8 -and ($currentNames -ccontains 'processor-runtime')) 'Current checkpoints require the real processor gate'
+  Check-CIJobCase ('version-'+$policyVersion) (New-CIJobListing $true $true) $policyVersion $false $true
+  Check-CIJobCase ('missing-runtime-'+$policyVersion) (New-CIJobListing $true) $policyVersion $false $false
+  $runtimeFailure=New-CIJobListing $true $true;$runtimeFailure.jobs[-1].conclusion='failure'
+  Check-CIJobCase ('failed-runtime-'+$policyVersion) $runtimeFailure $policyVersion $false $false
+}
+foreach($invalidVersion in @('2.0.0-alpha.6.01','2.0.0-alpha.6.','2.0.0-alpha.6.1.2')){
+  Check-CIJobCase ('invalid-patch-'+$jobPassed.Count) (New-CIJobListing $true $true) $invalidVersion $false $false
 }
 foreach($invalidVersion in @('1.0.3','3.0.0','v2.0.0','2.00.0-alpha.0','2.0.0-alpha.01','2.0.0-beta.01','2.0.0-rc.01','2.0.0-alpha.-1','2.0.0-dev.1','2.0.0-alpha.0+meta',' 2.0.0',"2.0.0-alpha.0`n")){
   Check-CIJobCase ('invalid-version-'+$jobPassed.Count) (New-CIJobListing $true) $invalidVersion $false $false

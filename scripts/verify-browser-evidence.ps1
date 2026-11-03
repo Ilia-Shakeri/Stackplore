@@ -7,7 +7,7 @@ param(
   [Parameter(Mandatory=$true,ParameterSetName='Fetch')][ValidatePattern('^[a-f0-9]{40}$')][string]$Revision,
   [Parameter(Mandatory=$true,ParameterSetName='Fetch')][string]$Destination,
   [Parameter(ParameterSetName='Fetch')][string]$DestinationRoot,
-  [Parameter(Mandatory=$true)][ValidatePattern('\A2\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9][0-9]*))?\z')][string]$Version,
+  [Parameter(Mandatory=$true)][ValidatePattern('\A2\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))?)?\z')][string]$Version,
   [ValidateSet('success','failure')][string]$ExpectedConclusion='success',
   [ValidatePattern('^v2-[a-z0-9-]{1,100}\.json$')][string]$ReceiptName='v2-final-browser-artifact.json',
   [Parameter(Mandatory=$true,ParameterSetName='ArchiveOnly')][string]$ValidateArchive
@@ -36,10 +36,11 @@ function Same-Names($Actual,$Expected,[string]$Reason) {
   for($i=0;$i -lt $a.Count;$i++){Require ($a[$i] -ceq $b[$i]) $Reason}
 }
 function Required-CIJobs([string]$ProductVersion) {
-  Require ($ProductVersion -cmatch '\A2\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9][0-9]*))?\z') 'CI job policy requires a canonical product version'
+  Require ($ProductVersion -cmatch '\A2\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-(?:alpha|beta|rc)\.(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))?)?\z') 'CI job policy requires a canonical product version'
   $required=@('code','deploy','compose-install','helm-install','docker-provider','kubernetes-provider')
   # Preserve the immutable six-job alpha.0 checkpoint; every later source adds the host tool gate.
   if($ProductVersion -cne '2.0.0-alpha.0'){$required+='processor-tool'}
+  if($ProductVersion -cnotmatch '\A2\.0\.0-alpha\.[0-3](?:\.(?:0|[1-9][0-9]*))?\z'){$required+='processor-runtime'}
   return $required
 }
 function Check-CIJobs($Listing,[string]$ProductVersion,[bool]$Diagnostic) {

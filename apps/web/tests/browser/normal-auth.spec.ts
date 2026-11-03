@@ -109,7 +109,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     const priorViewport = page.viewportSize();
     await page.setViewportSize({ width: 1280, height: 960 });
     await dashboard.screenshot({
-      path: `../../docs/evidence/${process.env.SP_BROWSER_VERSION ?? '2.0.0-alpha.6.1'}/screenshots/dashboard-${locale}-1280-light.png`,
+      path: `../../.tmp/workspace-design/dashboard-${locale}-1280-light.png`,
       animations: 'disabled',
     });
     if (priorViewport !== null) await page.setViewportSize(priorViewport);

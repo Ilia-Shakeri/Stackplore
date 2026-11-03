@@ -39,5 +39,21 @@ browser fixture. It is changed to the normal type import; the lint rule remains.
 The same slice explicitly transfers focus after resource selection and returns
 it to search on clearing, with unit and real-browser assertions.
 
+Run [41635438205](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41635438205)
+at `db01ba3455dfeea2e3684d82b22481baf213a960` passed seven jobs, the full code/build
+gate and Go race checks, then failed eight browser profiles because the test
+checker was absent after the newly added full-page navigations. The correction
+reinjects it and runs accessibility/overflow checks on each new page. Signed trial
+[41635440464](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41635440464)
+passed for that exact source; it does not turn the failed source gate green.
+
+Pre-tag review also found stale browser-consumer version/job policy and optional
+dashboard screenshots mixed into the canonical 32-image inventory. The consumer
+now preserves historical six/seven-job checkpoints and requires all eight jobs
+for alpha.4 onward. Numeric preview patches are supported with negative tests.
+Optional dashboard captures move to a separate artifact; source CI adds a hosted
+canonical-archive structure check and a Windows synthetic consumer test. No
+workstation execution or weakened browser assertions are used.
+
 [Feature guide](../../desktop-workspaces.md) and
 [implementation ledger](../../v2/implementation.md) describe scope and remaining work.
