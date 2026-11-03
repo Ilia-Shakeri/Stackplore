@@ -9,6 +9,7 @@ import { useLocale, type TextMessageKey } from '../../i18n';
 
 export interface PasswordChangeDialogProps {
   readonly onOpenChange: (open: boolean) => void;
+  readonly onReturnFocus: () => void;
   readonly open: boolean;
 }
 
@@ -42,7 +43,11 @@ const errorMessage = (error: PasswordError): TextMessageKey => {
   }
 };
 
-export function PasswordChangeDialog({ onOpenChange, open }: PasswordChangeDialogProps) {
+export function PasswordChangeDialog({
+  onOpenChange,
+  onReturnFocus,
+  open,
+}: PasswordChangeDialogProps) {
   const { changePassword, retry } = useAuth();
   const { notify } = useToast();
   const { t } = useLocale();
@@ -116,6 +121,10 @@ export function PasswordChangeDialog({ onOpenChange, open }: PasswordChangeDialo
       <DialogContent
         closeLabel={t('auth.password.close')}
         description={t('auth.password.description')}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          onReturnFocus();
+        }}
         footer={
           <>
             <DialogClose asChild>

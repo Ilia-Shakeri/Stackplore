@@ -56,3 +56,9 @@ web tests. The remaining palette test found that the system-dark fallback lacked
 the six new chart colors. The correction gives that fallback the same chart
 tokens as explicit dark mode; the existing equality assertion remains intact.
 The palette regression is now also in the early focused hosted test gate.
+
+The password-change modal now returns focus explicitly to its account-menu
+trigger, with a main-region fallback. The closing dropdown yields its focus
+restoration while that modal is open. Focused and real-browser checks exercise
+three open/Escape cycles, focus inside the modal and return to the account button.
+These checks use no password-change request and require fresh hosted receipts.

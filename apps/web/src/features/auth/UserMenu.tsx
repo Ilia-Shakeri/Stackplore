@@ -10,7 +10,7 @@ import {
   useToast,
 } from '@stackplore/ui';
 import { useRouter } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { PasswordChangeDialog } from './PasswordChangeDialog';
 import { useAuth } from './auth-context';
@@ -23,6 +23,7 @@ export function UserMenu() {
   const router = useRouter();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (snapshot.status === 'guest_demo')
     return <span className="guest-demo-badge">{t('demo.mode.guest')}</span>;
@@ -60,6 +61,7 @@ export function UserMenu() {
       <Dropdown>
         <DropdownTrigger asChild>
           <Button
+            ref={triggerRef}
             className="user-menu__trigger"
             variant="ghost"
             aria-label={t('auth.userMenu.open')}
@@ -67,7 +69,13 @@ export function UserMenu() {
             <span className="user-menu__name">{snapshot.user.displayName}</span>
           </Button>
         </DropdownTrigger>
-        <DropdownContent align="end" className="user-menu__content">
+        <DropdownContent
+          align="end"
+          className="user-menu__content"
+          onCloseAutoFocus={(event) => {
+            if (passwordOpen) event.preventDefault();
+          }}
+        >
           <DropdownLabel>
             <span className="user-menu__identity">
               <strong>{snapshot.user.displayName}</strong>
@@ -91,6 +99,10 @@ export function UserMenu() {
       </Dropdown>
       <PasswordChangeDialog
         open={passwordOpen}
+        onReturnFocus={() => {
+          const target = triggerRef.current ?? document.getElementById('main-content');
+          target?.focus();
+        }}
         onOpenChange={(open) => {
           setPasswordOpen(open);
         }}

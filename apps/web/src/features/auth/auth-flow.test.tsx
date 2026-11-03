@@ -1,5 +1,5 @@
 import { createMemoryHistory } from '@tanstack/react-router';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -116,6 +116,25 @@ describe('auth routes and forms', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).not.toBeNull();
     expect(logout).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('complementary')).toBeNull();
+  });
+
+  it('restores account focus after repeated password-dialog cancellation', async () => {
+    const user = userEvent.setup();
+    renderAuthRoute('/about', createAuthenticatedAuthStore('viewer'));
+    const trigger = await screen.findByRole('button', { name: 'Open user menu' });
+    for (let cycle = 0; cycle < 3; cycle += 1) {
+      await user.click(trigger);
+      await user.click(await screen.findByRole('menuitem', { name: 'Change password' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Change password' });
+      await waitFor(() => {
+        expect(dialog.contains(document.activeElement)).toBe(true);
+      });
+      await user.keyboard('{Escape}');
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(document.activeElement).toBe(trigger);
+      });
+    }
   });
 
   it('changes the current password and rotates the in-memory session', async () => {
