@@ -2,7 +2,13 @@ import { Children, useState, type ReactNode } from 'react';
 import { useLocale } from '../../i18n';
 
 const storageKey = 'stackplore.dashboard.layout.v1';
-const titles = ['product.trend.cpu', 'product.trend.memory', 'insight.restarts', 'insight.receive', 'insight.send'] as const;
+const titles = [
+  'product.trend.cpu',
+  'product.trend.memory',
+  'insight.restarts',
+  'insight.receive',
+  'insight.send',
+] as const;
 type Panel = { id: number; visible: boolean; wide: boolean };
 const defaults = (): Panel[] => titles.map((_, id) => ({ id, visible: true, wide: false }));
 
@@ -16,7 +22,17 @@ const load = (): Panel[] => {
     for (const panel of value as unknown[]) {
       if (typeof panel !== 'object' || panel === null) return defaults();
       const item = panel as Record<string, unknown>;
-      if (Object.keys(item).length !== 3 || typeof item.id !== 'number' || !Number.isInteger(item.id) || item.id < 0 || item.id >= titles.length || seen.has(item.id) || typeof item.visible !== 'boolean' || typeof item.wide !== 'boolean') return defaults();
+      if (
+        Object.keys(item).length !== 3 ||
+        typeof item.id !== 'number' ||
+        !Number.isInteger(item.id) ||
+        item.id < 0 ||
+        item.id >= titles.length ||
+        seen.has(item.id) ||
+        typeof item.visible !== 'boolean' ||
+        typeof item.wide !== 'boolean'
+      )
+        return defaults();
       seen.add(item.id);
     }
     return value as Panel[];
@@ -42,7 +58,8 @@ export function DashboardLayout({ children }: { readonly children: ReactNode }) 
   const move = (index: number, direction: number) => {
     const next = [...layout];
     const target = index + direction;
-    const current = next[index], other = next[target];
+    const current = next[index],
+      other = next[target];
     if (current === undefined || other === undefined) return;
     next[index] = other;
     next[target] = current;
@@ -57,20 +74,69 @@ export function DashboardLayout({ children }: { readonly children: ReactNode }) 
           {layout.map((panel, index) => (
             <li key={panel.id}>
               <strong>{t(titles[panel.id] ?? 'product.trend.cpu')}</strong>
-              <label><input type="checkbox" checked={panel.visible} onChange={() => update(layout.map((item) => item.id === panel.id ? { ...item, visible: !item.visible } : item))} />{t('dashboard.visible')}</label>
-              <label><input type="checkbox" checked={panel.wide} onChange={() => update(layout.map((item) => item.id === panel.id ? { ...item, wide: !item.wide } : item))} />{t('dashboard.wide')}</label>
-              <button type="button" disabled={index === 0} onClick={() => move(index, -1)} aria-label={`${t('dashboard.up')}: ${t(titles[panel.id] ?? 'product.trend.cpu')}`}>{t('dashboard.up')}</button>
-              <button type="button" disabled={index === layout.length - 1} onClick={() => move(index, 1)} aria-label={`${t('dashboard.down')}: ${t(titles[panel.id] ?? 'product.trend.cpu')}`}>{t('dashboard.down')}</button>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={panel.visible}
+                  onChange={() =>
+                    update(
+                      layout.map((item) =>
+                        item.id === panel.id ? { ...item, visible: !item.visible } : item,
+                      ),
+                    )
+                  }
+                />
+                {t('dashboard.visible')}
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={panel.wide}
+                  onChange={() =>
+                    update(
+                      layout.map((item) =>
+                        item.id === panel.id ? { ...item, wide: !item.wide } : item,
+                      ),
+                    )
+                  }
+                />
+                {t('dashboard.wide')}
+              </label>
+              <button
+                type="button"
+                disabled={index === 0}
+                onClick={() => move(index, -1)}
+                aria-label={`${t('dashboard.up')}: ${t(titles[panel.id] ?? 'product.trend.cpu')}`}
+              >
+                {t('dashboard.up')}
+              </button>
+              <button
+                type="button"
+                disabled={index === layout.length - 1}
+                onClick={() => move(index, 1)}
+                aria-label={`${t('dashboard.down')}: ${t(titles[panel.id] ?? 'product.trend.cpu')}`}
+              >
+                {t('dashboard.down')}
+              </button>
             </li>
           ))}
         </ul>
-        <button type="button" onClick={() => update(defaults())}>{t('dashboard.reset')}</button>
+        <button type="button" onClick={() => update(defaults())}>
+          {t('dashboard.reset')}
+        </button>
       </details>
       {!saved ? <p role="status">{t('dashboard.notSaved')}</p> : null}
       <div className="trend-grid">
-        {layout.filter((panel) => panel.visible).map((panel) => (
-          <div key={panel.id} className={panel.wide ? 'dashboard-panel dashboard-panel--wide' : 'dashboard-panel'}>{panels[panel.id]}</div>
-        ))}
+        {layout
+          .filter((panel) => panel.visible)
+          .map((panel) => (
+            <div
+              key={panel.id}
+              className={panel.wide ? 'dashboard-panel dashboard-panel--wide' : 'dashboard-panel'}
+            >
+              {panels[panel.id]}
+            </div>
+          ))}
       </div>
     </section>
   );

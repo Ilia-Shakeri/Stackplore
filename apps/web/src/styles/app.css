@@ -835,13 +835,38 @@
   background: var(--sp-surface);
 }
 
-.dashboard-panel { min-inline-size: 0; }
-.dashboard-panel > .trend-card { block-size: 100%; }
-.dashboard-panel--wide { grid-column: 1 / -1; }
-.dashboard-editor { margin-block-end: var(--sp-space-4); }
-.dashboard-editor ul { display: grid; gap: var(--sp-space-3); padding-inline-start: 0; list-style: none; }
-.dashboard-editor li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-space-3); padding: var(--sp-space-3); border: 1px solid var(--sp-border); border-radius: var(--sp-radius-md); }
-.dashboard-editor label { display: inline-flex; align-items: center; gap: var(--sp-space-2); }
+.dashboard-panel {
+  min-inline-size: 0;
+}
+.dashboard-panel > .trend-card {
+  block-size: 100%;
+}
+.dashboard-panel--wide {
+  grid-column: 1 / -1;
+}
+.dashboard-editor {
+  margin-block-end: var(--sp-space-4);
+}
+.dashboard-editor ul {
+  display: grid;
+  gap: var(--sp-space-3);
+  padding-inline-start: 0;
+  list-style: none;
+}
+.dashboard-editor li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-3);
+  padding: var(--sp-space-3);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-md);
+}
+.dashboard-editor label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-2);
+}
 
 .trend-card > header {
   display: flex;

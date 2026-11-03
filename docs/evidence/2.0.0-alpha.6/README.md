@@ -89,3 +89,10 @@ At `d63271e406c16903099046969b1fec17a6eb13ec`, [all eight hosted jobs](history-c
 At `ba7d30f0fec254e143ebb7eb8a8d14eeae06d4b7`, [all eight hosted jobs](history-family-cap-ci.json) pass, including report family caps and the public-route authority regression. The earlier source `d63271e406c16903099046969b1fec17a6eb13ec` independently passes [signed package/security trial](history-coverage-package-ci.json); publication is skipped on this branch. A new package trial was dispatched for `ba7d30f` and remains pending. These checks do not complete public history read-plan, authority or interface integration, stage 6, or stable 2.0.
 
 At `695c2e73d95d0a407c2519659cbcd496a97fe513`, run `41597708828`, focused runtime, schema-19 migration/upgrade and actual PostgreSQL history reservation/settlement tests pass. The full source gate stops on Go formatting of the runtime kind declarations. [The partial workflow receipt](history-reservation-format-ci.json) was captured while the processor job was running and is not complete cleanup or whole-workflow acceptance. The followup applies the inspected hosted formatting patch; fresh verification remains required. No public history read or interface integration is accepted.
+
+At `5accc3b`, run `41612548372`, client/web types and focused dashboard layout,
+chart and assistant ownership tests pass. The full gate stops on formatting of
+the two layout files and app CSS. The followup applies the inspected hosted
+source-only patch. The partial [workflow receipt](dashboard-format-ci.json)
+was captured while processing was running; it is not full acceptance or a
+complete cleanup receipt. Fresh hosted validation remains required.

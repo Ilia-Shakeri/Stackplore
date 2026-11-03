@@ -4,8 +4,20 @@ import { LocaleProvider } from '../../i18n';
 import { DashboardLayout } from './DashboardLayout';
 
 const key = 'stackplore.dashboard.layout.v1';
-const show = () => render(<LocaleProvider defaultLocale="en" storageKey="dashboard-test"><DashboardLayout>{['cpu', 'memory', 'restarts', 'received', 'sent'].map((name) => <p key={name}>{name}</p>)}</DashboardLayout></LocaleProvider>);
-afterEach(() => { cleanup(); localStorage.clear(); });
+const show = () =>
+  render(
+    <LocaleProvider defaultLocale="en" storageKey="dashboard-test">
+      <DashboardLayout>
+        {['cpu', 'memory', 'restarts', 'received', 'sent'].map((name) => (
+          <p key={name}>{name}</p>
+        ))}
+      </DashboardLayout>
+    </LocaleProvider>,
+  );
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
 
 describe('dashboard layout', () => {
   it('persists only bounded layout and supports reset', () => {
