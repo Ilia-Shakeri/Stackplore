@@ -152,3 +152,8 @@ Provider access is sensitive. Keep credentials server-side, grant read-only acce
 ## License
 
 Stackplore uses the [Apache License 2.0](LICENSE).
+
+Development branch `v2/alpha6` now prepares **schema 19**. Startup automatically
+applies it even when the helper is off; older schema-18 binaries cannot use that
+ledger. Use a verified pre-upgrade backup for rollback. Hosted acceptance is
+pending; this is not a new published release. See the [ledger](docs/v2/implementation.md).

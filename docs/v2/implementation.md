@@ -632,3 +632,18 @@ The pure report boundary now independently limits each history family to eight
 observations, even when the total remains below the global report cap. Exact-cap
 and over-cap cases need hosted verification. This does not register a read or
 complete public history integration.
+
+## Development schema 19 — pending hosted acceptance
+
+The next candidate adds forward-only migration 19, widening only the closed SQL
+step-kind constraint for `alert_history` and `workload_history`. Migration 18 is
+unchanged. Normal startup of this development source automatically applies 19,
+including when the helper is disabled. Older schema-18 binaries reject this
+ledger; rollback requires the verified pre-upgrade backup and matching older
+storage build. No workstation database was started or migrated.
+
+The public alpha.5 release remains schema 18. This preparation does not register
+new read tools, grant authority or expose history through the public report.
+Hosted real-PostgreSQL checks must prove upgrade from 18, unchanged protected
+rows and prior migration history, restart, old-manifest rejection, and the new
+closed constraint. Public history integration and stable 2.0 remain open.
