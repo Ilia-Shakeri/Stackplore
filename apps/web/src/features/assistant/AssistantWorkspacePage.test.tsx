@@ -86,6 +86,9 @@ describe('dedicated assistant workspace', () => {
     const { assistant } = show(product);
     await user.click(await screen.findByRole('button', { name: resource.name }));
     const input = await screen.findByRole('textbox', { name: 'Question about this resource' });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('heading', { name: resource.name }));
+    });
     expect(product.listResources).toHaveBeenCalledWith(
       expect.objectContaining({ sourceId: source.id, limit: 10 }),
     );
@@ -98,6 +101,9 @@ describe('dedicated assistant workspace', () => {
     expect(assistant.admit).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Choose another resource' }));
     expect(screen.queryByRole('textbox', { name: 'Question about this resource' })).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', { name: 'Find a resource by name' }),
+    );
     await user.click(await screen.findByRole('button', { name: resource.name }));
     expect(
       (

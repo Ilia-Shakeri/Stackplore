@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page, type Request } from '@playwright/test';
 import { assistantJourney } from './assistant-journey';
 import { assistantLiveJourney } from './assistant-live-journey';
 
@@ -124,7 +124,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await expect(page.locator('html')).toHaveAttribute('dir', locale === 'fa' ? 'rtl' : 'ltr');
 
     let workspaceAdmissions = 0;
-    const observeWorkspace = (request: import('@playwright/test').Request) => {
+    const observeWorkspace = (request: Request) => {
       if (
         request.method() === 'POST' &&
         new URL(request.url()).pathname === '/api/v1/assistant/runs'
@@ -136,12 +136,16 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     const choices = page.locator('.assistant-resource-choices button');
     await expect(choices.first()).toBeVisible();
     await choices.first().click();
+    await expect(page.locator('#assistant-selected-resource')).toBeFocused();
     await expect(page.locator('.assistant textarea')).toBeVisible();
     await page.locator('.assistant textarea').fill('Temporary browser question');
     await page
       .getByRole('button', { name: label('assistant.workspace.change'), exact: true })
       .click();
     await expect(page.locator('.assistant textarea')).toHaveCount(0);
+    await expect(
+      page.getByRole('textbox', { name: label('assistant.workspace.search'), exact: true }),
+    ).toBeFocused();
     await expect(choices.first()).toBeVisible();
     await choices.first().click();
     await expect(page.locator('.assistant textarea')).toHaveValue('');

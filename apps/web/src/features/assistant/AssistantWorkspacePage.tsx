@@ -1,6 +1,6 @@
 import type { ProductResource, ProductResourcePage, SourceSummary } from '@stackplore/api-client';
 import { Button, Input } from '@stackplore/ui';
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 
 import { AssistantResourcePanel } from './AssistantResourcePanel';
 import { useAuth } from '../auth/auth-context';
@@ -46,6 +46,14 @@ function AssistantSelection() {
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
   const [searchRevision, setSearchRevision] = useState(0);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const returnToSearch = useRef(false);
+  useEffect(() => {
+    if (resourceId === '' && returnToSearch.current) {
+      returnToSearch.current = false;
+      searchInput.current?.focus();
+    }
+  }, [resourceId]);
   useEffect(() => {
     const controller = new AbortController();
     setSources({ kind: 'loading' });
@@ -109,6 +117,7 @@ function AssistantSelection() {
           <Button
             variant="outline"
             onClick={() => {
+              returnToSearch.current = true;
               view.write('resource_id', '');
             }}
           >
@@ -128,6 +137,7 @@ function AssistantSelection() {
             <label>
               <span>{t('assistant.workspace.search')}</span>
               <Input
+                ref={searchInput}
                 value={query}
                 maxLength={200}
                 onChange={(event) => {
@@ -158,6 +168,10 @@ function SelectedAssistantResource({
   const api = useProductApi();
   const { t } = useLocale();
   const [state, setState] = useState<PageLoad<ProductResource>>({ kind: 'loading' });
+  const resourceHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (state.kind === 'ready') resourceHeading.current?.focus();
+  }, [state.kind]);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -189,7 +203,9 @@ function SelectedAssistantResource({
     );
   return (
     <section aria-labelledby="assistant-selected-resource">
-      <h2 id="assistant-selected-resource">{state.data.name}</h2>
+      <h2 ref={resourceHeading} id="assistant-selected-resource" tabIndex={-1}>
+        {state.data.name}
+      </h2>
       <p>{t('assistant.workspace.scope')}</p>
       <AssistantResourcePanel resource={state.data} defaultOpen />
     </section>

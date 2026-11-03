@@ -32,5 +32,12 @@ PostgreSQL runtime tag still present in root `compose.yaml`. The Compose image
 reference is corrected to the same alpha.6.1 image as the runtime manifest and
 hosted fixtures. The reference validator and its exact-count checks are retained.
 
+Run [41634123030](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41634123030)
+at `c04d22709894bab5b2603c035f23bada1dc913fc` passed the focused suite and version,
+runtime-image and contract checks, then rejected an inline type import in the
+browser fixture. It is changed to the normal type import; the lint rule remains.
+The same slice explicitly transfers focus after resource selection and returns
+it to search on clearing, with unit and real-browser assertions.
+
 [Feature guide](../../desktop-workspaces.md) and
 [implementation ledger](../../v2/implementation.md) describe scope and remaining work.

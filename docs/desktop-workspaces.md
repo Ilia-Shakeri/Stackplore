@@ -39,6 +39,11 @@ appending an endless list; cursor history is bounded to ten pages. The guest dem
 shows an explicit unavailable notice and makes no private assistant request.
 An authenticated installation still needs an operator-enabled profile.
 
+Selecting a resource moves keyboard focus to its verified heading. Choosing
+another resource returns focus to the name-search input, without carrying over
+the question. Repeating a submitted search restarts page one even if its text
+has not changed.
+
 ## Help and support
 
 The built-in guide covers getting started, metric selection and browser-local
