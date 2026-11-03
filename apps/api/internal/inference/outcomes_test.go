@@ -47,8 +47,33 @@ func TestOutcomeCoverageIsClosedAndCannotInventRecords(t *testing.T) {
 	if _, err := outcomeBytes([]ToolOutcome{gap}); err == nil {
 		t.Fatal("invalid unavailable partial state accepted")
 	}
-	if _, err := outcomeBytes(make([]ToolOutcome, 7)); err == nil {
+	if _, err := outcomeBytes(make([]ToolOutcome, 9)); err == nil {
 		t.Fatal("unbounded family metadata accepted")
+	}
+}
+
+func TestHistoryCoverageRemainsClosedAndSharesGlobalRecordAccounting(t *testing.T) {
+	var outcomes []ToolOutcome
+	for _, tool := range []string{"inventory", "health", "metrics", "events", "topology", "logs", "alert_history", "workload_history"} {
+		outcomes = append(outcomes, ToolOutcome{Tool: tool, Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Records: 1})
+	}
+	if ValidateOutcomes(outcomes, 8) != nil {
+		t.Fatal("eight bounded read families rejected")
+	}
+	if ValidateOutcomes(outcomes, 6) == nil {
+		t.Fatal("history records escaped aggregate accounting")
+	}
+	for _, index := range []int{6, 7} {
+		changed := append([]ToolOutcome{}, outcomes...)
+		changed[index].Records = 9
+		if ValidateOutcomes(changed, 16) == nil {
+			t.Fatal("history exceeded its per-read cap")
+		}
+		changed[index] = outcomes[index]
+		changed[index].Tool = "unbounded_history"
+		if ValidateOutcomes(changed, 8) == nil {
+			t.Fatal("unregistered history family accepted")
+		}
 	}
 }
 

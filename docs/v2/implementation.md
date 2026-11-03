@@ -673,3 +673,10 @@ The citation locator accepts the two closed history kinds only through the
 existing owning proof and current authority fences. Public route/client/UI
 integration and full stage-6 acceptance remain pending; fresh hosted proof is
 required for these source changes.
+
+The next internal inference contract accepts only the two closed history
+outcome names in addition to existing families, at most eight total outcomes.
+Each history read keeps its eight-record cap and participates in the same
+aggregate record and byte accounting. This does not change the fixed public
+plan, HTTP/client contract or default user flow. Focused hosted tests must prove
+exact family bounds, unknown-kind denial and aggregate accounting before use.

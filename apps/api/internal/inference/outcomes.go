@@ -34,13 +34,13 @@ func ValidateOutcomes(outcomes []ToolOutcome, records int) error {
 }
 
 func outcomeBytes(outcomes []ToolOutcome) (int, error) {
-	if len(outcomes) > 6 {
+	if len(outcomes) > 8 {
 		return 0, ErrInvalid
 	}
 	seen := make(map[string]bool, len(outcomes))
 	for _, outcome := range outcomes {
 		switch outcome.Tool {
-		case "inventory", "health", "metrics", "events", "topology", "logs":
+		case "inventory", "health", "metrics", "events", "topology", "logs", "alert_history", "workload_history":
 		default:
 			return 0, ErrInvalid
 		}
