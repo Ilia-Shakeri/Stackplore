@@ -1,5 +1,5 @@
 import { ErrorBoundary, ThemeProvider, ToastProvider, useTheme, useToast } from '@stackplore/ui';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -40,6 +40,26 @@ function ToastHarness({ onAction }: ToastHarnessProps) {
 }
 
 describe('toast state', () => {
+  it('dismisses a notice without dropping a new notice added immediately afterward', () => {
+    render(
+      <ToastProvider closeLabel="Dismiss notice" viewportLabel="Notices">
+        <ToastHarness onAction={vi.fn()} />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add one' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add two' }));
+    const first = screen.getByText('Notice one').closest('li');
+    if (first === null) throw new Error('Notice container is unavailable.');
+    fireEvent.click(within(first).getByRole('button', { name: 'Dismiss notice' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add three' }));
+
+    expect(screen.queryByText('Notice one')).toBeNull();
+    expect(screen.getByText('Notice two')).not.toBeNull();
+    expect(screen.getByText('Notice three')).not.toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Dismiss notice' })).toHaveLength(2);
+  });
+
   it('keeps the newest three notices and runs an explicit action', () => {
     const handleAction = vi.fn();
 
@@ -154,6 +174,28 @@ function createMediaQuery(matches: boolean): MediaQueryList {
 }
 
 describe('theme state', () => {
+  it('resets to the default when another tab clears stored preferences', () => {
+    localStorage.setItem('test.clear-theme', 'dark');
+    render(
+      <ThemeProvider defaultTheme="light" storageKey="test.clear-theme">
+        <ThemeHarness />
+      </ThemeProvider>,
+    );
+    expect(screen.getByTestId('theme-value').textContent).toBe('dark:dark');
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'unrelated', newValue: 'light' }));
+    });
+    expect(screen.getByTestId('theme-value').textContent).toBe('dark:dark');
+
+    localStorage.clear();
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: null, newValue: null }));
+    });
+    expect(screen.getByTestId('theme-value').textContent).toBe('light:light');
+    expect(document.documentElement.style.colorScheme).toBe('light');
+  });
+
   it('reads and updates a stored preference', () => {
     globalThis.localStorage.setItem('test.theme', 'dark');
 

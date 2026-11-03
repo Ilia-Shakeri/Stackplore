@@ -16,7 +16,20 @@ removes dialog/drawer travel and keeps existing shortened color/opacity feedback
 Reduced-transparency mode removes scrim blur. Reading charts and dashboard
 values do not animate for decoration.
 
-All execution and interaction checks run on GitHub Actions. Fresh real-browser
-checks of rapid reopen, toast replacement/swipe, both locales, keyboard focus,
+All execution and interaction checks run on GitHub Actions. The browser matrix
+now exercises three consecutive Escape/shortcut reopen cycles, restored trigger
+focus, cleared search and final route focus in both locales and themes. Focused
+notification tests cover immediate dismissal followed by a new notice, queue
+limits and explicit actions. Fresh successful receipts, toast swipe,
 reduced motion and reduced transparency remain required; source review is not
 visual or device-performance acceptance. These changes do not finish stable 2.0.
+
+The previous candidate fc75a76 passed 43 focused interface tests on hosted run
+41615128733. Its full gate stopped at formatting in three files; the hosted
+formatting patch was applied. This is a failed gate, not release acceptance.
+
+Light, dark and system themes, login, initial administrator setup, password
+changes, recovery and user administration already exist. Display preferences
+include language, calendar, digits and timezone. Theme synchronization now resets
+to the configured default when another tab clears browser storage. Preferences
+remain browser-local; this does not add server-side cross-device settings.

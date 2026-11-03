@@ -89,7 +89,10 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await expect(dashboard.locator('.dashboard-panel')).toHaveCount(5);
     const priorViewport = page.viewportSize();
     await page.setViewportSize({ width: 1280, height: 960 });
-    await dashboard.screenshot({ path: `../../docs/evidence/2.0.0-alpha.6/screenshots/dashboard-${locale}-1280-light.png`, animations: 'disabled' });
+    await dashboard.screenshot({
+      path: `../../docs/evidence/2.0.0-alpha.6/screenshots/dashboard-${locale}-1280-light.png`,
+      animations: 'disabled',
+    });
     if (priorViewport !== null) await page.setViewportSize(priorViewport);
     expect(responses.some(({ path, status }) => path === '/api/v1/setup' && status === 201)).toBe(
       true,

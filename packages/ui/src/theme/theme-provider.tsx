@@ -76,7 +76,7 @@ export function ThemeProvider({
 
   useEffect(() => {
     const syncStoredTheme = (event: StorageEvent) => {
-      if (event.key !== storageKey) {
+      if (event.key !== null && event.key !== storageKey) {
         return;
       }
       setThemeState(isTheme(event.newValue) ? event.newValue : defaultTheme);

@@ -685,7 +685,17 @@ The next desktop candidate adds per-browser overview panel visibility, order,
 full-width layout and reset. Only five fixed panel IDs and boolean layout flags
 are retained; source identities and observation values are absent. Saved layouts
 are bounded and validated, and storage failures keep current-session edits with
-an explicit notice. These are shared-browser preferences, not account-owned or
-cross-device dashboards. Both locales and focused persistence/malformed-layout
-and chart tests await hosted validation. Stage-6 history integration and stable
-2.0 acceptance remain open.
+an explicit notice. Later candidate 54781b9 isolates the browser layout by signed-in
+user identifier, with a separate guest key and no persistence without an owner.
+These are browser-local preferences; cross-device dashboards remain unimplemented.
+Hosted run 41615128733 passed all 43 focused interface tests, including layout
+and chart tests, but failed its full gate on formatting. The hosted formatting
+patch has been applied; a fresh full receipt is required.
+
+The next interface correction resets the selected theme when another tab clears
+browser storage. Added regressions cover that reset, notification dismissal
+followed immediately by replacement, and three real-browser command-palette
+Escape/reopen cycles with keyboard focus and cleared queries. All execution is
+hosted. Login, user administration, light/dark/system themes and local display
+preferences already exist; this slice improves them rather than adding duplicate
+screens. Stage-6 history integration and stable 2.0 acceptance remain open.

@@ -357,14 +357,23 @@ for (const locale of ['en', 'fa']) {
             });
           }
         }
-        await page
-          .getByRole('button', {
-            name: locale === 'fa' ? 'بازکردن پالت فرمان' : 'Open command palette',
-          })
-          .click();
+        const paletteTrigger = page.getByRole('button', {
+          name: locale === 'fa' ? 'بازکردن پالت فرمان' : 'Open command palette',
+        });
+        await paletteTrigger.click();
         const palette = page.getByRole('dialog', {
           name: locale === 'fa' ? 'رفتن به صفحه' : 'Go to a page',
         });
+        for (let cycle = 0; cycle < 3; cycle += 1) {
+          await expect(palette.getByRole('combobox')).toBeFocused();
+          await palette.getByRole('combobox').fill('temporary query');
+          await page.keyboard.press('Escape');
+          await expect(palette).toHaveCount(0);
+          await expect(paletteTrigger).toBeFocused();
+          await page.keyboard.press('Control+k');
+          await expect(palette.getByRole('combobox')).toHaveValue('');
+        }
+        await expect(palette).toHaveAttribute('data-motion', 'none');
         await expect(palette.getByRole('combobox')).toBeFocused();
         const paletteFindings = await palette.evaluate(async (element) => {
           const result = await window.axe.run(element, {

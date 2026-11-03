@@ -21,7 +21,10 @@ afterEach(() => {
 
 describe('dashboard layout', () => {
   it('offers recovery when all panels are hidden', () => {
-    localStorage.setItem(key, JSON.stringify(Array.from({ length: 5 }, (_, id) => ({ id, visible: false, wide: false }))));
+    localStorage.setItem(
+      key,
+      JSON.stringify(Array.from({ length: 5 }, (_, id) => ({ id, visible: false, wide: false }))),
+    );
     show();
     expect(screen.getByRole('status').textContent).toContain('All panels are hidden');
     fireEvent.click(screen.getByRole('button', { name: 'Restore panels' }));

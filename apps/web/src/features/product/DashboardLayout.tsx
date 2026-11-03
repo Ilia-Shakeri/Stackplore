@@ -155,7 +155,9 @@ export function BrowserDashboardLayout({
       {layout.every((panel) => !panel.visible) ? (
         <div role="status" className="trend-card">
           <p>{t('dashboard.empty')}</p>
-          <button type="button" onClick={() => update(defaults())}>{t('dashboard.restore')}</button>
+          <button type="button" onClick={() => update(defaults())}>
+            {t('dashboard.restore')}
+          </button>
         </div>
       ) : null}
       <div className="trend-grid">
