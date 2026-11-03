@@ -119,6 +119,14 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await expect(page.locator('html')).toHaveAttribute('dir', locale === 'fa' ? 'rtl' : 'ltr');
 
     await page.goto('/settings/users');
+    const addUser = page.getByRole('button', { name: label('users.page.add'), exact: true });
+    for (let cycle = 0; cycle < 3; cycle += 1) {
+      await addUser.click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(addUser).toBeFocused();
+    }
     await page.getByRole('button', { name: label('users.page.add'), exact: true }).click();
     const dialog = page.getByRole('dialog');
     await dialog.locator('input[name="display_name"]').fill('Browser Viewer');

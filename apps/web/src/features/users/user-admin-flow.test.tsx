@@ -41,6 +41,22 @@ const userRow = async (name: string) => {
 };
 
 describe('user administration flow', () => {
+  it('returns keyboard focus after repeated create-dialog cancellation', async () => {
+    const operator = userEvent.setup();
+    renderUsers(createTestUsersApi({ listUsers: vi.fn().mockResolvedValue(finalPage) }));
+    const trigger = await screen.findByRole('button', { name: 'Add user' });
+    for (let cycle = 0; cycle < 3; cycle += 1) {
+      await operator.click(trigger);
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      await operator.keyboard('{Escape}');
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(document.activeElement).toBe(trigger);
+      });
+    }
+  });
+
   it('counts administrators across the loaded cache rather than just the visible window', async () => {
     const secondAdministrator = {
       ...administrator,

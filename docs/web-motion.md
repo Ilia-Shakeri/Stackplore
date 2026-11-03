@@ -30,7 +30,7 @@ formatting patch was applied. This is a failed gate, not release acceptance.
 
 Light, dark and system themes, login, initial administrator setup, password
 changes, recovery and user administration already exist. Display preferences
-include language, calendar, digits and timezone. Theme synchronization now resets
+include language, calendar, digits and hour cycle. Theme synchronization now resets
 to the configured default when another tab clears browser storage. Preferences
 remain browser-local; this does not add server-side cross-device settings.
 
@@ -38,3 +38,9 @@ The same clear-storage correction applies to locale and document direction.
 The normal authenticated browser journey now exercises the actual theme select
 on both setup and login, and dismisses the real user-created notification. These
 checks run with English and Persian fixtures; new execution receipts are pending.
+
+The user-action modal also records its invoking control before taking focus and
+restores that control on close. If an operation removes or disables the control,
+focus returns to the main region. Both a focused regression and the normal
+browser journey cover three repeated create-dialog cancellations. This closes
+a source-level gap where the modal had no registered trigger for focus return.

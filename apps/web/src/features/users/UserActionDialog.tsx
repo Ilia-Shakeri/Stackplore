@@ -140,6 +140,7 @@ export function UserActionDialog({
   const api = useUsersApi();
   const { t } = useLocale();
   const errorRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const submitLockRef = useRef(false);
   const [error, setError] = useState<DialogError | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -257,6 +258,21 @@ export function UserActionDialog({
       <DialogContent
         closeLabel={t('users.dialog.close')}
         description={t(descriptionMessage(action), target)}
+        onOpenAutoFocus={() => {
+          returnFocusRef.current =
+            document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          const previous = returnFocusRef.current;
+          const target =
+            previous?.isConnected && !previous.matches(':disabled')
+              ? previous
+              : document.getElementById('main-content');
+          if (target !== null) {
+            event.preventDefault();
+            target.focus();
+          }
+        }}
         footer={
           <>
             <DialogClose asChild>
