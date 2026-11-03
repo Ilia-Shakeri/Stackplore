@@ -9,7 +9,7 @@ import { AuthProvider } from '../auth/auth-context';
 import { ProductProvider } from '../product/product-context';
 import { createProductApi, type ProductApi } from '../product/product-api';
 import { createAuthenticatedAuthStore, createResolvedAuthStore } from '../../test/auth';
-import { LocaleProvider } from '../../i18n';
+import { LocaleProvider, translateText } from '../../i18n';
 
 const observed = {
   availability: 'available',
@@ -114,7 +114,7 @@ describe('dedicated assistant workspace', () => {
     product.getResource.mockResolvedValue({ ...resource, source_id: 'another_source' });
     const { assistant } = show(product);
     fireEvent.click(await screen.findByRole('button', { name: resource.name }));
-    await screen.findByText('Data could not load.');
+    await screen.findByText(translateText('en', 'product.error'));
     expect(screen.queryByRole('textbox', { name: 'Question about this resource' })).toBeNull();
     expect(assistant.admit).not.toHaveBeenCalled();
   });
@@ -160,6 +160,16 @@ describe('dedicated assistant workspace', () => {
     expect(product.listResources).toHaveBeenLastCalledWith(
       expect.objectContaining({ cursor: 'next_page', limit: 10 }),
     );
+  });
+
+  it('retries the same search from its first page after a failed read', async () => {
+    const product = fixture();
+    product.listResources.mockRejectedValueOnce(new Error('Temporary read failure.'));
+    show(product);
+    await screen.findByText(translateText('en', 'product.error'));
+    fireEvent.click(screen.getByRole('button', { name: 'Find resources' }));
+    await screen.findByRole('button', { name: resource.name });
+    expect(product.listResources).toHaveBeenCalledTimes(2);
   });
 
   it('shows the guest limit without opening private or inventory reads', async () => {

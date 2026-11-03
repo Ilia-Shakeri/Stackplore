@@ -104,7 +104,7 @@ afterEach(() => {
 });
 
 describe('overview bounded refresh', () => {
-  it('loads one exact fixture-clock batch, ignores the initial snapshot and coalesces later bursts', async () => {
+  it('loads one summary batch without history and coalesces later stream bursts', async () => {
     setup();
     const api = fixture();
     const { unmount } = render(mount(api));
@@ -193,7 +193,7 @@ describe('overview bounded refresh', () => {
       old.reject(new Error('Late canceled read failed.'));
       await Promise.resolve();
     });
-    expect(screen.queryByText('Data could not load.')).toBeNull();
+    expect(screen.queryByText('Data could not load. Try again.')).toBeNull();
     expect(screen.getByRole('region', { name: 'Current source metrics' })).not.toBeNull();
   });
 

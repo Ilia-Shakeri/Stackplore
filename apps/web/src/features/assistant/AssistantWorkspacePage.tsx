@@ -45,6 +45,7 @@ function AssistantSelection() {
   const [revision, setRevision] = useState(0);
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
+  const [searchRevision, setSearchRevision] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     setSources({ kind: 'loading' });
@@ -77,6 +78,7 @@ function AssistantSelection() {
   const submit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSearch(query.trim());
+    setSearchRevision((value) => value + 1);
   };
   return (
     <>
@@ -135,7 +137,11 @@ function AssistantSelection() {
             </label>
             <Button type="submit">{t('assistant.workspace.find')}</Button>
           </form>
-          <ResourceChoices key={`${source.id}:${search}`} source={source.id} search={search} />
+          <ResourceChoices
+            key={`${source.id}:${String(searchRevision)}:${search}`}
+            source={source.id}
+            search={search}
+          />
         </section>
       )}
     </>
