@@ -25,5 +25,12 @@ assertion uses the actual catalog message and retains the no-input/no-admission
 checks. An additional regression makes an explicit repeated search restart page
 one even when its text is unchanged, including after a failed read.
 
+Run [41632917532](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41632917532)
+at `1ec554e3a86904c68a8ae7ab113b18e34c69c9e9` passed all 156 focused web checks,
+formatting, documentation and manifest-version checks, then rejected the old
+PostgreSQL runtime tag still present in root `compose.yaml`. The Compose image
+reference is corrected to the same alpha.6.1 image as the runtime manifest and
+hosted fixtures. The reference validator and its exact-count checks are retained.
+
 [Feature guide](../../desktop-workspaces.md) and
 [implementation ledger](../../v2/implementation.md) describe scope and remaining work.
