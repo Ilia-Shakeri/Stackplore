@@ -63,13 +63,26 @@ describe('metric trend evidence', () => {
         sample(11, 7, secondResource),
       ]),
     );
-    expect(container.querySelectorAll('polyline')).toHaveLength(2);
+    expect(container.querySelectorAll('svg[role="img"] polyline')).toHaveLength(2);
+    expect(screen.getByRole('list', { name: 'Resource' })).not.toBeNull();
     expect(screen.getByText('2 resource series')).not.toBeNull();
     expect(screen.queryByText('10 cores')).toBeNull();
     const table = screen.getByRole('table', { hidden: true });
     expect(within(table).getAllByRole('row', { hidden: true })).toHaveLength(5);
     expect(within(table).getAllByText(resource)).toHaveLength(2);
     expect(within(table).getAllByText(secondResource)).toHaveLength(2);
+  });
+  it('keeps a resource color when another series arrives earlier', () => {
+    const { container, rerender } = show(history([sample(0, 1), sample(10, 2)]));
+    const color = container.querySelector<SVGGElement>('g[data-resource-id]')?.style.color;
+    expect(color).toBeTruthy();
+    rerender(
+      <LocaleProvider defaultLocale="en" storageKey="metric-trend-test">
+        <Harness data={history([sample(-1, 3, secondResource), sample(0, 1), sample(10, 2)])} />
+      </LocaleProvider>,
+    );
+    expect(container.querySelector<SVGGElement>(`g[data-resource-id="${resource}"]`)?.style.color).toBe(color);
+    expect(container.querySelector('svg[role="img"] polyline')?.getAttribute('vector-effect')).toBe('non-scaling-stroke');
   });
   it('does not plot denied data and keeps partial evidence visibly distinct', () => {
     const { container, rerender } = show({

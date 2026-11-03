@@ -2,6 +2,12 @@
 [data-theme='light'] {
   color-scheme: light;
   --sp-bg: #f4f8fd;
+  --sp-chart-1: #075ad4;
+  --sp-chart-2: #007d94;
+  --sp-chart-3: #087a55;
+  --sp-chart-4: #8a5105;
+  --sp-chart-5: #a83267;
+  --sp-chart-6: #6151b3;
   --sp-surface: #ffffff;
   --sp-surface-raised: #ffffff;
   --sp-surface-muted: #e9f1fa;
@@ -34,6 +40,12 @@
 [data-theme='dark'] {
   color-scheme: dark;
   --sp-bg: #06111f;
+  --sp-chart-1: #43bcff;
+  --sp-chart-2: #35d4d1;
+  --sp-chart-3: #69dca3;
+  --sp-chart-4: #ffbd66;
+  --sp-chart-5: #f58ab6;
+  --sp-chart-6: #b9a0ff;
   --sp-surface: #0b1a2d;
   --sp-surface-raised: #12253b;
   --sp-surface-muted: #132a43;

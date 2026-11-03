@@ -870,11 +870,36 @@
 
 .trend-card svg polyline {
   fill: none;
-  stroke: var(--sp-primary);
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3;
   vector-effect: non-scaling-stroke;
+}
+
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.trend-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-2);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--sp-font-size-sm);
+}
+
+.trend-card .trend-legend svg {
+  inline-size: 1.5rem;
+  block-size: 0.5rem;
+  flex: none;
 }
 
 .trend-card summary {
