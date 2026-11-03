@@ -44,6 +44,12 @@
   animation: ui-scale-in var(--sp-duration-normal) var(--sp-ease-enter);
 }
 
+.ui-overlay[data-motion='none'],
+.ui-dialog[data-motion='none'] {
+  animation: none;
+  transition: none;
+}
+
 .ui-dialog__header,
 .ui-drawer__header {
   display: grid;
@@ -327,8 +333,28 @@
   border-inline-start-color: var(--sp-danger);
 }
 
-.ui-toast[data-state='open'] {
-  animation: ui-fade-in var(--sp-duration-normal) var(--sp-ease-enter);
+.ui-toast {
+  opacity: 1;
+  transition: opacity var(--sp-duration-normal) var(--sp-ease-enter);
+}
+
+@starting-style {
+  .ui-toast[data-state='open'] {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .ui-overlay {
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-dialog[data-state='open'],
+  .ui-drawer[data-state='open'] {
+    animation: none;
+  }
 }
 
 .ui-toast[data-swipe='move'] {

@@ -24,6 +24,7 @@ export interface DialogContentProps extends Omit<
   description?: ReactNode;
   footer?: ReactNode;
   hideTitle?: boolean;
+  motion?: 'default' | 'none';
   size?: DialogSize;
   title: ReactNode;
 }
@@ -39,6 +40,7 @@ export const DialogContent = forwardRef<
     description,
     footer,
     hideTitle = false,
+    motion = 'default',
     size = 'md',
     title,
     ...props
@@ -52,11 +54,12 @@ export const DialogContent = forwardRef<
 
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="ui-overlay" />
+      <DialogPrimitive.Overlay className="ui-overlay" data-motion={motion} />
       <DialogPrimitive.Content
         ref={ref}
         className={cn('ui-dialog', className)}
         data-size={size}
+        data-motion={motion}
         {...contentProps}
       >
         <div className="ui-dialog__header">

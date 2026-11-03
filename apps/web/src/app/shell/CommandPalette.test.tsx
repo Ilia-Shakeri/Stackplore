@@ -53,6 +53,8 @@ describe('command palette', () => {
     await user.click(invokingField);
     fireEvent.keyDown(invokingField, { key: 'k', ctrlKey: true });
     const dialog = await screen.findByRole('dialog', { name: 'Go to a page' });
+    expect(dialog.getAttribute('data-motion')).toBe('none');
+    expect(document.querySelector('.ui-overlay')?.getAttribute('data-motion')).toBe('none');
     const search = within(dialog).getByRole('combobox');
     await user.type(search, 'not-a-page');
     expect(within(dialog).getByRole('status').textContent).toBe('No matching page.');

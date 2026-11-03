@@ -104,6 +104,7 @@ export function CommandPalette() {
         </button>
       </DialogTrigger>
       <DialogContent
+        motion="none"
         className="command-palette"
         title={t('shell.command.title')}
         description={t('shell.command.description')}
