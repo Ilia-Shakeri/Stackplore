@@ -81,8 +81,12 @@ describe('metric trend evidence', () => {
         <Harness data={history([sample(-1, 3, secondResource), sample(0, 1), sample(10, 2)])} />
       </LocaleProvider>,
     );
-    expect(container.querySelector<SVGGElement>(`g[data-resource-id="${resource}"]`)?.style.color).toBe(color);
-    expect(container.querySelector('svg[role="img"] polyline')?.getAttribute('vector-effect')).toBe('non-scaling-stroke');
+    expect(
+      container.querySelector<SVGGElement>(`g[data-resource-id="${resource}"]`)?.style.color,
+    ).toBe(color);
+    expect(container.querySelector('svg[role="img"] polyline')?.getAttribute('vector-effect')).toBe(
+      'non-scaling-stroke',
+    );
   });
   it('does not plot denied data and keeps partial evidence visibly distinct', () => {
     const { container, rerender } = show({

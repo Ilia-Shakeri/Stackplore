@@ -1,4 +1,13 @@
 {
+  "dashboard.title": "Monitoring dashboard",
+  "dashboard.customize": "Customize dashboard",
+  "dashboard.browserOnly": "Layout only is saved in this browser and shared by accounts using it. Monitoring data is not saved with the layout.",
+  "dashboard.visible": "Show panel",
+  "dashboard.wide": "Full width",
+  "dashboard.up": "Move earlier",
+  "dashboard.down": "Move later",
+  "dashboard.reset": "Reset layout",
+  "dashboard.notSaved": "Layout changed for this visit. Browser storage is unavailable; changes will not be kept.",
   "trend.seriesCount": "{count} resource series",
   "trend.perResource": "Each line shows one resource at its actual observation times. The table identifies each resource; lines are not a fleet total.",
   "trend.resource": "Resource",

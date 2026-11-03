@@ -14,7 +14,8 @@ interface TrendPoint {
 
 const seriesStyle = (resourceId: string) => {
   let hash = 2166136261;
-  for (const character of resourceId) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
+  for (const character of resourceId)
+    hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
   return {
     color: `var(--sp-chart-${(hash % 6) + 1})`,
     dash: ['', '7 3', '2 3'][Math.floor(hash / 6) % 3],
@@ -107,7 +108,11 @@ export function MetricTrend({
             <title>{title}</title>
             <line x1="0" x2="320" y1="88" y2="88" />
             {[...byResource].map(([resourceId, series]) => (
-              <g key={resourceId} data-resource-id={resourceId} style={{ color: seriesStyle(resourceId).color }}>
+              <g
+                key={resourceId}
+                data-resource-id={resourceId}
+                style={{ color: seriesStyle(resourceId).color }}
+              >
                 <title>{resourceId}</title>
                 <polyline
                   strokeDasharray={seriesStyle(resourceId).dash}
@@ -130,7 +135,11 @@ export function MetricTrend({
           <ul className="trend-legend" aria-label={t('trend.resource')}>
             {[...byResource.keys()].sort().map((resourceId) => (
               <li key={resourceId}>
-                <svg viewBox="0 0 24 8" aria-hidden="true" style={{ color: seriesStyle(resourceId).color }}>
+                <svg
+                  viewBox="0 0 24 8"
+                  aria-hidden="true"
+                  style={{ color: seriesStyle(resourceId).color }}
+                >
                   <polyline points="0,4 24,4" strokeDasharray={seriesStyle(resourceId).dash} />
                 </svg>
                 <TechnicalText>{resourceId}</TechnicalText>

@@ -22,6 +22,7 @@ import {
 import { TimeRangeControl } from './exploration-time';
 import { timeQuery } from './product-api-common';
 import { OverviewInsights } from './OverviewInsights';
+import { DashboardLayout } from './DashboardLayout';
 export { ProductTopologyPage } from './ExplorationTopologyPage';
 export { ProductLogsPage } from './ExplorationLogsPage';
 export { ProductEventsPage } from './ExplorationEventsPage';
@@ -221,7 +222,7 @@ export function ProductOverviewPage() {
             <TimeRangeControl minutes={minutes} select={selectTime} />
           </div>
           <Suspense fallback={<ProductState text={t('product.loading')} />}>
-            <div className="trend-grid">
+            <DashboardLayout>
               <MetricTrend
                 formatDate={formatDate}
                 formatNumber={formatNumber}
@@ -268,7 +269,7 @@ export function ProductOverviewPage() {
                   minutes={minutes}
                 />
               ))}
-            </div>
+            </DashboardLayout>
           </Suspense>
           <OverviewInsights
             environments={state.data.environments}

@@ -680,3 +680,12 @@ Each history read keeps its eight-record cap and participates in the same
 aggregate record and byte accounting. This does not change the fixed public
 plan, HTTP/client contract or default user flow. Focused hosted tests must prove
 exact family bounds, unknown-kind denial and aggregate accounting before use.
+
+The next desktop candidate adds per-browser overview panel visibility, order,
+full-width layout and reset. Only five fixed panel IDs and boolean layout flags
+are retained; source identities and observation values are absent. Saved layouts
+are bounded and validated, and storage failures keep current-session edits with
+an explicit notice. These are shared-browser preferences, not account-owned or
+cross-device dashboards. Both locales and focused persistence/malformed-layout
+and chart tests await hosted validation. Stage-6 history integration and stable
+2.0 acceptance remain open.
