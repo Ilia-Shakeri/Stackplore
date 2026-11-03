@@ -78,6 +78,19 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await privateInput(page.locator('input[name="bootstrap_proof"]'), proof);
     await page.getByRole('button', { name: label('auth.setup.submit'), exact: true }).click();
     await expect(page).toHaveURL(/\/overview/u);
+    const dashboard = page.getByRole('region', { name: label('dashboard.title'), exact: true });
+    await expect(dashboard).toBeVisible();
+    await dashboard.getByText(label('dashboard.customize'), { exact: true }).click();
+    const visibility = dashboard.getByLabel(label('dashboard.visible'), { exact: true });
+    await expect(visibility).toHaveCount(5);
+    await visibility.first().uncheck();
+    await expect(dashboard.locator('.dashboard-panel')).toHaveCount(4);
+    await dashboard.getByRole('button', { name: label('dashboard.reset'), exact: true }).click();
+    await expect(dashboard.locator('.dashboard-panel')).toHaveCount(5);
+    const priorViewport = page.viewportSize();
+    await page.setViewportSize({ width: 1280, height: 960 });
+    await dashboard.screenshot({ path: `../../docs/evidence/2.0.0-alpha.6/screenshots/dashboard-${locale}-1280-light.png`, animations: 'disabled' });
+    if (priorViewport !== null) await page.setViewportSize(priorViewport);
     expect(responses.some(({ path, status }) => path === '/api/v1/setup' && status === 201)).toBe(
       true,
     );
