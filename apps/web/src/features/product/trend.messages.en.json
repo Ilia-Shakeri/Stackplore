@@ -1,4 +1,6 @@
 {
+  "dashboard.empty": "All panels are hidden. Restore the default panels or choose panels in Customize dashboard.",
+  "dashboard.restore": "Restore panels",
   "dashboard.title": "Monitoring dashboard",
   "dashboard.customize": "Customize dashboard",
   "dashboard.browserOnly": "Layout is saved for this account in this browser only; guest layout is separate. It does not sync across devices or include monitoring data. Browser storage is not a security boundary.",

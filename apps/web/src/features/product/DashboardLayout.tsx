@@ -44,13 +44,26 @@ const load = (storageKey: string | null): Panel[] => {
 
 export function DashboardLayout({ children }: { readonly children: ReactNode }) {
   const snapshot = useOptionalAuthSnapshot();
-  const storageKey = snapshot?.status === 'authenticated'
-    ? `stackplore.dashboard.layout.v2.user.${encodeURIComponent(snapshot.user.id)}`
-    : snapshot?.status === 'guest_demo' ? 'stackplore.dashboard.layout.v2.guest' : null;
-  return <BrowserDashboardLayout key={storageKey ?? 'volatile'} storageKey={storageKey}>{children}</BrowserDashboardLayout>;
+  const storageKey =
+    snapshot?.status === 'authenticated'
+      ? `stackplore.dashboard.layout.v2.user.${encodeURIComponent(snapshot.user.id)}`
+      : snapshot?.status === 'guest_demo'
+        ? 'stackplore.dashboard.layout.v2.guest'
+        : null;
+  return (
+    <BrowserDashboardLayout key={storageKey ?? 'volatile'} storageKey={storageKey}>
+      {children}
+    </BrowserDashboardLayout>
+  );
 }
 
-export function BrowserDashboardLayout({ children, storageKey }: { readonly children: ReactNode; readonly storageKey: string | null }) {
+export function BrowserDashboardLayout({
+  children,
+  storageKey,
+}: {
+  readonly children: ReactNode;
+  readonly storageKey: string | null;
+}) {
   const { t } = useLocale();
   const [layout, setLayout] = useState(() => load(storageKey));
   const [saved, setSaved] = useState(true);
@@ -139,6 +152,12 @@ export function BrowserDashboardLayout({ children, storageKey }: { readonly chil
         </button>
       </details>
       {!saved ? <p role="status">{t('dashboard.notSaved')}</p> : null}
+      {layout.every((panel) => !panel.visible) ? (
+        <div role="status" className="trend-card">
+          <p>{t('dashboard.empty')}</p>
+          <button type="button" onClick={() => update(defaults())}>{t('dashboard.restore')}</button>
+        </div>
+      ) : null}
       <div className="trend-grid">
         {layout
           .filter((panel) => panel.visible)
