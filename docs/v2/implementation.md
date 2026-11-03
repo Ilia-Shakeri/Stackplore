@@ -663,3 +663,13 @@ Remote, multi-resource, consented-log and over-cap history requests are denied;
 missing ports produce explicit unsupported coverage. The fixed user plan and
 application composition are not yet extended, so public history integration
 remains incomplete. Fresh hosted tests are required.
+
+The next composition slice passes the narrow database history port into each
+approved source, without widening the fixed user plan. Positive evidence tests
+collect one actual typed fixture per history family, retain selected-resource
+and occurrence/sample time, reauthorize the sealed proof, resolve its citation
+only after completion, and deny both proof and citation after revocation.
+The citation locator accepts the two closed history kinds only through the
+existing owning proof and current authority fences. Public route/client/UI
+integration and full stage-6 acceptance remain pending; fresh hosted proof is
+required for these source changes.

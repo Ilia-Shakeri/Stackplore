@@ -52,7 +52,7 @@ func (reader *Reader) Resolve(ctx context.Context, actor assistant.Actor, run as
 			continue
 		}
 		switch reference.Kind {
-		case "resource", "health", "metric", "event", "relationship", "log":
+		case "resource", "health", "metric", "event", "relationship", "log", "alert", "workload":
 		default:
 			return CitationLocator{}, ErrDenied
 		}

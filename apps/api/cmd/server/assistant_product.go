@@ -171,6 +171,7 @@ func buildAssistantProduct(ctx context.Context, settings config.Config, database
 		selected[source.ID] = assistantSelectedSource{configuration: configuration, read: read}
 	}
 	sources := make([]assistantevidence.Source, 0, len(raw))
+	history, _ := database.(assistantevidence.HistoryPorts)
 	seen := make(map[domain.SourceID]bool, len(raw))
 	for _, provider := range raw {
 		if provider == nil {
@@ -191,7 +192,7 @@ func buildAssistantProduct(ctx context.Context, settings config.Config, database
 		}
 		seen[source.ID] = true
 		reference := domain.ProviderRef{Provider: source.Provider, SourceID: source.ID}
-		sources = append(sources, assistantevidence.Source{Reference: reference, ConfigurationVersion: approved.configuration.Version, Read: approved.read, Live: assistantevidence.CaptureAuthority{Source: reference, Provider: capture, Now: time.Now}})
+		sources = append(sources, assistantevidence.Source{Reference: reference, ConfigurationVersion: approved.configuration.Version, Read: approved.read, History: history, Live: assistantevidence.CaptureAuthority{Source: reference, Provider: capture, Now: time.Now}})
 	}
 	reader, err := assistantevidence.New(assistantevidence.Options{Gate: assistantevidence.RepositoryGate{Repository: repository}, Sources: sources, Now: time.Now})
 	if err != nil {
