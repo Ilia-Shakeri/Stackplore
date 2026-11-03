@@ -92,7 +92,7 @@ jobs:
           corepack pnpm --filter @stackplore/api-client typecheck
           corepack pnpm --filter @stackplore/web typecheck
           corepack pnpm --filter @stackplore/api-client exec vitest run src/assistant-report-response.test.ts
-          corepack pnpm --filter @stackplore/web exec vitest run src/app/shell/CommandPalette.test.tsx src/test/ui-primitives.test.tsx src/test/ui-state.test.tsx src/i18n/locale-provider.test.tsx src/features/users/user-admin-flow.test.tsx src/features/product/DashboardLayout.test.tsx src/features/product/MetricTrend.test.tsx src/features/assistant/conversation-report.test.ts src/features/assistant/AssistantResourcePanel.test.tsx
+          corepack pnpm --filter @stackplore/web exec vitest run src/app/shell/CommandPalette.test.tsx src/test/ui-primitives.test.tsx src/test/branding-theme.test.ts src/test/ui-state.test.tsx src/i18n/locale-provider.test.tsx src/features/users/user-admin-flow.test.tsx src/features/product/DashboardLayout.test.tsx src/features/product/MetricTrend.test.tsx src/features/assistant/conversation-report.test.ts src/features/assistant/AssistantResourcePanel.test.tsx
       - name: Run full gate
         run: corepack pnpm verify
       - name: Prepare formatting correction after a failed gate

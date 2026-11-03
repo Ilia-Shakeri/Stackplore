@@ -82,6 +82,12 @@
   :root:not([data-theme]) {
     color-scheme: dark;
     --sp-bg: #06111f;
+    --sp-chart-1: #43bcff;
+    --sp-chart-2: #35d4d1;
+    --sp-chart-3: #69dca3;
+    --sp-chart-4: #ffbd66;
+    --sp-chart-5: #f58ab6;
+    --sp-chart-6: #b9a0ff;
     --sp-surface: #0b1a2d;
     --sp-surface-raised: #12253b;
     --sp-surface-muted: #132a43;

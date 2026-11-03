@@ -50,3 +50,9 @@ failed the full lint gate on eight existing dashboard/chart issues: six void
 callback shorthands, one redundant optional chain and one implicit numeric
 template expression. The source correction preserves behavior and all lint rules.
 The failed receipt remains failed; the corrected source requires a fresh run.
+
+Hosted run 41617812858 passed seven infrastructure/runtime jobs and 649 of 650
+web tests. The remaining palette test found that the system-dark fallback lacked
+the six new chart colors. The correction gives that fallback the same chart
+tokens as explicit dark mode; the existing equality assertion remains intact.
+The palette regression is now also in the early focused hosted test gate.
