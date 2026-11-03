@@ -699,3 +699,12 @@ Escape/reopen cycles with keyboard focus and cleared queries. All execution is
 hosted. Login, user administration, light/dark/system themes and local display
 preferences already exist; this slice improves them rather than adding duplicate
 screens. Stage-6 history integration and stable 2.0 acceptance remain open.
+
+Hosted run 41619249559 passed all eight source jobs at 496e9fb; signed trial
+41619462251 passed packaging and strict scans at the same revision. This accepts
+only that source/packaging scope, not the unfinished roadmap. The next password
+dialog correction at 6b54000 encountered an HTTP/2 INTERNAL_ERROR downloading the
+locked k8s.io/api module from the official Go proxy in run 41622203263, before
+code tests started. Verification and packaging now retry that exact checksum-
+checked module download at most three times, with 5 and 10 second waits. Final
+failure still fails the job; no dependency versions, checksums or tests change.

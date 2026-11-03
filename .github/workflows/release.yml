@@ -58,7 +58,11 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.17.0 --activate
           corepack pnpm install --frozen-lockfile
-          go -C apps/api mod download
+          for attempt in 1 2 3; do
+            if go -C apps/api mod download; then break; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep "$((attempt * 5))"
+          done
           bash scripts/release-tools.sh
       - name: Verify pinned database engine and scan database packages; build release payloads
         run: bash scripts/release-build.sh

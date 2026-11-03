@@ -80,7 +80,11 @@ jobs:
       - name: Install locked packages
         run: |
           corepack pnpm install --frozen-lockfile
-          go -C apps/api mod download
+          for attempt in 1 2 3; do
+            if go -C apps/api mod download; then break; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep "$((attempt * 5))"
+          done
       - name: Build patched database and start owned PostgreSQL fixture
         run: bash scripts/start-test-postgres.sh start code
       - name: Verify bounded investigation contracts on hosted runner
