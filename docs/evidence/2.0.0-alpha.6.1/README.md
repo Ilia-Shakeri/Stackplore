@@ -55,5 +55,26 @@ Optional dashboard captures move to a separate artifact; source CI adds a hosted
 canonical-archive structure check and a Windows synthetic consumer test. No
 workstation execution or weakened browser assertions are used.
 
+## Verified source checkpoint
+
+Source `166f4d73799ab4e01f41417dc17dc95d91e84e50` passes all eight jobs in
+[41639903798](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41639903798).
+The exact-source signed packaging trial
+[41639906422](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41639906422)
+also passes; publication is skipped for a branch trial.
+
+Hosted browser execution passes all 14 cases, including the two authenticated
+language journeys. The canonical archive validates 32 screenshots, eight profiles
+and 64 route measurements. Its bounded fixture read records 80 successful responses
+from 80 requests; this is not a production capacity measurement. Additional
+dashboard screenshots and the archive-structure receipt are retained in the
+`workspace-interface-evidence` artifact. Windows consumer regressions pass 29
+archive checks (one valid, 28 invalid) and 124 version/job-policy checks.
+
+This accepts the separate desktop workspaces in the recorded source/test scope.
+It does not accept stage-6 history integration, stable version 2, customer deployment
+or public release consumption. A documentation checkpoint and its exact tag still
+require their own successful verification and signed publication.
+
 [Feature guide](../../desktop-workspaces.md) and
 [implementation ledger](../../v2/implementation.md) describe scope and remaining work.

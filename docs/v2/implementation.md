@@ -7,6 +7,13 @@
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
 > Stage-6 report source and later stages remain unaccepted.
 
+Desktop workspace checkpoint: `166f4d73799ab4e01f41417dc17dc95d91e84e50` passes
+all eight hosted verification jobs and the exact-source signed packaging trial.
+The short Overview, separate Monitoring/Insights, explicit Smart Assistant resource
+selection and topic-based Help have 14 passing browser cases. This is a UI preview
+checkpoint; history integration and whole-version acceptance remain open.
+[Receipts and limits](../evidence/2.0.0-alpha.6.1/README.md).
+
 **Execution boundary, 2026-11-01:** local file editing and lightweight Git only.
 All services, tests, builds, installs and scans run on Actions. Desktop is
 primary; mobile has one brief smoke check. At `1e21b3695970f54185244925d2cd5096dcb861e8`,

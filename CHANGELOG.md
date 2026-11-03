@@ -15,7 +15,9 @@
 - Add bilingual task help, topic URLs and a public issue-report link with privacy
   guidance. Keep English/Persian navigation, keyboard access and both themes.
 - This preview does not complete incident-history integration or stable 2.0.
-  All tests, builds and packaging run on GitHub Actions; fresh receipts are required.
+  All tests, builds and packaging run on GitHub Actions. The recorded source passes
+  eight verification jobs, 14 browser cases and signed trial packaging;
+  [receipts](docs/evidence/2.0.0-alpha.6.1/README.md) keep exact-tag publication separate.
 
 ## [2.0.0-alpha.6] - 2026-11-01
 
