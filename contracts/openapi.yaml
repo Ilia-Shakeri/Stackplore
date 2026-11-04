@@ -3244,7 +3244,8 @@ components:
       properties:
         tool:
           type: string
-          enum: [inventory, health, metrics, events, topology, alert_history, workload_history, logs]
+          enum:
+            [inventory, health, metrics, events, topology, alert_history, workload_history, logs]
         availability:
           type: string
           enum: [available, stale, unavailable, unsupported]

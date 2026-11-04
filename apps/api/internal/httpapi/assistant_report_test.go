@@ -81,9 +81,16 @@ func TestReportPublishesHistoryFactsWithRecoveryAndCurrentCoverage(t *testing.T)
 	for index, kind := range []string{"alert", "workload", "workload"} {
 		ref := snapshot.Citations[0]
 		ref.ID, ref.Kind, ref.ObjectID = "ev_"+strings.Repeat([]string{"e", "f", "9"}[index], 64), kind, "history_fixture"
-		at := run.From.Add(time.Duration(index+1)*time.Second)
+		at := run.From.Add(time.Duration(index+1) * time.Second)
 		item := contextbuilder.Observation{Reference: ref, Time: at, TimeBasis: "occurred", Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Synthetic: true}
-		if kind == "alert" { item.AlertTo = domain.AlertFiring } else { item.TimeBasis, item.WorkloadCounts, item.Desired, item.Ready = "sampled", true, 3, uint64(index); if index == 2 { item.Ready = 3 } }
+		if kind == "alert" {
+			item.AlertTo = domain.AlertFiring
+		} else {
+			item.TimeBasis, item.WorkloadCounts, item.Desired, item.Ready = "sampled", true, 3, uint64(index)
+			if index == 2 {
+				item.Ready = 3
+			}
+		}
 		observations, snapshot.Citations = append(observations, item), append(snapshot.Citations, ref)
 	}
 	snapshot.HistoryCoverage = incidentreport.HistoryCoverage{AlertsRead: true, WorkloadRead: true}
@@ -91,18 +98,36 @@ func TestReportPublishesHistoryFactsWithRecoveryAndCurrentCoverage(t *testing.T)
 		snapshot.Outcomes[5+index].Availability, snapshot.Outcomes[5+index].Records = domain.AvailabilityAvailable, count
 	}
 	report, err := incidentreport.BuildWithHistory(incidentreport.Scope{Source: snapshot.Citations[0].Source, ResourceID: domain.ResourceID(run.ResourceID), ConfigurationVersion: run.SourceVersion, PolicyVersion: run.PolicyVersion, RestoreGeneration: run.RestoreGeneration, Range: domain.TimeRange{Start: run.From, End: run.Until}, ObservedAt: run.UpdatedAt}, observations, snapshot.HistoryCoverage)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	snapshot.Report = &report
 	reply, err := incidentReply(snapshot, "user_helper", helperRunID)
-	if err != nil || reply.Report == nil || len(reply.Report.Timeline) != 5 { t.Fatal("history transport failed", err) }
+	if err != nil || reply.Report == nil || len(reply.Report.Timeline) != 5 {
+		t.Fatal("history transport failed", err)
+	}
 	alerts, workloads := 0, 0
 	for _, item := range reply.Report.Timeline {
-		if item.Alert != nil { alerts++; if item.Alert.From != nil || item.Alert.To != "firing" { t.Fatal("alert transition changed") } }
-		if item.Workload != nil { workloads++; if item.Workload.Desired == nil || *item.Workload.Desired != 3 || item.Workload.Ready == nil { t.Fatal("workload counts lost") } }
+		if item.Alert != nil {
+			alerts++
+			if item.Alert.From != nil || item.Alert.To != "firing" {
+				t.Fatal("alert transition changed")
+			}
+		}
+		if item.Workload != nil {
+			workloads++
+			if item.Workload.Desired == nil || *item.Workload.Desired != 3 || item.Workload.Ready == nil {
+				t.Fatal("workload counts lost")
+			}
+		}
 	}
-	if alerts != 1 || workloads != 2 { t.Fatal("historical family omitted") }
+	if alerts != 1 || workloads != 2 {
+		t.Fatal("historical family omitted")
+	}
 	snapshot.HistoryCoverage.WorkloadRead = false
-	if _, err := incidentReply(snapshot, "user_helper", helperRunID); err == nil { t.Fatal("report trusted its own history flags") }
+	if _, err := incidentReply(snapshot, "user_helper", helperRunID); err == nil {
+		t.Fatal("report trusted its own history flags")
+	}
 }
 
 func TestReportRejectsForgedClaimsReferencesAndSharedOutputOverflow(t *testing.T) {

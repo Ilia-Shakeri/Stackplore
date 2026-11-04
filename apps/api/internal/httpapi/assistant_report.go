@@ -24,30 +24,30 @@ type assistantIncidentMetricJSON struct {
 }
 
 type assistantIncidentObservationJSON struct {
-	CitationID   string                       `json:"citation_id"`
-	Kind         string                       `json:"kind"`
-	At           string                       `json:"at"`
-	TimeBasis    string                       `json:"time_basis"`
-	Availability string                       `json:"availability"`
-	Completeness string                       `json:"completeness"`
-	Synthetic    bool                         `json:"synthetic"`
-	Health       string                       `json:"health"`
-	Metric       *assistantIncidentMetricJSON `json:"metric"`
-	Severity     string                       `json:"severity"`
-	Redacted     bool                         `json:"redacted"`
-	Truncated    bool                         `json:"truncated"`
-	Alert        *assistantIncidentAlertJSON  `json:"alert,omitempty"`
+	CitationID   string                         `json:"citation_id"`
+	Kind         string                         `json:"kind"`
+	At           string                         `json:"at"`
+	TimeBasis    string                         `json:"time_basis"`
+	Availability string                         `json:"availability"`
+	Completeness string                         `json:"completeness"`
+	Synthetic    bool                           `json:"synthetic"`
+	Health       string                         `json:"health"`
+	Metric       *assistantIncidentMetricJSON   `json:"metric"`
+	Severity     string                         `json:"severity"`
+	Redacted     bool                           `json:"redacted"`
+	Truncated    bool                           `json:"truncated"`
+	Alert        *assistantIncidentAlertJSON    `json:"alert,omitempty"`
 	Workload     *assistantIncidentWorkloadJSON `json:"workload,omitempty"`
 }
 
 type assistantIncidentAlertJSON struct {
 	From *string `json:"from"`
-	To string `json:"to"`
+	To   string  `json:"to"`
 }
 
 type assistantIncidentWorkloadJSON struct {
 	Desired *uint64 `json:"desired"`
-	Ready *uint64 `json:"ready"`
+	Ready   *uint64 `json:"ready"`
 }
 
 type assistantIncidentHypothesisJSON struct {

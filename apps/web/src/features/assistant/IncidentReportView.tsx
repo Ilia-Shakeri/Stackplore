@@ -163,7 +163,11 @@ export function IncidentReportView({
                 {report.timeline.map((item) => {
                   const reference = response?.citations.find((ref) => ref.id === item.citation_id);
                   return (
-                    <tr key={item.citation_id} id={`incident-evidence-${item.citation_id}`} tabIndex={-1}>
+                    <tr
+                      key={item.citation_id}
+                      id={`incident-evidence-${item.citation_id}`}
+                      tabIndex={-1}
+                    >
                       <td>
                         {t(bases[item.time_basis])}
                         <br />
@@ -184,9 +188,19 @@ export function IncidentReportView({
                       <td>{t(families[item.kind])}</td>
                       <td>
                         {item.alert !== undefined ? (
-                          <>{item.alert.from === null ? '—' : t(alertStates[item.alert.from])} → {t(alertStates[item.alert.to])}</>
+                          <>
+                            {item.alert.from === null ? '—' : t(alertStates[item.alert.from])} →{' '}
+                            {t(alertStates[item.alert.to])}
+                          </>
                         ) : item.workload !== undefined ? (
-                          <>{t('assistant.report.replicas')}: {item.workload.ready === null ? '—' : formatNumber(item.workload.ready)} / {item.workload.desired === null ? '—' : formatNumber(item.workload.desired)}</>
+                          <>
+                            {t('assistant.report.replicas')}:{' '}
+                            {item.workload.ready === null ? '—' : formatNumber(item.workload.ready)}{' '}
+                            /{' '}
+                            {item.workload.desired === null
+                              ? '—'
+                              : formatNumber(item.workload.desired)}
+                          </>
                         ) : item.health !== '' ? (
                           t(health[item.health])
                         ) : item.metric !== null ? (

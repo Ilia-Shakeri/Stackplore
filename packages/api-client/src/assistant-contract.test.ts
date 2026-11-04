@@ -89,7 +89,7 @@ describe('private assistant contract types', () => {
       [AssistantResourceCitation, ...AssistantResourceCitation[]]
     >();
     expectTypeOf<AssistantResourceCitation['kind']>().toEqualTypeOf<
-      'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log'
+      'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log' | 'alert' | 'workload'
     >();
     expectTypeOf<keyof AssistantResourceCitation>().toEqualTypeOf<
       'id' | 'kind' | 'source_id' | 'resource_id' | 'observed_at' | 'range'

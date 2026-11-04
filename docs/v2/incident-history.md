@@ -2,6 +2,7 @@
 
 Development candidate **2.0.0-alpha.6.2**, schema **19**. Execution and acceptance
 receipts must identify their exact source; authored checks are not passing receipts.
+[Hosted attempts](../evidence/2.0.0-alpha.6.2/README.md).
 
 The user starts one selected-resource investigation. Its fixed ordered reads are
 inventory, health, metrics, events, topology, alert history and workload history.

@@ -163,7 +163,15 @@ export type AssistantResourceCitation = {
  * Typed coverage without raw text or invented citation IDs. Unsupported/unavailable families have zero records and complete status; partial applies only to available/stale data.
  */
 export type AssistantReadCoverage = {
-  tool: 'inventory' | 'health' | 'metrics' | 'events' | 'topology' | 'alert_history' | 'workload_history' | 'logs';
+  tool:
+    | 'inventory'
+    | 'health'
+    | 'metrics'
+    | 'events'
+    | 'topology'
+    | 'alert_history'
+    | 'workload_history'
+    | 'logs';
   availability: 'available' | 'stale' | 'unavailable' | 'unsupported';
   completeness: 'complete' | 'partial';
   records: number;
@@ -204,7 +212,7 @@ export type AssistantIncidentMetric = {
 };
 
 /**
- * Exact typed chronology. Inactive kind-specific fields are empty/null/false. Observations use their observation time; metric/event/log times remain inside the half-open selected window. No prose or native provider identity.
+ * Exact typed chronology. Alert/workload objects occur only for their own family. Unavailable workload samples carry null counts; other families require readable status. Actual sample/occurrence times stay inside the half-open window and distinct from read time. No prose or native provider identity.
  */
 export type AssistantIncidentObservation = {
   citation_id: AssistantCitationId;
@@ -219,8 +227,14 @@ export type AssistantIncidentObservation = {
   severity: '' | 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical' | 'unknown';
   redacted: boolean;
   truncated: boolean;
-  alert?: { from: null | 'pending' | 'firing' | 'acknowledged' | 'resolved'; to: 'pending' | 'firing' | 'acknowledged' | 'resolved' };
-  workload?: { desired: number | null; ready: number | null };
+  alert?: {
+    from: null | 'pending' | 'firing' | 'acknowledged' | 'resolved';
+    to: 'pending' | 'firing' | 'acknowledged' | 'resolved';
+  };
+  workload?: {
+    desired: number | null;
+    ready: number | null;
+  };
 };
 
 /**

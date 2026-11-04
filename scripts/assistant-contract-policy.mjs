@@ -486,7 +486,11 @@ export const inspectAssistantPolicy = (document) => {
     'redacted',
     'truncated',
   ];
-  closed('AssistantIncidentObservation', [...observationFields, 'alert', 'workload'], observationFields);
+  closed(
+    'AssistantIncidentObservation',
+    [...observationFields, 'alert', 'workload'],
+    observationFields,
+  );
   ref('AssistantIncidentObservation', 'citation_id', 'AssistantCitationId');
   ref('AssistantIncidentObservation', 'at', 'Timestamp');
   ref('AssistantIncidentObservation', 'completeness', 'Completeness');
@@ -494,14 +498,24 @@ export const inspectAssistantPolicy = (document) => {
   const alert = observation?.alert;
   const workload = observation?.workload;
   check(
-    alert?.type === 'object' && alert.additionalProperties === false &&
-      same(alert.required, ['from', 'to']) && same(Object.keys(alert.properties ?? {}), ['from', 'to']) &&
+    alert?.type === 'object' &&
+      alert.additionalProperties === false &&
+      same(alert.required, ['from', 'to']) &&
+      same(Object.keys(alert.properties ?? {}), ['from', 'to']) &&
       same(alert.properties.from.type, ['string', 'null']) &&
       same(alert.properties.from.enum, [null, 'pending', 'firing', 'acknowledged', 'resolved']) &&
-      alert.properties.to.type === 'string' && same(alert.properties.to.enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&
-      workload?.type === 'object' && workload.additionalProperties === false &&
-      same(workload.required, ['desired', 'ready']) && same(Object.keys(workload.properties ?? {}), ['desired', 'ready']) &&
-      ['desired', 'ready'].every((key) => same(workload.properties[key]?.type, ['integer', 'null']) && workload.properties[key].minimum === 0 && workload.properties[key].maximum === 9007199254740991),
+      alert.properties.to.type === 'string' &&
+      same(alert.properties.to.enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&
+      workload?.type === 'object' &&
+      workload.additionalProperties === false &&
+      same(workload.required, ['desired', 'ready']) &&
+      same(Object.keys(workload.properties ?? {}), ['desired', 'ready']) &&
+      ['desired', 'ready'].every(
+        (key) =>
+          same(workload.properties[key]?.type, ['integer', 'null']) &&
+          workload.properties[key].minimum === 0 &&
+          workload.properties[key].maximum === 9007199254740991,
+      ),
     'report.history',
   );
   check(

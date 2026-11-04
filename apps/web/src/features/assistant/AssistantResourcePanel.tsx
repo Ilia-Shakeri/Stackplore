@@ -187,7 +187,10 @@ function ConversationView({
         return;
       if (result === null) setCitationWarning(citationScope);
       else {
-        const heading = document.getElementById(`incident-evidence-${result.id}`) ?? document.getElementById('resource-detail-name');
+        const heading =
+          (result.kind === 'alert' || result.kind === 'workload'
+            ? document.getElementById(`incident-evidence-${result.id}`)
+            : null) ?? document.getElementById('resource-detail-name');
         heading?.focus({ preventScroll: true });
         heading?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
       }

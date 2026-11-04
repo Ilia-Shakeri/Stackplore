@@ -133,7 +133,9 @@ const parseCitation = (value: unknown): AssistantResourceCitation => {
   if (
     !matches(citation.id, citationPattern) ||
     typeof citation.kind !== 'string' ||
-    !['resource', 'health', 'metric', 'event', 'relationship', 'log', 'alert', 'workload'].includes(citation.kind) ||
+    !['resource', 'health', 'metric', 'event', 'relationship', 'log', 'alert', 'workload'].includes(
+      citation.kind,
+    ) ||
     !matches(citation.source_id, sourcePattern) ||
     !matches(citation.resource_id, resourcePattern)
   )
@@ -280,8 +282,26 @@ const parseCoverage = (
   citations: readonly AssistantResourceCitation[],
   window: number,
 ): AssistantReadCoverage[] => {
-  const plan = ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history', 'logs'];
-  const kinds = ['resource', 'health', 'metric', 'event', 'relationship', 'alert', 'workload', 'log'];
+  const plan = [
+    'inventory',
+    'health',
+    'metrics',
+    'events',
+    'topology',
+    'alert_history',
+    'workload_history',
+    'logs',
+  ];
+  const kinds = [
+    'resource',
+    'health',
+    'metric',
+    'event',
+    'relationship',
+    'alert',
+    'workload',
+    'log',
+  ];
   const values = boundedArray(value, 7, 8);
   if (values.length === 8 && window > 15) return fail();
   const result = values.map((value, index) => {

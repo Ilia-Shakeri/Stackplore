@@ -11,7 +11,15 @@ export const incidentReportFixture = () => {
     run: { ...base.run, goal: 'investigate_incident' },
     content_state: 'ready',
     citations: [ref],
-    coverage: ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history'].map((tool, index) => ({
+    coverage: [
+      'inventory',
+      'health',
+      'metrics',
+      'events',
+      'topology',
+      'alert_history',
+      'workload_history',
+    ].map((tool, index) => ({
       tool,
       availability: index === 0 ? 'available' : 'unsupported',
       completeness: 'complete',

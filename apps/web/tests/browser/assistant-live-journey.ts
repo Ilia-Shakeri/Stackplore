@@ -70,7 +70,15 @@ export async function assistantLiveJourney(
           if (body.content_state === 'ready' && Array.isArray(body.citations)) {
             metadata.citation_count = body.citations.length;
             if (goal === 'investigate_incident' && Array.isArray(body.coverage)) {
-              const expected = ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history'];
+              const expected = [
+                'inventory',
+                'health',
+                'metrics',
+                'events',
+                'topology',
+                'alert_history',
+                'workload_history',
+              ];
               metadata.coverage_valid =
                 body.coverage.length === expected.length &&
                 body.coverage.every(

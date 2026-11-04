@@ -79,12 +79,12 @@ func (Input) Format(state fmt.State, _ rune) {
 func (Input) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 type Snapshot struct {
-	Run       assistant.Run
-	Answer    *inference.Answer
-	Citations []contextbuilder.CitationReference
-	Volatile  bool
-	Outcomes  []inference.ToolOutcome
-	Report    *incidentreport.Report
+	Run             assistant.Run
+	Answer          *inference.Answer
+	Citations       []contextbuilder.CitationReference
+	Volatile        bool
+	Outcomes        []inference.ToolOutcome
+	Report          *incidentreport.Report
 	HistoryCoverage incidentreport.HistoryCoverage
 }
 

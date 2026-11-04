@@ -48,28 +48,46 @@ func TestIncidentHistoryFlowsThroughReservedProofsAndReport(t *testing.T) {
 		authority.reads.historyEnabled, authority.reads.historyEmpty = true, empty
 		input := inputFixture(t, 1)
 		input.Admission.Goal = assistant.InvestigateIncident
-		if _, err := service.Submit(context.Background(), input); err != nil { t.Fatal(err) }
-		if _, err := service.runOne(context.Background(), "worker"); err != nil { t.Fatal(err) }
+		if _, err := service.Submit(context.Background(), input); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := service.runOne(context.Background(), "worker"); err != nil {
+			t.Fatal(err)
+		}
 		snapshot, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID)
-		if err != nil || snapshot.Report == nil || !snapshot.HistoryCoverage.AlertsRead || !snapshot.HistoryCoverage.WorkloadRead || snapshot.Run.ToolCalls != 7 || model.calls.Load() != 1 { t.Fatal("history did not cross reserved current proofs", err) }
-		if slices.Contains(snapshot.Report.Gaps, "alerts_not_read") || slices.Contains(snapshot.Report.Gaps, "workload_history_not_read") { t.Fatal("readable empty history became unread") }
+		if err != nil || snapshot.Report == nil || !snapshot.HistoryCoverage.AlertsRead || !snapshot.HistoryCoverage.WorkloadRead || snapshot.Run.ToolCalls != 7 || model.calls.Load() != 1 {
+			t.Fatal("history did not cross reserved current proofs", err)
+		}
+		if slices.Contains(snapshot.Report.Gaps, "alerts_not_read") || slices.Contains(snapshot.Report.Gaps, "workload_history_not_read") {
+			t.Fatal("readable empty history became unread")
+		}
 		for _, kind := range []string{"alert_history", "workload_history"} {
 			begin, read, finish := slices.Index(repository.trace, "begin:"+kind), slices.Index(repository.trace, "read:"+kind), slices.Index(repository.trace, "finish:"+kind)
-			if begin < 0 || read <= begin || finish <= read { t.Fatal("history escaped durable reservation") }
+			if begin < 0 || read <= begin || finish <= read {
+				t.Fatal("history escaped durable reservation")
+			}
 		}
 		if !empty {
-			if len(snapshot.Report.Timeline) != 4 || len(snapshot.Report.Hypotheses) != 1 || snapshot.Report.Hypotheses[0].Code != "workload_shortfall_possible" || len(snapshot.Report.Hypotheses[0].Contrary) != 1 { t.Fatal("history chronology or recovery lost") }
+			if len(snapshot.Report.Timeline) != 4 || len(snapshot.Report.Hypotheses) != 1 || snapshot.Report.Hypotheses[0].Code != "workload_shortfall_possible" || len(snapshot.Report.Hypotheses[0].Contrary) != 1 {
+				t.Fatal("history chronology or recovery lost")
+			}
 			service.mu.Lock()
 			proofs := service.evidenceSetLocked(service.entries[input.Admission.ID])
 			service.mu.Unlock()
 			for _, proof := range proofs {
-				if proof.ReadKind() != assistant.AlertHistory && proof.ReadKind() != assistant.WorkloadHistory { continue }
+				if proof.ReadKind() != assistant.AlertHistory && proof.ReadKind() != assistant.WorkloadHistory {
+					continue
+				}
 				for _, ref := range proof.References() {
-					if _, err := authority.reader.Resolve(context.Background(), input.Admission.Actor, snapshot.Run, proof, ref.ID); err != nil { t.Fatal("history witness failed current authority", err) }
+					if _, err := authority.reader.Resolve(context.Background(), input.Admission.Actor, snapshot.Run, proof, ref.ID); err != nil {
+						t.Fatal("history witness failed current authority", err)
+					}
 				}
 			}
 		}
 		authority.reads.denyHistory.Store(true)
-		if _, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID); err != assistant.ErrDenied { t.Fatal("revoked history retained report", err) }
+		if _, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID); err != assistant.ErrDenied {
+			t.Fatal("revoked history retained report", err)
+		}
 	}
 }
