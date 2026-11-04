@@ -31,3 +31,12 @@ languages, and the focused Go/SQL/transport gates. Full verification stops at
 formatting; the hosted patch supplies formatting and the updated nullable derived
 type. Further review binds even an empty proof to its exact requested family and
 adds a negative substitution test. No failed receipt is reused as source acceptance.
+
+Source `8b42489f88cabe1f368b816617cac36e88976f4f` in
+[41809369390](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41809369390)
+passes formatting, documentation, manifests, contract derivation, runtime-image
+policy, locale parity and focused checks. Lint rejects redundant optional access
+in the fixed tuple fixture and a test callback marked async without awaiting.
+The correction uses definite tuple members and explicitly flushes the asynchronous
+witness response. Lint remains enabled. The signed branch trial is a separate
+receipt and does not accept this failed source gate.

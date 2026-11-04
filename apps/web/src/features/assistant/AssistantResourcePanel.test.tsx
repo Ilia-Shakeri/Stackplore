@@ -119,6 +119,7 @@ describe('owning resource view', () => {
       const witness = within(row).getByRole('button');
       await act(async () => {
         fireEvent.click(witness);
+        await Promise.resolve();
       });
       expect(api.citation).toHaveBeenCalledOnce();
       expect(document.activeElement).toBe(row);

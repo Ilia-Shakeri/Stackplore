@@ -91,22 +91,20 @@ describe('authorized incident history wire facts', () => {
     const value = fixture();
     const parsed = parseAssistantIncidentReportResponse(value, assistantRunId);
     expect(parsed).toEqual(value);
-    Object.assign(value.report.timeline[1]?.workload ?? {}, { ready: 3 });
+    Object.assign(value.report.timeline[1].workload, { ready: 3 });
     if (parsed.content_state !== 'ready') throw new Error('Missing report');
     expect(parsed.report.timeline[1]?.workload?.ready).toBe(1);
   });
 
   it.each([
     (value: ReturnType<typeof fixture>) => {
-      Object.assign(value.report.timeline[0]?.alert ?? {}, { from: 'firing' });
+      Object.assign(value.report.timeline[0].alert, { from: 'firing' });
     },
     (value: ReturnType<typeof fixture>) => {
-      Object.assign(value.report.timeline[1]?.workload ?? {}, { ready: -1 });
+      Object.assign(value.report.timeline[1].workload, { ready: -1 });
     },
     (value: ReturnType<typeof fixture>) => {
-      Object.assign(value.report.timeline[1]?.workload ?? {}, {
-        desired: Number.MAX_SAFE_INTEGER + 1,
-      });
+      Object.assign(value.report.timeline[1].workload, { desired: Number.MAX_SAFE_INTEGER + 1 });
     },
     (value: ReturnType<typeof fixture>) => {
       Object.assign(value.report.timeline[1], { time_basis: 'occurred' });
