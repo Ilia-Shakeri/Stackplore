@@ -1,5 +1,11 @@
 # Smart Assistant — bounded investigation
 
+The **2.0.0-alpha.6.2** candidate extends the published five-read recipe with
+alert and workload history before optional logs. It retains at most eight sealed
+proofs, one final generation and the existing combined input/output bounds.
+[History contract and limits](incident-history.md). Historical alpha.5 receipts
+below keep their actual five-read scope; new source requires new hosted receipts.
+
 Published **2.0.0-alpha.5**, schema **18**, 2026-11-01, immutable source
 `3038a64d500e044802e7fa43035695f7bf6c2a35`. All eight source and exact-tag jobs,
 signed trial and public publication pass. [Exact evidence](../evidence/2.0.0-alpha.5/README.md).

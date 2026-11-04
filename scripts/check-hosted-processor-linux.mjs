@@ -59,7 +59,7 @@ export function validHostedDatabaseMetadata(value, source) {
       runs.some(
         (run) =>
           run.state !== 'completed' ||
-          run.tool_calls !== (goal === 'explain_resource' ? 1 : 5) ||
+          run.tool_calls !== (goal === 'explain_resource' ? 1 : 7) ||
           run.inference_calls !== 1 ||
           run.usage_unknown !== false ||
           run.usage_conservative !== false,

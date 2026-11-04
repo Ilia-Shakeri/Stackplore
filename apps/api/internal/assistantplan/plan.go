@@ -4,7 +4,7 @@ package assistantplan
 import "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 
 const (
-	MaximumReads   = 6
+	MaximumReads   = 8
 	RecordsPerRead = 8
 	BytesPerRead   = 8 * 1024
 )
@@ -19,7 +19,7 @@ func Reads(goal assistant.Goal, logConsent bool) ([]assistant.StepKind, error) {
 		}
 		return []assistant.StepKind{assistant.Inventory}, nil
 	case assistant.InvestigateIncident:
-		plan := []assistant.StepKind{assistant.Inventory, assistant.Health, assistant.Metrics, assistant.Events, assistant.Topology}
+		plan := []assistant.StepKind{assistant.Inventory, assistant.Health, assistant.Metrics, assistant.Events, assistant.Topology, assistant.AlertHistory, assistant.WorkloadHistory}
 		if logConsent {
 			plan = append(plan, assistant.Logs)
 		}

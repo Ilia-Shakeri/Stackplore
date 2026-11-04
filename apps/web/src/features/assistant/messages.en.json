@@ -1,4 +1,12 @@
 {
+  "assistant.tool.alertHistory": "Alert history",
+  "assistant.tool.workloadHistory": "Workload history",
+  "assistant.report.workload": "A workload had fewer ready replicas than requested. This is a symptom, not proof of cause.",
+  "assistant.report.replicas": "Ready / desired replicas",
+  "assistant.report.alert.pending": "Pending",
+  "assistant.report.alert.firing": "Firing",
+  "assistant.report.alert.acknowledged": "Acknowledged",
+  "assistant.report.alert.resolved": "Resolved",
   "assistant.report.open": "View incident report",
   "assistant.report.close": "Close and clear report",
   "assistant.report.title": "Incident report",

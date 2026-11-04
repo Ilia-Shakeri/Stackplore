@@ -1,5 +1,10 @@
 # Smart Analysis incident workflows
 
+History integration candidate **2.0.0-alpha.6.2** extends the earlier report core.
+[Selected history behavior](incident-history.md) specifies independently reserved
+reads, typed history fields, readable-empty coverage and bilingual witness focus.
+Exact-source hosted checks and stage-6 quality acceptance remain pending.
+
 Status: stage-6 implementation candidate. A closed report read contract is under
 hosted verification; no stage-6 release or quality acceptance exists yet.
 Stage 5 must retain its own exact-source verification,

@@ -52,6 +52,8 @@ const toolKeys = {
   events: 'assistant.tool.events',
   topology: 'assistant.tool.topology',
   logs: 'assistant.tool.logs',
+  alert_history: 'assistant.tool.alertHistory',
+  workload_history: 'assistant.tool.workloadHistory',
 } as const satisfies Record<string, MessageKey>;
 const availabilityKeys = {
   available: 'assistant.coverage.available',
@@ -185,7 +187,7 @@ function ConversationView({
         return;
       if (result === null) setCitationWarning(citationScope);
       else {
-        const heading = document.getElementById('resource-detail-name');
+        const heading = document.getElementById(`incident-evidence-${result.id}`) ?? document.getElementById('resource-detail-name');
         heading?.focus({ preventScroll: true });
         heading?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
       }

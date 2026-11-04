@@ -55,7 +55,7 @@ test('real investigation SQL proof requires exact reservations and known single 
     ].map((goal) => ({
       goal,
       state: 'completed',
-      tool_calls: goal === 'explain_resource' ? 1 : 5,
+      tool_calls: goal === 'explain_resource' ? 1 : 7,
       inference_calls: 1,
       usage_unknown: false,
       usage_conservative: false,

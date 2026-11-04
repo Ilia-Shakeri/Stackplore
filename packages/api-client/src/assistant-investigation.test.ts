@@ -16,7 +16,7 @@ const fixture = () => {
     ...base,
     run: { ...base.run, goal: 'investigate_incident' },
     citations: [resource, health],
-    coverage: ['inventory', 'health', 'metrics', 'events', 'topology'].map((tool, index) => ({
+    coverage: ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history'].map((tool, index) => ({
       tool,
       availability: index < 2 ? 'available' : 'unsupported',
       completeness: 'complete',

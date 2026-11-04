@@ -10,7 +10,7 @@ import (
 func TestPlansAreFiniteFreshAndRequireExplicitLogConsent(t *testing.T) {
 	for _, consent := range []bool{false, true} {
 		plan, err := Reads(assistant.InvestigateIncident, consent)
-		if err != nil || len(plan) > MaximumReads || len(plan) < 5 || plan[0] != assistant.Inventory || slices.Contains(plan, assistant.Inference) || slices.Contains(plan, assistant.Logs) != consent {
+		if err != nil || len(plan) > MaximumReads || len(plan) < 7 || plan[0] != assistant.Inventory || !slices.Contains(plan, assistant.AlertHistory) || !slices.Contains(plan, assistant.WorkloadHistory) || slices.Contains(plan, assistant.Inference) || slices.Contains(plan, assistant.Logs) != consent {
 			t.Fatal("investigation escaped its fixed read recipe")
 		}
 		seen := map[assistant.StepKind]bool{}

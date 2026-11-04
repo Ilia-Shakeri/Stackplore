@@ -142,7 +142,7 @@ func assistantCitation(run assistant.Run, ref contextbuilder.CitationReference) 
 	if ref.Kind == "relationship" && run.Goal == assistant.InvestigateIncident {
 		resourceMatches = ref.ResourceID == ""
 	}
-	if !assistantPublicCitationID.MatchString(ref.ID) || !slices.Contains([]string{"resource", "health", "metric", "event", "relationship", "log"}, ref.Kind) ||
+	if !assistantPublicCitationID.MatchString(ref.ID) || !slices.Contains([]string{"resource", "health", "metric", "event", "relationship", "log", "alert", "workload"}, ref.Kind) ||
 		run.Goal == assistant.ExplainResource && ref.Kind != "resource" || ref.Source.Validate() != nil ||
 		string(ref.Source.SourceID) != run.SourceID || !resourceMatches || !assistant.Identifier(ref.ObjectID) ||
 		(ref.Kind == "resource" || ref.Kind == "health") && ref.ObjectID != run.ResourceID ||
@@ -206,7 +206,7 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 			if outcome.Tool != string(plan[index]) {
 				return assistantReplyJSON{}, assistant.ErrUnavailable
 			}
-			kind := map[string]string{"inventory": "resource", "health": "health", "metrics": "metric", "events": "event", "topology": "relationship", "logs": "log"}[outcome.Tool]
+			kind := map[string]string{"inventory": "resource", "health": "health", "metrics": "metric", "events": "event", "topology": "relationship", "logs": "log", "alert_history": "alert", "workload_history": "workload"}[outcome.Tool]
 			count := 0
 			for _, citation := range citations {
 				if citation.Kind == kind {

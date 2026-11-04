@@ -29,14 +29,14 @@ func TestInvestigationReservesFixedReadsAndRetainsSeparateCoverage(t *testing.T)
 		if available {
 			wantRecords = 4 // inventory, health, metric, event; no in-scope edge.
 		}
-		if err != nil || snapshot.Answer == nil || snapshot.Run.State != assistant.Completed || snapshot.Run.ToolCalls != 5 || snapshot.Run.InferenceCalls != 1 || model.calls.Load() != 1 || len(snapshot.Outcomes) != 5 || len(snapshot.Citations) != wantRecords {
+		if err != nil || snapshot.Answer == nil || snapshot.Run.State != assistant.Completed || snapshot.Run.ToolCalls != 7 || snapshot.Run.InferenceCalls != 1 || model.calls.Load() != 1 || len(snapshot.Outcomes) != 7 || len(snapshot.Citations) != wantRecords {
 			t.Fatal("investigation escaped its bounded metadata contract", err)
 		}
 		if snapshot.Report == nil || len(snapshot.Report.Timeline) != wantRecords {
 			t.Fatal("incident report omitted or fabricated retained observations")
 		}
 		want := []string{}
-		for _, kind := range []string{"inventory", "health", "metrics", "events", "topology"} {
+		for _, kind := range []string{"inventory", "health", "metrics", "events", "topology", "alert_history", "workload_history"} {
 			want = append(want, "begin:"+kind, "read:"+kind, "finish:"+kind)
 		}
 		want = append(want, "begin:inference", "finish:inference", "terminal:completed")
@@ -166,7 +166,7 @@ func TestConcurrentInvestigationsNeverShareRunBoundEvidence(t *testing.T) {
 	seen := map[string]bool{}
 	for _, input := range inputs {
 		snapshot, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID)
-		if err != nil || snapshot.Answer == nil || snapshot.Run.ToolCalls != 5 || len(snapshot.Citations) != 4 {
+		if err != nil || snapshot.Answer == nil || snapshot.Run.ToolCalls != 7 || len(snapshot.Citations) != 4 {
 			t.Fatal("concurrent proof set failed publication", err)
 		}
 		for _, reference := range snapshot.Citations {
@@ -183,7 +183,7 @@ func TestConcurrentInvestigationsNeverShareRunBoundEvidence(t *testing.T) {
 
 func TestSourceRevocationDuringExtraReadPreventsLatePublication(t *testing.T) {
 	t.Parallel()
-	for _, stopAt := range []assistant.StepKind{assistant.Health, assistant.Metrics, assistant.Events, assistant.Topology} {
+	for _, stopAt := range []assistant.StepKind{assistant.Health, assistant.Metrics, assistant.Events, assistant.Topology, assistant.AlertHistory, assistant.WorkloadHistory} {
 		service, _, _, model := fixtureService(t, nil)
 		original := service.collector
 		service.collector = collectorFunc(func(ctx context.Context, request assistantevidence.ReadRequest) (assistantevidence.Evidence, error) {

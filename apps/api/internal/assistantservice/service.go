@@ -85,6 +85,7 @@ type Snapshot struct {
 	Volatile  bool
 	Outcomes  []inference.ToolOutcome
 	Report    *incidentreport.Report
+	HistoryCoverage incidentreport.HistoryCoverage
 }
 
 func (Snapshot) Format(state fmt.State, _ rune) {

@@ -41,7 +41,7 @@ func additionalItems(scope contextbuilder.Scope, kind assistant.StepKind, proof 
 	if err != nil || len(items) != len(refs) || len(items) > assistantplan.RecordsPerRead {
 		return nil, assistant.ErrQuota
 	}
-	expected := map[assistant.StepKind]string{assistant.Health: "health", assistant.Metrics: "metric", assistant.Events: "event", assistant.Topology: "relationship", assistant.Logs: "log"}[kind]
+	expected := map[assistant.StepKind]string{assistant.Health: "health", assistant.Metrics: "metric", assistant.Events: "event", assistant.Topology: "relationship", assistant.Logs: "log", assistant.AlertHistory: "alert", assistant.WorkloadHistory: "workload"}[kind]
 	if expected == "" || len(scope.Resources) != 1 {
 		return nil, assistant.ErrDenied
 	}

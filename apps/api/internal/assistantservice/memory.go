@@ -292,6 +292,7 @@ func (service *Service) Get(ctx context.Context, actor assistant.Actor, id strin
 		if entry.report != nil {
 			report := entry.report.Clone()
 			snapshot.Report = &report
+			snapshot.HistoryCoverage = historyCoverage(proofs)
 		}
 	}
 	return snapshot, nil

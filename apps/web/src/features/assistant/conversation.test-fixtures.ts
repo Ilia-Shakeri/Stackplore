@@ -67,7 +67,7 @@ export const investigationResponse = () => {
     {
       ...ready,
       run: { ...ready.run, goal: 'investigate_incident' },
-      coverage: ['inventory', 'health', 'metrics', 'events', 'topology'].map((tool, index) => ({
+      coverage: ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history'].map((tool, index) => ({
         tool,
         availability: index === 0 ? 'available' : 'unsupported',
         completeness: 'complete',

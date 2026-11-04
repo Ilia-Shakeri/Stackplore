@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.0-alpha.6.2] - 2026-11-04
+
+### Smart Analysis — history integration candidate
+
+- Add independently reserved alert/workload history to the fixed selected-resource
+  investigation plan, with current authority on every proof and publication.
+- Carry actual transition/sample time, qualified workload shortfall/recovery,
+  readable-empty versus unread coverage, and closed scalar fields into the report.
+- Add bilingual historical rows and fresh-authorized witness focus. Keep eight
+  reads maximum, one final generation, the shared 64-KiB bounds and volatile cleanup.
+- Validation runs only on GitHub Actions. Stage-6 quality and stable-2.0 acceptance
+  remain pending; schema 19 is unchanged.
+
 ## [2.0.0-alpha.6.1] - 2026-11-03
 
 ### Desktop workspaces — development preview

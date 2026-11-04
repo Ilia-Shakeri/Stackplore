@@ -43,7 +43,7 @@ func TestExplicitLogInvestigationMasksBeforeCountingAndRevokesEveryProof(t *test
 			})
 			counted := false
 			model.countHook = func(request inference.Request) error {
-				if request.Validate() != nil || len(request.Outcomes) != 6 || len(request.Evidence) != 5 {
+				if request.Validate() != nil || len(request.Outcomes) != 8 || len(request.Evidence) != 5 {
 					t.Error("consented log missing from bounded context")
 				}
 				found := false
@@ -81,7 +81,7 @@ func TestExplicitLogInvestigationMasksBeforeCountingAndRevokesEveryProof(t *test
 				t.Fatal(err)
 			}
 			snapshot, err := service.Get(context.Background(), input.Admission.Actor, input.Admission.ID)
-			if err != nil || snapshot.Answer == nil || snapshot.Run.ToolCalls != 6 || len(snapshot.Outcomes) != 6 || len(snapshot.Citations) != 5 {
+			if err != nil || snapshot.Answer == nil || snapshot.Run.ToolCalls != 8 || len(snapshot.Outcomes) != 8 || len(snapshot.Citations) != 5 {
 				t.Fatal("consented fixed recipe failed publication", err)
 			}
 			if failure == "permission" {

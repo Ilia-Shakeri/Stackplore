@@ -152,7 +152,7 @@ export type AssistantAnswer = {
  */
 export type AssistantResourceCitation = {
   id: AssistantCitationId;
-  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log';
+  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log' | 'alert' | 'workload';
   source_id: SourceId;
   resource_id: ResourceId;
   observed_at: Timestamp;
@@ -163,7 +163,7 @@ export type AssistantResourceCitation = {
  * Typed coverage without raw text or invented citation IDs. Unsupported/unavailable families have zero records and complete status; partial applies only to available/stale data.
  */
 export type AssistantReadCoverage = {
-  tool: 'inventory' | 'health' | 'metrics' | 'events' | 'topology' | 'logs';
+  tool: 'inventory' | 'health' | 'metrics' | 'events' | 'topology' | 'alert_history' | 'workload_history' | 'logs';
   availability: 'available' | 'stale' | 'unavailable' | 'unsupported';
   completeness: 'complete' | 'partial';
   records: number;
@@ -208,10 +208,10 @@ export type AssistantIncidentMetric = {
  */
 export type AssistantIncidentObservation = {
   citation_id: AssistantCitationId;
-  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log';
+  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log' | 'alert' | 'workload';
   at: Timestamp;
   time_basis: 'observed' | 'sampled' | 'occurred';
-  availability: 'available' | 'stale';
+  availability: 'available' | 'stale' | 'unavailable' | 'unsupported';
   completeness: Completeness;
   synthetic: boolean;
   health: '' | 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
@@ -219,6 +219,8 @@ export type AssistantIncidentObservation = {
   severity: '' | 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical' | 'unknown';
   redacted: boolean;
   truncated: boolean;
+  alert?: { from: null | 'pending' | 'firing' | 'acknowledged' | 'resolved'; to: 'pending' | 'firing' | 'acknowledged' | 'resolved' };
+  workload?: { desired: number | null; ready: number | null };
 };
 
 /**
@@ -229,7 +231,8 @@ export type AssistantIncidentHypothesis = {
     | 'memory_pressure_possible'
     | 'cpu_pressure_possible'
     | 'restart_related_possible'
-    | 'health_problem_possible';
+    | 'health_problem_possible'
+    | 'workload_shortfall_possible';
   rank: number;
   qualified: true;
   supporting: Array<AssistantCitationId>;

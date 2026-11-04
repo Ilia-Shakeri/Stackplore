@@ -14,6 +14,7 @@ const hypothesisCodes = [
   'cpu_pressure_possible',
   'restart_related_possible',
   'health_problem_possible',
+  'workload_shortfall_possible',
 ] as const;
 const gapCodes = [
   'alerts_not_read',
@@ -60,6 +61,10 @@ const observation = (
   references: Map<string, AssistantResourceCitation>,
   run: AssistantRun,
 ): AssistantIncidentObservation => {
+  if (value === null || typeof value !== 'object') return fail();
+  const kindDescriptor = Object.getOwnPropertyDescriptor(value, 'kind');
+  if (kindDescriptor === undefined || !Object.hasOwn(kindDescriptor, 'value')) return fail();
+  const kind: unknown = kindDescriptor.value;
   const item = closed(value, [
     'citation_id',
     'kind',
@@ -73,13 +78,14 @@ const observation = (
     'severity',
     'redacted',
     'truncated',
+    ...(kind === 'alert' ? ['alert'] : kind === 'workload' ? ['workload'] : []),
   ]);
   if (typeof item.citation_id !== 'string') return fail();
   const ref = references.get(item.citation_id);
   if (
     ref === undefined ||
     item.kind !== ref.kind ||
-    !member(item.availability, ['available', 'stale']) ||
+    !member(item.availability, item.kind === 'workload' ? ['available', 'stale', 'unavailable', 'unsupported'] : ['available', 'stale']) ||
     !member(item.completeness, ['complete', 'partial']) ||
     typeof item.synthetic !== 'boolean' ||
     typeof item.redacted !== 'boolean' ||
@@ -90,7 +96,7 @@ const observation = (
     item.kind === 'resource' || item.kind === 'health' || item.kind === 'relationship';
   const at = timestamp(item.at, true),
     proofAt = timestamp(ref.observed_at);
-  const basis = observed ? 'observed' : item.kind === 'metric' ? 'sampled' : 'occurred';
+  const basis = observed ? 'observed' : item.kind === 'metric' || item.kind === 'workload' ? 'sampled' : 'occurred';
   if (
     item.time_basis !== basis ||
     at > proofAt ||
@@ -150,6 +156,18 @@ const observation = (
       return fail();
   } else if (item.severity !== '') return fail();
   if (item.kind !== 'log' && (item.redacted || item.truncated)) return fail();
+  if (item.kind === 'alert') {
+    const alert = closed(item.alert, ['from', 'to']);
+    const states = ['pending', 'firing', 'acknowledged', 'resolved'];
+    if (!member(alert.to, states) || alert.from !== null && (!member(alert.from, states) || alert.from === alert.to)) return fail();
+    return { ...item, metric, alert } as AssistantIncidentObservation;
+  }
+  if (item.kind === 'workload') {
+    const workload = closed(item.workload, ['desired', 'ready']);
+    const readable = item.availability === 'available' || item.availability === 'stale';
+    if (readable ? [workload.desired, workload.ready].some((count) => typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) : workload.desired !== null || workload.ready !== null || item.completeness !== 'complete') return fail();
+    return { ...item, metric, workload } as AssistantIncidentObservation;
+  }
   return { ...item, metric } as AssistantIncidentObservation;
 };
 
@@ -171,6 +189,11 @@ const validateHypothesis = (
   const first = support[0],
     second = support[1];
   if (first === undefined) return fail();
+  if (item.code === 'workload_shortfall_possible') {
+    const last = contrary[0];
+    if (support.length !== 1 || contrary.length > 1 || first.kind !== 'workload' || first.workload === undefined || first.workload.desired === null || first.workload.ready === null || first.workload.desired <= first.workload.ready || last !== undefined && (last.kind !== 'workload' || last.workload === undefined || last.workload.desired === null || last.workload.ready === null || last.workload.desired > last.workload.ready || timestamp(last.at, true) <= timestamp(first.at, true))) return fail();
+    return;
+  }
   if (item.code === 'health_problem_possible') {
     const last = contrary[0];
     if (
@@ -296,7 +319,7 @@ export const parseAssistantIncidentReportResponse = (
   )
     return fail();
   let previous = -1;
-  const hypotheses = boundedArray(report.hypotheses, 0, 4).map((value, index) => {
+  const hypotheses = boundedArray(report.hypotheses, 0, 5).map((value, index) => {
     const item = closed(value, ['code', 'rank', 'qualified', 'supporting', 'contrary']);
     if (!member(item.code, hypothesisCodes) || item.rank !== index + 1 || item.qualified !== true)
       return fail();
@@ -315,8 +338,13 @@ export const parseAssistantIncidentReportResponse = (
     validateHypothesis(result, facts, run);
     return result;
   });
-  const gaps = codes(report.gaps, gapCodes, 3, 12);
-  if (gapCodes.slice(0, 3).some((code) => !gaps.includes(code))) return fail();
+  const gaps = codes(report.gaps, gapCodes, 1, 12);
+  if (!gaps.includes('cause_unproven')) return fail();
+  for (const [tool, gap, kind] of [['alert_history', 'alerts_not_read', 'alert'], ['workload_history', 'workload_history_not_read', 'workload']] as const) {
+    const read = coverage.find((item) => item.tool === tool);
+    const readable = read?.availability === 'available' || read?.availability === 'stale';
+    if (gaps.includes(gap) === readable || !readable && timeline.some((item) => item.kind === kind)) return fail();
+  }
   const next_reads = codes(report.next_reads, nextReadCodes, 5, 5);
   if (next_reads.some((code, index) => code !== nextReadCodes[index])) return fail();
   const parsed = { timeline, hypotheses, gaps, next_reads };

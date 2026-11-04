@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantplan"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantevidence"
 )
 
@@ -76,7 +77,7 @@ func (service *Service) evidenceSetLocked(entry *memoryRun) []assistantevidence.
 }
 
 func (service *Service) authorizeProofs(ctx context.Context, actor assistant.Actor, run assistant.Run, proofs []assistantevidence.Evidence) error {
-	if len(proofs) < 1 || len(proofs) > 6 {
+	if len(proofs) < 1 || len(proofs) > assistantplan.MaximumReads {
 		return assistant.ErrDenied
 	}
 	work, cancel := service.evidenceContext(ctx)

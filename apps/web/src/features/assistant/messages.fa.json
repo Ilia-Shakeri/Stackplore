@@ -1,4 +1,12 @@
 {
+  "assistant.tool.alertHistory": "تاریخچهٔ هشدار",
+  "assistant.tool.workloadHistory": "تاریخچهٔ بار کاری",
+  "assistant.report.workload": "تعداد replica آماده از تعداد خواسته‌شده کمتر بوده است. این یک نشانه است و علت را ثابت نمی‌کند.",
+  "assistant.report.replicas": "replica آماده / خواسته‌شده",
+  "assistant.report.alert.pending": "در انتظار",
+  "assistant.report.alert.firing": "فعال",
+  "assistant.report.alert.acknowledged": "تأییدشده",
+  "assistant.report.alert.resolved": "رفع‌شده",
   "assistant.report.open": "دیدن گزارش رخداد",
   "assistant.report.close": "بستن و پاک‌کردن گزارش",
   "assistant.report.title": "گزارش رخداد",

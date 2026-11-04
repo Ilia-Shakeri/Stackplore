@@ -11,6 +11,8 @@ const families = {
   event: 'assistant.tool.events',
   relationship: 'assistant.tool.topology',
   log: 'assistant.tool.logs',
+  alert: 'assistant.tool.alertHistory',
+  workload: 'assistant.tool.workloadHistory',
 } as const satisfies Record<string, MessageKey>;
 const bases = {
   observed: 'assistant.report.observed',
@@ -22,6 +24,19 @@ const hypotheses = {
   cpu_pressure_possible: 'assistant.report.cpu',
   restart_related_possible: 'assistant.report.restart',
   health_problem_possible: 'assistant.report.health',
+  workload_shortfall_possible: 'assistant.report.workload',
+} as const satisfies Record<string, MessageKey>;
+const alertStates = {
+  pending: 'assistant.report.alert.pending',
+  firing: 'assistant.report.alert.firing',
+  acknowledged: 'assistant.report.alert.acknowledged',
+  resolved: 'assistant.report.alert.resolved',
+} as const satisfies Record<string, MessageKey>;
+const availability = {
+  available: 'assistant.coverage.available',
+  stale: 'assistant.coverage.stale',
+  unavailable: 'assistant.coverage.unavailable',
+  unsupported: 'assistant.coverage.unsupported',
 } as const satisfies Record<string, MessageKey>;
 const health = {
   healthy: 'assistant.report.healthy',
@@ -148,7 +163,7 @@ export function IncidentReportView({
                 {report.timeline.map((item) => {
                   const reference = response?.citations.find((ref) => ref.id === item.citation_id);
                   return (
-                    <tr key={item.citation_id}>
+                    <tr key={item.citation_id} id={`incident-evidence-${item.citation_id}`} tabIndex={-1}>
                       <td>
                         {t(bases[item.time_basis])}
                         <br />
@@ -168,7 +183,11 @@ export function IncidentReportView({
                       </td>
                       <td>{t(families[item.kind])}</td>
                       <td>
-                        {item.health !== '' ? (
+                        {item.alert !== undefined ? (
+                          <>{item.alert.from === null ? '—' : t(alertStates[item.alert.from])} → {t(alertStates[item.alert.to])}</>
+                        ) : item.workload !== undefined ? (
+                          <>{t('assistant.report.replicas')}: {item.workload.ready === null ? '—' : formatNumber(item.workload.ready)} / {item.workload.desired === null ? '—' : formatNumber(item.workload.desired)}</>
+                        ) : item.health !== '' ? (
                           t(health[item.health])
                         ) : item.metric !== null ? (
                           <TechnicalText>
@@ -182,11 +201,7 @@ export function IncidentReportView({
                         )}
                       </td>
                       <td>
-                        {t(
-                          item.availability === 'available'
-                            ? 'assistant.coverage.available'
-                            : 'assistant.coverage.stale',
-                        )}
+                        {t(availability[item.availability])}
                         {item.completeness === 'partial'
                           ? `; ${t('assistant.coverage.partial')}`
                           : ''}

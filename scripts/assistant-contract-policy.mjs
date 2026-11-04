@@ -346,6 +346,8 @@ export const inspectAssistantPolicy = (document) => {
       'event',
       'relationship',
       'log',
+      'alert',
+      'workload',
     ]),
     'citation.resource',
   );
@@ -364,6 +366,8 @@ export const inspectAssistantPolicy = (document) => {
       'events',
       'topology',
       'logs',
+      'alert_history',
+      'workload_history',
     ]),
     'coverage.tools',
   );
@@ -388,8 +392,8 @@ export const inspectAssistantPolicy = (document) => {
   const coverage = schemas.AssistantReadyResponse?.properties?.coverage;
   check(
     coverage?.type === 'array' &&
-      coverage.minItems === 5 &&
-      coverage.maxItems === 6 &&
+      coverage.minItems === 7 &&
+      coverage.maxItems === 8 &&
       coverage.items?.$ref === schemaRef('AssistantReadCoverage'),
     'coverage.bounded',
   );
@@ -468,7 +472,7 @@ export const inspectAssistantPolicy = (document) => {
       bounded(schemas.AssistantIncidentMetric?.properties?.interval_seconds, 0, 86400),
     'report.metric',
   );
-  closed('AssistantIncidentObservation', [
+  const observationFields = [
     'citation_id',
     'kind',
     'at',
@@ -481,11 +485,25 @@ export const inspectAssistantPolicy = (document) => {
     'severity',
     'redacted',
     'truncated',
-  ]);
+  ];
+  closed('AssistantIncidentObservation', [...observationFields, 'alert', 'workload'], observationFields);
   ref('AssistantIncidentObservation', 'citation_id', 'AssistantCitationId');
   ref('AssistantIncidentObservation', 'at', 'Timestamp');
   ref('AssistantIncidentObservation', 'completeness', 'Completeness');
   const observation = schemas.AssistantIncidentObservation?.properties;
+  const alert = observation?.alert;
+  const workload = observation?.workload;
+  check(
+    alert?.type === 'object' && alert.additionalProperties === false &&
+      same(alert.required, ['from', 'to']) && same(Object.keys(alert.properties ?? {}), ['from', 'to']) &&
+      same(alert.properties.from.type, ['string', 'null']) &&
+      same(alert.properties.from.enum, [null, 'pending', 'firing', 'acknowledged', 'resolved']) &&
+      alert.properties.to.type === 'string' && same(alert.properties.to.enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&
+      workload?.type === 'object' && workload.additionalProperties === false &&
+      same(workload.required, ['desired', 'ready']) && same(Object.keys(workload.properties ?? {}), ['desired', 'ready']) &&
+      ['desired', 'ready'].every((key) => same(workload.properties[key]?.type, ['integer', 'null']) && workload.properties[key].minimum === 0 && workload.properties[key].maximum === 9007199254740991),
+    'report.history',
+  );
   check(
     same(observation?.kind?.enum, [
       'resource',
@@ -494,9 +512,11 @@ export const inspectAssistantPolicy = (document) => {
       'event',
       'relationship',
       'log',
+      'alert',
+      'workload',
     ]) &&
       same(observation?.time_basis?.enum, ['observed', 'sampled', 'occurred']) &&
-      same(observation?.availability?.enum, ['available', 'stale']) &&
+      same(observation?.availability?.enum, ['available', 'stale', 'unavailable', 'unsupported']) &&
       same(observation?.health?.enum, ['', 'healthy', 'degraded', 'unhealthy', 'unknown']) &&
       same(observation?.severity?.enum, [
         '',
@@ -524,8 +544,9 @@ export const inspectAssistantPolicy = (document) => {
       'cpu_pressure_possible',
       'restart_related_possible',
       'health_problem_possible',
+      'workload_shortfall_possible',
     ]) &&
-      bounded(hypothesis?.rank, 1, 4) &&
+      bounded(hypothesis?.rank, 1, 5) &&
       hypothesis?.qualified?.type === 'boolean' &&
       hypothesis.qualified.const === true &&
       ['supporting', 'contrary'].every(
@@ -547,10 +568,10 @@ export const inspectAssistantPolicy = (document) => {
       report.timeline.maxItems === 64 &&
       report.timeline.items?.$ref === schemaRef('AssistantIncidentObservation') &&
       report?.hypotheses?.type === 'array' &&
-      report.hypotheses.maxItems === 4 &&
+      report.hypotheses.maxItems === 5 &&
       report.hypotheses.items?.$ref === schemaRef('AssistantIncidentHypothesis') &&
       report?.gaps?.type === 'array' &&
-      report.gaps.minItems === 3 &&
+      report.gaps.minItems === 1 &&
       report.gaps.maxItems === 12 &&
       report.gaps.uniqueItems === true &&
       same(report.gaps.items?.enum, [
@@ -596,8 +617,8 @@ export const inspectAssistantPolicy = (document) => {
       reportReady.citations.maxItems === 64 &&
       reportReady.citations.items?.$ref === schemaRef('AssistantResourceCitation') &&
       reportReady?.coverage?.type === 'array' &&
-      reportReady.coverage.minItems === 5 &&
-      reportReady.coverage.maxItems === 6 &&
+      reportReady.coverage.minItems === 7 &&
+      reportReady.coverage.maxItems === 8 &&
       reportReady.coverage.items?.$ref === schemaRef('AssistantReadCoverage') &&
       same(
         schemas.AssistantIncidentReportResponse?.oneOf?.map((item) => item.$ref),

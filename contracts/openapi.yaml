@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 2.0.0-alpha.6.1
+  version: 2.0.0-alpha.6.2
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -3227,7 +3227,7 @@ components:
           $ref: '#/components/schemas/AssistantCitationId'
         kind:
           type: string
-          enum: [resource, health, metric, event, relationship, log]
+          enum: [resource, health, metric, event, relationship, log, alert, workload]
         source_id:
           $ref: '#/components/schemas/SourceId'
         resource_id:
@@ -3244,7 +3244,7 @@ components:
       properties:
         tool:
           type: string
-          enum: [inventory, health, metrics, events, topology, logs]
+          enum: [inventory, health, metrics, events, topology, alert_history, workload_history, logs]
         availability:
           type: string
           enum: [available, stale, unavailable, unsupported]
@@ -3278,8 +3278,8 @@ components:
             $ref: '#/components/schemas/AssistantResourceCitation'
         coverage:
           type: array
-          minItems: 5
-          maxItems: 6
+          minItems: 7
+          maxItems: 8
           items:
             $ref: '#/components/schemas/AssistantReadCoverage'
       description: Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage and retains one resource citation. All references share the admitted selected-resource scope and exact range.
@@ -3342,7 +3342,7 @@ components:
           $ref: '#/components/schemas/AssistantCitationId'
         kind:
           type: string
-          enum: [resource, health, metric, event, relationship, log]
+          enum: [resource, health, metric, event, relationship, log, alert, workload]
         at:
           $ref: '#/components/schemas/Timestamp'
         time_basis:
@@ -3350,7 +3350,7 @@ components:
           enum: [observed, sampled, occurred]
         availability:
           type: string
-          enum: [available, stale]
+          enum: [available, stale, unavailable, unsupported]
         completeness:
           $ref: '#/components/schemas/Completeness'
         synthetic:
@@ -3369,7 +3369,31 @@ components:
           type: boolean
         truncated:
           type: boolean
-      description: Exact typed chronology. Inactive kind-specific fields are empty/null/false. Observations use their observation time; metric/event/log times remain inside the half-open selected window. No prose or native provider identity.
+        alert:
+          type: object
+          additionalProperties: false
+          required: [from, to]
+          properties:
+            from:
+              type: [string, 'null']
+              enum: [null, pending, firing, acknowledged, resolved]
+            to:
+              type: string
+              enum: [pending, firing, acknowledged, resolved]
+        workload:
+          type: object
+          additionalProperties: false
+          required: [desired, ready]
+          properties:
+            desired:
+              type: [integer, 'null']
+              minimum: 0
+              maximum: 9007199254740991
+            ready:
+              type: [integer, 'null']
+              minimum: 0
+              maximum: 9007199254740991
+      description: Exact typed chronology. Alert/workload objects occur only for their own family. Unavailable workload samples carry null counts; other families require readable status. Actual sample/occurrence times stay inside the half-open window and distinct from read time. No prose or native provider identity.
     AssistantIncidentHypothesis:
       type: object
       additionalProperties: false
@@ -3383,11 +3407,12 @@ components:
               cpu_pressure_possible,
               restart_related_possible,
               health_problem_possible,
+              workload_shortfall_possible,
             ]
         rank:
           type: integer
           minimum: 1
-          maximum: 4
+          maximum: 5
         qualified:
           type: boolean
           const: true
@@ -3418,12 +3443,12 @@ components:
             $ref: '#/components/schemas/AssistantIncidentObservation'
         hypotheses:
           type: array
-          maxItems: 4
+          maxItems: 5
           items:
             $ref: '#/components/schemas/AssistantIncidentHypothesis'
         gaps:
           type: array
-          minItems: 3
+          minItems: 1
           maxItems: 12
           uniqueItems: true
           items:
@@ -3478,8 +3503,8 @@ components:
             $ref: '#/components/schemas/AssistantResourceCitation'
         coverage:
           type: array
-          minItems: 5
-          maxItems: 6
+          minItems: 7
+          maxItems: 8
           items:
             $ref: '#/components/schemas/AssistantReadCoverage'
     AssistantIncidentReportResponse:

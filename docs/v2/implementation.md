@@ -1,11 +1,22 @@
 # Version 2 implementation ledger
 
-> Development candidate **2.0.0-alpha.6.1**, schema **19**, branch `v2/alpha6`.
-> Desktop workspace preview; stage-6 history integration remains incomplete.
+> Development candidate **2.0.0-alpha.6.2**, schema **19**, branch `v2/alpha6`.
+> Selected history/report/interface integration awaits exact-source hosted checks.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
 > Stage-6 report source and later stages remain unaccepted.
+
+History candidate adds two independently reserved read families, sealed-proof
+coverage, typed historical report fields, qualified workload recovery and bilingual
+witness rows. [Behavior and bounds](incident-history.md). No local execution.
+Stage-6 held-out quality and later security/pilot/stable gates remain unaccepted.
+
+The desktop preview **2.0.0-alpha.6.1** is published at
+`ac163c34bef357042b9854d38a9ee856ae6797a7`: all eight
+[exact-tag jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41643410361)
+and [signed publication](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41643410453)
+pass. This immutable preview does not accept the new history integration.
 
 Desktop workspace checkpoint: `166f4d73799ab4e01f41417dc17dc95d91e84e50` passes
 all eight hosted verification jobs and the exact-source signed packaging trial.

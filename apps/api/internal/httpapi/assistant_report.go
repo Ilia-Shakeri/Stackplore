@@ -36,6 +36,18 @@ type assistantIncidentObservationJSON struct {
 	Severity     string                       `json:"severity"`
 	Redacted     bool                         `json:"redacted"`
 	Truncated    bool                         `json:"truncated"`
+	Alert        *assistantIncidentAlertJSON  `json:"alert,omitempty"`
+	Workload     *assistantIncidentWorkloadJSON `json:"workload,omitempty"`
+}
+
+type assistantIncidentAlertJSON struct {
+	From *string `json:"from"`
+	To string `json:"to"`
+}
+
+type assistantIncidentWorkloadJSON struct {
+	Desired *uint64 `json:"desired"`
+	Ready *uint64 `json:"ready"`
 }
 
 type assistantIncidentHypothesisJSON struct {
@@ -87,7 +99,7 @@ func incidentReply(snapshot assistantservice.Snapshot, owner, id string) (assist
 	}
 	run := snapshot.Run
 	scope := incidentreport.Scope{Source: snapshot.Citations[0].Source, ResourceID: domain.ResourceID(run.ResourceID), ConfigurationVersion: run.SourceVersion, PolicyVersion: run.PolicyVersion, RestoreGeneration: run.RestoreGeneration, Range: domain.TimeRange{Start: run.From, End: run.Until}, ObservedAt: run.UpdatedAt}
-	if incidentreport.Validate(scope, *snapshot.Report, snapshot.Citations) != nil {
+	if incidentreport.ValidateWithHistory(scope, *snapshot.Report, snapshot.Citations, snapshot.HistoryCoverage) != nil {
 		return assistantIncidentReplyJSON{}, assistant.ErrUnavailable
 	}
 	report := assistantIncidentReportJSON{Timeline: make([]assistantIncidentObservationJSON, 0, len(snapshot.Report.Timeline)), Hypotheses: make([]assistantIncidentHypothesisJSON, 0, len(snapshot.Report.Hypotheses)), Gaps: slices.Clone(snapshot.Report.Gaps), NextReads: slices.Clone(snapshot.Report.NextReads)}
@@ -95,6 +107,20 @@ func incidentReply(snapshot assistantservice.Snapshot, owner, id string) (assist
 		item := assistantIncidentObservationJSON{CitationID: observation.Reference.ID, Kind: observation.Reference.Kind, At: observation.Time.Format(time.RFC3339Nano), TimeBasis: observation.TimeBasis, Availability: string(observation.Availability), Completeness: string(observation.Completeness), Synthetic: observation.Synthetic, Health: string(observation.Health), Redacted: observation.Redacted, Truncated: observation.Truncated}
 		if observation.Reference.Kind == "metric" {
 			item.Metric = &assistantIncidentMetricJSON{Name: string(observation.MetricName), Unit: string(observation.MetricUnit), Value: observation.MetricValue, IntervalSeconds: observation.IntervalSeconds}
+		}
+		if observation.Reference.Kind == "alert" {
+			item.Alert = &assistantIncidentAlertJSON{To: string(observation.AlertTo)}
+			if observation.AlertHasFrom {
+				from := string(observation.AlertFrom)
+				item.Alert.From = &from
+			}
+		}
+		if observation.Reference.Kind == "workload" {
+			item.Workload = &assistantIncidentWorkloadJSON{}
+			if observation.WorkloadCounts {
+				desired, ready := observation.Desired, observation.Ready
+				item.Workload.Desired, item.Workload.Ready = &desired, &ready
+			}
 		}
 		item.Severity = string(observation.EventSeverity)
 		if observation.Reference.Kind == "log" {

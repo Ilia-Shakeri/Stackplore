@@ -6,7 +6,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 )
 
-// These projections grant no authority and are not registered as reads.
+// These projections grant no authority; the owning reader seals each read.
 func (projection *projection) alertHistory() error {
 	history := projection.request.AlertHistory
 	if history == nil {
