@@ -4,6 +4,9 @@ Current history candidate: **2.0.0-alpha.6.2**, schema19.
 [Selected history/report integration](v2/incident-history.md) records its bounds;
 [the ledger](v2/implementation.md) separates pending and published checkpoints.
 
+[Reviewed runbook preparation](v2/runbooks.md) defines the next bounded corpus
+and owner-metadata work; its pure model grants no approval or public capability.
+
 - [Desktop workspaces — 2.0.0-alpha.6.1](desktop-workspaces.md)
 - [صفحه‌های جدا برای کار دسکتاپ](desktop-workspaces.fa.md)
 
