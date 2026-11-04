@@ -23,3 +23,11 @@ explicit type per branch. The correction uses closed string/integer-or-null
 branches and keeps exact state/count checks. Review also updates chosen-profile
 SQL accounting from 16 to 20 actual reservations, including both historical
 families, and adds historical witness focus/clear checks in both languages.
+
+Source `ac6a1910d701ca0ff291afd02ef474da3817178c` in
+[41808594523](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41808594523)
+passes 158 focused web checks, including historical witness focus/clear in both
+languages, and the focused Go/SQL/transport gates. Full verification stops at
+formatting; the hosted patch supplies formatting and the updated nullable derived
+type. Further review binds even an empty proof to its exact requested family and
+adds a negative substitution test. No failed receipt is reused as source acceptance.

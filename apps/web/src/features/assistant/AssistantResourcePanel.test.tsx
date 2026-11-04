@@ -88,31 +88,49 @@ afterEach(() => {
 });
 
 describe('owning resource view', () => {
-  it.each(['en', 'fa'] as const)('opens a freshly authorized historical witness in %s', async (locale) => {
-    const { api } = mount(locale);
-    const { ready, report, workload } = historicalResponses();
-    api.admit.mockResolvedValue({ run: ready.run });
-    api.get.mockResolvedValue(ready);
-    api.report.mockResolvedValue(report);
-    api.citation.mockResolvedValue(workload as AssistantResourceCitation);
-    const words = language[locale];
-    fireEvent.click(screen.getByRole('button', { name: words.open }));
-    fireEvent.change(screen.getByRole('combobox', { name: locale === 'en' ? 'Read mode' : 'حالت خواندن' }), { target: { value: 'investigate_incident' } });
-    fireEvent.change(screen.getByRole('textbox', { name: words.question }), { target: { value: 'Inspect historical facts.' } });
-    fireEvent.click(screen.getByRole('button', { name: words.send }));
-    fireEvent.click(await screen.findByRole('button', { name: locale === 'en' ? 'View incident report' : 'دیدن گزارش رخداد' }));
-    const rows = await screen.findAllByRole('row');
-    expect(rows.length).toBeGreaterThan(3);
-    const row = document.getElementById(`incident-evidence-${workload.id}`);
-    if (row === null) throw new Error('Missing historical row');
-    const witness = within(row).getByRole('button');
-    await act(async () => { fireEvent.click(witness); });
-    expect(api.citation).toHaveBeenCalledOnce();
-    expect(document.activeElement).toBe(row);
-    expect(api.admit).toHaveBeenCalledOnce();
-    fireEvent.click(screen.getByRole('button', { name: locale === 'en' ? 'Close and clear report' : 'بستن و پاک‌کردن گزارش' }));
-    expect(document.getElementById(`incident-evidence-${workload.id}`)).toBeNull();
-  });
+  it.each(['en', 'fa'] as const)(
+    'opens a freshly authorized historical witness in %s',
+    async (locale) => {
+      const { api } = mount(locale);
+      const { ready, report, workload } = historicalResponses();
+      api.admit.mockResolvedValue({ run: ready.run });
+      api.get.mockResolvedValue(ready);
+      api.report.mockResolvedValue(report);
+      api.citation.mockResolvedValue(workload as AssistantResourceCitation);
+      const words = language[locale];
+      fireEvent.click(screen.getByRole('button', { name: words.open }));
+      fireEvent.change(
+        screen.getByRole('combobox', { name: locale === 'en' ? 'Read mode' : 'حالت خواندن' }),
+        { target: { value: 'investigate_incident' } },
+      );
+      fireEvent.change(screen.getByRole('textbox', { name: words.question }), {
+        target: { value: 'Inspect historical facts.' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: words.send }));
+      fireEvent.click(
+        await screen.findByRole('button', {
+          name: locale === 'en' ? 'View incident report' : 'دیدن گزارش رخداد',
+        }),
+      );
+      const rows = await screen.findAllByRole('row');
+      expect(rows.length).toBeGreaterThan(3);
+      const row = document.getElementById(`incident-evidence-${workload.id}`);
+      if (row === null) throw new Error('Missing historical row');
+      const witness = within(row).getByRole('button');
+      await act(async () => {
+        fireEvent.click(witness);
+      });
+      expect(api.citation).toHaveBeenCalledOnce();
+      expect(document.activeElement).toBe(row);
+      expect(api.admit).toHaveBeenCalledOnce();
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: locale === 'en' ? 'Close and clear report' : 'بستن و پاک‌کردن گزارش',
+        }),
+      );
+      expect(document.getElementById(`incident-evidence-${workload.id}`)).toBeNull();
+    },
+  );
   it.each(['en', 'fa'] as const)(
     'reads and clears a typed desktop report explicitly in %s',
     async (locale) => {

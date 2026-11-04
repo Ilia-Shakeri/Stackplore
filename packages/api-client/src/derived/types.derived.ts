@@ -228,7 +228,7 @@ export type AssistantIncidentObservation = {
   redacted: boolean;
   truncated: boolean;
   alert?: {
-    from: null | 'pending' | 'firing' | 'acknowledged' | 'resolved';
+    from: 'pending' | 'firing' | 'acknowledged' | 'resolved' | null;
     to: 'pending' | 'firing' | 'acknowledged' | 'resolved';
   };
   workload?: {

@@ -45,7 +45,7 @@
   "assistant.report.gap.limits": "سقف مثبت و هم‌زمانِ منبع در دسترس نیست.",
   "assistant.report.gap.metrics": "مشاهده‌ای از سنجه نگه داشته نشد.",
   "assistant.report.gap.events": "مشاهده‌ای از رخداد نگه داشته نشد.",
-  "assistant.report.gap.samples": "نمونه‌های هم‌زمان سنجه با هم سازگار نیستند.",
+  "assistant.report.gap.samples": "مشاهدات هم‌زمان با هم سازگار نیستند.",
   "assistant.report.gap.reset": "صفرشدن شمارندهٔ راه‌اندازی دوباره، مقایسه با دورهٔ پیشین را قطع می‌کند.",
   "assistant.report.gap.health": "مشاهدات هم‌زمان سلامت با هم سازگار نیستند.",
   "assistant.report.gap.window": "زمان یک مشاهده پیش از بازهٔ انتخاب‌شده است.",

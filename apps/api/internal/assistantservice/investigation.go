@@ -36,6 +36,9 @@ func collectionError(err error) error {
 }
 
 func additionalItems(scope contextbuilder.Scope, kind assistant.StepKind, proof assistantevidence.Evidence) ([]inference.Evidence, error) {
+	if proof.ReadKind() != kind {
+		return nil, assistant.ErrDenied
+	}
 	items, err := proof.Bundle().Items()
 	refs := proof.References()
 	if err != nil || len(items) != len(refs) || len(items) > assistantplan.RecordsPerRead {

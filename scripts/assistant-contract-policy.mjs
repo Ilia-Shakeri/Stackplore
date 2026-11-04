@@ -504,7 +504,12 @@ export const inspectAssistantPolicy = (document) => {
       same(Object.keys(alert.properties ?? {}), ['from', 'to']) &&
       alert.properties.from.oneOf?.length === 2 &&
       alert.properties.from.oneOf[0].type === 'string' &&
-      same(alert.properties.from.oneOf[0].enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&
+      same(alert.properties.from.oneOf[0].enum, [
+        'pending',
+        'firing',
+        'acknowledged',
+        'resolved',
+      ]) &&
       alert.properties.from.oneOf[1].type === 'null' &&
       alert.properties.to.type === 'string' &&
       same(alert.properties.to.enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&

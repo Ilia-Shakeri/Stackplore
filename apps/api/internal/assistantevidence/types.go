@@ -156,6 +156,7 @@ type Evidence struct {
 	scope       contextbuilder.Scope
 	bundle      contextbuilder.Bundle
 	kind        assistant.StepKind
+	requested   assistant.StepKind
 	logConsent  bool
 	logPolicy   [32]byte
 	recordLimit int
@@ -169,8 +170,8 @@ func (Evidence) Format(state fmt.State, _ rune) {
 func (Evidence) MarshalJSON() ([]byte, error)           { return []byte("{}"), nil }
 func (evidence Evidence) Bundle() contextbuilder.Bundle { return evidence.bundle }
 
-// ReadKind identifies the sealed authority family, not caller-supplied coverage.
-func (evidence Evidence) ReadKind() assistant.StepKind { return evidence.kind }
+// ReadKind identifies the requested family sealed by the reader, including empty reads.
+func (evidence Evidence) ReadKind() assistant.StepKind { return evidence.requested }
 func (evidence Evidence) References() []contextbuilder.CitationReference {
 	return evidence.bundle.Citations()
 }

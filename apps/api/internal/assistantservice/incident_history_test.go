@@ -91,3 +91,22 @@ func TestIncidentHistoryFlowsThroughReservedProofsAndReport(t *testing.T) {
 		}
 	}
 }
+
+func TestEmptyOtherFamilyCannotStandInForHistory(t *testing.T) {
+	service, _, _, model := fixtureService(t, nil)
+	original := service.collector
+	service.collector = collectorFunc(func(ctx context.Context, request assistantevidence.ReadRequest) (assistantevidence.Evidence, error) {
+		if request.Kind == assistant.AlertHistory {
+			request.Kind = assistant.Health
+		}
+		return original.Read(ctx, request)
+	})
+	input := inputFixture(t, 1)
+	input.Admission.Goal = assistant.InvestigateIncident
+	if _, err := service.Submit(context.Background(), input); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.runOne(context.Background(), "worker"); err != assistant.ErrDenied || model.counts.Load() != 0 || model.calls.Load() != 0 {
+		t.Fatal("empty unrelated proof fabricated history coverage", err)
+	}
+}

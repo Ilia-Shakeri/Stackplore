@@ -123,8 +123,8 @@ The candidate workload-history port applies the same resource, time and record
 bounds. It checks the exact current resource reference in the same read-only
 snapshot and reports partial coverage when an extra row exists. Historical
 sample time and desired/ready counts remain separate from current replica state.
-Unavailable current collection or policy loss returns no history. The new port
-is preparation only; it does not authorize or register a report read.
+Unavailable current collection or policy loss returns no history. The port
+grants no authority; the owning candidate service now reserves and seals its read.
 Stale current replica data marks the result stale even if source metadata is fresh.
 
 The pure report candidate can correlate typed history when an owning caller
@@ -132,11 +132,11 @@ supplies readable-family coverage. Empty readable history stays distinct from
 an unread family; unavailable individual samples contain no replica counts.
 The shortfall hypothesis is qualified and cites an actual fresh sample; a
 later recovery is contrary evidence and conflicting same-time values suppress
-the hypothesis. This pure function is not a read proof and the public report
-does not yet consume these records.
-The legacy report validator rejects nonempty history coverage. A future
-history-aware call must receive coverage independently from the owning,
-freshly authorized proofs instead of trusting the report's own flags.
+the hypothesis. This pure function is not a read proof. The alpha.6.2 report
+candidate consumes these records only with independently supplied coverage from
+the owning, freshly authorized sealed proofs. Legacy validation still rejects
+nonempty history coverage. Empty proofs retain their requested read family so a
+different empty family cannot substitute for a reserved history read.
 
 ### Existing execution limits
 

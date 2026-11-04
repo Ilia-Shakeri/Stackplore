@@ -125,7 +125,7 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 	if _, err := reader.fence(work, request.Actor, request.Run, request.Scope, source, proofKind, request.LogConsent); err != nil {
 		return Evidence{}, err
 	}
-	evidence := Evidence{reader: reader, actor: request.Actor, run: request.Run, scope: cloneScope(project.Scope), bundle: bundle, kind: proofKind, recordLimit: request.RecordLimit, byteLimit: request.ByteLimit, expires: request.Run.CreatedAt.Add(VolatileLifetime)}
+	evidence := Evidence{reader: reader, actor: request.Actor, run: request.Run, scope: cloneScope(project.Scope), bundle: bundle, kind: proofKind, requested: request.Kind, recordLimit: request.RecordLimit, byteLimit: request.ByteLimit, expires: request.Run.CreatedAt.Add(VolatileLifetime)}
 	if request.Kind == assistant.Logs && project.Logs != nil {
 		evidence.logConsent = request.LogConsent
 		evidence.logPolicy = project.Logs.PolicyFingerprint()

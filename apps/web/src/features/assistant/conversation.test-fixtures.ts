@@ -137,27 +137,69 @@ export const incidentResponse = () => {
 export const historicalResponses = () => {
   const base = investigationResponse();
   const reportBase = incidentResponse();
-  if (base.content_state !== 'ready' || reportBase.content_state !== 'ready') throw new Error('Missing history report fixture');
+  if (base.content_state !== 'ready' || reportBase.content_state !== 'ready')
+    throw new Error('Missing history report fixture');
   const selected = base.citations[0];
   const alert = { ...selected, id: `ev_${'d'.repeat(64)}`, kind: 'alert' };
   const workload = { ...selected, id: `ev_${'e'.repeat(64)}`, kind: 'workload' };
   const citations = [...base.citations, alert, workload];
-  const coverage = base.coverage?.map((item) => item.tool === 'alert_history' || item.tool === 'workload_history' ? { ...item, availability: 'available', records: 1 } : item);
+  const coverage = base.coverage?.map((item) =>
+    item.tool === 'alert_history' || item.tool === 'workload_history'
+      ? { ...item, availability: 'available', records: 1 }
+      : item,
+  );
   const ready = parseAssistantRunResponse({ ...base, citations, coverage }, base.run.id);
-  const common = { at: base.run.scope.range.from, availability: 'available', completeness: 'complete', synthetic: true, health: '', metric: null, severity: '', redacted: false, truncated: false };
-  const report = parseAssistantIncidentReportResponse({
-    ...reportBase, citations, coverage,
-    report: {
-      ...reportBase.report,
-      timeline: [
-        { ...common, citation_id: alert.id, kind: 'alert', time_basis: 'occurred', alert: { from: null, to: 'firing' } },
-        { ...common, citation_id: workload.id, kind: 'workload', time_basis: 'sampled', workload: { desired: 3, ready: 1 } },
-        ...reportBase.report.timeline,
-      ],
-      hypotheses: [{ code: 'workload_shortfall_possible', rank: 1, qualified: true, supporting: [workload.id], contrary: [] }],
-      gaps: reportBase.report.gaps.filter((gap) => gap !== 'alerts_not_read' && gap !== 'workload_history_not_read'),
+  const common = {
+    at: base.run.scope.range.from,
+    availability: 'available',
+    completeness: 'complete',
+    synthetic: true,
+    health: '',
+    metric: null,
+    severity: '',
+    redacted: false,
+    truncated: false,
+  };
+  const report = parseAssistantIncidentReportResponse(
+    {
+      ...reportBase,
+      citations,
+      coverage,
+      report: {
+        ...reportBase.report,
+        timeline: [
+          {
+            ...common,
+            citation_id: alert.id,
+            kind: 'alert',
+            time_basis: 'occurred',
+            alert: { from: null, to: 'firing' },
+          },
+          {
+            ...common,
+            citation_id: workload.id,
+            kind: 'workload',
+            time_basis: 'sampled',
+            workload: { desired: 3, ready: 1 },
+          },
+          ...reportBase.report.timeline,
+        ],
+        hypotheses: [
+          {
+            code: 'workload_shortfall_possible',
+            rank: 1,
+            qualified: true,
+            supporting: [workload.id],
+            contrary: [],
+          },
+        ],
+        gaps: reportBase.report.gaps.filter(
+          (gap) => gap !== 'alerts_not_read' && gap !== 'workload_history_not_read',
+        ),
+      },
     },
-  }, base.run.id);
+    base.run.id,
+  );
   return { ready, report, workload };
 };
 export const pendingResponse = () => {
