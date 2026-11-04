@@ -502,8 +502,10 @@ export const inspectAssistantPolicy = (document) => {
       alert.additionalProperties === false &&
       same(alert.required, ['from', 'to']) &&
       same(Object.keys(alert.properties ?? {}), ['from', 'to']) &&
-      same(alert.properties.from.type, ['string', 'null']) &&
-      same(alert.properties.from.enum, [null, 'pending', 'firing', 'acknowledged', 'resolved']) &&
+      alert.properties.from.oneOf?.length === 2 &&
+      alert.properties.from.oneOf[0].type === 'string' &&
+      same(alert.properties.from.oneOf[0].enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&
+      alert.properties.from.oneOf[1].type === 'null' &&
       alert.properties.to.type === 'string' &&
       same(alert.properties.to.enum, ['pending', 'firing', 'acknowledged', 'resolved']) &&
       workload?.type === 'object' &&
@@ -512,9 +514,9 @@ export const inspectAssistantPolicy = (document) => {
       same(Object.keys(workload.properties ?? {}), ['desired', 'ready']) &&
       ['desired', 'ready'].every(
         (key) =>
-          same(workload.properties[key]?.type, ['integer', 'null']) &&
-          workload.properties[key].minimum === 0 &&
-          workload.properties[key].maximum === 9007199254740991,
+          workload.properties[key]?.oneOf?.length === 2 &&
+          bounded(workload.properties[key].oneOf[0], 0, 9007199254740991) &&
+          workload.properties[key].oneOf[1].type === 'null',
       ),
     'report.history',
   );

@@ -237,11 +237,17 @@ export async function assistantLiveJourney(
       const report = panel.locator('.assistant__report');
       metadata.report_rows = await report.locator('tbody tr').count();
       expect(metadata.report_rows >= 1 && metadata.report_rows <= 64).toBe(true);
+      const firstRow = report.locator('tbody tr').first();
+      const firstKind = await firstRow.getAttribute('data-kind');
+      const focusTarget = firstKind === 'alert' || firstKind === 'workload'
+        ? await firstRow.getAttribute('id')
+        : 'resource-detail-name';
+      expect(focusTarget).not.toBeNull();
       await report.locator('tbody button').first().click();
       try {
         await page.waitForFunction(
-          () => document.activeElement?.id === 'resource-detail-name',
-          undefined,
+          (expected) => document.activeElement?.id === expected,
+          focusTarget,
           { timeout: 5000 },
         );
       } catch {

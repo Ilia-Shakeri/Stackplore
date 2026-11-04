@@ -14,3 +14,12 @@ formatting are applied from that run's source-only patch. The failed run remains
 failed; complete fresh verification and signed packaging are still required.
 
 [Behavior, privacy and bounds](../../v2/incident-history.md).
+
+The next source `4930fab27a47bf1981c561e4941714b24faa328c` in
+[41807685783](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41807685783)
+passes focused Go, SQL, client type/response and desktop component checks. Its
+full gate rejects nullable schema type arrays: the repository requires one
+explicit type per branch. The correction uses closed string/integer-or-null
+branches and keeps exact state/count checks. Review also updates chosen-profile
+SQL accounting from 16 to 20 actual reservations, including both historical
+families, and adds historical witness focus/clear checks in both languages.

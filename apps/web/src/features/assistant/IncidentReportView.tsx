@@ -166,6 +166,7 @@ export function IncidentReportView({
                     <tr
                       key={item.citation_id}
                       id={`incident-evidence-${item.citation_id}`}
+                      data-kind={item.kind}
                       tabIndex={-1}
                     >
                       <td>

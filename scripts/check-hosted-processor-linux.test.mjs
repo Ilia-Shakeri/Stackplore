@@ -66,6 +66,8 @@ test('real investigation SQL proof requires exact reservations and known single 
       metrics: 2,
       events: 2,
       topology: 2,
+      alert_history: 2,
+      workload_history: 2,
       inference: 4,
     }).flatMap(([kind, count]) =>
       Array.from({ length: count }, () => ({

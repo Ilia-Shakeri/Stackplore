@@ -49,7 +49,7 @@ export function validHostedDatabaseMetadata(value, source) {
     !Array.isArray(value.runs) ||
     value.runs.length !== 4 ||
     !Array.isArray(value.steps) ||
-    value.steps.length !== 16
+    value.steps.length !== 20
   )
     return false;
   for (const goal of ['explain_resource', 'investigate_incident']) {
@@ -67,7 +67,7 @@ export function validHostedDatabaseMetadata(value, source) {
     )
       return false;
   }
-  const counts = { inventory: 4, health: 2, metrics: 2, events: 2, topology: 2, inference: 4 };
+  const counts = { inventory: 4, health: 2, metrics: 2, events: 2, topology: 2, alert_history: 2, workload_history: 2, inference: 4 };
   for (const [kind, count] of Object.entries(counts)) {
     if (value.steps.filter((step) => step.kind === kind).length !== count) return false;
   }

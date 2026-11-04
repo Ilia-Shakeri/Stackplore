@@ -3376,8 +3376,10 @@ components:
           required: [from, to]
           properties:
             from:
-              type: [string, 'null']
-              enum: [null, pending, firing, acknowledged, resolved]
+              oneOf:
+                - type: string
+                  enum: [pending, firing, acknowledged, resolved]
+                - type: 'null'
             to:
               type: string
               enum: [pending, firing, acknowledged, resolved]
@@ -3387,13 +3389,17 @@ components:
           required: [desired, ready]
           properties:
             desired:
-              type: [integer, 'null']
-              minimum: 0
-              maximum: 9007199254740991
+              oneOf:
+                - type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                - type: 'null'
             ready:
-              type: [integer, 'null']
-              minimum: 0
-              maximum: 9007199254740991
+              oneOf:
+                - type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                - type: 'null'
       description: Exact typed chronology. Alert/workload objects occur only for their own family. Unavailable workload samples carry null counts; other families require readable status. Actual sample/occurrence times stay inside the half-open window and distinct from read time. No prose or native provider identity.
     AssistantIncidentHypothesis:
       type: object
