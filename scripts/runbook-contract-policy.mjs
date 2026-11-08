@@ -114,7 +114,10 @@ export function inspectRunbookPolicy(document) {
     issues.push('RunbookCommit.confirmed');
   if (schemas.RunbookProvenance?.properties?.use_reviewed?.const !== true)
     issues.push('RunbookProvenance.use_reviewed');
-  if (JSON.stringify(schemas.RunbookProvenance?.properties?.kind?.enum) !== JSON.stringify(['operator_authored', 'licensed_copy', 'public_domain']))
+  if (
+    JSON.stringify(schemas.RunbookProvenance?.properties?.kind?.enum) !==
+    JSON.stringify(['operator_authored', 'licensed_copy', 'public_domain'])
+  )
     issues.push('RunbookProvenance.kind');
   if (schemas.RunbookSearch?.properties?.limit?.maximum !== 10) issues.push('RunbookSearch.limit');
   return issues;

@@ -134,6 +134,7 @@ describe('separate reviewed documents page', () => {
       );
       await user.click(await screen.findByRole('button', { name: 'Private result' }));
       await screen.findByText('<script>private-inert-text</script>');
+      expect(screen.getByText('Reviewed fixture source').tagName).toBe('DD');
       expect(screen.getByRole('heading', { name: 'Opened document' })).toBe(document.activeElement);
       expect(document.querySelector('.runbooks-document script')).toBeNull();
       act(() => {
@@ -141,6 +142,7 @@ describe('separate reviewed documents page', () => {
       });
       expect(screen.queryByText('<script>private-inert-text</script>')).toBeNull();
       expect(screen.queryByText('Private result')).toBeNull();
+      expect(screen.queryByText('Reviewed fixture source')).toBeNull();
     },
   );
   it('discards preview when edited and fences a late result after leaving the page', async () => {
