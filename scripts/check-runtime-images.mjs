@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   POSTGRES_IMAGE_POLICY_PATH,
   GOSU_BUILD_IMAGE,
+  POSTGRES_RUNTIME_PATCH_COMMAND,
   validatePostgresImagePolicy,
 } from './runtime-image-policy.mjs';
 
@@ -55,10 +56,12 @@ export function validateRuntimeImageReferences(policy, sources) {
   );
   const sourceLine = `ADD --checksum=sha256:${policy.gosu_source_sha256} https://codeload.github.com/tianon/gosu/tar.gz/${policy.gosu_source_commit} /tmp/gosu.tar.gz`;
   const lines = dockerfile.split(/\r?\n/u);
+  const runtimeLines = lines.slice(lines.lastIndexOf(`FROM ${policy.image}`) + 1);
   if (
     from.length !== 2 ||
     from[0] !== GOSU_BUILD_IMAGE ||
     from[1] !== policy.image ||
+    !runtimeLines.includes(POSTGRES_RUNTIME_PATCH_COMMAND) ||
     !lines.includes(sourceLine) ||
     !dockerfile.includes(`test "$(go env GOVERSION)" = 'go${policy.gosu_build_go}'`) ||
     !dockerfile.includes(`grep -qx 'const Version = "${policy.gosu_version}"' version.go`) ||

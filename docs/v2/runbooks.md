@@ -1,8 +1,8 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
-Status: **stage-7 preparation only**. The pure corpus model and boundary tests
-are authored on `v2/runbooks-prep`; they grant no authority, expose no HTTP route,
-create no database table and do not complete stage 7. Stage-6 quality review and
+Status: **stage-7 preparation only**. The pure corpus model, owner-metadata read
+port and boundary tests are authored on `v2/runbooks-prep`. They expose no HTTP
+route, create no database table and do not complete stage 7. Stage-6 quality review and
 pilot resources remain unavailable; hosted preparation continues by instruction.
 
 ## Corpus identity and bounds
@@ -25,6 +25,21 @@ transport/storage projections must be separate from these protected values.
 Search input is at most 256 UTF-8 bytes and ten results. Snippets are at most 512
 UTF-8 bytes, preserve complete code points and are rendered as plain text. This
 preparation has no search engine or approval state. It performs no I/O.
+
+## Owner-metadata repository preparation
+
+The separate metadata port queries existing run metadata by authenticated owner,
+one exact state, current restore generation and a seven-day retention window.
+It selects safe columns only, at most ten entries plus one sentinel, ordered by
+creation time and opaque ID descending. Paired keyset fields exclude the prior
+row even when times tie. The existing owner/state/time index matches the required
+filter; actual hot-path query plans still need measurement before performance claims.
+
+The active current session is checked on both sides of the bounded transaction;
+an old run's expired session does not need to be resurrected to read safe metadata.
+An administrator has no other-owner shortcut. Changing restore generation hides
+old records. No question, answer, report, evidence body, session digest or provider
+credential is selected. This port is not wired to the HTTP or desktop boundary yet.
 
 ## Remaining implementation contract
 

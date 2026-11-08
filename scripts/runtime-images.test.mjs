@@ -13,6 +13,7 @@ import {
 import {
   POSTGRES_IMAGE_POLICY_PATH,
   GOSU_BUILD_IMAGE,
+  POSTGRES_RUNTIME_PATCH_COMMAND,
   validatePostgresImagePolicy,
 } from './runtime-image-policy.mjs';
 
@@ -36,6 +37,7 @@ RUN test "$(go env GOVERSION)" = 'go${pin.gosu_build_go}' && \\
     grep -qx 'const Version = "${pin.gosu_version}"' version.go && \\
     CGO_ENABLED=0 go build -trimpath -buildvcs=false -o /out/gosu .
 FROM ${pin.image}
+${POSTGRES_RUNTIME_PATCH_COMMAND}
 COPY --from=gosu-build --chmod=0755 /out/gosu /usr/local/bin/gosu
 COPY --from=gosu-build /out/licenses/ /usr/share/licenses/stackplore-postgres/
 `;
@@ -207,6 +209,10 @@ test('runtime Dockerfile rejects unpinned, missing, or drifted base and helper b
     dockerfile(pin).replace('go1.26.10', 'go1.26.9'),
     dockerfile(pin).replace('const Version = "1.19"', 'const Version = "1.18"'),
     dockerfile(pin).replace('CGO_ENABLED=0', 'CGO_ENABLED=1'),
+    dockerfile(pin).replace(POSTGRES_RUNTIME_PATCH_COMMAND, ''),
+    dockerfile(pin).replace('musl=1.2.6-r3', 'musl=1.2.6-r2'),
+    dockerfile(pin).replace('zlib=1.4-r0', 'zlib=1.3.2-r0'),
+    `${POSTGRES_RUNTIME_PATCH_COMMAND}\n${dockerfile(pin).replace(POSTGRES_RUNTIME_PATCH_COMMAND, '')}`,
     dockerfile(pin).replace('/usr/local/bin/gosu', '/usr/local/bin/other'),
     dockerfile(pin).replace('/usr/share/licenses/stackplore-postgres/', '/discard/'),
     dockerfile(pin).replace(

@@ -1,7 +1,7 @@
 # Version 2 implementation ledger
 
 > Development candidate **2.0.0-alpha.6.2**, schema **19**, branch `v2/alpha6`.
-> Selected history/report/interface integration awaits exact-source hosted checks.
+> Selected history/report/interface integration passes its recorded hosted source checks.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
@@ -9,7 +9,11 @@
 
 History candidate adds two independently reserved read families, sealed-proof
 coverage, typed historical report fields, qualified workload recovery and bilingual
-witness rows. [Behavior and bounds](incident-history.md). No local execution.
+witness rows. Source `2405beebf748c6d965d81500d1e60342c158a0b6` passes all eight
+[hosted jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41810337668).
+[Behavior and bounds](incident-history.md), [attempts and receipts](../evidence/2.0.0-alpha.6.2/README.md).
+No local execution. The maintainer has no independent evaluator/pilot available;
+hosted preparation continues without substituting synthetic checks for those gates.
 Stage-6 held-out quality and later security/pilot/stable gates remain unaccepted.
 
 The desktop preview **2.0.0-alpha.6.1** is published at

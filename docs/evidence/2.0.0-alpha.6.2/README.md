@@ -40,3 +40,46 @@ in the fixed tuple fixture and a test callback marked async without awaiting.
 The correction uses definite tuple members and explicitly flushes the asynchronous
 witness response. Lint remains enabled. The signed branch trial is a separate
 receipt and does not accept this failed source gate.
+
+## Verified integration source
+
+Source `2405beebf748c6d965d81500d1e60342c158a0b6` passes all eight jobs in
+[41810337668](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41810337668).
+This includes current authorization/reservations, actual PostgreSQL history and
+schema19 upgrade checks, strict contracts/locales, the full source/build gate,
+concurrency, Docker/Kubernetes, fresh Compose and external-TLS Helm installs,
+the chosen actual processor journeys and production browser/offline checks.
+History facts reach the report and bilingual interface; explicit historical
+witness reads focus their own row and closing clears it. The empty-family proof
+substitution regression is included. Integration code review: **9/10** in this
+bounded scope, subject to the remaining quality and public artifact gates.
+
+Signed branch trial
+[41809415323](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41809415323)
+passes at the earlier exact source `8b42489f88cabe1f368b816617cac36e88976f4f`.
+That trial is not a substitute for publication of the final source. Fresh signed
+packaging, exact-tag verification and publication remain separate gates.
+
+The maintainer reports no independent human evaluator or pilot environment and
+authorizes hosted preparation to continue. Stage-6 held-out semantic quality,
+stages 7–10 and stable 2.0 remain unaccepted. The runbook model is isolated on a
+preparation branch; it is not part of this integration checkpoint.
+
+## Fresh package scan — 2026-11-08
+
+The signed trial
+[42454080925](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42454080925)
+at `45ee416a19bd32754d73c0a0318cf46b1d1276c8` fails the database-image security
+gate. The retained scan reports HIGH CVE-2026-107891 in musl/musl-utils 1.2.6-r2
+and HIGH CVE-2026-85091 in zlib 1.3.2-r0. Publication is blocked; the older green
+trial does not certify a fresh vulnerability database.
+
+The correction pins runtime package repairs in the unchanged digest-bound
+PostgreSQL 17.11 engine image and requires that command in the final runtime
+stage. Official Alpine v3.24 package records show
+[musl 1.2.6-r3](https://pkgs.alpinelinux.org/package/v3.24/main/x86_64/musl)
+and [zlib 1.4-r0](https://pkgs.alpinelinux.org/package/v3.24/main/x86_64/zlib).
+The application runtime's existing Alpine v3.23 branch uses its own
+[musl 1.2.5-r24](https://pkgs.alpinelinux.org/package/v3.23/main/x86_64/musl)
+repair. Engine pins, strict HIGH/CRITICAL rejection, SBOMs, native smoke and
+provenance remain mandatory. Fresh source and package checks are required.
