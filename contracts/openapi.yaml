@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 2.0.0-alpha.7.1
+  version: 2.0.0-alpha.7.2
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -232,7 +232,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunbookDocument'
+                $ref: '#/components/schemas/RunbookContent'
         '400':
           $ref: '#/components/responses/BadRequestProblem'
         '401':
@@ -3274,10 +3274,44 @@ components:
           minLength: 1
           maxLength: 16384
           description: At most 16384 UTF-8 bytes; inert plain text. LF and tab are allowed.
+    RunbookProvenance:
+      type: object
+      additionalProperties: false
+      required: [kind, source, license, use_reviewed]
+      properties:
+        kind:
+          type: string
+          enum: [operator_authored, licensed_copy, public_domain]
+        source:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: At most 512 UTF-8 bytes of inert source attribution; never fetched.
+        license:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: At most 128 UTF-8 bytes recording the operator's usage basis; not legal certification.
+        use_reviewed:
+          type: boolean
+          const: true
+          description: Operator explicitly reviewed rights for the installation's current document use.
+    RunbookContent:
+      type: object
+      additionalProperties: false
+      required: [document, provenance]
+      properties:
+        document:
+          $ref: '#/components/schemas/RunbookDocument'
+        provenance:
+          oneOf:
+            - $ref: '#/components/schemas/RunbookProvenance'
+            - type: 'null'
+          description: Null denotes a legacy revision without recorded provenance; never inferred permission.
     RunbookCorpus:
       type: object
       additionalProperties: false
-      required: [id, version, audience, documents]
+      required: [id, version, audience, documents, provenance]
       properties:
         id:
           $ref: '#/components/schemas/RunbookId'
@@ -3295,7 +3329,12 @@ components:
           maxItems: 32
           items:
             $ref: '#/components/schemas/RunbookDocument'
-          description: Nonempty for approval; empty for revocation. Combined prose is at most 512 KiB.
+          description: Nonempty for approval; empty for revocation. Combined persisted text is at most 512 KiB.
+        provenance:
+          oneOf:
+            - $ref: '#/components/schemas/RunbookProvenance'
+            - type: 'null'
+          description: Required recorded review for approval; null only for revocation.
     RunbookMaterial:
       type: object
       additionalProperties: false
@@ -3346,7 +3385,7 @@ components:
     RunbookRevision:
       type: object
       additionalProperties: false
-      required: [id, version, digest, audience, approved, generation, documents, bytes]
+      required: [id, version, digest, audience, approved, generation, documents, bytes, provenance]
       properties:
         id:
           $ref: '#/components/schemas/RunbookId'
@@ -3373,6 +3412,11 @@ components:
           type: integer
           minimum: 0
           maximum: 524288
+        provenance:
+          oneOf:
+            - $ref: '#/components/schemas/RunbookProvenance'
+            - type: 'null'
+          description: Null denotes a legacy revision with no recorded source review.
     RunbookCatalog:
       type: object
       additionalProperties: false

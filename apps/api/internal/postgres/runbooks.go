@@ -33,7 +33,7 @@ func (store *Store) PreviewRunbook(ctx context.Context, p runbook.Preview) (runb
 			return runbook.ErrConflict
 		}
 		var digest []byte
-		err = tx.QueryRow(ctx, `SELECT version,digest,audience,approved,restore_generation,document_count,content_bytes FROM runbook_corpora WHERE id=$1`, p.CorpusID).Scan(&current.Version, &digest, &current.Audience, &current.Approved, &current.Generation, &current.Documents, &current.Bytes)
+		err = tx.QueryRow(ctx, `SELECT version,digest,audience,approved,restore_generation,document_count,content_bytes,COALESCE(provenance_kind,''),COALESCE(provenance_source,''),COALESCE(provenance_license,''),COALESCE(provenance_use_reviewed,false) FROM runbook_corpora WHERE id=$1`, p.CorpusID).Scan(&current.Version, &digest, &current.Audience, &current.Approved, &current.Generation, &current.Documents, &current.Bytes, &current.Provenance.Kind, &current.Provenance.Source, &current.Provenance.License, &current.Provenance.UseReviewed)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return err
 		}
@@ -143,7 +143,7 @@ func (store *Store) ChangeRunbook(ctx context.Context, c runbook.Change) (runboo
 		}
 		current := runbook.Revision{ID: c.Corpus.ID}
 		var digest []byte
-		err = tx.QueryRow(ctx, `SELECT version,digest,audience,approved,restore_generation,document_count,content_bytes FROM runbook_corpora WHERE id=$1 FOR UPDATE`, c.Corpus.ID).Scan(&current.Version, &digest, &current.Audience, &current.Approved, &current.Generation, &current.Documents, &current.Bytes)
+		err = tx.QueryRow(ctx, `SELECT version,digest,audience,approved,restore_generation,document_count,content_bytes,COALESCE(provenance_kind,''),COALESCE(provenance_source,''),COALESCE(provenance_license,''),COALESCE(provenance_use_reviewed,false) FROM runbook_corpora WHERE id=$1 FOR UPDATE`, c.Corpus.ID).Scan(&current.Version, &digest, &current.Audience, &current.Approved, &current.Generation, &current.Documents, &current.Bytes, &current.Provenance.Kind, &current.Provenance.Source, &current.Provenance.License, &current.Provenance.UseReviewed)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return err
 		}
@@ -196,12 +196,9 @@ func (store *Store) ChangeRunbook(ctx context.Context, c runbook.Change) (runboo
 			current.Generation = generation
 			result = current
 		} else {
-			size := len(c.Corpus.ID) + len(c.Corpus.Audience)
-			for _, d := range c.Corpus.Documents {
-				size += len(d.ID) + len(d.Locale) + len(d.Title) + len(d.Body)
-			}
-			if _, err := tx.Exec(ctx, `INSERT INTO runbook_corpora(id,version,digest,audience,approved,restore_generation,document_count,content_bytes,updated_at_us)
-VALUES($1,$2,$3,$4,true,$5,$6,$7,$8) ON CONFLICT(id) DO UPDATE SET version=EXCLUDED.version,digest=EXCLUDED.digest,audience=EXCLUDED.audience,approved=true,restore_generation=EXCLUDED.restore_generation,document_count=EXCLUDED.document_count,content_bytes=EXCLUDED.content_bytes,updated_at_us=EXCLUDED.updated_at_us`, c.Corpus.ID, c.Corpus.Version, c.Digest[:], string(c.Corpus.Audience), generation, len(c.Corpus.Documents), size, at.UnixMicro()); err != nil {
+			size := c.Corpus.ContentBytes()
+			if _, err := tx.Exec(ctx, `INSERT INTO runbook_corpora(id,version,digest,audience,approved,restore_generation,document_count,content_bytes,updated_at_us,provenance_kind,provenance_source,provenance_license,provenance_use_reviewed)
+VALUES($1,$2,$3,$4,true,$5,$6,$7,$8,$9,$10,$11,true) ON CONFLICT(id) DO UPDATE SET version=EXCLUDED.version,digest=EXCLUDED.digest,audience=EXCLUDED.audience,approved=true,restore_generation=EXCLUDED.restore_generation,document_count=EXCLUDED.document_count,content_bytes=EXCLUDED.content_bytes,updated_at_us=EXCLUDED.updated_at_us,provenance_kind=EXCLUDED.provenance_kind,provenance_source=EXCLUDED.provenance_source,provenance_license=EXCLUDED.provenance_license,provenance_use_reviewed=true`, c.Corpus.ID, c.Corpus.Version, c.Digest[:], string(c.Corpus.Audience), generation, len(c.Corpus.Documents), size, at.UnixMicro(), c.Corpus.Provenance.Kind, c.Corpus.Provenance.Source, c.Corpus.Provenance.License); err != nil {
 				return err
 			}
 			for _, d := range c.Corpus.Documents {
@@ -209,7 +206,7 @@ VALUES($1,$2,$3,$4,true,$5,$6,$7,$8) ON CONFLICT(id) DO UPDATE SET version=EXCLU
 					return err
 				}
 			}
-			result = runbook.Revision{ID: c.Corpus.ID, Version: c.Corpus.Version, Digest: c.Digest, Audience: c.Corpus.Audience, Approved: true, Generation: generation, Documents: len(c.Corpus.Documents), Bytes: size}
+			result = runbook.Revision{ID: c.Corpus.ID, Version: c.Corpus.Version, Digest: c.Digest, Audience: c.Corpus.Audience, Approved: true, Generation: generation, Documents: len(c.Corpus.Documents), Bytes: size, Provenance:c.Corpus.Provenance}
 		}
 		if _, err := tx.Exec(ctx, `UPDATE runbook_catalog SET row_version=row_version+1 WHERE singleton=1`); err != nil {
 			return err
@@ -242,7 +239,7 @@ func (store *Store) InspectRunbooks(ctx context.Context, actor auth.Principal) (
 		if err != nil {
 			return err
 		}
-		rows, err := tx.Query(ctx, `SELECT id,version,digest,audience,approved,restore_generation,document_count,content_bytes FROM runbook_corpora ORDER BY id COLLATE "C" LIMIT 17`)
+		rows, err := tx.Query(ctx, `SELECT id,version,digest,audience,approved,restore_generation,document_count,content_bytes,COALESCE(provenance_kind,''),COALESCE(provenance_source,''),COALESCE(provenance_license,''),COALESCE(provenance_use_reviewed,false) FROM runbook_corpora ORDER BY id COLLATE "C" LIMIT 17`)
 		if err != nil {
 			return err
 		}
@@ -250,7 +247,7 @@ func (store *Store) InspectRunbooks(ctx context.Context, actor auth.Principal) (
 		for rows.Next() {
 			var revision runbook.Revision
 			var digest []byte
-			if err := rows.Scan(&revision.ID, &revision.Version, &digest, &revision.Audience, &revision.Approved, &revision.Generation, &revision.Documents, &revision.Bytes); err != nil {
+			if err := rows.Scan(&revision.ID, &revision.Version, &digest, &revision.Audience, &revision.Approved, &revision.Generation, &revision.Documents, &revision.Bytes, &revision.Provenance.Kind, &revision.Provenance.Source, &revision.Provenance.License, &revision.Provenance.UseReviewed); err != nil {
 				return err
 			}
 			if len(digest) != 32 || len(result.Revisions) >= runbook.MaximumCorpora {
@@ -344,13 +341,13 @@ func (store *Store) SearchRunbooks(ctx context.Context, q runbook.Search) (runbo
 	return page, nil
 }
 
-func (store *Store) ReadRunbook(ctx context.Context, actor auth.Principal, reference runbook.Reference) (runbook.Document, error) {
+func (store *Store) ReadRunbook(ctx context.Context, actor auth.Principal, reference runbook.Reference) (runbook.Content, error) {
 	if ctx == nil || actor.Validate() != nil || reference.Validate() != nil {
-		return runbook.Document{}, runbook.ErrInvalid
+		return runbook.Content{}, runbook.ErrInvalid
 	}
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-	var document runbook.Document
+	var document runbook.Content
 	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
 		tx := transaction.transaction
 		if err := runbookLive(ctx, tx, actor, false); err != nil {
@@ -363,9 +360,9 @@ func (store *Store) ReadRunbook(ctx context.Context, actor auth.Principal, refer
 		if generation != reference.Generation {
 			return runbook.ErrDenied
 		}
-		err = tx.QueryRow(ctx, `SELECT d.id,d.locale,d.title,d.body FROM runbook_corpora c JOIN runbook_documents d ON d.corpus_id=c.id
+		err = tx.QueryRow(ctx, `SELECT d.id,d.locale,d.title,d.body,COALESCE(c.provenance_kind,''),COALESCE(c.provenance_source,''),COALESCE(c.provenance_license,''),COALESCE(c.provenance_use_reviewed,false) FROM runbook_corpora c JOIN runbook_documents d ON d.corpus_id=c.id
 WHERE c.id=$1 AND c.version=$2 AND c.digest=$3 AND c.restore_generation=$4 AND c.approved
-AND (c.audience='all_users' OR $5::boolean) AND d.id=$6 AND d.locale=$7`, reference.CorpusID, reference.Version, reference.Digest[:], generation, actor.Role == auth.RoleAdministrator, reference.DocumentID, reference.Locale).Scan(&document.ID, &document.Locale, &document.Title, &document.Body)
+AND (c.audience='all_users' OR $5::boolean) AND d.id=$6 AND d.locale=$7`, reference.CorpusID, reference.Version, reference.Digest[:], generation, actor.Role == auth.RoleAdministrator, reference.DocumentID, reference.Locale).Scan(&document.Document.ID, &document.Document.Locale, &document.Document.Title, &document.Document.Body, &document.Provenance.Kind, &document.Provenance.Source, &document.Provenance.License, &document.Provenance.UseReviewed)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return runbook.ErrDenied
 		}
@@ -378,7 +375,7 @@ AND (c.audience='all_users' OR $5::boolean) AND d.id=$6 AND d.locale=$7`, refere
 		return runbookLive(ctx, tx, actor, false)
 	})
 	if err != nil {
-		return runbook.Document{}, runbookError(err)
+		return runbook.Content{}, runbookError(err)
 	}
 	return document, nil
 }

@@ -18,7 +18,7 @@ type repository struct {
 	preview func(context.Context, runbook.Preview) (runbook.PreviewResult, error)
 	change  func(context.Context, runbook.Change) (runbook.Revision, error)
 	search  func(context.Context, runbook.Search) (runbook.Page, error)
-	read    func(context.Context, auth.Principal, runbook.Reference) (runbook.Document, error)
+	read    func(context.Context, auth.Principal, runbook.Reference) (runbook.Content, error)
 	catalog func(context.Context, auth.Principal) (runbook.Catalog, error)
 }
 
@@ -31,7 +31,7 @@ func (r *repository) ChangeRunbook(ctx context.Context, c runbook.Change) (runbo
 func (r *repository) SearchRunbooks(ctx context.Context, q runbook.Search) (runbook.Page, error) {
 	return r.search(ctx, q)
 }
-func (r *repository) ReadRunbook(ctx context.Context, a auth.Principal, ref runbook.Reference) (runbook.Document, error) {
+func (r *repository) ReadRunbook(ctx context.Context, a auth.Principal, ref runbook.Reference) (runbook.Content, error) {
 	return r.read(ctx, a, ref)
 }
 func (r *repository) InspectRunbooks(ctx context.Context, a auth.Principal) (runbook.Catalog, error) {
@@ -42,7 +42,7 @@ func fixture(t *testing.T) (*Service, *repository, auth.Principal, Material, *ti
 	t.Helper()
 	at := time.Date(2026, 11, 8, 10, 0, 0, 0, time.UTC)
 	actor := auth.Principal{UserID: "user_document", SessionID: "session_document", Role: auth.RoleAdministrator, AuthRevision: 1}
-	corpus := runbook.Corpus{ID: "operations", Version: 1, Audience: runbook.AllUsers, Documents: []runbook.Document{{ID: "a", Locale: "en", Title: "Service recovery", Body: "Read service state."}}}
+	corpus := runbook.Corpus{ID: "operations", Version: 1, Audience: runbook.AllUsers, Provenance: runbook.Provenance{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true}, Documents: []runbook.Document{{ID: "a", Locale: "en", Title: "Service recovery", Body: "Read service state."}}}
 	digest, err := corpus.Digest()
 	if err != nil {
 		t.Fatal(err)
@@ -81,7 +81,7 @@ func TestPreviewBindsProtectedMaterialAndCommitRequiresGrant(t *testing.T) {
 		if c.Validate() != nil || c.ConfirmationDigest != reviewed.ConfirmationDigest || c.Digest != reviewed.Digest {
 			t.Fatal("commit detached review identity")
 		}
-		return runbook.Revision{ID: m.Corpus.ID, Version: 1, Digest: m.Digest, Audience: runbook.AllUsers, Approved: true, Documents: 1, Bytes: len(m.Corpus.ID) + len(m.Corpus.Audience) + len(m.Corpus.Documents[0].ID) + len(m.Corpus.Documents[0].Locale) + len(m.Corpus.Documents[0].Title) + len(m.Corpus.Documents[0].Body)}, nil
+		return runbook.Revision{ID: m.Corpus.ID, Version: 1, Digest: m.Digest, Audience: runbook.AllUsers, Provenance: runbook.Provenance{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true}, Approved: true, Documents: 1, Bytes: m.Corpus.ContentBytes()}, nil
 	}
 	if _, err := s.Commit(context.Background(), actor, m, draft.Token, false, grant, "request_doc"); err != runbook.ErrInvalid {
 		t.Fatal("confirmation bypass")
@@ -162,16 +162,16 @@ func TestCursorBindsActorQueryLocalePageAndLifetimeBeforeIO(t *testing.T) {
 func TestReadShutdownMalformedResultsAndSafeErrors(t *testing.T) {
 	s, repo, actor, m, _ := fixture(t)
 	reference := runbook.Reference{CorpusID: "operations", Version: 1, Digest: m.Digest, DocumentID: "a", Locale: "en"}
-	repo.read = func(context.Context, auth.Principal, runbook.Reference) (runbook.Document, error) {
-		return m.Corpus.Documents[0], nil
+	repo.read = func(context.Context, auth.Principal, runbook.Reference) (runbook.Content, error) {
+		return runbook.Content{Document: m.Corpus.Documents[0], Provenance: m.Corpus.Provenance}, nil
 	}
 	if _, err := s.Read(context.Background(), actor, reference); err != nil {
 		t.Fatal("current document read", err)
 	}
-	repo.read = func(context.Context, auth.Principal, runbook.Reference) (runbook.Document, error) {
+	repo.read = func(context.Context, auth.Principal, runbook.Reference) (runbook.Content, error) {
 		d := m.Corpus.Documents[0]
 		d.ID = "other"
-		return d, nil
+		return runbook.Content{Document:d,Provenance:m.Corpus.Provenance}, nil
 	}
 	if _, err := s.Read(context.Background(), actor, reference); err != runbook.ErrUnavailable {
 		t.Fatal("foreign document projected")
@@ -182,14 +182,14 @@ func TestReadShutdownMalformedResultsAndSafeErrors(t *testing.T) {
 	if _, err := s.Catalog(context.Background(), actor); err != runbook.ErrUnavailable {
 		t.Fatal("raw repository error escaped")
 	}
-	repo.read = func(ctx context.Context, _ auth.Principal, _ runbook.Reference) (runbook.Document, error) {
+	repo.read = func(ctx context.Context, _ auth.Principal, _ runbook.Reference) (runbook.Content, error) {
 		s.Close()
 		select {
 		case <-ctx.Done():
 		case <-time.After(time.Second):
 			t.Fatal("shutdown did not cancel read")
 		}
-		return m.Corpus.Documents[0], nil
+		return runbook.Content{Document: m.Corpus.Documents[0], Provenance: m.Corpus.Provenance}, nil
 	}
 	if _, err := s.Read(context.Background(), actor, reference); err != runbook.ErrUnavailable {
 		t.Fatal("late document escaped shutdown")

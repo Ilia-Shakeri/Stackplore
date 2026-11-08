@@ -1,6 +1,6 @@
 # Documentation
 
-Selected-history-export candidate: **2.0.0-alpha.7.1**, schema20; own hosted validation pending.
+Recorded-document-provenance candidate: **2.0.0-alpha.7.2**, schema21; own hosted validation pending.
 [Reviewed approval/search and private desktop page](v2/runbook-approval.md).
 [Reviewed-document source, exact-tag and publication receipts](evidence/2.0.0-alpha.7/README.md).
 [Selected metadata export preparation](v2/history-export.md).

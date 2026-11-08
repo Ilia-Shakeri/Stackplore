@@ -54,6 +54,7 @@ type Corpus struct {
 	Version   int64
 	Audience  Audience
 	Documents []Document
+	Provenance Provenance
 }
 
 func (Corpus) Format(state fmt.State, _ rune) {
@@ -83,11 +84,11 @@ func (document Document) Validate() error {
 }
 
 func (corpus Corpus) Validate() error {
-	if !identifier.MatchString(corpus.ID) || corpus.Version < 1 || corpus.Version > MaximumVersion || corpus.Audience != Administrators && corpus.Audience != AllUsers || len(corpus.Documents) < 1 || len(corpus.Documents) > MaximumDocuments {
+	if !identifier.MatchString(corpus.ID) || corpus.Version < 1 || corpus.Version > MaximumVersion || corpus.Audience != Administrators && corpus.Audience != AllUsers || len(corpus.Documents) < 1 || len(corpus.Documents) > MaximumDocuments || corpus.Provenance.Validate() != nil {
 		return ErrInvalid
 	}
 	seen := make(map[string]bool, len(corpus.Documents))
-	bytes := len(corpus.ID) + len(corpus.Audience)
+	bytes := len(corpus.ID) + len(corpus.Audience) + len(corpus.Provenance.Kind) + len(corpus.Provenance.Source) + len(corpus.Provenance.License)
 	for _, document := range corpus.Documents {
 		key := document.ID + ":" + document.Locale
 		if document.Validate() != nil || seen[key] {
@@ -123,12 +124,16 @@ func (corpus Corpus) Digest() ([32]byte, error) {
 		return documents[i].Locale < documents[j].Locale
 	})
 	digest := sha256.New()
-	field(digest, "stackplore-runbook-corpus-v1")
+	field(digest, "stackplore-runbook-corpus-v2")
 	field(digest, corpus.ID)
 	var version [8]byte
 	binary.BigEndian.PutUint64(version[:], uint64(corpus.Version))
 	_, _ = digest.Write(version[:])
 	field(digest, string(corpus.Audience))
+	field(digest, corpus.Provenance.Kind)
+	field(digest, corpus.Provenance.Source)
+	field(digest, corpus.Provenance.License)
+	field(digest, "use-reviewed")
 	for _, document := range documents {
 		for _, value := range []string{document.ID, document.Locale, document.Title, document.Body} {
 			field(digest, value)
@@ -137,6 +142,13 @@ func (corpus Corpus) Digest() ([32]byte, error) {
 	var result [32]byte
 	copy(result[:], digest.Sum(nil))
 	return result, nil
+}
+
+// ContentBytes counts every persisted text field in a reviewed collection.
+func (corpus Corpus) ContentBytes() int {
+ size := len(corpus.ID) + len(corpus.Audience) + len(corpus.Provenance.Kind) + len(corpus.Provenance.Source) + len(corpus.Provenance.License)
+ for _, d := range corpus.Documents { size += len(d.ID) + len(d.Locale) + len(d.Title) + len(d.Body) }
+ return size
 }
 
 // Query and Snippet are pure bounds; the repository must authorize approved versions.

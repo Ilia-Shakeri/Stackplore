@@ -31,6 +31,7 @@ type Revision struct {
 	Generation int64
 	Documents  int
 	Bytes      int
+	Provenance Provenance
 }
 
 func (Revision) Format(state fmt.State, _ rune) {
@@ -61,7 +62,7 @@ func (change Change) Validate() error {
 		return ErrInvalid
 	}
 	if change.Revoke {
-		if change.ExpectedVersion < 1 || change.Corpus.Version != change.ExpectedVersion || len(change.Corpus.Documents) != 0 || change.Corpus.Audience != "" || change.Digest == [32]byte{} || change.Audit.Action != "runbook.revoke" || change.Audit.ReasonCode != "runbook.revoked" {
+		if change.ExpectedVersion < 1 || change.Corpus.Version != change.ExpectedVersion || len(change.Corpus.Documents) != 0 || change.Corpus.Audience != "" || !change.Corpus.Provenance.Empty() || change.Digest == [32]byte{} || change.Audit.Action != "runbook.revoke" || change.Audit.ReasonCode != "runbook.revoked" {
 			return ErrInvalid
 		}
 		return nil
@@ -138,7 +139,7 @@ type Repository interface {
 	InspectRunbooks(context.Context, auth.Principal) (Catalog, error)
 	ChangeRunbook(context.Context, Change) (Revision, error)
 	SearchRunbooks(context.Context, Search) (Page, error)
-	ReadRunbook(context.Context, auth.Principal, Reference) (Document, error)
+	ReadRunbook(context.Context, auth.Principal, Reference) (Content, error)
 }
 
 type Preview struct {
@@ -185,6 +186,7 @@ func (PreviewResult) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 func ValidID(value string) bool { return identifier.MatchString(value) }
 func (revision Revision) Validate() error {
+	if !revision.Provenance.Empty() && revision.Provenance.Validate() != nil { return ErrInvalid }
 	if !ValidID(revision.ID) || revision.Version < 1 || revision.Version > MaximumVersion || revision.Digest == [32]byte{} || revision.Audience != Administrators && revision.Audience != AllUsers || revision.Generation < 0 || revision.Generation > MaximumVersion || revision.Documents < 0 || revision.Documents > MaximumDocuments || revision.Bytes < 0 || revision.Bytes > MaximumCorpusBytes || revision.Approved && (revision.Documents == 0 || revision.Bytes == 0) || !revision.Approved && (revision.Documents != 0 || revision.Bytes != 0) {
 		return ErrInvalid
 	}

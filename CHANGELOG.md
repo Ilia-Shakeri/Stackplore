@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.0-alpha.7.2] - 2026-11-08
+
+### Smart Assistant — document provenance candidate
+
+- Require explicit source attribution, usage basis and operator review for new
+  approvals; bind them to the exact canonical digest and one-use confirmation.
+- Append migration21, preserve legacy text/digests without inferred rights and
+  reject partial source records. Include the shipped schema20 upgrade prefix.
+- Show attribution during review and exact document reads in English/Persian.
+  Keep source text inert; add no crawler, disclosure or generation handoff.
+- Hosted acceptance remains pending; stage7, independent quality, pilot and
+  stable2 gates remain open.
+
 ## [2.0.0-alpha.7.1] - 2026-11-08
 
 ### Smart Assistant — selected metadata export candidate

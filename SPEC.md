@@ -1099,3 +1099,9 @@ Queries and document references use private request bodies; draft/query text is
 not persisted. The desktop page displays prose as plain text. Replaced/revoked
 rows are removed from new reads; backups, WAL and MVCC have separate retention.
 This increment adds no document-to-generation handoff or automatic learning.
+
+New document approvals also follow [ADR-0022](docs/adr/0022-runbook-provenance.md).
+Exact source attribution and operator-reviewed usage basis are bound into the
+collection digest and confirmation. Migration21 preserves old text and digests
+without inventing provenance; legacy absence stays explicit on authorized reads.
+No attributed source is fetched, executed or treated as legal certification.

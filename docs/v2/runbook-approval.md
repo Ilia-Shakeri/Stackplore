@@ -1,21 +1,25 @@
 # Smart Assistant — reviewed document approval and search
 
-Schema **20**. The bounded alpha7 source `94425f8` passes all eight source jobs
+Current candidate schema **21**, version **2.0.0-alpha.7.2**. Source-attribution
+changes below are authored and require fresh hosted proof. The bounded alpha7 source `94425f8` passes all eight source jobs
 and a signed package/security trial. Exact-tag attempt2 passes; its first
 40-second timeout remains recorded. [Source, tag and publication evidence](../evidence/2.0.0-alpha.7/README.md)
 is authoritative for release state. This guide alone grants no acceptance.
-The alpha7.1 candidate adds [selected metadata export](history-export.md) and
-synchronous page-exit clearing; its own fresh verification is still required.
+Alpha7.1 source `6441c15` passes all eight source jobs and signed trial
+`42479950922`; its immutable tag has separate verification/publication gates.
+It adds [selected metadata export](history-export.md) and synchronous page-exit
+clearing. Provenance is a later increment, outside that immutable source.
 
 ## Material and review
 
 At most 16 corpus identities, including revoked tombstones, each with 32
 English/Persian documents. IDs are lowercase slugs of at most 64 ASCII characters;
 versions are positive JavaScript-safe integers. Titles are at most 256 UTF-8
-bytes, bodies 16 KiB, and aggregate identity/audience/document material 512 KiB.
+bytes, bodies 16 KiB, and aggregate identity/audience/provenance/document text 512 KiB.
 Bodies allow LF/tab and valid visible Unicode; joiners remain valid Persian text.
 The domain-separated, length-framed digest binds identity, version, audience and
-exact document bytes independent of input order. Validation grants no approval.
+exact document bytes independent of input order. The v2 digest also binds the
+source review described below. Validation grants no approval.
 
 A preview stores only confirmation metadata for two minutes, one per session.
 It binds actor/session, action, expected previous version, digest and restore
@@ -25,8 +29,24 @@ material, the preview and a dedicated one-use `runbook.manage` recent-auth grant
 Confirmation, grant, content, catalog version and safe audit commit atomically;
 any failure rolls them all back. Audit contains fixed identity/action/reason
 metadata, never document title/body/query. Prose approval is an operator review,
-not a semantic accuracy or legal-rights certificate. Source/licence/usage metadata
-and document-to-answer integration remain separate stage7 work.
+not a semantic accuracy or legal-rights certificate. Document-to-answer integration
+remains separate stage7 work.
+
+Every new approval needs collection-level `provenance`: `kind` is
+`operator_authored`, `licensed_copy` or `public_domain`; `source` is visible inert
+attribution up to 512 UTF-8 bytes; `license` records the usage basis up to 128
+UTF-8 bytes; `use_reviewed` must be true. These are operator assertions. Use a
+separate collection when source/usage bases differ. No source address is fetched.
+The review checkbox acknowledges exact content, audience and recorded usage rights.
+
+Migration21 preserves schema20 revisions with nullable provenance and unchanged
+digests. Authorized readers may still open their inert text, with an explicit
+missing-review notice. No new approval may omit the source review. Reapprove a
+new version before any future assisted use; no generation handoff exists here.
+Read responses contain separate `document` and nullable `provenance` objects;
+catalog rows also expose nullable provenance. Imports keep one record per corpus.
+Revocation retains bounded attribution as collection metadata while removing
+live document rows; it does not claim retroactive erasure of metadata or backups.
 
 ## Private HTTP and desktop flow
 
@@ -91,6 +111,12 @@ A new administrator-only collection can use this JSON:
   "id": "operations",
   "version": 1,
   "audience": "administrators",
+  "provenance": {
+    "kind": "operator_authored",
+    "source": "Operations team's original installation notes",
+    "license": "Author permits this installation's document use",
+    "use_reviewed": true
+  },
   "documents": [
     {
       "id": "recovery",
@@ -113,7 +139,7 @@ sends action `approve`, current expected_version and generation, an empty digest
 and that corpus; the server computes the exact digest returned by preview.
 Commit resubmits the same material with its confirmation and acknowledgement.
 Revocation uses action `revoke`, the catalog's version/digest, and a corpus stub
-with the same ID/version, empty audience and empty document array.
+with the same ID/version, empty audience, empty document array and null provenance.
 
 Replacement or recovery always uses current version plus one, including after
 revocation/restore. Keep trusted operator-held copies. To roll back prose, review

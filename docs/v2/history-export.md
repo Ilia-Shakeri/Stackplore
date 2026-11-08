@@ -92,3 +92,9 @@ Source `e1c8721` in run
 passes the six install/provider/tool jobs, including Kubernetes. Focused cases
 pass; the full gate stops at the one-line pagehide regression's formatting.
 The hosted correction is applied; the privacy assertion remains unchanged.
+
+Alpha7.1 source `6441c15eeab0a8c0ec98df96cd512021f95528a0` subsequently passes
+all eight [source jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42479936460)
+and its [signed package/security trial](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42479950922).
+Its annotated tag is immutable. [Exact-source/tag/publication ledger](../evidence/2.0.0-alpha.7.1/README.md).
+This accepts the bounded export/privacy implementation, not full stage7 or stable2.

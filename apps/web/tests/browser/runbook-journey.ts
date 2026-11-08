@@ -18,6 +18,7 @@ const corpus = (version: number) => ({
   id: 'browser_approved',
   version,
   audience: 'all_users',
+  provenance: {kind:'operator_authored',source:'Synthetic browser fixture',license:'Fixture author permission',use_reviewed:true},
   documents: (['en', 'fa'] as const).map((locale) => ({
     id: 'recovery',
     locale,
@@ -36,6 +37,8 @@ async function openResult(page: Page, locale: 'en' | 'fa', label: Labels) {
   await page.getByRole('button', { name: prose(locale).title, exact: true }).click();
   await expect(page.locator('.runbooks-document')).toContainText(prose(locale).body);
   await expect(page.locator('.runbooks-document script')).toHaveCount(0);
+  await expect(page.locator('.runbooks-document')).toContainText('Synthetic browser fixture');
+  await expect(page.locator('.runbooks-document')).toContainText('Fixture author permission');
 }
 export async function runbookAdminJourney(
   page: Page,

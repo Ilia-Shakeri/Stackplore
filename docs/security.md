@@ -322,7 +322,8 @@ restore invalidates earlier references; a digest alone grants no access.
 Search text and document references use request bodies, not URLs. Prose renders
 as plain text; it cannot add tools, execute scripts or fetch links. The library
 does not send document prose to a processor. Source/licence and usage-permission
-metadata and document-to-answer/report integration remain separate stage7 work.
+metadata is newly authored in alpha7.2 and requires its own hosted acceptance;
+document-to-answer/report integration remains separate stage7 work.
 Review protects runtime authority; it does not certify a document's truth or rights.
 See [approval, limits and recovery](v2/runbook-approval.md) and the
 [exact alpha7 evidence](evidence/2.0.0-alpha.7/README.md). Its tag checks pass;
@@ -335,6 +336,14 @@ temporary download URLs are revoked. A file already downloaded is under user
 custody and cannot be recalled by session revocation. Browser timestamps and
 unsigned metadata are not server attestation. Fresh candidate hosted acceptance
 remains required. [Export contract](v2/history-export.md).
+
+The alpha7.2 provenance candidate binds an explicit operator-recorded source and
+usage review into the canonical content digest, preview and transaction. It
+preserves legacy revisions with null provenance rather than inferred rights.
+Attribution is bounded plain text, displayed only through authorized catalog or
+exact reads, and never fetched. Migration21 rejects partial source metadata.
+Recorded assertions are not legal/factual certification or permission to send
+prose remotely. [Decision and pending proof](adr/0022-runbook-provenance.md).
 
 ### Release acceptance
 

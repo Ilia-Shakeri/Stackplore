@@ -3,7 +3,8 @@ import {
   parseRunbookCorpus,
   parseRunbookMaterial,
   type RunbookCatalog,
-  type RunbookDocument,
+  type RunbookContent,
+  type RunbookProvenance,
   type RunbookMaterial,
   type RunbookPreview,
   type RunbookReference,
@@ -71,7 +72,7 @@ function PrivateRunbooks({
   const [query, setQuery] = useState('');
   const [searched, setSearched] = useState('');
   const [results, setResults] = useState<RunbookResults | null>(null);
-  const [document, setDocument] = useState<RunbookDocument | null>(null);
+  const [document, setDocument] = useState<RunbookContent | null>(null);
   const [catalog, setCatalog] = useState<RunbookCatalog | null>(null);
   const [candidate, setCandidate] = useState('');
   const [review, setReview] = useState<{
@@ -385,11 +386,12 @@ function PrivateRunbooks({
               ) : (
                 <>
                   <h3 ref={documentHeading} tabIndex={-1}>
-                    {document.title}
+                    {document.document.title}
                   </h3>
                   <p className="runbooks-prose" dir="auto">
-                    {document.body}
+                    {document.document.body}
                   </p>
+                  <ProvenanceDetails value={document.provenance} />
                   <Button
                     variant="secondary"
                     onClick={() => {
@@ -430,6 +432,7 @@ function PrivateRunbooks({
                         )}{' '}
                         · {formatNumber(revision.documents)}
                       </p>
+                      <ProvenanceDetails value={revision.provenance} />
                       {revision.approved ? (
                         <Button
                           variant="secondary"
@@ -445,6 +448,7 @@ function PrivateRunbooks({
                                 version: revision.version,
                                 audience: '',
                                 documents: [],
+                                provenance: null,
                               },
                             });
                           }}
@@ -511,6 +515,7 @@ function PrivateRunbooks({
                   </p>
                 </article>
               ))}
+              {review.material.action === 'approve' ? <ProvenanceDetails value={review.material.corpus.provenance} /> : null}
               <form ref={form} onSubmit={commit}>
                 <label>
                   <input
@@ -551,4 +556,17 @@ function PrivateRunbooks({
       )}
     </section>
   );
+}
+
+function ProvenanceDetails({value}:{readonly value:RunbookProvenance|null}) {
+  const {t}=useLocale();
+  if (value === null) return <p>{t('runbooks.provenance.legacy')}</p>;
+  return <section aria-label={t('runbooks.provenance.title')}>
+    <p>{t(`runbooks.provenance.${value.kind}`)}</p>
+    <dl>
+      <dt>{t('runbooks.provenance.source')}</dt><dd className="runbooks-prose" dir="auto">{value.source}</dd>
+      <dt>{t('runbooks.provenance.license')}</dt><dd className="runbooks-prose" dir="auto">{value.license}</dd>
+    </dl>
+    <p>{t('runbooks.provenance.notice')}</p>
+  </section>;
 }

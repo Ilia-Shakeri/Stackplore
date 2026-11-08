@@ -16,7 +16,7 @@ import (
 )
 
 func TestReleaseUpgradeFromShippedPrefixesPreservesDataAndImmutableLedger(t *testing.T) {
-	for _, previousVersion := range []int{14, 16, 17, 18, 19} {
+	for _, previousVersion := range []int{14, 16, 17, 18, 19, 20} {
 		t.Run(strconv.Itoa(previousVersion), func(t *testing.T) {
 			testReleaseUpgradePreservesDataAndImmutableLedger(t, previousVersion)
 		})
@@ -48,8 +48,8 @@ func testReleaseUpgradePreservesDataAndImmutableLedger(t *testing.T, previousVer
 	})
 
 	all, err := loadMigrations(postgresmigrations.FS)
-	if err != nil || len(all) != 20 {
-		t.Fatal("upgrade fixture requires the exact 20-migration current manifest")
+	if err != nil || len(all) != 21 {
+		t.Fatal("upgrade fixture requires the exact 21-migration current manifest")
 	}
 	previousFiles := fstest.MapFS{}
 	for _, migration := range all[:previousVersion] {
@@ -96,6 +96,11 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 		protected[table] = readSnapshot(previous, table)
 	}
 	ledgerBefore := readSnapshot(previous, "schema_migrations")
+	if previousVersion == 20 {
+		if _,err:=previous.pool.Exec(ctx,`INSERT INTO runbook_corpora(id,version,digest,audience,approved,restore_generation,document_count,content_bytes,updated_at_us) VALUES('legacy',1,decode(repeat('ab',32),'hex'),'all_users',true,0,1,50,$1)`,at.UnixMicro());err!=nil {t.Fatal("seed legacy corpus")}
+		if _,err:=previous.pool.Exec(ctx,`INSERT INTO runbook_documents(corpus_id,id,locale,title,body) VALUES('legacy','note','en','Legacy note','Retain these exact legacy bytes.')`);err!=nil {t.Fatal("seed legacy document")}
+		protected["runbook_documents"]=readSnapshot(previous,"runbook_documents")
+	}
 	var previousCount int
 	if err := previous.pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations`).Scan(&previousCount); err != nil || previousCount != previousVersion {
 		t.Fatal("fixture did not start at the exact shipped migration prefix")
@@ -106,9 +111,13 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 
 	upgraded, err := Open(ctx, options, postgresmigrations.FS)
 	if err != nil {
-		t.Fatal("forward upgrade from shipped migration prefix to 20 failed")
+		t.Fatal("forward upgrade from shipped migration prefix to 21 failed")
 	}
 	t.Cleanup(func() { _ = upgraded.Close() })
+	if previousVersion == 20 {
+		var legacy bool
+		if err:=upgraded.pool.QueryRow(ctx,`SELECT version=1 AND digest=decode(repeat('ab',32),'hex') AND approved AND provenance_kind IS NULL AND provenance_source IS NULL AND provenance_license IS NULL AND provenance_use_reviewed IS NULL FROM runbook_corpora WHERE id='legacy'`).Scan(&legacy);err!=nil || !legacy {t.Fatal("upgrade invented rights or changed legacy identity",err)}
+	}
 	if err := upgraded.Health(ctx); err != nil {
 		t.Fatal("upgraded store is not healthy")
 	}

@@ -160,6 +160,11 @@ installations, or bypass the empty-target check.
 
 ## Reviewed documents in schema20
 
+The schema21 candidate also stores operator-recorded source/usage attribution;
+it has the same private archive lifecycle. Migration21 preserves schema20 text
+and old digests with null provenance, not an invented review. Fresh hosted
+upgrade proof is required before accepting this candidate.
+
 Database archives include approved document text and derived full-text indexes.
 Revocation removes active document rows and search entries in one transaction;
 it cannot erase older database archives or external downloaded copies. Apply the

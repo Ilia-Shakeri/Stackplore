@@ -9,7 +9,7 @@ import (
 )
 
 func fixture() Corpus {
-	return Corpus{ID: "operations", Version: 1, Audience: Administrators, Documents: []Document{{ID: "capacity", Locale: "en", Title: "Capacity checks", Body: "Review current measured limits.\nTreat missing samples as unknown."}, {ID: "capacity", Locale: "fa", Title: "بررسی ظرفیت", Body: "سقف واقعی را بررسی کنید. نبود نمونه، نامعلوم است."}}}
+	return Corpus{ID: "operations", Version: 1, Audience: Administrators, Provenance: Provenance{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true}, Documents: []Document{{ID: "capacity", Locale: "en", Title: "Capacity checks", Body: "Review current measured limits.\nTreat missing samples as unknown."}, {ID: "capacity", Locale: "fa", Title: "بررسی ظرفیت", Body: "سقف واقعی را بررسی کنید. نبود نمونه، نامعلوم است."}}}
 }
 
 func TestDigestBindsReviewedBytesAndAudienceWithoutMutatingInput(t *testing.T) {

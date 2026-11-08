@@ -5,6 +5,8 @@ import type {
   RunbookCommit,
   RunbookCorpus,
   RunbookDocument,
+  RunbookContent,
+  RunbookProvenance,
   RunbookMaterial,
   RunbookPreview,
   RunbookReference,
@@ -17,6 +19,8 @@ export type {
   RunbookCatalog,
   RunbookCorpus,
   RunbookDocument,
+  RunbookContent,
+  RunbookProvenance,
   RunbookMaterial,
   RunbookPreview,
   RunbookReference,
@@ -74,6 +78,17 @@ export function parseRunbookDocument(value: unknown): RunbookDocument {
     body: prose(item.body, 16384, true),
   };
 }
+export function parseRunbookProvenance(value: unknown): RunbookProvenance | null {
+  if (value === null) return null;
+  const item = closed(value, ['kind','source','license','use_reviewed']);
+  if (!explicitConfirmation(item.use_reviewed)) return fail();
+  const kind = item.kind === 'operator_authored' || item.kind === 'licensed_copy' || item.kind === 'public_domain' ? item.kind : fail();
+  return {kind, source:prose(item.source,512), license:prose(item.license,128),use_reviewed:true};
+}
+export function parseRunbookContent(value: unknown): RunbookContent {
+  const item = closed(value,['document','provenance']);
+  return {document:parseRunbookDocument(item.document),provenance:parseRunbookProvenance(item.provenance)};
+}
 export function parseRunbookReference(value: unknown): RunbookReference {
   const item = closed(value, [
     'corpus_id',
@@ -102,6 +117,7 @@ export function parseRunbookRevision(value: unknown): RunbookRevision {
     'generation',
     'documents',
     'bytes',
+    'provenance',
   ]);
   if (typeof item.approved !== 'boolean') return fail();
   const documents = integer(item.documents, item.approved ? 1 : 0, 32);
@@ -116,6 +132,7 @@ export function parseRunbookRevision(value: unknown): RunbookRevision {
     generation: integer(item.generation, 0),
     documents,
     bytes,
+    provenance:parseRunbookProvenance(item.provenance),
   };
 }
 export function parseRunbookCatalog(value: unknown): RunbookCatalog {
@@ -173,14 +190,17 @@ export function parseRunbookResults(value: unknown, request: RunbookSearch): Run
   return { hits, next_cursor };
 }
 export function parseRunbookCorpus(value: unknown, revoke = false): RunbookCorpus {
-  const item = closed(value, ['id', 'version', 'audience', 'documents']);
+  const item = closed(value, ['id', 'version', 'audience', 'documents','provenance']);
+  const provenance = parseRunbookProvenance(item.provenance);
+  if ((provenance === null) !== revoke) return fail();
   const documents = boundedArray(item.documents, revoke ? 0 : 1, revoke ? 0 : 32).map(
     parseRunbookDocument,
   );
   const keys = new Set<string>();
   let bytes =
     encoder.encode(id(item.id)).length +
-    encoder.encode(revoke ? '' : audience(item.audience)).length;
+    encoder.encode(revoke ? '' : audience(item.audience)).length +
+    (provenance === null ? 0 : encoder.encode(provenance.kind).length + encoder.encode(provenance.source).length + encoder.encode(provenance.license).length);
   for (const document of documents) {
     const key = `${document.id}\0${document.locale}`;
     if (keys.has(key)) return fail();
@@ -198,6 +218,7 @@ export function parseRunbookCorpus(value: unknown, revoke = false): RunbookCorpu
     version: integer(item.version, 1),
     audience: revoke ? '' : audience(item.audience),
     documents,
+    provenance,
   };
 }
 export function parseRunbookMaterial(value: unknown): RunbookMaterial {
@@ -297,8 +318,8 @@ export function createRunbookClient(client: ApiClient) {
       return request(
         '/assistant/runbooks/document',
         (value) => {
-          const result = parseRunbookDocument(value);
-          if (result.id !== reference.document_id || result.locale !== reference.locale)
+          const result = parseRunbookContent(value);
+          if (result.document.id !== reference.document_id || result.document.locale !== reference.locale)
             return fail();
           return result;
         },

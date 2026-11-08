@@ -132,7 +132,7 @@ func (m Material) validate(actor auth.Principal) error {
 		return runbook.ErrInvalid
 	}
 	if m.Revoke {
-		if m.Corpus.Version != m.ExpectedVersion || m.Corpus.Audience != "" || len(m.Corpus.Documents) != 0 {
+		if m.Corpus.Version != m.ExpectedVersion || m.Corpus.Audience != "" || len(m.Corpus.Documents) != 0 || !m.Corpus.Provenance.Empty() {
 			return runbook.ErrInvalid
 		}
 		return nil
@@ -218,11 +218,8 @@ func (s *Service) Commit(ctx context.Context, actor auth.Principal, m Material, 
 		return runbook.Revision{}, runbook.ErrUnavailable
 	}
 	if !m.Revoke {
-		size := len(m.Corpus.ID) + len(m.Corpus.Audience)
-		for _, document := range m.Corpus.Documents {
-			size += len(document.ID) + len(document.Locale) + len(document.Title) + len(document.Body)
-		}
-		if result.Audience != m.Corpus.Audience || result.Documents != len(m.Corpus.Documents) || result.Bytes != size {
+		size := m.Corpus.ContentBytes()
+		if result.Audience != m.Corpus.Audience || result.Documents != len(m.Corpus.Documents) || result.Bytes != size || result.Provenance != m.Corpus.Provenance {
 			return runbook.Revision{}, runbook.ErrUnavailable
 		}
 	}
@@ -357,21 +354,21 @@ func (s *Service) Search(ctx context.Context, actor auth.Principal, query, local
 	}
 	return result, nil
 }
-func (s *Service) Read(ctx context.Context, actor auth.Principal, reference runbook.Reference) (runbook.Document, error) {
+func (s *Service) Read(ctx context.Context, actor auth.Principal, reference runbook.Reference) (runbook.Content, error) {
 	if actor.Validate() != nil || reference.Validate() != nil {
-		return runbook.Document{}, runbook.ErrInvalid
+		return runbook.Content{}, runbook.ErrInvalid
 	}
 	work, done, err := s.work(ctx)
 	if err != nil {
-		return runbook.Document{}, safeError(err)
+		return runbook.Content{}, safeError(err)
 	}
 	defer done()
 	document, err := s.repository.ReadRunbook(work, actor, reference)
 	if err != nil {
-		return runbook.Document{}, safeError(err)
+		return runbook.Content{}, safeError(err)
 	}
-	if work.Err() != nil || !s.open() || document.Validate() != nil || document.ID != reference.DocumentID || document.Locale != reference.Locale {
-		return runbook.Document{}, runbook.ErrUnavailable
+	if work.Err() != nil || !s.open() || document.Validate() != nil || document.Document.ID != reference.DocumentID || document.Document.Locale != reference.Locale {
+		return runbook.Content{}, runbook.ErrUnavailable
 	}
 	return document, nil
 }

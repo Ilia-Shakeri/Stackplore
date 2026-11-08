@@ -4,6 +4,8 @@ export const runbookSchemaNames = [
   'RunbookId',
   'RunbookDigest',
   'RunbookDocument',
+  'RunbookProvenance',
+  'RunbookContent',
   'RunbookCorpus',
   'RunbookMaterial',
   'RunbookPreview',
@@ -52,7 +54,9 @@ export const runbookRoutePolicies = new Map([
 ]);
 const fields = {
   RunbookDocument: ['id', 'locale', 'title', 'body'],
-  RunbookCorpus: ['id', 'version', 'audience', 'documents'],
+  RunbookProvenance: ['kind', 'source', 'license', 'use_reviewed'],
+  RunbookContent: ['document', 'provenance'],
+  RunbookCorpus: ['id', 'version', 'audience', 'documents', 'provenance'],
   RunbookMaterial: ['action', 'expected_version', 'generation', 'digest', 'corpus'],
   RunbookPreview: ['digest', 'confirmation_token', 'expires_at'],
   RunbookCommit: ['material', 'confirmation_token', 'confirmed'],
@@ -65,6 +69,7 @@ const fields = {
     'generation',
     'documents',
     'bytes',
+    'provenance',
   ],
   RunbookCatalog: ['generation', 'version', 'revisions', 'maximum_request_bytes'],
   RunbookReference: ['corpus_id', 'version', 'digest', 'document_id', 'locale', 'generation'],
@@ -96,6 +101,8 @@ export function inspectRunbookPolicy(document) {
   for (const [name, field, maximum] of [
     ['RunbookDocument', 'body', 16384],
     ['RunbookDocument', 'title', 256],
+    ['RunbookProvenance', 'source', 512],
+    ['RunbookProvenance', 'license', 128],
     ['RunbookSearch', 'query', 256],
     ['RunbookSearch', 'cursor', 768],
     ['RunbookHit', 'snippet', 512],
@@ -105,6 +112,8 @@ export function inspectRunbookPolicy(document) {
       issues.push(`${name}.${field}.bound`);
   if (schemas.RunbookCommit?.properties?.confirmed?.const !== true)
     issues.push('RunbookCommit.confirmed');
+  if (schemas.RunbookProvenance?.properties?.use_reviewed?.const !== true)
+    issues.push('RunbookProvenance.use_reviewed');
   if (schemas.RunbookSearch?.properties?.limit?.maximum !== 10) issues.push('RunbookSearch.limit');
   return issues;
 }
@@ -113,6 +122,9 @@ export function runRunbookPolicySelfTests(document) {
   for (const mutate of [
     (copy) => {
       copy.components.schemas.RunbookCommit.properties.confirmed.const = false;
+    },
+    (copy) => {
+      copy.components.schemas.RunbookProvenance.properties.use_reviewed.const = false;
     },
     (copy) => {
       copy.components.schemas.RunbookCorpus.properties.documents.maxItems = 33;
