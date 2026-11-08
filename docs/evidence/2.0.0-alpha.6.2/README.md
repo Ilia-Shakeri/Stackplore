@@ -83,3 +83,12 @@ The application runtime's existing Alpine v3.23 branch uses its own
 [musl 1.2.5-r24](https://pkgs.alpinelinux.org/package/v3.23/main/x86_64/musl)
 repair. Engine pins, strict HIGH/CRITICAL rejection, SBOMs, native smoke and
 provenance remain mandatory. Fresh source and package checks are required.
+
+Trial [42454561912](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42454561912)
+at `1c8901366b4515724366af8cd989937d2c19b001` passes the repaired database image
+scan and all five native archive scans, then fails the application image scan.
+The failure artifact omitted that application scan. The correction retains it
+and the native reports on any package failure. The application runtime explicitly
+repairs musl-utils alongside musl and the official v3.23
+[zlib 1.3.2-r1](https://pkgs.alpinelinux.org/package/v3.23/main/x86_64/zlib).
+No application-image clean claim is made before the next actual scan.

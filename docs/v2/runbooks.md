@@ -8,6 +8,12 @@ implicit integer type. The correction fixes that parameter to `bigint`, preservi
 keyset limits and selected owner. New cursor/use-case checks require their own
 hosted execution. No workstation test or formatter runs.
 
+The next SQL attempt at `d4e7b96` in run `42455079592` passes keyset pagination
+and owner isolation, then rejects an incomplete restore fixture: a positive
+generation also requires its restore timestamp. The fixture supplies both,
+preserving the real database constraint. Its hosted formatting patch is applied;
+the failed run is not acceptance.
+
 Status: **stage-7 preparation only**. The pure corpus model, owner-metadata read
 port and boundary tests are authored on `v2/runbooks-prep`. They expose no HTTP
 route, create no database table and do not complete stage 7. Stage-6 quality review and
