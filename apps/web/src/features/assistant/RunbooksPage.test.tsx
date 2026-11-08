@@ -57,7 +57,7 @@ describe('separate reviewed documents page', () => {
     let visibleDuringExit = true;
     const inspect = () => {
       visibleDuringExit =
-        document.body.textContent?.includes('Clear this private prose synchronously') ?? false;
+        document.body.textContent.includes('Clear this private prose synchronously');
     };
     window.addEventListener('pagehide', inspect, { once: true });
     act(() => {

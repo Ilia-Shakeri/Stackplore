@@ -306,8 +306,35 @@ filter and page size. They are not read authority. Shutdown cancels work and cle
 the signing key. The desktop page keeps cursors in bounded volatile memory, erases
 rows on session/page loss and rejects late prior-owner completion. No expired
 conversation/report is reconstructed. New source still requires its own hosted
-acceptance; reviewed-corpus storage, approval and search are not supplied by this
-increment. [Bounds and pending gates](v2/runbooks.md).
+acceptance. Reviewed-corpus approval/search ships as a separate bounded increment,
+with its own authority and evidence below. [Bounds and pending gates](v2/runbooks.md).
+
+### Smart Assistant — reviewed documents and selected metadata export
+
+Schema20 stores inert reviewed collections. Only current administrators can
+prepare changes; committing also requires same-origin CSRF, explicit confirmation,
+a two-minute exact-content one-use nonce, and a purpose-bound recent-auth grant.
+Content, audience, version and restore generation are bound to the change. A
+failed transaction spends neither grant nor nonce. Current-session and audience
+checks govern every search and exact-reference read. Replacement, revocation or
+restore invalidates earlier references; a digest alone grants no access.
+
+Search text and document references use request bodies, not URLs. Prose renders
+as plain text; it cannot add tools, execute scripts or fetch links. The library
+does not send document prose to a processor. Source/licence and usage-permission
+metadata and document-to-answer/report integration remain separate stage7 work.
+Review protects runtime authority; it does not certify a document's truth or rights.
+See [approval, limits and recovery](v2/runbook-approval.md) and the
+[exact alpha7 evidence](evidence/2.0.0-alpha.7/README.md). Its tag checks pass;
+public packaging remains blocked by the recorded publication403.
+
+The alpha7.1 candidate adds a closed JSON export of at most ten selected metadata
+rows from a fresh authorized page. It never exports questions, answers, reports,
+document prose, sessions or cursors. Owner loss/pagehide aborts pending exports;
+temporary download URLs are revoked. A file already downloaded is under user
+custody and cannot be recalled by session revocation. Browser timestamps and
+unsigned metadata are not server attestation. Fresh candidate hosted acceptance
+remains required. [Export contract](v2/history-export.md).
 
 ### Release acceptance
 

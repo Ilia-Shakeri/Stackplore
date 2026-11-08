@@ -78,3 +78,11 @@ receipt stopped at archive download, before any protocol/application case; both
 cleanup flags are true. These are failed gates, not runtime passes. Transfers
 now retry connection errors within fixed retry/time limits; all pinned hashes,
 sizes, HTTPS restrictions and the 40-second application budget stay unchanged.
+
+Follow-up `4d6776f`, run
+[42478952710](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42478952710),
+passed formatting and all focused cases but stopped at two unnecessary nullable
+checks in the new pagehide test. Those checks were removed without weakening the
+same-event privacy assertion. The Kubernetes asset still returned timeout/504;
+the Helm install passed using the same pinned binary. Remaining jobs from this
+superseded run are not accepted as the follow-up source's verification.

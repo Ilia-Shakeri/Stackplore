@@ -157,3 +157,18 @@ or old-database removal is outside this command and needs its own approval.
 
 Never add `--clean`, edit migration ledger rows, copy authentication keys between
 installations, or bypass the empty-target check.
+
+## Reviewed documents in schema20
+
+Database archives include approved document text and derived full-text indexes.
+Revocation removes active document rows and search entries in one transaction;
+it cannot erase older database archives or external downloaded copies. Apply the
+installation's encrypted archive retention and destruction policy to both.
+
+Restore generation invalidates old document references, search cursors and pending
+confirmations. Restored collection metadata may still show the old approval, but
+the interface marks it for review and current readers reject its old generation.
+An administrator must review and approve the next exact collection version before
+it becomes readable again. Never reset the generation to recover an old reference.
+Selected history JSON contains no document prose and has no restore authority.
+See [document recovery and limits](../v2/runbook-approval.md).
