@@ -1,16 +1,28 @@
 # Version 2 implementation ledger
 
-> Development candidate **2.0.0-alpha.6.3**, schema **19**, branch `v2/runbooks-prep`.
+> Private-history preview **2.0.0-alpha.6.3**, schema **19**, branch `v2/runbooks-prep`.
 > Selected history/report/interface integration passes its recorded hosted source checks.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
-> Stage-6 report source and later stages remain unaccepted.
+> Stage-6 independent semantic quality and later stages remain unaccepted.
+
+Immutable `v2.0.0-alpha.6.2` at `662fc0e14b1b8dd2f55ba4afc104ce0f8406f617`
+passes all eight source jobs, all eight exact-tag jobs and signed public packaging.
+Release `438106331` publishes 39 digest-bearing assets on 2026-11-08.
+[Exact receipts and limits](../evidence/2.0.0-alpha.6.2/README.md).
+This accepts the selected history/report/interface preview, not whole-stage
+semantic quality, a customer pilot or stable 2.0. Later metadata/runbook
+preparation remains isolated on `v2/runbooks-prep`.
 
 Private history preview: the isolated branch adds current-owner metadata reads,
 authenticated pagination and a separate bilingual desktop page. Earlier retained
-attempts expose SQL fixture, type and formatting failures; current-source full
-verification and signed publication are pending. Reviewed-corpus approval/search,
+attempts expose SQL fixture, type and formatting failures. Source
+`48b3aec446303926f6f8e0ad993a257cbf6fdd11` passes all eight hosted jobs.
+Its immutable `v2.0.0-alpha.6.3` has separate exact-tag and signed-publication
+workflow receipts; source success alone does not prove public artifact acceptance.
+[Source, tag and publication index](../evidence/2.0.0-alpha.6.3/README.md).
+Code review is 9/10 within this implemented boundary. Reviewed-corpus approval/search,
 held-out human quality and pilot acceptance are not supplied by this increment.
 [Contract and attempt trail](runbooks.md).
 

@@ -20,7 +20,11 @@
 
 ## [2.0.0-alpha.6.2] - 2026-11-04
 
-### Smart Analysis — history integration candidate
+### Smart Analysis — history integration preview
+
+- Publish immutable `v2.0.0-alpha.6.2` after eight source jobs, eight tag jobs and
+  signed packaging/security pass; retain 39 complete public assets and all failed
+  attempts. Independent semantic quality and stable acceptance remain open.
 
 - Repair musl/zlib runtime packages after a fresh hosted scan blocks the candidate.
   Keep the exact PostgreSQL engine pin and final-stage repair policy; require fresh

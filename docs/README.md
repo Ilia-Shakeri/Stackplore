@@ -1,19 +1,21 @@
 # Documentation
 
-Current private-history preview candidate: **2.0.0-alpha.6.3**, schema19.
+Private-history preview: **2.0.0-alpha.6.3**, schema19.
 [Owner-private metadata and remaining runbook work](v2/runbooks.md).
+[Source, exact-tag and publication receipts](evidence/2.0.0-alpha.6.3/README.md).
 [Selected history/report integration](v2/incident-history.md) records its bounds;
 [the ledger](v2/implementation.md) separates pending and published checkpoints.
 
 [Reviewed runbook preparation](v2/runbooks.md) defines the next bounded corpus
-and owner-metadata work; its pure model grants no approval or public capability.
+and owner-metadata work; its pure corpus model grants no approval or public corpus capability.
 
 - [Desktop workspaces — 2.0.0-alpha.6.1](desktop-workspaces.md)
 - [صفحه‌های جدا برای کار دسکتاپ](desktop-workspaces.fa.md)
 
-Current published prerelease: **2.0.0-alpha.6.1**, schema19;
-[desktop source and tag receipts](v2/implementation.md).
-Current development: **2.0.0-alpha.6.3** on isolated `v2/runbooks-prep`; [desktop workspaces](desktop-workspaces.md) and [incident workflow candidate](v2/incident-workflows.md);
+Published selected-history checkpoint: **2.0.0-alpha.6.2**, schema19;
+[source, tag and signed publication receipts](evidence/2.0.0-alpha.6.2/README.md).
+Private-history checkpoint: **2.0.0-alpha.6.3** on isolated `v2/runbooks-prep`;
+[desktop workspaces](desktop-workspaces.md) and [incident workflow](v2/incident-workflows.md);
 [stage ledger](v2/implementation.md), [hosted-only validation](v2/hosted-validation.md),
 [English runtime guide](v2/runtime.md), [راهنمای اجرا](v2/runtime.fa.md).
 Stable2.0, quality, new-runtime branch measurement and pilot acceptance remain open.

@@ -1,7 +1,27 @@
 # Selected history integration evidence
 
-Candidate **2.0.0-alpha.6.2**, schema19. Tests/builds/services/scans run on hosted
+Published preview **2.0.0-alpha.6.2**, schema19. Tests/builds/services/scans run on hosted
 GitHub Actions only. No stable-version or whole-stage acceptance is claimed.
+
+## Published checkpoint — 2026-11-08
+
+Immutable `v2.0.0-alpha.6.2` points to
+`662fc0e14b1b8dd2f55ba4afc104ce0f8406f617`. All eight
+[source jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42456918386)
+and all eight [exact-tag jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42458459043)
+pass. [Signed publication](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42458458981)
+passes fresh strict source/native/application/database scans, extracted Linux
+archive/database smoke, checksum validation and provenance/SBOM signing.
+[Public release](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.6.2)
+`438106331` was published at `2026-11-08T07:50:21Z`; it is a non-draft prerelease
+with 39 assets, each carrying a public SHA-256 digest. Asset inventory includes
+eight vulnerability scan reports, a separate secret-scan receipt, seven signed
+SBOM bundles, provenance, checksums and the
+versioned native/image/source/chart payloads. Metadata observation is not a new
+independent public Windows/native recovery receipt. Quality, pilot and stable
+acceptance remain open; later preparation is outside this immutable tag.
+
+## Retained attempts
 
 Initial source `46afaabca5e083e9b086dd0641e7b9601e2d9153` in
 [41807130071](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41807130071)

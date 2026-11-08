@@ -3,6 +3,15 @@
 Development preview candidate: **2.0.0-alpha.6.3**, schema19. This metadata
 increment does not claim completion of the reviewed-corpus/search stage.
 
+The implemented owner-history boundary at
+`48b3aec446303926f6f8e0ad993a257cbf6fdd11` passes all eight hosted source jobs;
+code/architecture review is **9/10 within that boundary**. Exact-tag and signed
+publication workflows have their own receipts in the
+[preview evidence index](../evidence/2.0.0-alpha.6.3/README.md).
+The following attempt trail retains earlier failures and their corrections;
+none is silently relabeled as acceptance. Corpus approval/search and independent
+semantic quality, pilot and stable gates remain open.
+
 Hosted preparation attempts: pure model source `2e78a91` passes seven jobs and
 fails only Go formatting in run `41810618993`; its hosted formatting patch is
 applied at `df275bd`. Owner-history source `72fcc59` reaches the actual SQL
@@ -74,7 +83,7 @@ from the current session. Responses are `no-store`, contain closed metadata rows
 and a nullable next cursor, and have no session, restore-generation or text fields.
 The typed client checks shape, ordering, timestamps, count bounds and cursor loops.
 Contract derivation, race, SQL and negative HTTP/client tests run only on Actions.
-These newly authored boundaries still need their own passing receipt;
+The source receipt above covers these implemented metadata boundaries;
 reviewed-corpus approval and search remain open.
 
 The desktop page replaces ten rows per page, uses a URL-backed closed status filter
