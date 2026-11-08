@@ -23,6 +23,7 @@ export type RecentAuthPurpose =
   | 'settings.update'
   | 'configuration.export'
   | 'data.cleanup'
+  | 'runbook.manage'
   | 'user.create'
   | 'user.delete'
   | 'user.password_reset'

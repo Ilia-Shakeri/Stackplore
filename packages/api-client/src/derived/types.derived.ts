@@ -543,6 +543,7 @@ export type RecentAuthPurpose =
   | 'settings.update'
   | 'configuration.export'
   | 'data.cleanup'
+  | 'runbook.manage';
 
 /**
  * Current-password proof request for one exact high-risk purpose.

@@ -2123,6 +2123,7 @@ const main = async () => {
           'settings.update',
           'configuration.export',
           'data.cleanup',
+          'runbook.manage',
         ],
       ],
       ['RelationshipDirection', ['source_to_target', 'bidirectional', 'undirected']],

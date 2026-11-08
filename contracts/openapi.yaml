@@ -3943,6 +3943,7 @@ components:
         - settings.update
         - configuration.export
         - data.cleanup
+        - runbook.manage
     RecentAuthRequest:
       type: object
       description: Current-password proof request for one exact high-risk purpose.
