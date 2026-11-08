@@ -2,11 +2,16 @@
 
 ## Current dependency correction
 
-The unpublished alpha.1 candidate applies exact patched build/test dependency
-versions after a failed signed dependency gate. The separate current package
-audit reports no findings; [evidence and limits](docs/evidence/2.0.0-alpha.1/dependency-correction.json).
-A fresh strict signed scan and complete source-bound gates must pass before a
-tag or publication. Historical releases and scanner outcomes remain unchanged.
+Current development retains exact dependency/tool pins and strict source,
+database, application-image and native-archive scans. On 2026-11-08, source
+`da7574edc4b9a8734705fd3181ed96c5190545ec` passes all eight hosted jobs and a fresh
+signed packaging/security trial after musl/musl-utils/zlib repairs. The exact
+PostgreSQL engine stays pinned. [Fresh receipts and failed attempts](docs/evidence/2.0.0-alpha.6.2/README.md)
+bind these claims to their own source and scan date; they do not certify newer
+bytes or vulnerabilities disclosed later. No finding is suppressed. All new
+tests, builds, services and scans run on Actions, never on the maintainer workstation.
+The earlier [alpha.1 dependency correction](docs/evidence/2.0.0-alpha.1/dependency-correction.json)
+remains historical evidence.
 
 ## Current compiler security patch
 
@@ -19,11 +24,11 @@ standard library in the candidate gosu binary. This is component-presence proof,
 not a claim of demonstrated reachability through the helper.
 
 The alpha.1 signed trial `39592142674` failed its strict database image scan.
-No alpha.1 tag was created for that attempt. Preserve its failure. The patch
-requires verified tool archives, regenerated legal inventory, a new complete
-local gate, exact-source CI, fresh complete scans, signed trial and independent
-archive checks before acceptance. Historical scans below retain their original
-source, compiler and vulnerability-database dates. No finding is suppressed.
+No alpha.1 tag was created for that attempt. Preserve its failure. Verified tool
+archives, legal inventory, exact-source gates, fresh scans, signed packaging and
+independent archive checks remain separate proof requirements. Earlier workstation
+checks retain their historical scope; current validation is hosted only. Use the
+[active ledger](docs/v2/implementation.md) for later source and publication receipts.
 
 ## Project status
 
@@ -32,9 +37,9 @@ is immutable at `656581cf05d4774358d5644a6e1af3c69a210f81`, schema 17. Its
 [public receipt](docs/evidence/1.0.3/published-release.json) and
 [review](docs/evidence/1.0.3/final-review.md) record the accepted corrective scope.
 Those source-bound checks are historical snapshots and do not establish absence
-of vulnerabilities disclosed later. The compiler correction described above is
-still an unpublished alpha.1 candidate; it does not change downloaded stable
-archives or their compiler.
+of vulnerabilities disclosed later. Later version-2 previews do not change
+downloaded stable archives or their compiler. Version-2 semantic quality, pilot
+and stable acceptance remain open in the active ledger.
 
 ## Historical 1.0.2 correction
 

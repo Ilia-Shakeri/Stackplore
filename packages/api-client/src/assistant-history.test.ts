@@ -56,9 +56,9 @@ describe('owner-private metadata history', () => {
         },
       }),
     ]) {
-      await expect(
-        client.history(value as Parameters<typeof client.history>[0]),
-      ).rejects.toMatchObject({ code: 'invalid_request' });
+      expect(() => client.history(value as Parameters<typeof client.history>[0])).toThrow(
+        'API transport failed with invalid_request.',
+      );
     }
     const stopped = new AbortController();
     stopped.abort();

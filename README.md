@@ -72,11 +72,12 @@ provider permissions, receiver reachability, backup destination and capacity
 must be verified in that environment using the supplied runbooks. Disposable
 fixture evidence does not certify a customer's production installation.
 
-Current alpha.1 security-patch source requires Go 1.26.10 for application and
-helper builds. Trial `39592142674` failed on CVE-2026-111943; the older alpha.0
-compiler and receipts above remain historical. A new complete build, strict
-scan, signed trial and independent archive acceptance are required. See
-[security status](SECURITY.md#current-compiler-security-patch).
+Development source pins Go 1.26.10 for application and helper builds. The earlier
+alpha.1 trial `39592142674` failed on CVE-2026-111943 and remains failed evidence.
+Later runtime repairs and hosted scan/publication receipts are tracked in the
+[active version-2 ledger](docs/v2/implementation.md) and
+[security status](SECURITY.md#current-compiler-security-patch). New development
+tests, builds and services run only on Actions; stable-2.0 acceptance remains open.
 
 ## Development
 

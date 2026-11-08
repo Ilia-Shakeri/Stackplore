@@ -1,21 +1,22 @@
-# Smart Assistant — durable runtime candidate
+# Smart Assistant — durable runtime ownership
 
 [فارسی](runtime.fa.md) · [Active ledger](implementation.md) ·
 [Accepted lifecycle decision](../adr/0015-helper-durable-runtime-and-volatile-context.md)
 
-Status: **stage-2 candidate/preparation, not accepted delivery**. This document
-describes the current metadata domain, PostgreSQL repository and standalone
-maintenance worker. Fresh full-source local, concurrency, migration, recovery
-and hosted receipts remain necessary. No production admission, public helper
-HTTP route, text dispatcher, evidence collector or enabled processor follows
-from these packages. Shared privacy and product conversation remain later
-stage gates. The separate `assistantservice` experiment is not this stage-2
-worker and does not establish its production composition.
+Scope: **historical stage-2 foundation**, not a current delivery ledger. These
+sections describe the metadata domain, PostgreSQL repository and independent
+maintenance worker introduced at that stage. Later previews compose the actual
+[application runtime](application-runtime.md), [private HTTP boundary](private-run-http.md),
+[resource conversation](resource-conversation.md) and [incident history](incident-history.md).
+The maintenance worker alone does not admit questions or collect evidence.
+Use the [active ledger](implementation.md) for exact accepted source/artifact scopes
+and pending quality/pilot/stable gates. New execution is [hosted only](hosted-validation.md).
 
 **Database boundary:** accepted version 1.0.3 and the gateway-only checkpoint use
-schema 17. This candidate adds migration **18**. A checkout containing that
-migration applies it during normal startup even when the optional capability
-is disabled. Use fresh disposable databases for unaccepted source; never attach
+schema 17. Stage 2 introduced migration **18**; later history previews use schema
+**19**, while the private-metadata increment adds no migration. A checkout applies
+its migrations during normal startup even when the optional capability is
+disabled. Use fresh disposable databases for unaccepted source; never attach
 it to accepted or customer data as a way to test a disabled feature.
 
 ## Ownership and storage

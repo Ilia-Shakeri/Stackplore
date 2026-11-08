@@ -1,7 +1,9 @@
 # Smart Assistant — application runtime ownership
 
-Development **2.0.0-alpha.4**, schema **18**, 2026-10-28. The published alpha.3
-does not contain this composition. This is not whole-stage acceptance.
+Composition introduced in **2.0.0-alpha.4**, schema **18**, 2026-10-28. The earlier
+alpha.3 does not contain that increment. Later history previews use schema19;
+the [active ledger](implementation.md) binds their own source and publication
+receipts. These ownership notes do not establish whole-stage or stable acceptance.
 
 ## Enablement and authority
 

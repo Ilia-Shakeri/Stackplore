@@ -1,5 +1,10 @@
 # Testing and evidence
 
+Current maintainer development is [hosted only](v2/hosted-validation.md): file
+reads/edits and lightweight Git are allowed locally; tests, builds, installs,
+scanners and services run on Actions. Commands below describe runner procedures
+or retain historical execution context; they do not authorize workstation runs.
+
 Use the pinned tools in [development](development.md). `npm.cmd run verify`
 checks format, documentation links/inventory, release metadata, locale parity,
 OpenAPI policy/derived types, lint, TypeScript, local tests with their measured

@@ -124,6 +124,15 @@ uses the existing canonical application-version constant, preserves the fixed
 metric shape and access policy, and adds a regression check. No user/source/run
 identifier is added as a metric label.
 
+Source `a09244e` in run `42458311176` passes seven infrastructure/runtime jobs,
+including the new real history-page journeys. Full verification reaches all
+client tests: 254 pass and one new negative-input assertion fails. The existing
+client contract rejects invalid construction synchronously, while that assertion
+incorrectly expected a rejected promise. The corrected test preserves the exact
+safe error and verifies zero transport calls; production guards are unchanged.
+The new metadata-client test file is also added to the early focused runner step.
+This failed source is not tag acceptance.
+
 Run `42455338720` at `8206322` reaches session revocation, then rejects the
 fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
 the real session constraint remains intact. Container jobs in that run also used

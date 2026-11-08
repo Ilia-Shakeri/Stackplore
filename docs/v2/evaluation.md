@@ -6,6 +6,11 @@ Status: stage-0 design and a curated synthetic seed. No production processor, ru
 
 ## Dataset and machine checks
 
+Current maintainer execution is [hosted only](hosted-validation.md). Run the
+commands below on an Actions runner; do not start tests, tools or processors on
+the maintainer workstation. An independent evaluator and pilot are not available;
+preparation continues without replacing their acceptance gates with synthetic proof.
+
 The versioned fixture lives in [corpus.seed.json](../../tests/fixtures/assistant/corpus.seed.json). Its [manifest](../../tests/fixtures/assistant/corpus.manifest.json) binds exact UTF-8 bytes with SHA-256, schema/revision, immutable target floors, split algorithm, and review status. The current seed has **12 paired incident scenarios, 24 questions, and 18 adversarial cases**. It does not meet the eventual **200 paired scenarios / 1,000 adversarial cases** target. These targets measure different units; translating one attack does not create another attack.
 
 Run the structural gate and its negative tests with the pinned repository tools:
