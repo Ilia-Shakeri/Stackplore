@@ -195,6 +195,27 @@ export type AssistantRunResponse =
   | AssistantUnavailableResponse
   | AssistantReadyResponse;
 
+export type AssistantHistoryCursor = string;
+
+export type AssistantHistoryEntry = {
+  id: AssistantRunId;
+  source_id: SourceId;
+  resource_id: ResourceId | null;
+  goal: 'explain_resource' | 'investigate_incident';
+  state: AssistantRunState;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  range: AssistantTimeRange;
+  tool_calls: number;
+  inference_calls: number;
+  usage_uncertain: boolean;
+};
+
+export type AssistantHistoryResponse = {
+  entries: Array<AssistantHistoryEntry>;
+  next_cursor: AssistantHistoryCursor | null;
+};
+
 export type AssistantIncidentMetric = {
   name:
     | 'cpu.usage.cores'

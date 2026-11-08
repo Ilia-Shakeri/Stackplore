@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistanthistory"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
@@ -56,6 +57,7 @@ type Service struct {
 	mu         sync.Mutex
 	key        [32]byte
 	closed     bool
+	history    *assistanthistory.Service
 }
 
 func (*Service) Format(state fmt.State, _ rune) {
@@ -71,6 +73,11 @@ func New(options Options) (*Service, error) {
 	}
 	service := &Service{runtime: options.Runtime, repository: options.Repository, resolver: options.Resolver, binding: options.Binding, now: options.Now}
 	copy(service.key[:], options.Key)
+	if repository, ok := options.Repository.(assistant.HistoryRepository); ok {
+		history, err := assistanthistory.New(repository, options.Key, options.Now)
+		if err != nil { return nil, err }
+		service.history = history
+	}
 	return service, nil
 }
 
@@ -83,6 +90,12 @@ func (service *Service) Close() {
 	defer service.mu.Unlock()
 	service.closed = true
 	clear(service.key[:])
+	if service.history != nil { service.history.Close() }
+}
+
+func (service *Service) History(ctx context.Context, actor assistant.Actor, state assistant.State, limit int, cursor string) (assistanthistory.Page, error) {
+	if !service.open() || service.history == nil { return assistanthistory.Page{}, assistant.ErrUnavailable }
+	return service.history.List(ctx, actor, state, limit, cursor)
 }
 func (service *Service) open() bool {
 	if service == nil {

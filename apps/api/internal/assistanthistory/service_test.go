@@ -46,7 +46,20 @@ func fixture(t *testing.T) (*Service, assistant.Actor, *time.Time, *int, *[]assi
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(service.Close)
 	return service, actor, &at, &calls, &seen
+}
+
+func TestShutdownCancelsMetadataIOAndClearsCursorKey(t *testing.T) {
+	service, actor, _, _, _ := fixture(t)
+	service.repository = repositoryFunc(func(ctx context.Context, _ assistant.Actor, _ assistant.HistoryQuery, _ time.Time) (assistant.HistoryPage, error) {
+		service.Close()
+		select { case <-ctx.Done(): case <-time.After(time.Second): t.Fatal("shutdown left metadata I/O alive") }
+		return assistant.HistoryPage{}, nil
+	})
+	if _, err := service.List(context.Background(), actor, assistant.Completed, 1, ""); err != assistant.ErrUnavailable { t.Fatal("closed service released late metadata", err) }
+	if service.key.value != [32]byte{} { t.Fatal("shutdown retained cursor key") }
+	if _, err := service.List(context.Background(), actor, assistant.Completed, 1, ""); err != assistant.ErrUnavailable { t.Fatal("closed service restarted") }
 }
 
 func TestMetadataPagesBindExactScopeWithoutTextReplay(t *testing.T) {

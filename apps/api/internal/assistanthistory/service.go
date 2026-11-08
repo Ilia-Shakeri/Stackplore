@@ -12,6 +12,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
@@ -22,8 +23,16 @@ const MaximumCursorBytes = 768
 
 type Service struct {
 	repository assistant.HistoryRepository
-	key        [32]byte
+	key        *signingKey
 	now        func() time.Time
+	lifetime   context.Context
+	stop       context.CancelFunc
+}
+
+type signingKey struct {
+	mu sync.RWMutex
+	value [32]byte
+	closed bool
 }
 
 func (Service) Format(state fmt.State, _ rune) {
@@ -40,7 +49,24 @@ func New(repository assistant.HistoryRepository, key []byte, now func() time.Tim
 	if secret == [32]byte{} {
 		return nil, assistant.ErrInvalid
 	}
-	return &Service{repository: repository, key: secret, now: now}, nil
+	lifetime, stop := context.WithCancel(context.Background())
+	return &Service{repository: repository, key: &signingKey{value: secret}, now: now, lifetime: lifetime, stop: stop}, nil
+}
+
+func (service *Service) open() bool {
+	if service == nil || service.key == nil { return false }
+	service.key.mu.RLock()
+	defer service.key.mu.RUnlock()
+	return !service.key.closed
+}
+
+func (service *Service) Close() {
+	if service == nil || service.key == nil { return }
+	service.key.mu.Lock()
+	service.key.closed = true
+	clear(service.key.value[:])
+	service.key.mu.Unlock()
+	service.stop()
 }
 
 type Page struct {
@@ -63,7 +89,12 @@ type cursor struct {
 }
 
 func (service *Service) signature(actor assistant.Actor, body []byte) []byte {
-	mac := hmac.New(sha256.New, service.key[:])
+	service.key.mu.RLock()
+	key, closed := service.key.value, service.key.closed
+	service.key.mu.RUnlock()
+	defer clear(key[:])
+	if closed { return nil }
+	mac := hmac.New(sha256.New, key[:])
 	_, _ = io.WriteString(mac, "stackplore-run-history-v1\x00"+actor.UserID+"\x00"+actor.DigestKeyID+"\x00"+strconv.FormatInt(actor.AuthRevision, 10)+"\x00")
 	_, _ = mac.Write(actor.SessionDigest[:])
 	_, _ = mac.Write(body)
@@ -111,6 +142,7 @@ func (service *Service) List(ctx context.Context, actor assistant.Actor, state a
 	if service == nil || ctx == nil || ctx.Err() != nil || !actor.Valid() {
 		return Page{}, assistant.ErrInvalid
 	}
+	if !service.open() { return Page{}, assistant.ErrUnavailable }
 	at := service.now().UTC().Truncate(time.Microsecond)
 	query, err := service.decode(actor, state, limit, encoded, at)
 	if err != nil {
@@ -118,6 +150,8 @@ func (service *Service) List(ctx context.Context, actor assistant.Actor, state a
 	}
 	work, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
+	stopLifetime := context.AfterFunc(service.lifetime, cancel)
+	defer stopLifetime()
 	result, err := service.repository.ListAssistantHistory(work, actor, query, at)
 	if err != nil || work.Err() != nil {
 		clear(result.Entries)
@@ -130,11 +164,13 @@ func (service *Service) List(ctx context.Context, actor assistant.Actor, state a
 		clear(result.Entries)
 		return Page{}, assistant.ErrUnavailable
 	}
+	seen := make(map[string]bool, len(result.Entries))
 	for index, entry := range result.Entries {
-		if entry.Validate(query, at) != nil {
+		if seen[entry.ID] || entry.Validate(query, at) != nil {
 			clear(result.Entries)
 			return Page{}, assistant.ErrUnavailable
 		}
+		seen[entry.ID] = true
 		if index > 0 {
 			prior := result.Entries[index-1]
 			if entry.CreatedAt.After(prior.CreatedAt) || entry.CreatedAt.Equal(prior.CreatedAt) && entry.ID >= prior.ID {
@@ -152,7 +188,10 @@ func (service *Service) List(ctx context.Context, actor assistant.Actor, state a
 			return Page{}, assistant.ErrUnavailable
 		}
 		defer clear(body)
-		page.NextCursor = base64.RawURLEncoding.EncodeToString(body) + "." + base64.RawURLEncoding.EncodeToString(service.signature(actor, body))
+		proof := service.signature(actor, body)
+		if len(proof) != sha256.Size { clear(page.Entries); return Page{}, assistant.ErrUnavailable }
+		page.NextCursor = base64.RawURLEncoding.EncodeToString(body) + "." + base64.RawURLEncoding.EncodeToString(proof)
 	}
+	if !service.open() || work.Err() != nil { clear(page.Entries); return Page{}, assistant.ErrUnavailable }
 	return page, nil
 }

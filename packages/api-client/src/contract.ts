@@ -189,6 +189,9 @@ export type EventPage = DataAllowedEventPage | NoDataEventPage;
 
 export type {
   AssistantActiveRun,
+  AssistantHistoryCursor,
+  AssistantHistoryEntry,
+  AssistantHistoryResponse,
   AssistantAnswerText,
   AssistantCitationId,
   AssistantCompletedRun,

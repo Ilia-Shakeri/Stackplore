@@ -17,6 +17,7 @@ type assistantHTTP struct {
 	bodyLimit  int64
 	statuses   AssistantStatusReader
 	statusGate *streamGate
+	history    AssistantHistoryReader
 }
 
 func (handler assistantHTTP) admit(w http.ResponseWriter, r *http.Request) {

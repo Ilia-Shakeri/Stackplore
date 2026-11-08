@@ -78,7 +78,7 @@ func TestAssistantMetadataHistoryIsBoundedOwnerPrivateAndRestoreFenced(t *testin
 	if err != nil || len(cleared.Entries) != 0 || cleared.HasMore {
 		t.Fatal("restored old metadata crossed generation fence", err)
 	}
-	if _, err := store.pool.Exec(ctx, `UPDATE sessions SET revoked_at_us=$1 WHERE token_digest=$2`, now.UnixMicro(), actor.SessionDigest[:]); err != nil {
+	if _, err := store.pool.Exec(ctx, `UPDATE sessions SET revoked_at_us=$1,revoke_reason_code='session.revoked' WHERE token_digest=$2`, now.UnixMicro(), actor.SessionDigest[:]); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := store.ListAssistantHistory(ctx, actor, query, now); err != assistant.ErrDenied {

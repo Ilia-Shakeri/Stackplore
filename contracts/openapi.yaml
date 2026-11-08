@@ -2612,6 +2612,64 @@ paths:
             },
         },
     }
+  /assistant/history:
+    get:
+      operationId: listAssistantHistory
+      summary: Read a bounded page of the current owner's run metadata
+      description: >-
+        Authenticated owner-only metadata, never a conversation replay. State selects one
+        fixed ordered index range. Cursors bind the initiating session, state, page size,
+        anchor and restore generation and expire after ten minutes. No owner selector,
+        question, answer, report body, provider call or inference dispatch is accepted.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - name: state
+          in: query
+          schema:
+            $ref: '#/components/schemas/AssistantRunState'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 10
+        - name: cursor
+          in: query
+          schema:
+            $ref: '#/components/schemas/AssistantHistoryCursor'
+      responses:
+        '200':
+          description: One detached metadata page; null cursor ends pagination.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantHistoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
   /assistant/runs:
     post:
       operationId: createAssistantRun
@@ -3290,6 +3348,62 @@ components:
         - $ref: '#/components/schemas/AssistantLostResponse'
         - $ref: '#/components/schemas/AssistantUnavailableResponse'
         - $ref: '#/components/schemas/AssistantReadyResponse'
+    AssistantHistoryCursor:
+      type: string
+      minLength: 45
+      maxLength: 768
+      pattern: '^[A-Za-z0-9_-]{1,724}\.[A-Za-z0-9_-]{43}$'
+      description: Opaque authenticated owner/session/filter/restore-bound cursor. Not an access grant.
+    AssistantHistoryEntry:
+      type: object
+      additionalProperties: false
+      required: [id, source_id, resource_id, goal, state, created_at, updated_at, range, tool_calls, inference_calls, usage_uncertain]
+      properties:
+        id:
+          $ref: '#/components/schemas/AssistantRunId'
+        source_id:
+          $ref: '#/components/schemas/SourceId'
+        resource_id:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceId'
+            - type: 'null'
+        goal:
+          type: string
+          enum: [explain_resource, investigate_incident]
+        state:
+          $ref: '#/components/schemas/AssistantRunState'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+        range:
+          $ref: '#/components/schemas/AssistantTimeRange'
+        tool_calls:
+          type: integer
+          minimum: 0
+          maximum: 12
+        inference_calls:
+          type: integer
+          minimum: 0
+          maximum: 3
+        usage_uncertain:
+          type: boolean
+      description: Safe owner-private retained metadata. No old question, reply, report, session or evidence body is reconstructed.
+    AssistantHistoryResponse:
+      type: object
+      additionalProperties: false
+      required: [entries, next_cursor]
+      properties:
+        entries:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/AssistantHistoryEntry'
+        next_cursor:
+          oneOf:
+            - $ref: '#/components/schemas/AssistantHistoryCursor'
+            - type: 'null'
+      description: Descending creation-time/ID keyset page. Only full pages may carry a next cursor.
     AssistantIncidentMetric:
       type: object
       additionalProperties: false

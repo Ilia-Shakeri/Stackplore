@@ -53,7 +53,7 @@ const matches = (value: unknown, pattern: RegExp): value is string =>
   typeof value === 'string' && value.length <= 128 && value === value.trim() && pattern.test(value);
 
 const timestamp = (value: unknown, microseconds = false): bigint => {
-  if (typeof value !== 'string' || value.length > 30) return fail();
+  if (typeof value !== 'string' || value.length > 30 || value !== value.trim()) return fail();
   const match =
     /^(?!0000)([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})(?:\.([0-9]{1,9}))?Z$/u.exec(
       value,

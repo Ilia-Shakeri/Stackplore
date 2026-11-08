@@ -15,8 +15,8 @@ preserving the real database constraint. Its hosted formatting patch is applied;
 the failed run is not acceptance.
 
 Status: **stage-7 preparation only**. The pure corpus model, owner-metadata read
-port and boundary tests are authored on `v2/runbooks-prep`. They expose no HTTP
-route, create no database table and do not complete stage 7. Stage-6 quality review and
+port, authenticated HTTP boundary and typed client are authored on `v2/runbooks-prep`.
+They create no database table and do not complete stage 7. Stage-6 quality review and
 pilot resources remain unavailable; hosted preparation continues by instruction.
 
 ## Corpus identity and bounds
@@ -53,7 +53,8 @@ The active current session is checked on both sides of the bounded transaction;
 an old run's expired session does not need to be resurrected to read safe metadata.
 An administrator has no other-owner shortcut. Changing restore generation hides
 old records. No question, answer, report, evidence body, session digest or provider
-credential is selected. This port is not wired to the HTTP or desktop boundary yet.
+credential is selected. The candidate HTTP boundary is registered only with the
+enabled authenticated run service; no desktop history page ships yet.
 
 The metadata use case adds a ten-minute authenticated cursor bound to owner,
 session, authentication revision, state, page size, anchor and restore generation.
@@ -61,7 +62,21 @@ Malformed, expired or changed-scope cursors fail before repository I/O. Each rea
 has a three-second deadline and validates the returned shape, generation and
 strict ordering before releasing a detached metadata page. It cannot admit a run,
 replay text, widen the current actor or turn a stored reference into read authority.
-The use case and cursor are preparation; public contracts and views remain open.
+Shutdown cancels reads and clears the cursor signing key. The candidate
+`GET /api/v1/assistant/history` accepts only `state`, `limit` and `cursor`;
+state defaults to `completed`, page size to ten. Duplicate, empty, unknown and
+malformed arguments fail before repository access. Owner identity comes solely
+from the current session. Responses are `no-store`, contain closed metadata rows
+and a nullable next cursor, and have no session, restore-generation or text fields.
+The typed client checks shape, ordering, timestamps, count bounds and cursor loops.
+Contract derivation, race, SQL and negative HTTP/client tests run only on Actions.
+These newly authored boundaries still need their own passing receipt; desktop
+views, reviewed-corpus approval and search remain open.
+
+Run `42455338720` at `8206322` reaches session revocation, then rejects the
+fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
+the real session constraint remains intact. Container jobs in that run also used
+the superseded zlib pin; the primary runtime correction is merged before retesting.
 
 ## Remaining implementation contract
 

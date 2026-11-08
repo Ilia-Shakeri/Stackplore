@@ -189,6 +189,10 @@ func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPoli
 	router.Use(guestReadBoundary(authRoutes.guestDemo))
 	if options.AssistantRuns != nil {
 		helper := assistantHTTP{product: productRoutes, runs: options.AssistantRuns}
+		if history, ok := options.AssistantRuns.(AssistantHistoryReader); ok {
+			helper.history = history
+			router.Get("/assistant/history", helper.listHistory)
+		}
 		if statuses, ok := options.AssistantRuns.(AssistantStatusReader); ok {
 			helper.statuses = statuses
 			helper.statusGate = newStreamGate(16, 2)

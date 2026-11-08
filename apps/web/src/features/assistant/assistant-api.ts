@@ -5,6 +5,7 @@ import {
   type ApiClient,
   type AssistantRunRequest,
   type AssistantStatusMessage,
+  type AssistantHistoryInput,
 } from '@stackplore/api-client';
 
 import { AuthStateError, type AuthStore } from '../auth/auth-store';
@@ -67,6 +68,9 @@ export function createAssistantApi(
     }
   };
   return {
+    history(owner: AssistantOwner, input: AssistantHistoryInput, signal?: AbortSignal) {
+      return owned(owner, signal, 15_000, async (signal) => (await runs.history(input, { signal })).data);
+    },
     getOwner: auth.getSessionOwner,
     subscribeOwner(listener: () => void) {
       let previous = auth.getSessionOwner();

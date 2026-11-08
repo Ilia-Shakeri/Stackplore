@@ -210,6 +210,7 @@ export function controlledConversationApi() {
   let owner: symbol | null = Symbol();
   const listeners = new Set<() => void>();
   const api = {
+    history: vi.fn<AssistantApi['history']>().mockResolvedValue({ entries: [], next_cursor: null }),
     getOwner: () => owner,
     subscribeOwner(listener: () => void) {
       listeners.add(listener);
