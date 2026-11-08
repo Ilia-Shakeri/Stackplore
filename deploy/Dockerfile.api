@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/stackplore-server ./cmd/server
 
 FROM alpine:3.23@sha256:85fe1e81d6758c208f3e1eed4338a1997e19d4be002d4dd32d3100c9a8c010a0
-RUN apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache --upgrade musl=1.2.5-r24 ca-certificates tzdata && \
     addgroup -S -g 10001 stackplore && \
     adduser -S -D -H -u 10001 -G stackplore stackplore && \
     install -d -o stackplore -g stackplore -m 0700 /var/lib/stackplore

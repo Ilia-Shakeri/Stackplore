@@ -4,6 +4,10 @@
 
 ### Smart Analysis — history integration candidate
 
+- Repair musl/zlib runtime packages after a fresh hosted scan blocks the candidate.
+  Keep the exact PostgreSQL engine pin and final-stage repair policy; require fresh
+  complete verification and packaging before publication.
+
 - Add independently reserved alert/workload history to the fixed selected-resource
   investigation plan, with current authority on every proof and publication.
 - Carry actual transition/sample time, qualified workload shortfall/recovery,
