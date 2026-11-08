@@ -92,3 +92,9 @@ and the native reports on any package failure. The application runtime explicitl
 repairs musl-utils alongside musl and the official v3.23
 [zlib 1.3.2-r1](https://pkgs.alpinelinux.org/package/v3.23/main/x86_64/zlib).
 No application-image clean claim is made before the next actual scan.
+
+The next candidate `302b867` in run `42455243747` cannot build the application
+image: the package repository actually offers zlib 1.4-r0 and rejects the older
+1.3.2-r1 exact pin. The retrieved v3.23 package page was stale relative to that
+hosted resolver. The correction pins the version observed by the real build,
+1.4-r0. No relaxed version constraint or vulnerability suppression is introduced.
