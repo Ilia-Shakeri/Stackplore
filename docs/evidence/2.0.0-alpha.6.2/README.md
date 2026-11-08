@@ -15,7 +15,8 @@ archive/database smoke, checksum validation and provenance/SBOM signing.
 [Public release](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.6.2)
 `438106331` was published at `2026-11-08T07:50:21Z`; it is a non-draft prerelease
 with 39 assets, each carrying a public SHA-256 digest. Asset inventory includes
-eight scan reports, seven signed SBOM bundles, provenance, checksums and the
+eight vulnerability scan reports, a separate secret-scan receipt, seven signed
+SBOM bundles, provenance, checksums and the
 versioned native/image/source/chart payloads. Metadata observation is not a new
 independent public Windows/native recovery receipt. Quality, pilot and stable
 acceptance remain open; later preparation is outside this immutable tag.
