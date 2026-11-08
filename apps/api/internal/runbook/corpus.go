@@ -50,10 +50,10 @@ func (Document) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 // Corpus is a candidate value. Validation and hashing grant no approval or read rights.
 type Corpus struct {
-	ID        string
-	Version   int64
-	Audience  Audience
-	Documents []Document
+	ID         string
+	Version    int64
+	Audience   Audience
+	Documents  []Document
 	Provenance Provenance
 }
 
@@ -146,9 +146,11 @@ func (corpus Corpus) Digest() ([32]byte, error) {
 
 // ContentBytes counts every persisted text field in a reviewed collection.
 func (corpus Corpus) ContentBytes() int {
- size := len(corpus.ID) + len(corpus.Audience) + len(corpus.Provenance.Kind) + len(corpus.Provenance.Source) + len(corpus.Provenance.License)
- for _, d := range corpus.Documents { size += len(d.ID) + len(d.Locale) + len(d.Title) + len(d.Body) }
- return size
+	size := len(corpus.ID) + len(corpus.Audience) + len(corpus.Provenance.Kind) + len(corpus.Provenance.Source) + len(corpus.Provenance.License)
+	for _, d := range corpus.Documents {
+		size += len(d.ID) + len(d.Locale) + len(d.Title) + len(d.Body)
+	}
+	return size
 }
 
 // Query and Snippet are pure bounds; the repository must authorize approved versions.

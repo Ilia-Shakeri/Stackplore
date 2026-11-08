@@ -206,7 +206,7 @@ VALUES($1,$2,$3,$4,true,$5,$6,$7,$8,$9,$10,$11,true) ON CONFLICT(id) DO UPDATE S
 					return err
 				}
 			}
-			result = runbook.Revision{ID: c.Corpus.ID, Version: c.Corpus.Version, Digest: c.Digest, Audience: c.Corpus.Audience, Approved: true, Generation: generation, Documents: len(c.Corpus.Documents), Bytes: size, Provenance:c.Corpus.Provenance}
+			result = runbook.Revision{ID: c.Corpus.ID, Version: c.Corpus.Version, Digest: c.Digest, Audience: c.Corpus.Audience, Approved: true, Generation: generation, Documents: len(c.Corpus.Documents), Bytes: size, Provenance: c.Corpus.Provenance}
 		}
 		if _, err := tx.Exec(ctx, `UPDATE runbook_catalog SET row_version=row_version+1 WHERE singleton=1`); err != nil {
 			return err

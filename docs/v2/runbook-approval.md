@@ -48,6 +48,15 @@ catalog rows also expose nullable provenance. Imports keep one record per corpus
 Revocation retains bounded attribution as collection metadata while removing
 live document rows; it does not claim retroactive erasure of metadata or backups.
 
+First provenance source `214ad4b`, hosted run
+[42482579739](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42482579739),
+passes focused Go and real PostgreSQL checks, including the new migration20 to21
+preservation and source-substitution regressions. The early client check stops
+because committed derived types still describe the earlier contract. The hosted
+generator/format artifact is applied; it is not generated on the workstation.
+Container builds depending on those stale types fail in the same attempt. Fresh
+full verification of the combined source is required; no failure is relabelled.
+
 ## Private HTTP and desktop flow
 
 All paths below are relative to `/api/v1`:

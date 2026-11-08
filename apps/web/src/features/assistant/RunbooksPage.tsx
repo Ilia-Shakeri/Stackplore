@@ -515,7 +515,9 @@ function PrivateRunbooks({
                   </p>
                 </article>
               ))}
-              {review.material.action === 'approve' ? <ProvenanceDetails value={review.material.corpus.provenance} /> : null}
+              {review.material.action === 'approve' ? (
+                <ProvenanceDetails value={review.material.corpus.provenance} />
+              ) : null}
               <form ref={form} onSubmit={commit}>
                 <label>
                   <input
@@ -558,15 +560,23 @@ function PrivateRunbooks({
   );
 }
 
-function ProvenanceDetails({value}:{readonly value:RunbookProvenance|null}) {
-  const {t}=useLocale();
+function ProvenanceDetails({ value }: { readonly value: RunbookProvenance | null }) {
+  const { t } = useLocale();
   if (value === null) return <p>{t('runbooks.provenance.legacy')}</p>;
-  return <section aria-label={t('runbooks.provenance.title')}>
-    <p>{t(`runbooks.provenance.${value.kind}`)}</p>
-    <dl>
-      <dt>{t('runbooks.provenance.source')}</dt><dd className="runbooks-prose" dir="auto">{value.source}</dd>
-      <dt>{t('runbooks.provenance.license')}</dt><dd className="runbooks-prose" dir="auto">{value.license}</dd>
-    </dl>
-    <p>{t('runbooks.provenance.notice')}</p>
-  </section>;
+  return (
+    <section aria-label={t('runbooks.provenance.title')}>
+      <p>{t(`runbooks.provenance.${value.kind}`)}</p>
+      <dl>
+        <dt>{t('runbooks.provenance.source')}</dt>
+        <dd className="runbooks-prose" dir="auto">
+          {value.source}
+        </dd>
+        <dt>{t('runbooks.provenance.license')}</dt>
+        <dd className="runbooks-prose" dir="auto">
+          {value.license}
+        </dd>
+      </dl>
+      <p>{t('runbooks.provenance.notice')}</p>
+    </section>
+  );
 }

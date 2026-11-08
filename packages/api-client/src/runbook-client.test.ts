@@ -21,17 +21,39 @@ const hit = { reference, title: 'Reviewed help', snippet: '  inert snippet' };
 const query = { query: 'private search', locale: 'en' as const, limit: 10, cursor: '' };
 describe('private reviewed document transport', () => {
   it('keeps legacy attribution explicit and rejects invented or malformed permissions', () => {
-    const provenance = {kind:'operator_authored',source:'Private source attribution',license:'Author permission',use_reviewed:true};
+    const provenance = {
+      kind: 'operator_authored',
+      source: 'Private source attribution',
+      license: 'Author permission',
+      use_reviewed: true,
+    };
     expect(parseRunbookProvenance(provenance)?.source).toBe('Private source attribution');
-    const document = {id:'help',locale:'en',title:'Help',body:'Inert text'};
-    expect(parseRunbookContent({document,provenance:null}).provenance).toBeNull();
-    for (const value of [undefined,{}, {...provenance,use_reviewed:false},{...provenance,kind:'inferred'},{...provenance,source:'ظ'.repeat(257)},{...provenance,license:'bad\u202e'},{...provenance,owner:'other'}]) {
-      expect(()=>parseRunbookProvenance(value)).toThrow();
+    const document = { id: 'help', locale: 'en', title: 'Help', body: 'Inert text' };
+    expect(parseRunbookContent({ document, provenance: null }).provenance).toBeNull();
+    for (const value of [
+      undefined,
+      {},
+      { ...provenance, use_reviewed: false },
+      { ...provenance, kind: 'inferred' },
+      { ...provenance, source: 'ظ'.repeat(257) },
+      { ...provenance, license: 'bad\u202e' },
+      { ...provenance, owner: 'other' },
+    ]) {
+      expect(() => parseRunbookProvenance(value)).toThrow();
     }
-    const corpus={id:'ops',version:1,audience:'all_users',documents:[document],provenance};
-    expect(()=>parseRunbookCorpus({...corpus,provenance:null})).toThrow();
-    expect(()=>parseRunbookCorpus({...corpus,audience:'',documents:[]},true)).toThrow();
-    expect(parseRunbookCorpus({...corpus,audience:'',documents:[],provenance:null},true).provenance).toBeNull();
+    const corpus = {
+      id: 'ops',
+      version: 1,
+      audience: 'all_users',
+      documents: [document],
+      provenance,
+    };
+    expect(() => parseRunbookCorpus({ ...corpus, provenance: null })).toThrow();
+    expect(() => parseRunbookCorpus({ ...corpus, audience: '', documents: [] }, true)).toThrow();
+    expect(
+      parseRunbookCorpus({ ...corpus, audience: '', documents: [], provenance: null }, true)
+        .provenance,
+    ).toBeNull();
   });
   it('keeps search in the body and sends an exact current reference when opening', async () => {
     const fetcher = vi
@@ -46,11 +68,12 @@ describe('private reviewed document transport', () => {
         new Response(
           JSON.stringify({
             document: {
-            id: 'help',
-            locale: 'en',
-            title: 'Help',
-            body: '<script>inert</script>',
-            }, provenance:null,
+              id: 'help',
+              locale: 'en',
+              title: 'Help',
+              body: '<script>inert</script>',
+            },
+            provenance: null,
           }),
           {
             status: 200,
@@ -86,7 +109,12 @@ describe('private reviewed document transport', () => {
       id: 'ops',
       version: 1,
       audience: 'all_users',
-      provenance:{kind:'operator_authored',source:'Synthetic fixture',license:'Fixture author permission',use_reviewed:true},
+      provenance: {
+        kind: 'operator_authored',
+        source: 'Synthetic fixture',
+        license: 'Fixture author permission',
+        use_reviewed: true,
+      },
       documents: [{ id: 'help', locale: 'fa', title: 'راهنما', body: 'متن\n\tتأییدشده' }],
     };
     expect(parseRunbookCorpus(corpus).documents).toHaveLength(1);

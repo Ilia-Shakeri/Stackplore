@@ -186,7 +186,9 @@ func (PreviewResult) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 func ValidID(value string) bool { return identifier.MatchString(value) }
 func (revision Revision) Validate() error {
-	if !revision.Provenance.Empty() && revision.Provenance.Validate() != nil { return ErrInvalid }
+	if !revision.Provenance.Empty() && revision.Provenance.Validate() != nil {
+		return ErrInvalid
+	}
 	if !ValidID(revision.ID) || revision.Version < 1 || revision.Version > MaximumVersion || revision.Digest == [32]byte{} || revision.Audience != Administrators && revision.Audience != AllUsers || revision.Generation < 0 || revision.Generation > MaximumVersion || revision.Documents < 0 || revision.Documents > MaximumDocuments || revision.Bytes < 0 || revision.Bytes > MaximumCorpusBytes || revision.Approved && (revision.Documents == 0 || revision.Bytes == 0) || !revision.Approved && (revision.Documents != 0 || revision.Bytes != 0) {
 		return ErrInvalid
 	}

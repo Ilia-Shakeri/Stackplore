@@ -19,6 +19,30 @@ export type RunbookDocument = {
   body: string;
 };
 
+export type RunbookProvenance = {
+  kind: 'operator_authored' | 'licensed_copy' | 'public_domain';
+  /**
+   * At most 512 UTF-8 bytes of inert source attribution; never fetched.
+   */
+  source: string;
+  /**
+   * At most 128 UTF-8 bytes recording the operator's usage basis; not legal certification.
+   */
+  license: string;
+  /**
+   * Operator explicitly reviewed rights for the installation's current document use.
+   */
+  use_reviewed: true;
+};
+
+export type RunbookContent = {
+  document: RunbookDocument;
+  /**
+   * Null denotes a legacy revision without recorded provenance; never inferred permission.
+   */
+  provenance: RunbookProvenance | null;
+};
+
 export type RunbookCorpus = {
   id: RunbookId;
   version: number;
@@ -27,9 +51,13 @@ export type RunbookCorpus = {
    */
   audience: 'administrators' | 'all_users' | '';
   /**
-   * Nonempty for approval; empty for revocation. Combined prose is at most 512 KiB.
+   * Nonempty for approval; empty for revocation. Combined persisted text is at most 512 KiB.
    */
   documents: Array<RunbookDocument>;
+  /**
+   * Required recorded review for approval; null only for revocation.
+   */
+  provenance: RunbookProvenance | null;
 };
 
 /**
@@ -67,6 +95,10 @@ export type RunbookRevision = {
   generation: number;
   documents: number;
   bytes: number;
+  /**
+   * Null denotes a legacy revision with no recorded source review.
+   */
+  provenance: RunbookProvenance | null;
 };
 
 export type RunbookCatalog = {
@@ -3148,7 +3180,7 @@ export type ReadRunbookDocumentResponses = {
   /**
    * Current authorized document result; never cached.
    */
-  200: RunbookDocument;
+  200: RunbookContent;
 };
 
 export type ReadRunbookDocumentResponse =

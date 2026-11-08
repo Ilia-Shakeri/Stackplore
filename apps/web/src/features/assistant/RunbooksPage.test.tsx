@@ -41,11 +41,12 @@ describe('separate reviewed documents page', () => {
     });
     controlled.api.runbookDocument.mockResolvedValue({
       document: {
-      id: 'help',
-      locale: 'en',
-      title: 'Private document',
-      body: 'Clear this private prose synchronously',
-      }, provenance:null,
+        id: 'help',
+        locale: 'en',
+        title: 'Private document',
+        body: 'Clear this private prose synchronously',
+      },
+      provenance: null,
     });
     show('en', 'viewer', controlled);
     const user = userEvent.setup();
@@ -84,7 +85,7 @@ describe('separate reviewed documents page', () => {
           generation: 0,
           documents: 1,
           bytes: 100,
-          provenance:null,
+          provenance: null,
         },
       ],
     });
@@ -107,11 +108,17 @@ describe('separate reviewed documents page', () => {
       });
       controlled.api.runbookDocument.mockResolvedValue({
         document: {
-        id: 'help',
-        locale,
-        title: 'Opened document',
-        body: '<script>private-inert-text</script>',
-        }, provenance:{kind:'operator_authored',source:'Reviewed fixture source',license:'Fixture permission',use_reviewed:true},
+          id: 'help',
+          locale,
+          title: 'Opened document',
+          body: '<script>private-inert-text</script>',
+        },
+        provenance: {
+          kind: 'operator_authored',
+          source: 'Reviewed fixture source',
+          license: 'Fixture permission',
+          use_reviewed: true,
+        },
       });
       show(locale, 'viewer', controlled);
       expect(
@@ -158,7 +165,12 @@ describe('separate reviewed documents page', () => {
       id: 'ops',
       version: 1,
       audience: 'all_users',
-      provenance:{kind:'operator_authored',source:'Synthetic fixture',license:'Fixture author permission',use_reviewed:true},
+      provenance: {
+        kind: 'operator_authored',
+        source: 'Synthetic fixture',
+        license: 'Fixture author permission',
+        use_reviewed: true,
+      },
       documents: [
         { id: 'help', locale: 'en', title: 'Private title', body: 'Private reviewed body' },
       ],

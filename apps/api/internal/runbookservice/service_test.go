@@ -171,7 +171,7 @@ func TestReadShutdownMalformedResultsAndSafeErrors(t *testing.T) {
 	repo.read = func(context.Context, auth.Principal, runbook.Reference) (runbook.Content, error) {
 		d := m.Corpus.Documents[0]
 		d.ID = "other"
-		return runbook.Content{Document:d,Provenance:m.Corpus.Provenance}, nil
+		return runbook.Content{Document: d, Provenance: m.Corpus.Provenance}, nil
 	}
 	if _, err := s.Read(context.Background(), actor, reference); err != runbook.ErrUnavailable {
 		t.Fatal("foreign document projected")

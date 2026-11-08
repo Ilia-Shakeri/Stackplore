@@ -18,7 +18,12 @@ const corpus = (version: number) => ({
   id: 'browser_approved',
   version,
   audience: 'all_users',
-  provenance: {kind:'operator_authored',source:'Synthetic browser fixture',license:'Fixture author permission',use_reviewed:true},
+  provenance: {
+    kind: 'operator_authored',
+    source: 'Synthetic browser fixture',
+    license: 'Fixture author permission',
+    use_reviewed: true,
+  },
   documents: (['en', 'fa'] as const).map((locale) => ({
     id: 'recovery',
     locale,

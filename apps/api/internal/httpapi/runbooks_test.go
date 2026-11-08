@@ -51,7 +51,7 @@ func (stub *runbookHTTPStub) Search(_ context.Context, actor auth.Principal, que
 }
 func (stub *runbookHTTPStub) Read(_ context.Context, _ auth.Principal, ref runbook.Reference) (runbook.Content, error) {
 	stub.calls++
-	return runbook.Content{Document:runbook.Document{ID: ref.DocumentID, Locale: ref.Locale, Title: "Reviewed help", Body: "<script>inert-prose</script>"}}, nil
+	return runbook.Content{Document: runbook.Document{ID: ref.DocumentID, Locale: ref.Locale, Title: "Reviewed help", Body: "<script>inert-prose</script>"}}, nil
 }
 func runbookRequest(path, body string) *http.Request {
 	return withJSONBody(helperRequest(http.MethodPost, "/api/v1/assistant/runbooks"+path), body)
@@ -124,7 +124,7 @@ func TestRunbookMaterialCanonicalDigestAndExactReference(t *testing.T) {
 		}
 	}
 	version, generation := int64(0), int64(0)
-	wire := runbookMaterialJSON{Action: "approve", ExpectedVersion: &version, Generation: &generation, Corpus: runbookCorpusJSON{ID: "ops", Version: 1, Audience: runbook.AllUsers, Provenance:&runbookProvenanceJSON{Kind:"operator_authored",Source:"Synthetic fixture",License:"Fixture author permission",UseReviewed:true}, Documents: []runbookDocumentJSON{{ID: "help", Locale: "en", Title: "Help", Body: "Private prose"}}}}
+	wire := runbookMaterialJSON{Action: "approve", ExpectedVersion: &version, Generation: &generation, Corpus: runbookCorpusJSON{ID: "ops", Version: 1, Audience: runbook.AllUsers, Provenance: &runbookProvenanceJSON{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true}, Documents: []runbookDocumentJSON{{ID: "help", Locale: "en", Title: "Help", Body: "Private prose"}}}}
 	material, err := wire.material()
 	if err != nil || material.Digest == [32]byte{} {
 		t.Fatal("exact material unavailable")
