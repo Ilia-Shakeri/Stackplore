@@ -63,6 +63,7 @@ describe('separate reviewed documents page', () => {
       );
       await user.click(await screen.findByRole('button', { name: 'Private result' }));
       await screen.findByText('<script>private-inert-text</script>');
+      expect(screen.getByRole('heading', { name: 'Opened document' })).toBe(document.activeElement);
       expect(document.querySelector('.runbooks-document script')).toBeNull();
       act(() => controlled.setOwner(Symbol()));
       expect(screen.queryByText('<script>private-inert-text</script>')).toBeNull();

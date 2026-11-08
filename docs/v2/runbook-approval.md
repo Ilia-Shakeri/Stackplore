@@ -152,3 +152,10 @@ real PostgreSQL. A small synthetic plan is not a production capacity claim.
 Metadata generation/version bounds and committed audience, counts and byte size
 are checked before a response is released. The user has no independent evaluator
 or pilot environment yet; later quality and stable acceptance still need those.
+
+Source `24f1770` passed the focused client/page suites, real PostgreSQL expiry and
+quota checks, Compose, Helm, container and provider checks. Its full code gate
+stopped at formatting, so those passing focused results do not certify a full
+release. The hosted correction from run `42468921345` was applied. Follow-up
+review moves keyboard focus into the opened document/review and preserves the
+unknown-outcome notice if the user leaves while confirmation is in flight.

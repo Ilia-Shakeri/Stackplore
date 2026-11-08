@@ -218,9 +218,13 @@ func (s *Service) Commit(ctx context.Context, actor auth.Principal, m Material, 
 		return runbook.Revision{}, runbook.ErrUnavailable
 	}
 	if !m.Revoke {
-		size:=len(m.Corpus.ID)+len(m.Corpus.Audience)
-		for _,document:=range m.Corpus.Documents {size+=len(document.ID)+len(document.Locale)+len(document.Title)+len(document.Body)}
-		if result.Audience!=m.Corpus.Audience || result.Documents!=len(m.Corpus.Documents) || result.Bytes!=size {return runbook.Revision{},runbook.ErrUnavailable}
+		size := len(m.Corpus.ID) + len(m.Corpus.Audience)
+		for _, document := range m.Corpus.Documents {
+			size += len(document.ID) + len(document.Locale) + len(document.Title) + len(document.Body)
+		}
+		if result.Audience != m.Corpus.Audience || result.Documents != len(m.Corpus.Documents) || result.Bytes != size {
+			return runbook.Revision{}, runbook.ErrUnavailable
+		}
 	}
 	return result, nil
 }

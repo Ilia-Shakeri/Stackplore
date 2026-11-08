@@ -1088,3 +1088,14 @@ real PostgreSQL/browser/network/provider/deployment evidence for each claimed
 boundary. Release 2.0 requires all stages 0–10 and the held-out quality/security,
 capacity, upgrade/restore and independently verified stable-artifact gates.
 Guarded-action proposal handoff belongs to optional 2.1 and does not block 2.0.
+
+The stage-7 [reviewed document design](docs/adr/0021-reviewed-document-authority.md)
+adds inert explicitly approved prose, independent of optional inference. A current
+administrator reviews exact material, audience and version, then uses a two-minute
+one-use preview plus a dedicated recent grant. Content, confirmation, grant and
+safe audit change atomically. Fixed PostgreSQL full-text search and exact current
+references enforce live account, audience and restore generation on every read.
+Queries and document references use private request bodies; draft/query text is
+not persisted. The desktop page displays prose as plain text. Replaced/revoked
+rows are removed from new reads; backups, WAL and MVCC have separate retention.
+This increment adds no document-to-generation handoff or automatic learning.

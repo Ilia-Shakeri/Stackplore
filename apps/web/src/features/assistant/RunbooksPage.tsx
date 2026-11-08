@@ -84,11 +84,15 @@ function PrivateRunbooks({
   const work = useRef<AbortController | null>(null);
   const serial = useRef(0);
   const heading = useRef<HTMLHeadingElement>(null);
+  const documentHeading = useRef<HTMLHeadingElement>(null);
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const committing = useRef(false);
   const form = useRef<HTMLFormElement>(null);
   const clear = useCallback(() => {
     serial.current++;
     work.current?.abort();
     work.current = null;
+    committing.current = false;
     setBusy(false);
     setQuery('');
     setSearched('');
@@ -110,9 +114,10 @@ function PrivateRunbooks({
   }, [clear, owner, locale]);
   useEffect(() => {
     const hide = () => {
+      const uncertain = committing.current;
       clear();
       setPaused(true);
-      setMessage('paused');
+      setMessage(uncertain ? 'uncertain' : 'paused');
     };
     const show = () => {
       setPaused(false);
@@ -124,6 +129,12 @@ function PrivateRunbooks({
       window.removeEventListener('pageshow', show);
     };
   }, [clear]);
+  useEffect(() => {
+    if (document !== null) documentHeading.current?.focus();
+  }, [document]);
+  useEffect(() => {
+    if (review !== null) reviewHeading.current?.focus();
+  }, [review]);
   useEffect(() => {
     if (review === null) return;
     const duration = Date.parse(review.preview.expires_at) - Date.now();
@@ -163,6 +174,7 @@ function PrivateRunbooks({
     } finally {
       if (current()) {
         work.current = null;
+        committing.current = false;
         setBusy(false);
       }
     }
@@ -238,6 +250,7 @@ function PrivateRunbooks({
     event.currentTarget.reset();
     if (typeof password !== 'string' || password.length === 0) return;
     const pending = review;
+    committing.current = true;
     setReview(null);
     setAcknowledged(false);
     setCatalog(null);
@@ -258,8 +271,9 @@ function PrivateRunbooks({
     );
   };
   const switchMode = (next: 'search' | 'manage') => {
+    const uncertain = committing.current;
     clear();
-    setMessage(null);
+    setMessage(uncertain ? 'uncertain' : null);
     setMode(next);
   };
   return (
@@ -355,7 +369,9 @@ function PrivateRunbooks({
                 <p>{t('runbooks.choose')}</p>
               ) : (
                 <>
-                  <h3>{document.title}</h3>
+                  <h3 ref={documentHeading} tabIndex={-1}>
+                    {document.title}
+                  </h3>
                   <p className="runbooks-prose" dir="auto">
                     {document.body}
                   </p>
@@ -442,7 +458,9 @@ function PrivateRunbooks({
           ) : null}
           {review !== null ? (
             <section className="runbooks-review" aria-label={t('runbooks.review')}>
-              <h3>{t('runbooks.review')}</h3>
+              <h3 ref={reviewHeading} tabIndex={-1}>
+                {t('runbooks.review')}
+              </h3>
               <p>
                 {t(
                   review.material.action === 'revoke'

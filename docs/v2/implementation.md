@@ -111,15 +111,14 @@ not accept the correction.
 | 2 | `2.0.0-alpha.2` | Published; recorded artifact scope accepted | Global branch/quality, current engine and capacity gates remain separate |
 | 3 | `2.0.0-alpha.3` | Published; recorded artifact scope accepted | Accepted branch/quality and current engine remain separate |
 | 4 | `2.0.0-alpha.4` | Chosen local checkpoint published | Optional remote disabled; independent public consumption and whole-version gates separate |
-| 5 | `2.0.0-alpha.5` | Candidate in separate branch | New-mode hosted source, SQL/browser, scan and exact-tag acceptance |
-| 6     | `2.0.0-alpha.6`        | Not delivered                | Incident analysis                                          |
+| 5 | `2.0.0-alpha.5` | Published; recorded scope accepted | Broader quality and customer acceptance remain separate |
+| 6 | `2.0.0-alpha.6.2` / `.6.3` | Bounded previews published | Independent semantic quality remains unaccepted |
 | 7     | `2.0.0-alpha.7`        | In progress                  | Approval/search, exact document reads and desktop page authored; hosted proof pending |
 | 8     | `2.0.0-alpha.8`        | Not delivered                | Held-out quality, attack and failure gates                 |
 | 9     | `2.0.0-beta.1`         | Not delivered                | Actual pilot, upgrade and deployment                       |
 | 10    | `2.0.0-rc.N` → `2.0.0` | Not delivered                | Independent candidate and stable acceptance                |
 
-Parallel code preparation does not bypass a predecessor's exit gate. No helper
-capability is enabled or claimed shipped by this ledger. Stage 0 now has a
+Parallel code preparation does not bypass a predecessor's exit gate. The optional helper remains disabled by default; the recorded previews do not imply whole-stage quality acceptance. Stage 0 now has a
 versioned `alpha.0` checkpoint because the maintainer requested a version at
 every stage; this supersedes the proposal's unversioned planning checkpoint.
 Existing tags remain immutable. New tags wait for their own passing gates.

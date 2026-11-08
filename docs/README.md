@@ -1,13 +1,12 @@
 # Documentation
 
-Private-history preview: **2.0.0-alpha.6.3**, schema19.
-[Owner-private metadata and remaining runbook work](v2/runbooks.md).
+Reviewed-document candidate: **2.0.0-alpha.7**, schema20; hosted validation pending.
+[Reviewed approval/search and private desktop page](v2/runbook-approval.md).
 [Source, exact-tag and publication receipts](evidence/2.0.0-alpha.6.3/README.md).
 [Selected history/report integration](v2/incident-history.md) records its bounds;
 [the ledger](v2/implementation.md) separates pending and published checkpoints.
 
-[Reviewed runbook preparation](v2/runbooks.md) defines the next bounded corpus
-and owner-metadata work; its pure corpus model grants no approval or public corpus capability.
+[Reviewed document authority](adr/0021-reviewed-document-authority.md) defines exact approval, audience, restore and read fences. Authored corpus/search work is separate from immutable private-history receipts and stable acceptance.
 
 - [Desktop workspaces — 2.0.0-alpha.6.1](desktop-workspaces.md)
 - [صفحه‌های جدا برای کار دسکتاپ](desktop-workspaces.fa.md)

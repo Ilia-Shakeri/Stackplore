@@ -12,8 +12,9 @@
 - Delete replaced/revoked document rows and derived index entries from future
   authorized reads; preserve revision tombstones and truthful backup/MVCC limits.
 - Add locale/audience-gated bounded search and fresh version/digest-bound reads.
-  SQL boundaries and upgrade/negative cases require hosted validation. HTTP/UI
-  composition and whole-stage acceptance remain separate, unfinished increments.
+  Add private HTTP contracts, checked generated client shapes and a separate
+  English/Persian desktop page for search, exact reads and administrator review.
+  Whole-stage quality and exact release acceptance still require their own gates.
 - All tests/builds/services/scans run on Actions. This candidate is not stable2.0.
 
 ## [2.0.0-alpha.6.3] - 2026-11-08

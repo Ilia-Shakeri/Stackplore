@@ -233,7 +233,8 @@ export function createRunbookClient(client: ApiClient) {
     signal: AbortSignal | undefined,
   ): Promise<T> => {
     const requireActive = () => {
-      if (signal?.aborted === true) throw new DOMException('Private request stopped.', 'AbortError');
+      if (signal?.aborted === true)
+        throw new DOMException('Private request stopped.', 'AbortError');
     };
     requireActive();
     const response = await client.request<unknown, unknown>({
