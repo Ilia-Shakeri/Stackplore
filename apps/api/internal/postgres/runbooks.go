@@ -114,7 +114,7 @@ func runbookScope(ctx context.Context, tx pgx.Tx, write bool) (int64, int64, err
 		query = `SELECT row_version FROM runbook_catalog WHERE singleton=1 FOR UPDATE`
 	}
 	err := tx.QueryRow(ctx, query).Scan(&version)
-	if err == nil && (generation < 0 || version < 1) {
+	if err == nil && (generation < 0 || generation > runbook.MaximumVersion || version < 1 || version > runbook.MaximumVersion) {
 		err = runbook.ErrUnavailable
 	}
 	return generation, version, err

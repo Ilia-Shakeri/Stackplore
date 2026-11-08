@@ -81,7 +81,7 @@ func TestPreviewBindsProtectedMaterialAndCommitRequiresGrant(t *testing.T) {
 		if c.Validate() != nil || c.ConfirmationDigest != reviewed.ConfirmationDigest || c.Digest != reviewed.Digest {
 			t.Fatal("commit detached review identity")
 		}
-		return runbook.Revision{ID: m.Corpus.ID, Version: 1, Digest: m.Digest, Audience: runbook.AllUsers, Approved: true, Documents: 1, Bytes: 100}, nil
+		return runbook.Revision{ID: m.Corpus.ID, Version: 1, Digest: m.Digest, Audience: runbook.AllUsers, Approved: true, Documents: 1, Bytes: len(m.Corpus.ID)+len(m.Corpus.Audience)+len(m.Corpus.Documents[0].ID)+len(m.Corpus.Documents[0].Locale)+len(m.Corpus.Documents[0].Title)+len(m.Corpus.Documents[0].Body)}, nil
 	}
 	if _, err := s.Commit(context.Background(), actor, m, draft.Token, false, grant, "request_doc"); err != runbook.ErrInvalid {
 		t.Fatal("confirmation bypass")

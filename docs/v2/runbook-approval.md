@@ -138,3 +138,17 @@ alone does not establish the browser, PostgreSQL or publication gates. The API
 client's generated shapes were obtained from run `42468005066`; no generator,
 formatter, test, build or service ran on the user's host. That source's focused
 transport and PostgreSQL jobs passed; full formatting corrections were applied.
+
+## Correction trail and limits
+
+Source `9ae27a3` passed focused Go and real PostgreSQL checks, but failed hosted
+TypeScript checking: the second cancellation check was incorrectly narrowed across
+an awaited request. The guard now performs a fresh read on each call. This also
+blocked its image/install jobs; no install acceptance is claimed for that source.
+The formatting patch came from run `42468642643` and was applied locally as a
+file edit only. Follow-up checks cover expired/replaced confirmations without
+spending a grant, the full 16-identity bound, and `EXPLAIN (ANALYZE, BUFFERS)` on
+real PostgreSQL. A small synthetic plan is not a production capacity claim.
+Metadata generation/version bounds and committed audience, counts and byte size
+are checked before a response is released. The user has no independent evaluator
+or pilot environment yet; later quality and stable acceptance still need those.

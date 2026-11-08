@@ -2239,15 +2239,69 @@ html[dir='rtl'] .route-page__eyebrow {
   }
 }
 
-.runbooks-workspace { display: grid; gap: var(--sp-space-4); }
-.runbooks-tabs, .runbooks-search { display: flex; gap: var(--sp-space-3); align-items: end; flex-wrap: wrap; }
-.runbooks-search .ui-field { flex: 1; }
-.runbooks-columns { display: grid; grid-template-columns: minmax(16rem, 1fr) minmax(24rem, 2fr); gap: var(--sp-space-6); align-items: start; }
-.runbooks-results { list-style: none; padding: 0; display: grid; gap: var(--sp-space-4); }
-.runbooks-results > li, .runbooks-document, .runbooks-review { padding: var(--sp-space-4); border: 1px solid var(--sp-border); border-radius: var(--sp-radius-lg); background: var(--sp-surface); }
-.runbooks-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
-.runbooks-review article { max-height: 24rem; overflow: auto; }
-.runbooks-workspace textarea { width: 100%; min-height: 16rem; resize: vertical; padding: var(--sp-space-3); color: var(--sp-text); background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-radius-md); }
-.runbooks-digest { overflow-wrap: anywhere; }
-.runbooks-review form { display: grid; gap: var(--sp-space-3); max-width: 32rem; }
-@media (max-width: 56rem) { .runbooks-columns { grid-template-columns: minmax(0, 1fr); } }
+.runbooks-workspace {
+  display: grid;
+  gap: var(--sp-space-4);
+}
+.runbooks-tabs,
+.runbooks-search {
+  display: flex;
+  gap: var(--sp-space-3);
+  align-items: end;
+  flex-wrap: wrap;
+}
+.runbooks-search .ui-field {
+  flex: 1;
+}
+.runbooks-columns {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr) minmax(24rem, 2fr);
+  gap: var(--sp-space-6);
+  align-items: start;
+}
+.runbooks-results {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-space-4);
+}
+.runbooks-results > li,
+.runbooks-document,
+.runbooks-review {
+  padding: var(--sp-space-4);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  background: var(--sp-surface);
+}
+.runbooks-prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.runbooks-review article {
+  max-height: 24rem;
+  overflow: auto;
+}
+.runbooks-workspace textarea {
+  width: 100%;
+  min-height: 16rem;
+  resize: vertical;
+  padding: var(--sp-space-3);
+  color: var(--sp-text);
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-md);
+}
+.runbooks-digest {
+  overflow-wrap: anywhere;
+}
+.runbooks-review form {
+  display: grid;
+  gap: var(--sp-space-3);
+  max-width: 32rem;
+}
+@media (max-width: 56rem) {
+  .runbooks-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

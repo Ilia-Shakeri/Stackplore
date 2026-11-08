@@ -74,22 +74,40 @@ export function createAssistantApi(
   };
   return {
     runbookCatalog(owner: AssistantOwner, signal?: AbortSignal) {
-      return owned(owner,signal,15_000,signal=>books.catalog(signal));
+      return owned(owner, signal, 15_000, (signal) => books.catalog(signal));
     },
     runbookPreview(owner: AssistantOwner, material: RunbookMaterial, signal?: AbortSignal) {
-      return owned(owner,signal,15_000,signal=>auth.runSessionAction(protection=>books.preview(material,protection,signal)));
+      return owned(owner, signal, 15_000, (signal) =>
+        auth.runSessionAction((protection) => books.preview(material, protection, signal)),
+      );
     },
-    runbookCommit(owner: AssistantOwner, material: RunbookMaterial, token: string, password: string, signal?: AbortSignal) {
-      return owned(owner,signal,30_000,signal=>auth.runRecentAction('runbook.manage',password,protection=>{
-        if(signal.aborted)throw new DOMException('Private request stopped.','AbortError');
-        return books.commit({material,confirmation_token:token,confirmed:true},protection,signal);
-      }));
+    runbookCommit(
+      owner: AssistantOwner,
+      material: RunbookMaterial,
+      token: string,
+      password: string,
+      signal?: AbortSignal,
+    ) {
+      return owned(owner, signal, 30_000, (signal) =>
+        auth.runRecentAction('runbook.manage', password, (protection) => {
+          if (signal.aborted) throw new DOMException('Private request stopped.', 'AbortError');
+          return books.commit(
+            { material, confirmation_token: token, confirmed: true },
+            protection,
+            signal,
+          );
+        }),
+      );
     },
     runbookSearch(owner: AssistantOwner, input: RunbookSearch, signal?: AbortSignal) {
-      return owned(owner,signal,15_000,signal=>auth.runSessionAction(protection=>books.search(input,protection,signal)));
+      return owned(owner, signal, 15_000, (signal) =>
+        auth.runSessionAction((protection) => books.search(input, protection, signal)),
+      );
     },
     runbookDocument(owner: AssistantOwner, reference: RunbookReference, signal?: AbortSignal) {
-      return owned(owner,signal,15_000,signal=>auth.runSessionAction(protection=>books.document(reference,protection,signal)));
+      return owned(owner, signal, 15_000, (signal) =>
+        auth.runSessionAction((protection) => books.document(reference, protection, signal)),
+      );
     },
     history(owner: AssistantOwner, input: AssistantHistoryInput, signal?: AbortSignal) {
       return owned(

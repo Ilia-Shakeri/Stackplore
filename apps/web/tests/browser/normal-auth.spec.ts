@@ -212,7 +212,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
       true,
     );
 
-    await runbookAdminJourney(page,locale,administratorPassword,label,privateInput);
+    await runbookAdminJourney(page, locale, administratorPassword, label, privateInput);
     await page.goto('/audit');
     await expect(page.locator('.audit-list article').first()).toBeVisible();
     expect((await page.request.get('/api/v1/audit')).status()).toBe(200);
@@ -274,7 +274,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await privateInput(page.locator('input[name="password"]'), viewerPassword);
     await page.getByRole('button', { name: label('auth.login.submit'), exact: true }).click();
     await expect(page).toHaveURL(/\/overview/u);
-    await runbookViewerJourney(page,locale,label);
+    await runbookViewerJourney(page, locale, label);
     expect((await page.request.get('/api/v1/users')).status()).toBe(403);
     expect((await page.request.get('/api/v1/audit')).status()).toBe(403);
     await page.goto('/settings/users');

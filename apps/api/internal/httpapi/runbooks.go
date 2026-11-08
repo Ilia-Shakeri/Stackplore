@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/auth"
@@ -45,6 +47,12 @@ type runbookMaterialJSON struct {
 	Digest          string            `json:"digest"`
 	Corpus          runbookCorpusJSON `json:"corpus"`
 }
+
+func (runbookMaterialJSON) Format(state fmt.State, _ rune) {
+	_, _ = io.WriteString(state, "[protected document material]")
+}
+
+func (runbookMaterialJSON) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 func (wire runbookMaterialJSON) material() (runbookservice.Material, error) {
 	if wire.ExpectedVersion == nil || wire.Generation == nil || wire.Corpus.Documents == nil {

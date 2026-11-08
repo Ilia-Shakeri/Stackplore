@@ -217,6 +217,11 @@ func (s *Service) Commit(ctx context.Context, actor auth.Principal, m Material, 
 	if work.Err() != nil || !s.open() || result.Validate() != nil || result.ID != m.Corpus.ID || result.Version != m.Corpus.Version || result.Digest != m.Digest || result.Generation != m.Generation || result.Approved == m.Revoke {
 		return runbook.Revision{}, runbook.ErrUnavailable
 	}
+	if !m.Revoke {
+		size:=len(m.Corpus.ID)+len(m.Corpus.Audience)
+		for _,document:=range m.Corpus.Documents {size+=len(document.ID)+len(document.Locale)+len(document.Title)+len(document.Body)}
+		if result.Audience!=m.Corpus.Audience || result.Documents!=len(m.Corpus.Documents) || result.Bytes!=size {return runbook.Revision{},runbook.ErrUnavailable}
+	}
 	return result, nil
 }
 func (s *Service) Catalog(ctx context.Context, actor auth.Principal) (runbook.Catalog, error) {
@@ -232,7 +237,7 @@ func (s *Service) Catalog(ctx context.Context, actor auth.Principal) (runbook.Ca
 	if err != nil {
 		return runbook.Catalog{}, safeError(err)
 	}
-	if work.Err() != nil || !s.open() || result.Generation < 0 || result.Version < 1 || result.Version > runbook.MaximumVersion || len(result.Revisions) > runbook.MaximumCorpora {
+	if work.Err() != nil || !s.open() || result.Generation < 0 || result.Generation > runbook.MaximumVersion || result.Version < 1 || result.Version > runbook.MaximumVersion || len(result.Revisions) > runbook.MaximumCorpora {
 		return runbook.Catalog{}, runbook.ErrUnavailable
 	}
 	for i, item := range result.Revisions {
@@ -301,7 +306,7 @@ func (s *Service) Search(ctx context.Context, actor auth.Principal, query, local
 		}
 		canonical, err := json.Marshal(value)
 		defer clear(canonical)
-		if err != nil || !bytes.Equal(body, canonical) || value.Anchor < 0 || value.Anchor > anchor || anchor-value.Anchor >= int64((10*time.Minute)/time.Microsecond) || value.Generation < 0 || value.Catalog < 1 || !runbook.ValidID(value.Corpus) || !runbook.ValidID(value.Document) {
+		if err != nil || !bytes.Equal(body, canonical) || value.Anchor < 0 || value.Anchor > anchor || anchor-value.Anchor >= int64((10*time.Minute)/time.Microsecond) || value.Generation < 0 || value.Generation > runbook.MaximumVersion || value.Catalog > runbook.MaximumVersion || value.Catalog < 1 || !runbook.ValidID(value.Corpus) || !runbook.ValidID(value.Document) {
 			return Results{}, runbook.ErrInvalid
 		}
 		anchor = value.Anchor
@@ -314,7 +319,7 @@ func (s *Service) Search(ctx context.Context, actor auth.Principal, query, local
 	if err != nil {
 		return Results{}, safeError(err)
 	}
-	if work.Err() != nil || !s.open() || page.Generation < 0 || page.CatalogVersion < 1 || len(page.Hits) > limit || page.HasMore && len(page.Hits) != limit || q.Generation >= 0 && (q.Generation != page.Generation || q.CatalogVersion != page.CatalogVersion) {
+	if work.Err() != nil || !s.open() || page.Generation < 0 || page.Generation > runbook.MaximumVersion || page.CatalogVersion > runbook.MaximumVersion || page.CatalogVersion < 1 || len(page.Hits) > limit || page.HasMore && len(page.Hits) != limit || q.Generation >= 0 && (q.Generation != page.Generation || q.CatalogVersion != page.CatalogVersion) {
 		return Results{}, runbook.ErrUnavailable
 	}
 	for i, hit := range page.Hits {

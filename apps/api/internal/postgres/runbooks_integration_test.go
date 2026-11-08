@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"testing"
 	"time"
 
@@ -17,6 +18,26 @@ func runbookCandidate(version int64, audience runbook.Audience) runbook.Corpus {
 		{ID: "restart", Locale: "fa", Title: "بازیابی سرویس", Body: "برای بازیابی سرویس، وضعیت سلامت را بررسی کنید."},
 		{ID: "status", Locale: "en", Title: "Service status", Body: "Inspect service state before recovery."},
 	}}
+}
+
+func TestRunbookConfirmationExpiryReplacementAndCorpusQuota(t *testing.T){
+	store,actor,_:=sourceSettingsFixture(t,-2*time.Second);ctx:=context.Background()
+	command:=runbookCommand(t,store,actor,runbookCandidate(1,runbook.AllUsers),0,0,"expires")
+	prepareRunbookTest(t,store,command)
+	if _,err:=store.pool.Exec(ctx,`UPDATE runbook_confirmations SET created_at_us=created_at_us-180000000,expires_at_us=expires_at_us-180000000 WHERE session_id=$1`,string(actor.SessionID));err!=nil{t.Fatal(err)}
+	if _,err:=store.ChangeRunbook(ctx,command);err!=runbook.ErrDenied{t.Fatal("expired preview approved prose",err)}
+	var consumed bool;digest,_:=command.Grant.Digest.Bytes();if err:=store.pool.QueryRow(ctx,`SELECT consumed_at_us IS NOT NULL FROM recent_auth_grants WHERE grant_digest=$1`,digest).Scan(&consumed);err!=nil||consumed{t.Fatal("expired preview consumed recent grant",err)}
+	prepareRunbookTest(t,store,command)
+	newer:=command;newer.ConfirmationDigest=sha256.Sum256([]byte("replacement_fixture"));prepareRunbookTest(t,store,newer)
+	if _,err:=store.ChangeRunbook(ctx,command);err!=runbook.ErrDenied{t.Fatal("replaced confirmation remained valid",err)}
+	if _,err:=store.ChangeRunbook(ctx,newer);err!=nil{t.Fatal("current confirmation failed",err)}
+	for index:=1;index<runbook.MaximumCorpora;index++{corpus:=runbookCandidate(1,runbook.AllUsers);corpus.ID=fmt.Sprintf("collection_%02d",index);next:=runbookCommand(t,store,actor,corpus,0,0,fmt.Sprintf("quota_%02d",index));prepareRunbookTest(t,store,next);if _,err:=store.ChangeRunbook(ctx,next);err!=nil{t.Fatal("bounded corpus rejected",err)}}
+	corpus:=runbookCandidate(1,runbook.AllUsers);corpus.ID="overflow";overflow:=runbookCommand(t,store,actor,corpus,0,0,"overflow")
+	if _,err:=store.PreviewRunbook(ctx,runbook.Preview{Actor:actor,CorpusID:corpus.ID,ExpectedVersion:0,ExpectedGeneration:0,Digest:overflow.Digest,ConfirmationDigest:overflow.ConfirmationDigest});err!=runbook.ErrConflict{t.Fatal("identity quota bypassed",err)}
+	catalog,err:=store.InspectRunbooks(ctx,actor);if err!=nil||len(catalog.Revisions)!=runbook.MaximumCorpora{t.Fatal("bounded catalog changed",err)}
+	// Inspect the exact search statement on real PostgreSQL without asserting a host-dependent plan.
+	var plan []byte;if err:=store.pool.QueryRow(ctx,`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) `+runbookSearchSQL,int64(0),true,"en","service","","",11).Scan(&plan);err!=nil||len(plan)==0||len(plan)>256*1024{t.Fatal("bounded search plan unavailable",err)}
+	var indexes int;if err:=store.pool.QueryRow(ctx,`SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND tablename='runbook_documents' AND indexdef LIKE '%USING gin (search_terms)%'`).Scan(&indexes);err!=nil||indexes!=1{t.Fatal("full-text index missing",err)}
 }
 
 func runbookCommand(t *testing.T, store *Store, actor auth.Principal, corpus runbook.Corpus, expected, generation int64, suffix string) runbook.Change {

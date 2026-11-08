@@ -57,7 +57,7 @@ func (Change) Format(state fmt.State, _ rune) {
 func (Change) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 func (change Change) Validate() error {
-	if change.Actor.Validate() != nil || change.Actor.Role != auth.RoleAdministrator || change.Grant.Actor != change.Actor || change.Grant.Purpose != auth.RecentAuthPurposeRunbookManage || change.Grant.Digest.Validate() != nil || change.Grant.DigestKeyID == "" || !change.Confirmed || change.ConfirmationDigest == [32]byte{} || change.ExpectedVersion < 0 || change.ExpectedVersion > MaximumVersion || change.ExpectedGeneration < 0 || !identifier.MatchString(change.Corpus.ID) || change.Audit.Validate() != nil || change.Audit.Actor.Kind != domain.AuditActorUser || change.Audit.Actor.ID != string(change.Actor.UserID) || change.Audit.Target.Kind != "runbook.corpus" || change.Audit.Target.ID != change.Corpus.ID || change.Audit.Outcome != domain.AuditSuccess || !change.Audit.OccurredAt.Equal(change.Grant.ConsumedAt) {
+	if change.Actor.Validate() != nil || change.Actor.Role != auth.RoleAdministrator || change.Grant.Actor != change.Actor || change.Grant.Purpose != auth.RecentAuthPurposeRunbookManage || change.Grant.Digest.Validate() != nil || change.Grant.DigestKeyID == "" || !change.Confirmed || change.ConfirmationDigest == [32]byte{} || change.ExpectedVersion < 0 || change.ExpectedVersion > MaximumVersion || change.ExpectedGeneration < 0 || change.ExpectedGeneration > MaximumVersion || !identifier.MatchString(change.Corpus.ID) || change.Audit.Validate() != nil || change.Audit.Actor.Kind != domain.AuditActorUser || change.Audit.Actor.ID != string(change.Actor.UserID) || change.Audit.Target.Kind != "runbook.corpus" || change.Audit.Target.ID != change.Corpus.ID || change.Audit.Outcome != domain.AuditSuccess || !change.Audit.OccurredAt.Equal(change.Grant.ConsumedAt) {
 		return ErrInvalid
 	}
 	if change.Revoke {
@@ -90,7 +90,7 @@ func (Search) Format(state fmt.State, _ rune) {
 func (Search) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 func (search Search) Validate() error {
-	if search.Actor.Validate() != nil || Query(search.Query, search.Limit) != nil || search.Locale != "en" && search.Locale != "fa" || search.Generation < -1 || search.CatalogVersion < -1 || (search.Generation == -1) != (search.CatalogVersion == -1) || (search.BeforeCorpus == "") != (search.BeforeDocument == "") || search.BeforeCorpus != "" && (!identifier.MatchString(search.BeforeCorpus) || !identifier.MatchString(search.BeforeDocument) || search.Generation < 0) {
+	if search.Actor.Validate() != nil || Query(search.Query, search.Limit) != nil || search.Locale != "en" && search.Locale != "fa" || search.Generation < -1 || search.Generation > MaximumVersion || search.CatalogVersion > MaximumVersion || search.CatalogVersion < -1 || (search.Generation == -1) != (search.CatalogVersion == -1) || (search.BeforeCorpus == "") != (search.BeforeDocument == "") || search.BeforeCorpus != "" && (!identifier.MatchString(search.BeforeCorpus) || !identifier.MatchString(search.BeforeDocument) || search.Generation < 0) {
 		return ErrInvalid
 	}
 	return nil
@@ -106,7 +106,7 @@ type Reference struct {
 }
 
 func (reference Reference) Validate() error {
-	if !identifier.MatchString(reference.CorpusID) || !identifier.MatchString(reference.DocumentID) || reference.Version < 1 || reference.Version > MaximumVersion || reference.Digest == [32]byte{} || reference.Locale != "en" && reference.Locale != "fa" || reference.Generation < 0 {
+	if !identifier.MatchString(reference.CorpusID) || !identifier.MatchString(reference.DocumentID) || reference.Version < 1 || reference.Version > MaximumVersion || reference.Digest == [32]byte{} || reference.Locale != "en" && reference.Locale != "fa" || reference.Generation < 0 || reference.Generation > MaximumVersion {
 		return ErrInvalid
 	}
 	return nil
@@ -156,7 +156,7 @@ func (Preview) Format(state fmt.State, _ rune) {
 }
 func (Preview) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 func (preview Preview) Validate() error {
-	if preview.Actor.Validate() != nil || preview.Actor.Role != auth.RoleAdministrator || !identifier.MatchString(preview.CorpusID) || preview.ExpectedVersion < 0 || preview.ExpectedVersion > MaximumVersion || preview.ExpectedGeneration < 0 || preview.Digest == [32]byte{} || preview.ConfirmationDigest == [32]byte{} || preview.Revoke && preview.ExpectedVersion == 0 || !preview.Revoke && preview.ExpectedVersion >= MaximumVersion {
+	if preview.Actor.Validate() != nil || preview.Actor.Role != auth.RoleAdministrator || !identifier.MatchString(preview.CorpusID) || preview.ExpectedVersion < 0 || preview.ExpectedVersion > MaximumVersion || preview.ExpectedGeneration < 0 || preview.ExpectedGeneration > MaximumVersion || preview.Digest == [32]byte{} || preview.ConfirmationDigest == [32]byte{} || preview.Revoke && preview.ExpectedVersion == 0 || !preview.Revoke && preview.ExpectedVersion >= MaximumVersion {
 		return ErrInvalid
 	}
 	return nil
@@ -185,7 +185,7 @@ func (PreviewResult) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 func ValidID(value string) bool { return identifier.MatchString(value) }
 func (revision Revision) Validate() error {
-	if !ValidID(revision.ID) || revision.Version < 1 || revision.Version > MaximumVersion || revision.Digest == [32]byte{} || revision.Audience != Administrators && revision.Audience != AllUsers || revision.Generation < 0 || revision.Documents < 0 || revision.Documents > MaximumDocuments || revision.Bytes < 0 || revision.Bytes > MaximumCorpusBytes || revision.Approved && (revision.Documents == 0 || revision.Bytes == 0) || !revision.Approved && (revision.Documents != 0 || revision.Bytes != 0) {
+	if !ValidID(revision.ID) || revision.Version < 1 || revision.Version > MaximumVersion || revision.Digest == [32]byte{} || revision.Audience != Administrators && revision.Audience != AllUsers || revision.Generation < 0 || revision.Generation > MaximumVersion || revision.Documents < 0 || revision.Documents > MaximumDocuments || revision.Bytes < 0 || revision.Bytes > MaximumCorpusBytes || revision.Approved && (revision.Documents == 0 || revision.Bytes == 0) || !revision.Approved && (revision.Documents != 0 || revision.Bytes != 0) {
 		return ErrInvalid
 	}
 	return nil
