@@ -185,61 +185,67 @@ function PrivateHistory({
           key={`${locale}:${state}:${String(index)}:${String(revision)}`}
           api={api}
           owner={owner}
-          input={{state,limit:10,...(cursor === '' ? {} : {cursor})}}
+          input={{ state, limit: 10, ...(cursor === '' ? {} : { cursor }) }}
           entries={data.entries}
         >
-        {({selected,busy,select}) => (
-        <ol className="assistant-history-list" start={index * 10 + 1}>
-          {data.entries.map((entry) => (
-            <li key={entry.id}>
-              <article className="assistant-history-row">
-                <label>
-                  <input type="checkbox" checked={selected.includes(entry.id)} disabled={busy}
-                    aria-label={`${t('assistant.history.export.select')}: ${entry.id}`}
-                    onChange={event => { select(entry.id,event.target.checked); }}/>
-                  {t('assistant.history.export.select')}
-                </label>
-                <h3>
-                  {t(
-                    entry.goal === 'investigate_incident'
-                      ? 'assistant.history.investigation'
-                      : 'assistant.history.explanation',
-                  )}
-                </h3>
-                <p>
-                  {t(`assistant.history.state.${entry.state}`)} ·{' '}
-                  <time dateTime={entry.created_at}>
-                    {formatDate(Date.parse(entry.created_at), {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })}
-                  </time>
-                </p>
-                <dl>
-                  <dt>{t('assistant.history.source')}</dt>
-                  <dd>
-                    <TechnicalText>{entry.source_id}</TechnicalText>
-                  </dd>
-                  <dt>{t('assistant.history.reads')}</dt>
-                  <dd>{formatNumber(entry.tool_calls)}</dd>
-                  <dt>{t('assistant.history.responses')}</dt>
-                  <dd>{formatNumber(entry.inference_calls)}</dd>
-                </dl>
-                {entry.usage_uncertain ? <p>{t('assistant.history.uncertain')}</p> : null}
-                {entry.resource_id !== null ? (
-                  <a
-                    href={`/assistant?source=${encodeURIComponent(entry.source_id)}&resource_id=${encodeURIComponent(entry.resource_id)}`}
-                  >
-                    {t('assistant.history.openResource')}
-                  </a>
-                ) : (
-                  <p>{t('assistant.history.resourceMissing')}</p>
-                )}
-              </article>
-            </li>
-          ))}
-        </ol>
-        )}
+          {({ selected, busy, select }) => (
+            <ol className="assistant-history-list" start={index * 10 + 1}>
+              {data.entries.map((entry) => (
+                <li key={entry.id}>
+                  <article className="assistant-history-row">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(entry.id)}
+                        disabled={busy}
+                        aria-label={`${t('assistant.history.export.select')}: ${entry.id}`}
+                        onChange={(event) => {
+                          select(entry.id, event.target.checked);
+                        }}
+                      />
+                      {t('assistant.history.export.select')}
+                    </label>
+                    <h3>
+                      {t(
+                        entry.goal === 'investigate_incident'
+                          ? 'assistant.history.investigation'
+                          : 'assistant.history.explanation',
+                      )}
+                    </h3>
+                    <p>
+                      {t(`assistant.history.state.${entry.state}`)} ·{' '}
+                      <time dateTime={entry.created_at}>
+                        {formatDate(Date.parse(entry.created_at), {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
+                      </time>
+                    </p>
+                    <dl>
+                      <dt>{t('assistant.history.source')}</dt>
+                      <dd>
+                        <TechnicalText>{entry.source_id}</TechnicalText>
+                      </dd>
+                      <dt>{t('assistant.history.reads')}</dt>
+                      <dd>{formatNumber(entry.tool_calls)}</dd>
+                      <dt>{t('assistant.history.responses')}</dt>
+                      <dd>{formatNumber(entry.inference_calls)}</dd>
+                    </dl>
+                    {entry.usage_uncertain ? <p>{t('assistant.history.uncertain')}</p> : null}
+                    {entry.resource_id !== null ? (
+                      <a
+                        href={`/assistant?source=${encodeURIComponent(entry.source_id)}&resource_id=${encodeURIComponent(entry.resource_id)}`}
+                      >
+                        {t('assistant.history.openResource')}
+                      </a>
+                    ) : (
+                      <p>{t('assistant.history.resourceMissing')}</p>
+                    )}
+                  </article>
+                </li>
+              ))}
+            </ol>
+          )}
         </HistoryMetadataExport>
       ) : null}
       <nav className="assistant__actions" aria-label={t('assistant.history.pages')}>

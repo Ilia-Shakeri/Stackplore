@@ -1,7 +1,7 @@
 import type { AssistantHistoryEntry, AssistantHistoryResponse } from '@stackplore/api-client';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AssistantHistoryPage } from './AssistantHistoryPage';
 import { AssistantProvider } from './assistant-context';
 import { controlledConversationApi, scope } from './conversation.test-fixtures';
@@ -39,6 +39,61 @@ afterEach(() => {
 });
 
 describe('separate private history page', () => {
+  it('downloads selected metadata only after a fresh read and revokes its temporary URL', async () => {
+    const create = vi.fn<typeof URL.createObjectURL>().mockReturnValue('blob:private-history');
+    const revoke = vi.fn<typeof URL.revokeObjectURL>();
+    const previousCreate = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    const previousRevoke = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    try {
+      const controlled = controlledConversationApi();
+      controlled.api.history.mockResolvedValue({ entries: [record()], next_cursor: null });
+      const rendered = show('en', controlled);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('checkbox', { name: `Select for export: ${record().id}` }));
+      await user.click(screen.getByRole('button', { name: 'Download selected metadata' }));
+      await waitFor(() => { expect(create).toHaveBeenCalledTimes(1); });
+      expect(controlled.api.history).toHaveBeenCalledTimes(2);
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(document.querySelector('a[download]')).toBeNull();
+      rendered.unmount();
+      expect(revoke).toHaveBeenCalledWith('blob:private-history');
+    } finally {
+      click.mockRestore();
+      if (previousCreate === undefined) Reflect.deleteProperty(URL, 'createObjectURL');
+      else Object.defineProperty(URL, 'createObjectURL', previousCreate);
+      if (previousRevoke === undefined) Reflect.deleteProperty(URL, 'revokeObjectURL');
+      else Object.defineProperty(URL, 'revokeObjectURL', previousRevoke);
+    }
+  });
+
+  it('cancels an unfinished export when the page leaves view without creating a file', async () => {
+    const create = vi.fn<typeof URL.createObjectURL>().mockReturnValue('blob:private-history');
+    const previousCreate = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
+    try {
+      const controlled = controlledConversationApi();
+      controlled.api.history.mockResolvedValueOnce({ entries: [record()], next_cursor: null });
+      let finish: ((page: AssistantHistoryResponse) => void) | undefined;
+      controlled.api.history.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+      const rendered = show('en', controlled);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('checkbox', { name: `Select for export: ${record().id}` }));
+      await user.click(screen.getByRole('button', { name: 'Download selected metadata' }));
+      await waitFor(() => { expect(finish).toBeDefined(); });
+      const signal = controlled.api.history.mock.calls[1]?.[2];
+      fireEvent(window, new Event('pagehide'));
+      await act(async () => { await Promise.resolve(); finish?.({ entries: [record()], next_cursor: null }); });
+      expect(signal?.aborted).toBe(true);
+      expect(create).not.toHaveBeenCalled();
+      rendered.unmount();
+    } finally {
+      if (previousCreate === undefined) Reflect.deleteProperty(URL, 'createObjectURL');
+      else Object.defineProperty(URL, 'createObjectURL', previousCreate);
+    }
+  });
   it.each(['en', 'fa'] as const)(
     'pages with the keyboard and replaces rows without replay in %s',
     async (locale) => {

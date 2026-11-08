@@ -58,3 +58,6 @@ No local test, build or service is authorized.
 فایل فقط شناسه‌ها، زمان، حالت و شمار فراخوان‌ها را دارد؛ پرسش، پاسخ، گزارش، متن
 شاهد یا مشخصات نشست در آن نیست. زمان صدور از ساعت مرورگر است؛ این فایل امضای
 سرور یا اعتبار گزارش ندارد. نگهداری و حذف فایل دریافتی با کاربر است.
+
+
+First candidate source `7f2f648` in run [42475542996](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42475542996) passed focused client/history/export checks and six install/provider/tool jobs; the full gate stopped at formatting. The hosted patch was applied. Additional interface tests exercise actual download initiation, temporary URL cleanup and a late response after pagehide; they still require their own fresh hosted receipt.

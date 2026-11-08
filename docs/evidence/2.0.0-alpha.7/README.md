@@ -9,8 +9,8 @@ Version **2.0.0-alpha.7**, schema **20**, immutable source
 | --- | --- | --- |
 | Full source verification | [42470870399](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42470870399) | All eight jobs pass |
 | Signed package/security trial | [42470901375](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42470901375) | Package passes; branch publication correctly skipped |
-| Exact-tag verification | [42473994865](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994865) | Attempt1 processor fails; remaining code job still running |
-| Signed publication | [42473994721](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994721) | Pending; source success is not publication proof |
+| Exact-tag verification | [42473994865](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994865) | Attempt1 fails only the processor; bounded failed-job repeat running |
+| Signed publication | [42473994721](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994721) | Attempt1 blocked by failed exact-tag verification; publication skipped |
 
 The annotated tag has been pushed. No public release or stable acceptance is
 claimed while the last two receipts remain pending. Every test, build, scan,
