@@ -1,5 +1,13 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
+Hosted preparation attempts: pure model source `2e78a91` passes seven jobs and
+fails only Go formatting in run `41810618993`; its hosted formatting patch is
+applied at `df275bd`. Owner-history source `72fcc59` reaches the actual SQL
+regression in run `42454637270`; a second-page timestamp cannot use the parameter's
+implicit integer type. The correction fixes that parameter to `bigint`, preserving
+keyset limits and selected owner. New cursor/use-case checks require their own
+hosted execution. No workstation test or formatter runs.
+
 Status: **stage-7 preparation only**. The pure corpus model, owner-metadata read
 port and boundary tests are authored on `v2/runbooks-prep`. They expose no HTTP
 route, create no database table and do not complete stage 7. Stage-6 quality review and
@@ -24,7 +32,7 @@ transport/storage projections must be separate from these protected values.
 
 Search input is at most 256 UTF-8 bytes and ten results. Snippets are at most 512
 UTF-8 bytes, preserve complete code points and are rendered as plain text. This
-preparation has no search engine or approval state. It performs no I/O.
+preparation has no search engine or approval state. The corpus model performs no I/O.
 
 ## Owner-metadata repository preparation
 
@@ -40,6 +48,14 @@ an old run's expired session does not need to be resurrected to read safe metada
 An administrator has no other-owner shortcut. Changing restore generation hides
 old records. No question, answer, report, evidence body, session digest or provider
 credential is selected. This port is not wired to the HTTP or desktop boundary yet.
+
+The metadata use case adds a ten-minute authenticated cursor bound to owner,
+session, authentication revision, state, page size, anchor and restore generation.
+Malformed, expired or changed-scope cursors fail before repository I/O. Each read
+has a three-second deadline and validates the returned shape, generation and
+strict ordering before releasing a detached metadata page. It cannot admit a run,
+replay text, widen the current actor or turn a stored reference into read authority.
+The use case and cursor are preparation; public contracts and views remain open.
 
 ## Remaining implementation contract
 

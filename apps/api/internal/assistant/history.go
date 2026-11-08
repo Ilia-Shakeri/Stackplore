@@ -16,10 +16,11 @@ type HistoryQuery struct {
 	BeforeAt time.Time
 	BeforeID string
 	Limit int
+	Generation int64
 }
 
 func (query HistoryQuery) Validate(at time.Time) error {
-	if !Timestamp(at) || !Timestamp(query.UpperBound) || query.UpperBound.After(at) || query.State != Queued && query.State != Running && !query.State.Terminal() || query.Limit < 1 || query.Limit > MaximumHistoryPage { return ErrInvalid }
+	if !Timestamp(at) || !Timestamp(query.UpperBound) || query.UpperBound.After(at) || query.State != Queued && query.State != Running && !query.State.Terminal() || query.Limit < 1 || query.Limit > MaximumHistoryPage || query.Generation < -1 { return ErrInvalid }
 	if query.BeforeAt.IsZero() != (query.BeforeID == "") || !query.BeforeAt.IsZero() && (!Timestamp(query.BeforeAt) || query.BeforeAt.After(query.UpperBound) || !Identifier(query.BeforeID)) { return ErrInvalid }
 	return nil
 }
@@ -52,6 +53,7 @@ func (entry HistoryEntry) Validate(query HistoryQuery, at time.Time) error {
 type HistoryPage struct {
 	Entries []HistoryEntry
 	HasMore bool
+	Generation int64
 }
 
 func (HistoryPage) Format(state fmt.State, _ rune) { _, _ = io.WriteString(state, "[protected run metadata page]") }

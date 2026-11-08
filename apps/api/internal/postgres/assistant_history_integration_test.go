@@ -31,7 +31,7 @@ func TestAssistantMetadataHistoryIsBoundedOwnerPrivateAndRestoreFenced(t *testin
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	created := now.Add(-time.Second)
 	if _, err := store.pool.Exec(ctx, `UPDATE assistant_runs SET created_at_us=$1,from_us=$2,until_us=$1,deadline_us=$3 WHERE id IN ('history_a','history_b')`, created.UnixMicro(), created.Add(-time.Minute).UnixMicro(), created.Add(assistant.MaximumRunDuration).UnixMicro()); err != nil { t.Fatal(err) }
-	query := assistant.HistoryQuery{State: assistant.Cancelled, UpperBound: now, Limit: 1}
+	query := assistant.HistoryQuery{State: assistant.Cancelled, UpperBound: now, Limit: 1, Generation: -1}
 	page, err := store.ListAssistantHistory(ctx, actor, query, now)
 	if err != nil || len(page.Entries) != 1 || !page.HasMore || page.Entries[0].ID != "history_b" { t.Fatal("owner/state/keyset bound failed", err) }
 	query.BeforeAt, query.BeforeID = page.Entries[0].CreatedAt, page.Entries[0].ID
@@ -43,6 +43,9 @@ func TestAssistantMetadataHistoryIsBoundedOwnerPrivateAndRestoreFenced(t *testin
 	forged := other; forged.UserID = actor.UserID
 	if _, err := store.ListAssistantHistory(ctx, forged, query, now); err != assistant.ErrDenied { t.Fatal("foreign session borrowed administrator ownership", err) }
 	if _, err := store.pool.Exec(ctx, `UPDATE installation_metadata SET restore_generation=restore_generation+1 WHERE singleton_id=1`); err != nil { t.Fatal(err) }
+	query.Generation = page.Generation
+	if _, err := store.ListAssistantHistory(ctx, actor, query, now); err != assistant.ErrDenied { t.Fatal("old cursor crossed restore generation", err) }
+	query.Generation = -1
 	cleared, err := store.ListAssistantHistory(ctx, actor, query, now)
 	if err != nil || len(cleared.Entries) != 0 || cleared.HasMore { t.Fatal("restored old metadata crossed generation fence", err) }
 	if _, err := store.pool.Exec(ctx, `UPDATE sessions SET revoked_at_us=$1 WHERE token_digest=$2`, now.UnixMicro(), actor.SessionDigest[:]); err != nil { t.Fatal(err) }
