@@ -66,7 +66,7 @@ jobs:
           bash scripts/release-tools.sh
       - name: Verify pinned database engine and scan database packages; build release payloads
         run: bash scripts/release-build.sh
-      - name: Retain database diagnostics after a failed package gate
+      - name: Retain package scan diagnostics after a failed package gate
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -75,6 +75,8 @@ jobs:
             ${{ runner.temp }}/stackplore-release/database-image.json
             ${{ runner.temp }}/stackplore-release/database-image-scan.json
             ${{ runner.temp }}/stackplore-release/database.spdx.json
+            ${{ runner.temp }}/stackplore-release/image-scan.json
+            ${{ runner.temp }}/stackplore-release/stackplore_*.scan.json
           if-no-files-found: ignore
           retention-days: 7
       - name: Start owned PostgreSQL fixture from the scanned runtime image
