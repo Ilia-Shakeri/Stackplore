@@ -413,3 +413,16 @@ replacement results and current open gates are in the active evidence plan.
 - Stage 7 embeds built assets in the single Go application, following ADR-0001. CI Compose startup is still distinct from cluster installation and target acceptance. Provider clients follow ADR-0002.
 
 See [ADR-0011](adr/0011-postgresql-primary-persistence.md), [observations](observations.md), [security](security.md), [deployment](operations/deployment.md), and [backup/restore](operations/backup-restore.md).
+
+## Smart Assistant — candidate metadata history
+
+The isolated preparation branch adds `assistant.HistoryRepository`, implemented
+by PostgreSQL over existing metadata tables. The `assistanthistory` use case owns
+cursor authentication, deadline, lifetime cancellation and detached shape checks.
+The conversation coordinator composes it only when the repository supplies that
+port; the authenticated HTTP adapter explicitly projects safe fields. OpenAPI
+remains canonical and the typed browser client validates every reply. A separate
+lazy-loaded desktop page reads ten records at a time and follows current session
+ownership. This read never invokes the inference runtime, stores prose, or replays
+an old report. Corpus approval/search and whole-stage acceptance remain open.
+[Candidate contract and tests](v2/runbooks.md).

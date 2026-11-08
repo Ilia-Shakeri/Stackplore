@@ -89,6 +89,14 @@ typed client and web gates, then fails source formatting. The hosted correction
 also supplies canonical contract-derived types. It is applied before the desktop
 increment; that newer combined source needs fresh full verification.
 
+Desktop source `20be636` in run `42457050589` fails type checking because its
+new tests use DOM matchers that this repository does not install. The correction
+uses native element properties and ordinary assertions, preserving every behavior
+check. That failure also blocks container/browser builds; it is one source defect,
+not a container acceptance receipt. The hosted formatting patch is applied.
+Review also closes the zero-length time-window gap in domain and client validation,
+with matching negative tests; canonical windows require `to` strictly after `from`.
+
 Run `42455338720` at `8206322` reaches session revocation, then rejects the
 fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
 the real session constraint remains intact. Container jobs in that run also used

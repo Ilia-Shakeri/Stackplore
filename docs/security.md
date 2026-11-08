@@ -295,6 +295,22 @@ CI configuration is not evidence until a trusted run passes. A clean source scan
 
 ## Acceptance and residual boundaries
 
+### Smart Assistant — candidate owner history
+
+The isolated `v2/runbooks-prep` increment adds a session-derived owner-only metadata
+read. It accepts no owner override, text, dispatch instruction or provider endpoint.
+State and keyset limits match an existing index; active identity is checked on both
+sides of a short transaction and restore generation fences retained rows and cursors.
+Ten-minute authenticated cursors bind owner, current session, authentication revision,
+filter and page size. They are not read authority. Shutdown cancels work and clears
+the signing key. The desktop page keeps cursors in bounded volatile memory, erases
+rows on session/page loss and rejects late prior-owner completion. No expired
+conversation/report is reconstructed. New source still requires its own hosted
+acceptance; reviewed-corpus storage, approval and search are not supplied by this
+increment. [Bounds and pending gates](v2/runbooks.md).
+
+### Release acceptance
+
 Historical tagged `v1.0.1` at `73ece4754554cca548c242768b195d21664d37b8` passed the full
 local gate, exact main/tag CI, strict signed-trial scans, independent trial
 verification and actual Windows/database archive recovery. Architecture/code

@@ -19,7 +19,11 @@ const AssistantWorkspacePage = lazy(() =>
     default: module.AssistantWorkspacePage,
   })),
 );
-const PrivateAssistantHistoryPage = lazy(() => import('../features/assistant/AssistantHistoryPage').then((module) => ({ default: module.AssistantHistoryPage })));
+const PrivateAssistantHistoryPage = lazy(() =>
+  import('../features/assistant/AssistantHistoryPage').then((module) => ({
+    default: module.AssistantHistoryPage,
+  })),
+);
 const ProductHelpPage = lazy(() =>
   import('./HelpPage').then((module) => ({ default: module.HelpPage })),
 );
@@ -178,7 +182,11 @@ export function AssistantPage() {
   );
 }
 export function AssistantHistoryPage() {
-  return <ProductBoundary><PrivateAssistantHistoryPage /></ProductBoundary>;
+  return (
+    <ProductBoundary>
+      <PrivateAssistantHistoryPage />
+    </ProductBoundary>
+  );
 }
 export function HelpPage() {
   return (

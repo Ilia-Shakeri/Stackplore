@@ -79,6 +79,7 @@ describe('owner-private metadata history', () => {
 
   it('rejects hostile rows, content fields, malformed clocks and cursor loops', () => {
     const mutations: ((value: Record<string, unknown>) => void)[] = [
+      (value) => { value.range = { from: '2026-11-08T06:00:00Z', to: '2026-11-08T06:00:00Z' }; },
       (value) => {
         value.question = 'private';
       },

@@ -98,7 +98,13 @@ const fixedBreadcrumbs = new Map<string, readonly BreadcrumbDefinition[]>([
   ['/monitoring', [{ labelKey: 'route.monitoring.title' }]],
   ['/insights', [{ labelKey: 'route.insights.title' }]],
   ['/assistant', [{ labelKey: 'route.assistant.title' }]],
-  ['/assistant/history', [{ labelKey: 'route.assistant.title', to: '/assistant' }, { labelKey: 'assistant.history.title' }]],
+  [
+    '/assistant/history',
+    [
+      { labelKey: 'route.assistant.title', to: '/assistant' },
+      { labelKey: 'assistant.history.title' },
+    ],
+  ],
   ['/help', [{ labelKey: 'route.help.title' }]],
   ['/topology', [{ labelKey: 'route.topology.title' }]],
   ['/resources', [{ labelKey: 'route.resources.title' }]],

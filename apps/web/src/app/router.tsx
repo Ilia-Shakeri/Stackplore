@@ -331,7 +331,11 @@ const assistantRoute = createRoute({
   path: '/assistant',
   component: AssistantPage,
 });
-const assistantHistoryRoute = createRoute({ getParentRoute: () => appRoute, path: '/assistant/history', component: AssistantHistoryPage });
+const assistantHistoryRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/assistant/history',
+  component: AssistantHistoryPage,
+});
 const helpRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/help',

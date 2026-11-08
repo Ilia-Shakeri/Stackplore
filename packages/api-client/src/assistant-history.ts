@@ -121,7 +121,7 @@ export const parseAssistantHistoryResponse = (
     const range = closed(item.range, ['from', 'to']);
     const from = timestamp(range.from, true),
       until = timestamp(range.to, true);
-    if (until < from || until > created || until - from > 86_400_000_000_000n) return fail();
+    if (until <= from || until > created || until - from > 86_400_000_000_000n) return fail();
     return { ...item, range } as AssistantHistoryEntry;
   });
   if (

@@ -30,7 +30,7 @@ func TestHistoryBoundsAndProtectedMetadata(t *testing.T) {
 	if entry.Validate(query, at) != nil {
 		t.Fatal("same-time lexical keyset rejected")
 	}
-	for _, mutate := range []func(*HistoryEntry){func(e *HistoryEntry) { e.CreatedAt = at.Add(-MetadataRetention - time.Second) }, func(e *HistoryEntry) { e.Until = at }, func(e *HistoryEntry) { e.State = Queued }, func(e *HistoryEntry) { e.Goal = ExplainAlert }, func(e *HistoryEntry) { e.ToolCalls = MaximumToolCalls + 1 }, func(e *HistoryEntry) { e.ID = "../file" }} {
+	for _, mutate := range []func(*HistoryEntry){func(e *HistoryEntry) { e.CreatedAt = at.Add(-MetadataRetention - time.Second) }, func(e *HistoryEntry) { e.Until = at }, func(e *HistoryEntry) { e.Until = e.From }, func(e *HistoryEntry) { e.State = Queued }, func(e *HistoryEntry) { e.Goal = ExplainAlert }, func(e *HistoryEntry) { e.ToolCalls = MaximumToolCalls + 1 }, func(e *HistoryEntry) { e.ID = "../file" }} {
 		bad := entry
 		mutate(&bad)
 		if bad.Validate(query, at) != ErrInvalid {
