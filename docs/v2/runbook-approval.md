@@ -64,8 +64,7 @@ The authored real-SQL tests exercise unapproved/audience/locale filtering, exact
 reviewed bytes, keysets, material substitution, revision replay, replacement,
 revocation, restore fencing, SQL-injection-shaped search text, revoked sessions
 and full rollback on audit failure. No test or formatter runs on the workstation.
-The HTTP contract/client, management/search/document pages, independent human
-quality, pilot and final stable acceptance remain open.
+The HTTP contract/client and management/search/document pages are authored and require fresh hosted browser acceptance. Independent human quality, pilot and final stable acceptance remain open.
 
 First source `6ce64ad` in run `42466426878` fails a reader fixture that attempts
 to bootstrap already initialized installation metadata. The correction inserts
@@ -92,7 +91,7 @@ shutdown. These are authored tests until the owning hosted source passes.
 قدیمی را از خواندن و جست‌وجوی مجاز بیرون می‌برد؛ پاک‌شدن فیزیکی یا حذف نسخه‌های
 پشتیبان وعده داده نمی‌شود. بازیابی، تأیید قبلی را زنده نمی‌کند. جست‌وجو فقط
 نسخهٔ تأییدشده و نقش مجاز را ببیند. متن سند دستور اجرا نیست. تست‌ها فقط روی
-GitHub Actions؛ اتصال HTTP، رابط و پذیرش کل گام هنوز باز است.
+GitHub Actions؛ اتصال HTTP و رابط نوشته شده‌اند؛ نتیجهٔ دور و پذیرش کل گام هنوز باز است.
 
 ## Private HTTP boundary (authored, hosted verification pending)
 
@@ -159,3 +158,51 @@ stopped at formatting, so those passing focused results do not certify a full
 release. The hosted correction from run `42468921345` was applied. Follow-up
 review moves keyboard focus into the opened document/review and preserves the
 unknown-outcome notice if the user leaves while confirmation is in flight.
+
+## Import example and recovery
+
+For a new identity, load the catalog and paste this candidate into the review page:
+
+```json
+{
+  "id": "operations",
+  "version": 1,
+  "audience": "administrators",
+  "documents": [
+    {
+      "id": "recovery",
+      "locale": "en",
+      "title": "Check service health",
+      "body": "Inspect current health and recent events before drawing a conclusion."
+    },
+    {
+      "id": "recovery",
+      "locale": "fa",
+      "title": "بررسی سلامت سرویس",
+      "body": "پیش از نتیجه‌گیری، سلامت کنونی و رخدادهای اخیر را بررسی کنید."
+    }
+  ]
+}
+```
+
+Use `all_users` only after reviewing whether every signed-in account may read the
+prose. A later replacement must use the current version plus one, even following
+revocation or database restore. To roll back content, take a trusted operator-held
+copy, review it again, and approve it at the next version; never decrement a
+revision, edit migration history or revive a tombstone. If recovering from backup,
+inspect it in isolation and follow the normal installation restore procedure;
+restored approvals remain fenced until a new explicit review. There is no public
+API that recovers a replaced/revoked body from history or backups.
+
+راهنمای کوتاه: از بخش دستیار، «سندهای تأییدشده» را باز کنید. برای جست‌وجو،
+زبان صفحه باید با زبان سند یکی باشد. مدیر در «بازبینی و تأیید» ابتدا فهرست
+کنونی را بگیرد، مجموعه را وارد کند، متن دقیق و گروه مجاز را بخواند و با
+گذرواژه تأیید کند. تغییر متن، پیش‌نمایش را باطل می‌کند. پس از خطای ارتباط،
+قبل از تلاش دوباره نسخهٔ فهرست را بررسی کنید. بازگردانی متن قدیمی هم یک
+بازبینی تازه و شمارهٔ نسخهٔ بعدی می‌خواهد.
+
+Signed package trial `42469270826` at `8f12dcd` stopped before scans: the pinned
+scanner download returned HTTP504. The corrected downloader tries the same
+immutable official API asset, enforces HTTPS, exact archive size and the unchanged
+SHA256, then extracts the named executable. It does not skip a tool or weaken
+scan severity. A new exact-source package/security trial is still required.
