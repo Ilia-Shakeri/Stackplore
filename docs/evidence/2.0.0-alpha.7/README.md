@@ -89,3 +89,8 @@ Exact-tag attempt2 passes at unchanged source and 40-second budget. The [sanitiz
 
 
 Publication attempt2 package/security succeeds, but its publish job `128720884056` fails HTTP403 at create-release after exact-tag verification. The caller had contents-write; an independent tag lookup finds no release (HTTP404), so no partial release is claimed. The alpha7.1 publisher candidate omits unused `target_commitish` for an already verified existing tag, adds a second tag/gate check before finalization, and keeps safe error diagnostics. Its actual publication still needs fresh proof. The cause of the original403 is not conclusively established by the status alone.
+
+One bounded publish-only repeat also failed HTTP403 in job `128723888861`.
+No further repeat of this immutable publisher is claimed; alpha7 remains an
+unpublished tag. The corrected publisher belongs to a separate candidate and
+must pass its own exact-source and exact-tag gates.

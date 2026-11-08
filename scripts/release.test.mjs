@@ -1064,7 +1064,10 @@ const completeReleaseFixture = async (context, { version = '1.2.3' } = {}) => {
 test('release API failures identify the operation and quota without echoing upstream text', async (context) => {
   const { root, run } = await fixture(context);
   const hook = path.join(root, 'rejected-release-api.mjs');
-  await writeFile(hook, `globalThis.fetch = async () => Response.json({message:'private upstream material'}, {status:403,headers:{'x-ratelimit-remaining':'0'}});`);
+  await writeFile(
+    hook,
+    `globalThis.fetch = async () => Response.json({message:'private upstream material'}, {status:403,headers:{'x-ratelimit-remaining':'0'}});`,
+  );
   const result = run('check-ci', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Operation: verify_tag; reason: rate_limited/u);
@@ -1086,7 +1089,9 @@ test('publication accepts exactly 39 assets with all database receipts and archi
 
 test('publication retains a draft if the verified tag moves during asset upload', async (context) => {
   const { root, run, hook, expected } = await completeReleaseFixture(context);
-  await writeFile(hook, `${await readFile(hook, 'utf8')}
+  await writeFile(
+    hook,
+    `${await readFile(hook, 'utf8')}
     const pinnedFetch = globalThis.fetch;
     let assetUploads = 0;
     globalThis.fetch = async (url, options = {}) => {
@@ -1098,13 +1103,14 @@ test('publication retains a draft if the verified tag moves during asset upload'
       if (target.hostname === 'uploads.github.com') assetUploads++;
       return reply;
     };
-  `);
+  `,
+  );
   const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /tag no longer identifies this source revision/u);
   const uploaded = (await readFile(path.join(root, 'uploads.jsonl'), 'utf8')).trim().split('\n');
   assert.equal(uploaded.length, expected.length);
-  await assert.rejects(readFile(path.join(root, 'finalized.jsonl'), 'utf8'), {code:'ENOENT'});
+  await assert.rejects(readFile(path.join(root, 'finalized.jsonl'), 'utf8'), { code: 'ENOENT' });
 });
 
 test('alpha, beta and candidate publication preserve exact asset names and stay prereleases', async (context) => {

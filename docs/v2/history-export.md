@@ -68,3 +68,13 @@ in a later listener during the same event, rather than only after a batched rend
 The publisher follow-up also avoids a redundant target parameter for verified
 existing tags and rechecks the tag/gates before finalization. Both changes need
 the candidate's fresh hosted gate; they are not part of immutable alpha7 source.
+
+Candidate `bae47fa`, hosted run
+[42478253971](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42478253971),
+passed all 45 publisher unit cases and the focused client/interface checks.
+The full gate stopped at formatting in three files; its hosted patch was applied.
+The Kubernetes download failed after connection loss (curl56). The processor
+receipt stopped at archive download, before any protocol/application case; both
+cleanup flags are true. These are failed gates, not runtime passes. Transfers
+now retry connection errors within fixed retry/time limits; all pinned hashes,
+sizes, HTTPS restrictions and the 40-second application budget stay unchanged.

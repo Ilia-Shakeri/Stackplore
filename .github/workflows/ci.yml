@@ -301,8 +301,8 @@ jobs:
       - name: Install verified kind binary
         run: |
           mkdir -p "$RUNNER_TEMP/stackplore-tools"
-          if ! curl --fail --silent --show-error --location --retry 2 --retry-delay 5 --retry-max-time 45 --connect-timeout 10 --max-time 30 --proto '=https' --proto-redir '=https' https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 --output "$RUNNER_TEMP/stackplore-tools/kind"; then
-            curl --fail --silent --show-error --location --retry 2 --retry-delay 5 --retry-max-time 90 --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' --header 'Accept: application/octet-stream' https://api.github.com/repos/kubernetes-sigs/kind/releases/assets/531396433 --output "$RUNNER_TEMP/stackplore-tools/kind"
+          if ! curl --fail --silent --show-error --location --retry 2 --retry-all-errors --retry-delay 5 --retry-max-time 45 --connect-timeout 10 --max-time 30 --proto '=https' --proto-redir '=https' https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 --output "$RUNNER_TEMP/stackplore-tools/kind"; then
+            curl --fail --silent --show-error --location --retry 2 --retry-all-errors --retry-delay 5 --retry-max-time 90 --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' --header 'Accept: application/octet-stream' https://api.github.com/repos/kubernetes-sigs/kind/releases/assets/531396433 --output "$RUNNER_TEMP/stackplore-tools/kind"
           fi
           printf '%s  %s\n' aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d "$RUNNER_TEMP/stackplore-tools/kind" | sha256sum --check --strict -
           curl --fail --silent --show-error --location --retry 2 --max-time 120 https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl --output "$RUNNER_TEMP/stackplore-tools/kubectl"
@@ -488,8 +488,8 @@ jobs:
       - name: Install verified kind binary
         run: |
           mkdir -p "$RUNNER_TEMP/stackplore-tools"
-          if ! curl --fail --silent --show-error --location --retry 2 --retry-delay 5 --retry-max-time 45 --connect-timeout 10 --max-time 30 --proto '=https' --proto-redir '=https' https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 --output "$RUNNER_TEMP/stackplore-tools/kind"; then
-            curl --fail --silent --show-error --location --retry 2 --retry-delay 5 --retry-max-time 90 --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' --header 'Accept: application/octet-stream' https://api.github.com/repos/kubernetes-sigs/kind/releases/assets/531396433 --output "$RUNNER_TEMP/stackplore-tools/kind"
+          if ! curl --fail --silent --show-error --location --retry 2 --retry-all-errors --retry-delay 5 --retry-max-time 45 --connect-timeout 10 --max-time 30 --proto '=https' --proto-redir '=https' https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 --output "$RUNNER_TEMP/stackplore-tools/kind"; then
+            curl --fail --silent --show-error --location --retry 2 --retry-all-errors --retry-delay 5 --retry-max-time 90 --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' --header 'Accept: application/octet-stream' https://api.github.com/repos/kubernetes-sigs/kind/releases/assets/531396433 --output "$RUNNER_TEMP/stackplore-tools/kind"
           fi
           printf '%s  %s\n' aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d "$RUNNER_TEMP/stackplore-tools/kind" | sha256sum --check --strict -
           chmod 0755 "$RUNNER_TEMP/stackplore-tools/kind"

@@ -39,9 +39,19 @@ const request = async (path, options = {}) => {
     ]),
   });
   if (!response.ok) {
-    const operation = path === 'releases' && options.method === 'POST' ? 'create_release' : path.startsWith('git/') ? 'verify_tag' : options.method === 'PATCH' ? 'finalize_release' : 'read_release';
-    const reason = response.headers.get('x-ratelimit-remaining') === '0' ? 'rate_limited' : 'rejected';
-    throw new Error(`Release API request failed (${response.status}). Operation: ${operation}; reason: ${reason}.`);
+    const operation =
+      path === 'releases' && options.method === 'POST'
+        ? 'create_release'
+        : path.startsWith('git/')
+          ? 'verify_tag'
+          : options.method === 'PATCH'
+            ? 'finalize_release'
+            : 'read_release';
+    const reason =
+      response.headers.get('x-ratelimit-remaining') === '0' ? 'rate_limited' : 'rejected';
+    throw new Error(
+      `Release API request failed (${response.status}). Operation: ${operation}; reason: ${reason}.`,
+    );
   }
   return response.json();
 };

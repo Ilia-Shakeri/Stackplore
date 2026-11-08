@@ -35,20 +35,34 @@ function show(
 describe('separate reviewed documents page', () => {
   it('removes private prose before the pagehide event finishes', async () => {
     const controlled = controlledConversationApi();
-    controlled.api.runbookSearch.mockResolvedValue({ hits: [{ reference, title: 'Private result', snippet: 'Safe snippet' }], next_cursor: '' });
-    controlled.api.runbookDocument.mockResolvedValue({ id: 'help', locale: 'en', title: 'Private document', body: 'Clear this private prose synchronously' });
+    controlled.api.runbookSearch.mockResolvedValue({
+      hits: [{ reference, title: 'Private result', snippet: 'Safe snippet' }],
+      next_cursor: '',
+    });
+    controlled.api.runbookDocument.mockResolvedValue({
+      id: 'help',
+      locale: 'en',
+      title: 'Private document',
+      body: 'Clear this private prose synchronously',
+    });
     show('en', 'viewer', controlled);
     const user = userEvent.setup();
-    await user.type(screen.getByRole('textbox', { name: 'Search in the current language' }), 'service');
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search in the current language' }),
+      'service',
+    );
     await user.click(screen.getByRole('button', { name: 'Search documents' }));
     await user.click(await screen.findByRole('button', { name: 'Private result' }));
     await screen.findByText('Clear this private prose synchronously');
     let visibleDuringExit = true;
     const inspect = () => {
-      visibleDuringExit = document.body.textContent?.includes('Clear this private prose synchronously') ?? false;
+      visibleDuringExit =
+        document.body.textContent?.includes('Clear this private prose synchronously') ?? false;
     };
     window.addEventListener('pagehide', inspect, { once: true });
-    act(() => { window.dispatchEvent(new Event('pagehide')); });
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'));
+    });
     expect(visibleDuringExit).toBe(false);
   });
   it('marks an old approval as needing review after restore', async () => {
