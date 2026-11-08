@@ -203,6 +203,7 @@ const (
 	RecentAuthPurposeSettingsUpdate        RecentAuthPurpose = "settings.update"
 	RecentAuthPurposeConfigurationExport   RecentAuthPurpose = "configuration.export"
 	RecentAuthPurposeDataCleanup           RecentAuthPurpose = "data.cleanup"
+	RecentAuthPurposeRunbookManage         RecentAuthPurpose = "runbook.manage"
 )
 
 func (purpose RecentAuthPurpose) Validate() error {
@@ -218,7 +219,8 @@ func (purpose RecentAuthPurpose) Validate() error {
 		RecentAuthPurposeOperationExecute,
 		RecentAuthPurposeSettingsUpdate,
 		RecentAuthPurposeConfigurationExport,
-		RecentAuthPurposeDataCleanup:
+		RecentAuthPurposeDataCleanup,
+		RecentAuthPurposeRunbookManage:
 		return nil
 	default:
 		return ErrInvalidAuthState

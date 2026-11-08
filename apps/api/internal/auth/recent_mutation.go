@@ -11,7 +11,7 @@ func (service *Service) PrepareRecentMutation(ctx context.Context, input RecentA
 	}
 	switch input.Purpose {
 	case RecentAuthPurposeOperationExecute, RecentAuthPurposeSettingsUpdate,
-		RecentAuthPurposeConfigurationExport, RecentAuthPurposeDataCleanup:
+		RecentAuthPurposeConfigurationExport, RecentAuthPurposeDataCleanup, RecentAuthPurposeRunbookManage:
 	default:
 		return Authentication{}, RecentGrantUse{}, ErrInvalidServiceInput
 	}

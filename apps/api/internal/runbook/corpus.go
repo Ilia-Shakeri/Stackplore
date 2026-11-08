@@ -83,7 +83,7 @@ func (document Document) Validate() error {
 }
 
 func (corpus Corpus) Validate() error {
-	if !identifier.MatchString(corpus.ID) || corpus.Version < 1 || corpus.Audience != Administrators && corpus.Audience != AllUsers || len(corpus.Documents) < 1 || len(corpus.Documents) > MaximumDocuments {
+	if !identifier.MatchString(corpus.ID) || corpus.Version < 1 || corpus.Version > MaximumVersion || corpus.Audience != Administrators && corpus.Audience != AllUsers || len(corpus.Documents) < 1 || len(corpus.Documents) > MaximumDocuments {
 		return ErrInvalid
 	}
 	seen := make(map[string]bool, len(corpus.Documents))

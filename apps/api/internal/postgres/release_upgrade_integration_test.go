@@ -16,7 +16,7 @@ import (
 )
 
 func TestReleaseUpgradeFromShippedPrefixesPreservesDataAndImmutableLedger(t *testing.T) {
-	for _, previousVersion := range []int{14, 16, 17, 18} {
+	for _, previousVersion := range []int{14, 16, 17, 18, 19} {
 		t.Run(strconv.Itoa(previousVersion), func(t *testing.T) {
 			testReleaseUpgradePreservesDataAndImmutableLedger(t, previousVersion)
 		})
@@ -48,8 +48,8 @@ func testReleaseUpgradePreservesDataAndImmutableLedger(t *testing.T, previousVer
 	})
 
 	all, err := loadMigrations(postgresmigrations.FS)
-	if err != nil || len(all) != 19 {
-		t.Fatal("upgrade fixture requires the exact 19-migration current manifest")
+	if err != nil || len(all) != 20 {
+		t.Fatal("upgrade fixture requires the exact 20-migration current manifest")
 	}
 	previousFiles := fstest.MapFS{}
 	for _, migration := range all[:previousVersion] {
@@ -106,7 +106,7 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 
 	upgraded, err := Open(ctx, options, postgresmigrations.FS)
 	if err != nil {
-		t.Fatal("forward upgrade from shipped migration prefix to 19 failed")
+		t.Fatal("forward upgrade from shipped migration prefix to 20 failed")
 	}
 	t.Cleanup(func() { _ = upgraded.Close() })
 	if err := upgraded.Health(ctx); err != nil {

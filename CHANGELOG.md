@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0-alpha.7] - 2026-11-08
+
+### Smart Assistant — reviewed document candidate
+
+- Introduce immutable migration20 for bounded reviewed corpora, fixed-configuration
+  PostgreSQL full-text search and metadata-only one-use confirmations.
+- Bind approval/revocation to current administrator/session, exact content digest,
+  previous revision, restore generation, explicit confirmation and a dedicated
+  `runbook.manage` recent-auth grant consumed atomically with content and audit.
+- Delete replaced/revoked document rows and derived index entries from future
+  authorized reads; preserve revision tombstones and truthful backup/MVCC limits.
+- Add locale/audience-gated bounded search and fresh version/digest-bound reads.
+  SQL boundaries and upgrade/negative cases require hosted validation. HTTP/UI
+  composition and whole-stage acceptance remain separate, unfinished increments.
+- All tests/builds/services/scans run on Actions. This candidate is not stable2.0.
+
 ## [2.0.0-alpha.6.3] - 2026-11-08
 
 ### Smart Assistant — private metadata history candidate

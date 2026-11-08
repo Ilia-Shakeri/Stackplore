@@ -8,7 +8,7 @@ import (
 func TestPrepareRecentMutationPreservesGrantForEachAtomicUseCase(t *testing.T) {
 	fixture := setupServiceFixture(t)
 	session := fixture.login(t, "request_guarded_login")
-	for _, purpose := range []RecentAuthPurpose{RecentAuthPurposeOperationExecute, RecentAuthPurposeSettingsUpdate, RecentAuthPurposeConfigurationExport, RecentAuthPurposeDataCleanup} {
+	for _, purpose := range []RecentAuthPurpose{RecentAuthPurposeOperationExecute, RecentAuthPurposeSettingsUpdate, RecentAuthPurposeConfigurationExport, RecentAuthPurposeDataCleanup, RecentAuthPurposeRunbookManage} {
 		grant := fixture.recentGrant(t, session, purpose, "request_guarded_grant")
 		input := RecentAuthorizationInput{SessionToken: encodeTestToken(t, session.Token), CSRFProof: encodeTestToken(t, session.Context.CSRFProof),
 			RecentProof: encodeTestToken(t, grant.Proof), Purpose: purpose, RequestID: "request_guarded_prepare"}
