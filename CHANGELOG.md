@@ -11,6 +11,7 @@
   questions, responses, reports, session details or cursors.
 - Revoke temporary download URLs and leave file custody to the user. Add unit
   privacy cases and real bilingual administrator/viewer download journeys.
+- Clear private document prose synchronously during pagehide; add a regression that checks the DOM before that event finishes.
 - Keep schema20 and existing HTTP/retention/usage boundaries. Hosted proof,
   full stage7 integration and stable2 acceptance remain separate open gates.
 

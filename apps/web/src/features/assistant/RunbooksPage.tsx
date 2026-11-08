@@ -17,6 +17,7 @@ import {
   useSyncExternalStore,
   type SyntheticEvent,
 } from 'react';
+import { flushSync } from 'react-dom';
 import { useOptionalAssistantApi } from './assistant-context';
 import type { AssistantApi, AssistantOwner } from './assistant-api';
 import { useAuth } from '../auth/auth-context';
@@ -115,9 +116,11 @@ function PrivateRunbooks({
   useEffect(() => {
     const hide = () => {
       const uncertain = committing.current;
-      clear();
-      setPaused(true);
-      setMessage(uncertain ? 'uncertain' : 'paused');
+      flushSync(() => {
+        clear();
+        setPaused(true);
+        setMessage(uncertain ? 'uncertain' : 'paused');
+      });
     };
     const show = () => {
       setPaused(false);

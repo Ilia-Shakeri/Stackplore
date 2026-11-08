@@ -1051,6 +1051,7 @@ const completeReleaseFixture = async (context, { version = '1.2.3' } = {}) => {
       }
       if (target.pathname.endsWith('/releases/6')) {
         assert.equal(options.method, 'PATCH'); assert.deepEqual(JSON.parse(options.body), {draft:false});
+        await appendFile(${JSON.stringify(path.join(data.root, 'finalized.jsonl'))}, options.body+'\\n');
         return Response.json({});
       }
       return verificationFetch(url, options);
@@ -1059,6 +1060,16 @@ const completeReleaseFixture = async (context, { version = '1.2.3' } = {}) => {
   await writeFile(data.hook, hook);
   return { ...data, expected };
 };
+
+test('release API failures identify the operation and quota without echoing upstream text', async (context) => {
+  const { root, run } = await fixture(context);
+  const hook = path.join(root, 'rejected-release-api.mjs');
+  await writeFile(hook, `globalThis.fetch = async () => Response.json({message:'private upstream material'}, {status:403,headers:{'x-ratelimit-remaining':'0'}});`);
+  const result = run('check-ci', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Operation: verify_tag; reason: rate_limited/u);
+  assert.ok(!result.stderr.includes('private upstream material'));
+});
 
 test('publication accepts exactly 39 assets with all database receipts and archive covered by checksums', async (context) => {
   const { root, run, hook, expected } = await completeReleaseFixture(context);
@@ -1071,6 +1082,29 @@ test('publication accepts exactly 39 assets with all database receipts and archi
   assert.deepEqual(uploaded.sort(), expected.sort());
   const manifest = await readFile(path.join(root, 'stackplore-release/SHA256SUMS'), 'utf8');
   assert.equal(manifest.trim().split('\n').length, 30);
+});
+
+test('publication retains a draft if the verified tag moves during asset upload', async (context) => {
+  const { root, run, hook, expected } = await completeReleaseFixture(context);
+  await writeFile(hook, `${await readFile(hook, 'utf8')}
+    const pinnedFetch = globalThis.fetch;
+    let assetUploads = 0;
+    globalThis.fetch = async (url, options = {}) => {
+      const target = new URL(url);
+      if (assetUploads > 0 && target.pathname.endsWith('/git/tags/'+'2'.repeat(40))) {
+        return Response.json({object:{type:'commit',sha:'3'.repeat(40)}});
+      }
+      const reply = await pinnedFetch(url, options);
+      if (target.hostname === 'uploads.github.com') assetUploads++;
+      return reply;
+    };
+  `);
+  const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v1.2.3' }, hook);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /tag no longer identifies this source revision/u);
+  const uploaded = (await readFile(path.join(root, 'uploads.jsonl'), 'utf8')).trim().split('\n');
+  assert.equal(uploaded.length, expected.length);
+  await assert.rejects(readFile(path.join(root, 'finalized.jsonl'), 'utf8'), {code:'ENOENT'});
 });
 
 test('alpha, beta and candidate publication preserve exact asset names and stay prereleases', async (context) => {
@@ -1091,7 +1125,7 @@ test('alpha, beta and candidate publication preserve exact asset names and stay 
       .map((line) => JSON.parse(line));
     assert.equal(creations.length, 1);
     assert.equal(creations[0].tag_name, `v${version}`);
-    assert.equal(creations[0].target_commitish, '1'.repeat(40));
+    assert.equal(Object.hasOwn(creations[0], 'target_commitish'), false);
     assert.equal(creations[0].draft, true);
     assert.equal(creations[0].prerelease, version.includes('-'));
     const metadata = JSON.parse(await readFile(path.join(directory, 'release.json'), 'utf8'));

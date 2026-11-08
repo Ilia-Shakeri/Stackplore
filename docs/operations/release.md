@@ -185,3 +185,20 @@ The implementation follows the primary [artifact-attestation guide](https://docs
 the [verification command reference](https://cli.github.com/manual/gh_attestation_verify),
 the [Trivy SBOM reference](https://trivy.dev/docs/latest/supply-chain/sbom/), and the
 [Gitleaks CLI reference](https://github.com/gitleaks/gitleaks#usage).
+
+## Existing-tag publication and minimal permissions
+
+The publisher first peels the existing matching tag to its exact source and
+requires its full verification. Creation uses that already verified `tag_name`
+and omits `target_commitish`, which the [official release API](https://docs.github.com/en/rest/releases/releases#create-a-release)
+describes as unused for an existing tag. The same documentation requires workflow
+write authorization for some resolved target commits. Sending a redundant target
+can therefore invoke an unrelated scope check; this is a diagnosis to verify,
+not proof of the cause of any specific HTTP403. Do not request broader token
+permissions as a first workaround. The pipeline retains contents-write only.
+
+After uploading all checked assets, the publisher rechecks the tag/source and
+exact-tag verification before making a draft public. A moved tag or failed gate
+leaves the draft for inspection. No tag or release is overwritten. API errors
+identify a fixed operation and an exhausted-quota flag without echoing upstream
+body text. These checks do not manufacture human quality or stable acceptance.

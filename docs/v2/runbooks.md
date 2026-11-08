@@ -1,6 +1,6 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
-Development candidate: **2.0.0-alpha.7**, schema20. Reviewed approval/search, private HTTP and a separate desktop document page are authored. Their own hosted gate is pending; stage7 and stable acceptance remain open. See [approval and search](runbook-approval.md).
+Current candidate: **2.0.0-alpha.7.1**, schema20. The alpha7 document source and exact-tag attempt2 pass all eight jobs; publication has a separate gate. Selected metadata export and synchronous document page-exit clearing need their own fresh hosted proof. Stage7 and stable acceptance remain open. See [approval/search](runbook-approval.md), [export](history-export.md) and [exact evidence](../evidence/2.0.0-alpha.7/README.md).
 
 The implemented owner-history boundary at
 `48b3aec446303926f6f8e0ad993a257cbf6fdd11` passes all eight hosted source jobs;

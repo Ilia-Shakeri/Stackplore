@@ -61,3 +61,10 @@ No local test, build or service is authorized.
 
 
 First candidate source `7f2f648` in run [42475542996](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42475542996) passed focused client/history/export checks and six install/provider/tool jobs; the full gate stopped at formatting. The hosted patch was applied. Additional interface tests exercise actual download initiation, temporary URL cleanup and a late response after pagehide; they still require their own fresh hosted receipt.
+
+The same alpha7.1 candidate synchronously clears private document prose inside
+pagehide, matching the existing history boundary. A regression inspects the DOM
+in a later listener during the same event, rather than only after a batched render.
+The publisher follow-up also avoids a redundant target parameter for verified
+existing tags and rechecks the tag/gates before finalization. Both changes need
+the candidate's fresh hosted gate; they are not part of immutable alpha7 source.

@@ -38,7 +38,11 @@ const request = async (path, options = {}) => {
       ...(options.signal ? [options.signal] : []),
     ]),
   });
-  if (!response.ok) throw new Error(`Release API request failed (${response.status}).`);
+  if (!response.ok) {
+    const operation = path === 'releases' && options.method === 'POST' ? 'create_release' : path.startsWith('git/') ? 'verify_tag' : options.method === 'PATCH' ? 'finalize_release' : 'read_release';
+    const reason = response.headers.get('x-ratelimit-remaining') === '0' ? 'rate_limited' : 'rejected';
+    throw new Error(`Release API request failed (${response.status}). Operation: ${operation}; reason: ${reason}.`);
+  }
   return response.json();
 };
 
@@ -257,7 +261,7 @@ if (command === 'check-ci') {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       tag_name: refName,
-      target_commitish: revision,
+      // The exact existing tag was verified above. No new tag target is requested.
       name: `Stackplore ${version}`,
       body: `${notes}\n\nSource: ${revision}\nExact tag checks: ${verified.html_url}\n\nVerify SHA256SUMS and signed provenance before use; see [release verification](https://github.com/${repository}/blob/${revision}/docs/operations/release.md).`,
       draft: true,
@@ -296,6 +300,8 @@ if (command === 'check-ci') {
     );
     if (!upload.ok) throw new Error(`Release upload failed (${upload.status}); draft retained.`);
   }
+  // Keep a moved tag or a newly failed gate from publishing already uploaded assets.
+  await awaitVerification();
   await request(`releases/${release.id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

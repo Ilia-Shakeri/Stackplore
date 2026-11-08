@@ -9,11 +9,11 @@ Version **2.0.0-alpha.7**, schema **20**, immutable source
 | --- | --- | --- |
 | Full source verification | [42470870399](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42470870399) | All eight jobs pass |
 | Signed package/security trial | [42470901375](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42470901375) | Package passes; branch publication correctly skipped |
-| Exact-tag verification | [42473994865](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994865) | Attempt1 fails only the processor; bounded failed-job repeat running |
-| Signed publication | [42473994721](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994721) | Attempt1 blocked by failed exact-tag verification; publication skipped |
+| Exact-tag verification | [42473994865](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994865) | Attempt2 passes all eight jobs; attempt1 timeout retained |
+| Signed publication | [42473994721](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42473994721) | Attempt2 package/scans pass; publication fails HTTP403 before release creation |
 
 The annotated tag has been pushed. No public release or stable acceptance is
-claimed while the last two receipts remain pending. Every test, build, scan,
+claimed while signed publication is blocked. Every test, build, scan,
 processor and database fixture ran on GitHub-hosted infrastructure. The maintainer
 host was used only for reading/editing files, lightweight Git and receipt access.
 
@@ -84,3 +84,8 @@ cleanup flags are true. No CPU cause, latency/capacity acceptance or successful
 Persian report is inferred. A bounded repeat of the same failed job is allowed
 only after the entire run finishes, with source, assertions and budget unchanged.
 The original failed receipt remains part of the evidence.
+
+Exact-tag attempt2 passes at unchanged source and 40-second budget. The [sanitized second processor receipt](tag-attempt-2-processor.json) records complete bilingual application verification and both cleanup flags. This closes the repeated functional smoke, not a latency/capacity or semantic-quality gate. Signed publication `42473994721` was rerun only after all eight tag jobs passed.
+
+
+Publication attempt2 package/security succeeds, but its publish job `128720884056` fails HTTP403 at create-release after exact-tag verification. The caller had contents-write; an independent tag lookup finds no release (HTTP404), so no partial release is claimed. The alpha7.1 publisher candidate omits unused `target_commitish` for an already verified existing tag, adds a second tag/gate check before finalization, and keeps safe error diagnostics. Its actual publication still needs fresh proof. The cause of the original403 is not conclusively established by the status alone.
