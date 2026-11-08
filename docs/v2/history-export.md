@@ -86,3 +86,9 @@ checks in the new pagehide test. Those checks were removed without weakening the
 same-event privacy assertion. The Kubernetes asset still returned timeout/504;
 the Helm install passed using the same pinned binary. Remaining jobs from this
 superseded run are not accepted as the follow-up source's verification.
+
+Source `e1c8721` in run
+[42479540465](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42479540465)
+passes the six install/provider/tool jobs, including Kubernetes. Focused cases
+pass; the full gate stops at the one-line pagehide regression's formatting.
+The hosted correction is applied; the privacy assertion remains unchanged.

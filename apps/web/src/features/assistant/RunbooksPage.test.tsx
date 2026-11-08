@@ -56,8 +56,9 @@ describe('separate reviewed documents page', () => {
     await screen.findByText('Clear this private prose synchronously');
     let visibleDuringExit = true;
     const inspect = () => {
-      visibleDuringExit =
-        document.body.textContent.includes('Clear this private prose synchronously');
+      visibleDuringExit = document.body.textContent.includes(
+        'Clear this private prose synchronously',
+      );
     };
     window.addEventListener('pagehide', inspect, { once: true });
     act(() => {

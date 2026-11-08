@@ -2,6 +2,13 @@
 
 Current candidate: **2.0.0-alpha.7.1**, schema20. The alpha7 document source and exact-tag attempt2 pass all eight jobs; publication has a separate gate. Selected metadata export and synchronous document page-exit clearing need their own fresh hosted proof. Stage7 and stable acceptance remain open. See [approval/search](runbook-approval.md), [export](history-export.md) and [exact evidence](../evidence/2.0.0-alpha.7/README.md).
 
+## Historical preparation trail — superseded by alpha7
+
+The material through the historical implementation checklist below records
+alpha6.3-era preparation and failed attempts. Its open items and future tense
+describe those earlier sources, not the current schema20 implementation. Current
+behavior and remaining gates are in the three guides linked above.
+
 The implemented owner-history boundary at
 `48b3aec446303926f6f8e0ad993a257cbf6fdd11` passes all eight hosted source jobs;
 code/architecture review is **9/10 within that boundary**. Exact-tag and signed
@@ -146,7 +153,7 @@ fixture's missing reason. The fixture now sets `session.revoked` with its timest
 the real session constraint remains intact. Container jobs in that run also used
 the superseded zlib pin; the primary runtime correction is merged before retesting.
 
-## Remaining implementation contract
+## Historical implementation checklist
 
 1. Add an immutable PostgreSQL migration for corpus metadata, approved current
    revision, document bytes and a bounded full-text index using fixed `simple`
@@ -185,10 +192,11 @@ before serving content. No new external store or outbound fetch is introduced.
 
 ## فارسی
 
-این بخش فقط آماده‌سازی است؛ اعتبارسنجی، مجوز نمی‌سازد. هر نسخه به متن دقیق،
-زبان، نام سند و نقش‌های مجاز بسته می‌شود. تأیید، تغییر و لغو به مدیر جاری،
-احراز تازه، تأیید صریح و ثبت اتمی نیاز دارد. جست‌وجو فقط روی نسخهٔ تأییدشده
-و با سقف روشن باشد. متن، دستور اجرا نیست. تاریخچهٔ حساب فقط فرادادهٔ همان
-مالک را نشان دهد؛ پرسش و پاسخ منقضی‌شده بازسازی نشود. تست، ساخت و اسکن
-فقط روی GitHub Actions. مسیر خواندن و صفحهٔ جدا آمادهٔ تست است؛ جست‌وجو،
-تأیید سند و پذیرش کل گام هنوز باز است.
+بخش میانی این سند، سابقهٔ آماده‌سازی نسخه‌های پیشین است؛ وضعیت جاری را از
+راهنمای تأیید سند و دریافت تاریخچه در ابتدای صفحه بخوانید. schema20 تأیید،
+جست‌وجو و خواندن سند را دارد؛ تأیید، تغییر و لغو به مدیر جاری، احراز تازه،
+تأیید صریح و ثبت اتمی نیاز دارد. شاهد نسخهٔ قدیمی پس از تغییر یا بازیابی رد
+می‌شود. متن، دستور اجرا نیست. تاریخچه فقط فرادادهٔ همان حساب را دارد؛ پاسخ
+منقضی‌شده بازسازی نمی‌شود. دریافت فرادادهٔ منتخب و پاک‌سازی هم‌زمان خروج صفحه
+در نامزد alpha7.1 به تست دور تازه نیاز دارد. حق استفادهٔ سند، پیوند سند به پاسخ،
+ارزیابی مستقل و پایلوت مانده؛ کل گام و نسخهٔ پایدار هنوز پذیرفته نشده است.
