@@ -27,9 +27,15 @@ fi
 
 fixture_dir="$(mktemp -d)"
 trap 'rm -f "$fixture_dir/components.yaml" "$fixture_dir/fixture.yaml"; rmdir "$fixture_dir"' EXIT
-curl --fail --silent --show-error --location --retry 2 --connect-timeout 10 --max-time 120 \
+transfer=(--fail --silent --show-error --location --retry 2 --retry-delay 5 --retry-max-time 90 --connect-timeout 10 --max-time 60 --max-redirs 5 --max-filesize 4330 --proto '=https' --proto-redir '=https')
+if ! curl "${transfer[@]}" \
   https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.0/components.yaml \
-  --output "$fixture_dir/components.yaml"
+  --output "$fixture_dir/components.yaml"; then
+  curl "${transfer[@]}" --header 'Accept: application/octet-stream' \
+    https://api.github.com/repos/kubernetes-sigs/metrics-server/releases/assets/475449041 \
+    --output "$fixture_dir/components.yaml"
+fi
+test "$(stat -c '%s' "$fixture_dir/components.yaml")" = 4330
 printf '%s  %s\n' 1cec29a5267809306a2c6ec74a3e449abbb705b4a8beed0c8a1963910f72c79b "$fixture_dir/components.yaml" | sha256sum --check --strict -
 
 # kind's kubelet certificate is self-signed. This exception applies only to this

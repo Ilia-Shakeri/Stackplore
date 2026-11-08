@@ -255,3 +255,42 @@ func TestRunbookAuditFailureRollsBackBodyAndGrant(t *testing.T) {
 		t.Fatal("rolled back grant unusable", err)
 	}
 }
+
+func TestRunbookKeysetsUseCanonicalIdentifierOrder(t *testing.T) {
+	store, actor, _ := sourceSettingsFixture(t, -2*time.Second)
+	ctx := context.Background()
+	identifiers := []string{"a-z", "a0", "a_z", "ab"}
+	for index, identifier := range identifiers {
+		corpus := runbook.Corpus{ID: identifier, Version: 1, Audience: runbook.AllUsers}
+		for _, documentID := range identifiers {
+			corpus.Documents = append(corpus.Documents, runbook.Document{ID: documentID, Locale: "en", Title: "Service note", Body: "Inspect service health."})
+		}
+		command := runbookCommand(t, store, actor, corpus, 0, 0, fmt.Sprintf("order_%d", index))
+		prepareRunbookTest(t, store, command)
+		if _, err := store.ChangeRunbook(ctx, command); err != nil {
+			t.Fatal("prepare identifier ordering", err)
+		}
+	}
+	catalog, err := store.InspectRunbooks(ctx, actor)
+	if err != nil || len(catalog.Revisions) != len(identifiers) {
+		t.Fatal("ordered catalog unavailable", err)
+	}
+	for index, revision := range catalog.Revisions {
+		if revision.ID != identifiers[index] {
+			t.Fatal("catalog changed canonical identifier order")
+		}
+	}
+	query := runbook.Search{Actor: actor, Query: "service", Locale: "en", Limit: 1, Generation: -1, CatalogVersion: -1}
+	for index := 0; index < len(identifiers)*len(identifiers); index++ {
+		page, err := store.SearchRunbooks(ctx, query)
+		if err != nil || len(page.Hits) != 1 {
+			t.Fatal("ordered page unavailable", err)
+		}
+		reference := page.Hits[0].Reference
+		if reference.CorpusID != identifiers[index/len(identifiers)] || reference.DocumentID != identifiers[index%len(identifiers)] || page.HasMore != (index+1 < len(identifiers)*len(identifiers)) {
+			t.Fatal("keyset skipped or duplicated an identifier")
+		}
+		query.Generation, query.CatalogVersion = page.Generation, page.CatalogVersion
+		query.BeforeCorpus, query.BeforeDocument = reference.CorpusID, reference.DocumentID
+	}
+}

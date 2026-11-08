@@ -242,7 +242,7 @@ func (store *Store) InspectRunbooks(ctx context.Context, actor auth.Principal) (
 		if err != nil {
 			return err
 		}
-		rows, err := tx.Query(ctx, `SELECT id,version,digest,audience,approved,restore_generation,document_count,content_bytes FROM runbook_corpora ORDER BY id LIMIT 17`)
+		rows, err := tx.Query(ctx, `SELECT id,version,digest,audience,approved,restore_generation,document_count,content_bytes FROM runbook_corpora ORDER BY id COLLATE "C" LIMIT 17`)
 		if err != nil {
 			return err
 		}
@@ -277,7 +277,8 @@ const runbookSearchSQL = `SELECT c.id,c.version,c.digest,c.restore_generation,d.
 FROM runbook_corpora c JOIN runbook_documents d ON d.corpus_id=c.id
 WHERE c.approved AND c.restore_generation=$1 AND (c.audience='all_users' OR $2::boolean)
 AND d.locale=$3 AND d.search_terms @@ plainto_tsquery('pg_catalog.simple'::regconfig,$4)
-AND ($5::text='' OR (c.id,d.id)>($5,$6)) ORDER BY c.id,d.id LIMIT $7`
+AND ($5::text='' OR (c.id COLLATE "C",d.id COLLATE "C")>($5::text COLLATE "C",$6::text COLLATE "C"))
+ORDER BY c.id COLLATE "C",d.id COLLATE "C" LIMIT $7`
 
 func (store *Store) SearchRunbooks(ctx context.Context, q runbook.Search) (runbook.Page, error) {
 	if ctx == nil || q.Validate() != nil {

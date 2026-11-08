@@ -48,7 +48,7 @@ describe('private reviewed document transport', () => {
     const result = await client.search(query, protection);
     expect(result.hits[0]?.snippet).toBe('  inert snippet');
     const call = fetcher.mock.calls[0];
-    expect(String(call?.[0])).toBe('/api/v1/assistant/runbooks/search');
+    expect(call?.[0]).toBe('/api/v1/assistant/runbooks/search');
     expect(call?.[1]?.body).toBe(JSON.stringify(query));
     expect(call?.[1]?.method).toBe('POST');
     const document = await client.document(reference, protection);
@@ -100,15 +100,17 @@ describe('private reviewed document transport', () => {
   it('detaches rows and rejects a late response after cancellation', async () => {
     const raw = { hits: [hit], next_cursor: '' };
     const parsed = parseRunbookResults(raw, query);
-    raw.hits[0]!.title = 'Changed';
+    const first = raw.hits[0];
+    if (first === undefined) throw new Error('Missing fixture row');
+    first.title = 'Changed';
     expect(parsed.hits[0]?.title).toBe('Reviewed help');
     const controller = new AbortController();
-    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(() => {
       controller.abort();
-      return new Response(JSON.stringify(raw), {
+      return Promise.resolve(new Response(JSON.stringify(raw), {
         status: 200,
         headers: { 'Content-Type': 'application/json', 'X-Request-ID': 'req_test' },
-      });
+      }));
     });
     const client = createRunbookClient(
       createApiClient({ fetch: fetcher, requestIdFactory: () => 'req_test' }),

@@ -124,7 +124,7 @@ export function runRunbookPolicySelfTests(document) {
       copy.components.schemas.RunbookDocument.properties.body.maxLength = 65536;
     },
   ]) {
-    const copy = structuredClone(document);
+    const copy = globalThis.structuredClone(document);
     mutate(copy);
     assert.ok(inspectRunbookPolicy(copy).length > 0);
   }

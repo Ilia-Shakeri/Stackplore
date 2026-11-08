@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type FormEvent,
+  type SyntheticEvent,
 } from 'react';
 import { useOptionalAssistantApi } from './assistant-context';
 import type { AssistantApi, AssistantOwner } from './assistant-api';
@@ -44,7 +44,7 @@ export function RunbooksPage() {
       <a href="/assistant">{t('assistant.history.back')}</a>
       {snapshot.status === 'authenticated' && api !== null && owner !== null ? (
         <PrivateRunbooks
-          key={`${scope.revision}:${snapshot.user.id}:${snapshot.user.role}:${locale}`}
+          key={`${String(scope.revision)}:${snapshot.user.id}:${snapshot.user.role}:${locale}`}
           api={api}
           owner={owner}
           admin={snapshot.user.role === 'administrator'}
@@ -148,7 +148,7 @@ function PrivateRunbooks({
       setAcknowledged(false);
       form.current?.reset();
     }, duration);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [review]);
   const perform = async <T,>(
     action: (signal: AbortSignal) => Promise<T>,
@@ -207,7 +207,7 @@ function PrivateRunbooks({
     form.current?.reset();
     void perform(
       (signal) => api.runbookPreview(owner, material, signal),
-      (value) => setReview({ material, preview: value }),
+      (value) => { setReview({ material, preview: value }); },
     );
   };
   const prepare = () => {
@@ -236,7 +236,7 @@ function PrivateRunbooks({
       setMessage('error');
     }
   };
-  const commit = (event: FormEvent<HTMLFormElement>) => {
+  const commit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (
       review === null ||
@@ -281,14 +281,14 @@ function PrivateRunbooks({
       <nav className="runbooks-tabs" aria-label={t('runbooks.sections')}>
         <Button
           variant={mode === 'search' ? 'primary' : 'secondary'}
-          onClick={() => switchMode('search')}
+          onClick={() => { switchMode('search'); }}
         >
           {t('runbooks.browse')}
         </Button>
         {admin ? (
           <Button
             variant={mode === 'manage' ? 'primary' : 'secondary'}
-            onClick={() => switchMode('manage')}
+            onClick={() => { switchMode('manage'); }}
           >
             {t('runbooks.manage')}
           </Button>
@@ -341,7 +341,7 @@ function PrivateRunbooks({
                     <Button
                       variant="secondary"
                       disabled={busy || paused}
-                      onClick={() => open(hit.reference)}
+                      onClick={() => { open(hit.reference); }}
                     >
                       {hit.title}
                     </Button>
@@ -358,7 +358,7 @@ function PrivateRunbooks({
                 <Button
                   disabled={busy || paused}
                   variant="secondary"
-                  onClick={() => search(results.next_cursor)}
+                  onClick={() => { search(results.next_cursor); }}
                 >
                   {t('runbooks.next')}
                 </Button>
@@ -375,7 +375,7 @@ function PrivateRunbooks({
                   <p className="runbooks-prose" dir="auto">
                     {document.body}
                   </p>
-                  <Button variant="secondary" onClick={() => setDocument(null)}>
+                  <Button variant="secondary" onClick={() => { setDocument(null); }}>
                     {t('runbooks.close')}
                   </Button>
                 </>
@@ -408,7 +408,7 @@ function PrivateRunbooks({
                         <Button
                           variant="secondary"
                           disabled={busy || paused}
-                          onClick={() =>
+                          onClick={() => {
                             preview({
                               action: 'revoke',
                               expected_version: revision.version,
@@ -420,8 +420,8 @@ function PrivateRunbooks({
                                 audience: '',
                                 documents: [],
                               },
-                            })
-                          }
+                            });
+                          }}
                         >
                           {t('runbooks.revoke')}
                         </Button>
@@ -490,7 +490,7 @@ function PrivateRunbooks({
                   <input
                     type="checkbox"
                     checked={acknowledged}
-                    onChange={(event) => setAcknowledged(event.target.checked)}
+                    onChange={(event) => { setAcknowledged(event.target.checked); }}
                   />
                   {t('runbooks.confirm')}
                 </label>

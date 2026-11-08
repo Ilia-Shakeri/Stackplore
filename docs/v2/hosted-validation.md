@@ -1,6 +1,6 @@
 # Smart Assistant — hosted validation
 
-Effective **2026-11-01**. Work in `D:\Projects\Stackplore\repository`.
+Effective **2026-11-08**. The active stage7 preparation checkout is `D:\Projects\Stackplore\worktrees\v2-runbooks-prep`; `D:\Projects\Stackplore\repository` remains the canonical main checkout.
 Local work is file reads, edits and lightweight Git only. **Do not start local
 services, tests, builds, installs, scanners or processors.** All new validation
 runs on Actions. Earlier local receipts remain historical.

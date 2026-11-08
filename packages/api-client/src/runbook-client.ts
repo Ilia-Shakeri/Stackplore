@@ -29,6 +29,7 @@ const encoder = new TextEncoder();
 const idPattern = /^[a-z][a-z0-9_-]{0,63}$/u;
 const digestPattern = /^[a-f0-9]{64}$/u;
 const cursorPattern = /^(?:|[A-Za-z0-9_-]{1,724}\.[A-Za-z0-9_-]{43})$/u;
+const explicitConfirmation = (value: unknown): value is true => value === true;
 const proofPattern = /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/u;
 const id = (value: unknown): string =>
   typeof value === 'string' && idPattern.test(value) ? value : fail();
@@ -260,7 +261,7 @@ export function createRunbookClient(client: ApiClient) {
         signal,
       ),
     commit: (input: RunbookCommit, protection: ApiRequestProtection, signal?: AbortSignal) => {
-      if (input.confirmed !== true || !proofPattern.test(input.confirmation_token))
+      if (!explicitConfirmation(input.confirmed) || !proofPattern.test(input.confirmation_token))
         throw new ApiTransportError('invalid_request');
       const material = parseRunbookMaterial(input.material);
       return request(

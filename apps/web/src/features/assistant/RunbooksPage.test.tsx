@@ -65,7 +65,7 @@ describe('separate reviewed documents page', () => {
       await screen.findByText('<script>private-inert-text</script>');
       expect(screen.getByRole('heading', { name: 'Opened document' })).toBe(document.activeElement);
       expect(document.querySelector('.runbooks-document script')).toBeNull();
-      act(() => controlled.setOwner(Symbol()));
+      act(() => { controlled.setOwner(Symbol()); });
       expect(screen.queryByText('<script>private-inert-text</script>')).toBeNull();
       expect(screen.queryByText('Private result')).toBeNull();
     },
@@ -113,15 +113,16 @@ describe('separate reviewed documents page', () => {
         }),
     );
     await user.click(screen.getByRole('button', { name: 'Review exact text' }));
-    await waitFor(() => expect(finish).toBeDefined());
+    await waitFor(() => { expect(finish).toBeDefined(); });
     fireEvent(window, new Event('pagehide'));
-    await act(async () =>
+    await act(async () => {
+      await Promise.resolve();
       finish?.({
         digest: 'a'.repeat(64),
         confirmation_token: 'A'.repeat(43),
         expires_at: new Date(Date.now() + 120000).toISOString(),
-      }),
-    );
+      });
+    });
     expect(screen.queryByText('Private reviewed body')).toBeNull();
     expect(controlled.api.runbookCommit).not.toHaveBeenCalled();
   });

@@ -206,3 +206,12 @@ scanner download returned HTTP504. The corrected downloader tries the same
 immutable official API asset, enforces HTTPS, exact archive size and the unchanged
 SHA256, then extracts the named executable. It does not skip a tool or weaken
 scan severity. A new exact-source package/security trial is still required.
+Source `e23376c` passed focused Go/PostgreSQL/client/page checks and contract
+policy, but the full gate found strict lint errors in callbacks, one deprecated
+event type, a runtime-boolean check and the script clone global. They are corrected
+without weakening lint. Catalog ordering and search keysets now explicitly use
+PostgreSQL `COLLATE "C"`, matching canonical identifier validation regardless of
+the installation's default collation. A real SQL test pages punctuation/digit/
+underscore IDs without omissions or duplicates. The Metrics API fixture download
+also returned HTTP504; its official immutable API fallback preserves the exact
+4330-byte size and SHA256. These corrections require a fresh full receipt.
