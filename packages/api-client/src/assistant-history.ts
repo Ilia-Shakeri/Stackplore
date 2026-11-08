@@ -38,7 +38,7 @@ const cursorValue = (value: unknown): value is string =>
 const matches = (value: unknown, pattern: RegExp): value is string =>
   typeof value === 'string' && value.length <= 128 && value === value.trim() && pattern.test(value);
 
-export const assistantHistoryInput = (value: AssistantHistoryInput = {}) => {
+export const assistantHistoryInput = (value: unknown = {}) => {
   const invalid = (): never => {
     throw new ApiTransportError('invalid_request');
   };
@@ -141,5 +141,5 @@ export const parseAssistantHistoryResponse = (
     )
       return fail();
   }
-  return { entries, next_cursor: page.next_cursor as string | null };
+  return { entries, next_cursor: page.next_cursor };
 };

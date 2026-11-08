@@ -40,6 +40,9 @@ describe('owner-private metadata history', () => {
     const fetchMock = vi.fn<typeof fetch>();
     const client = createAssistantClient(createApiClient({ fetch: fetchMock }));
     for (const value of [
+      null,
+      [],
+      42,
       { owner: 'other' },
       { state: 'all' },
       { limit: 11 },

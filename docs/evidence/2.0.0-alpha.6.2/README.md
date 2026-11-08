@@ -98,3 +98,16 @@ image: the package repository actually offers zlib 1.4-r0 and rejects the older
 1.3.2-r1 exact pin. The retrieved v3.23 package page was stale relative to that
 hosted resolver. The correction pins the version observed by the real build,
 1.4-r0. No relaxed version constraint or vulnerability suppression is introduced.
+
+The corrected runtime source `da7574edc4b9a8734705fd3181ed96c5190545ec`
+passes all eight [hosted verification jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42455611513).
+Its exact-source [signed packaging trial](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42455612875)
+also passes: strict database/application/native scans, source dependency and secret
+gates, extracted Linux archive against the scanned database, checksums, provenance
+and seven signed SBOMs. This fresh receipt supersedes the failed runtime-pin
+attempts for this source only. Exact-tag verification and public publication are
+still separate gates. No workstation tests, builds, services or scans ran.
+
+The maintainer again confirms no independent evaluator or pilot environment is
+available and authorizes continued preparation and hosted tests. This does not
+accept held-out semantic quality, pilot operation or stable 2.0.

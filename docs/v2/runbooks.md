@@ -112,6 +112,13 @@ verification stops at formatting in three files. Two corrections are retrieved
 from the hosted artifact; the public barrel export is aligned by hand and added
 to the hosted correction list. New source still needs a complete passing gate.
 
+Preview source `d9251da` in run `42457637914` passes the same focused checks,
+formatting, manifests, locales and contract derivation. Lint rejects a runtime
+guard expressed against an already narrow input type and a redundant response
+cast. The input validator now accepts `unknown` at its validation boundary, with
+null/array/scalar negatives, and the return keeps the proven nullable cursor type.
+No guard or lint rule is removed.
+
 Run `42455338720` at `8206322` reaches session revocation, then rejects the
 fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
 the real session constraint remains intact. Container jobs in that run also used
