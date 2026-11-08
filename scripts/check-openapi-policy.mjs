@@ -13,6 +13,8 @@ import {
   runAssistantPolicySelfTests,
 } from './assistant-contract-policy.mjs';
 
+import { runbookSchemaNames, runbookRoutePolicies, inspectRunbookPolicy, runRunbookPolicySelfTests } from './runbook-contract-policy.mjs';
+
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const contractPath = join(repositoryRoot, 'contracts', 'openapi.yaml');
 const configPath = join(repositoryRoot, 'redocly.yaml');
@@ -676,6 +678,7 @@ routePolicies.set('/health/history', {
   },
 });
 for (const [path, policy] of assistantRoutePolicies) routePolicies.set(path, policy);
+for (const [path, policy] of runbookRoutePolicies) routePolicies.set(path, policy);
 const allowedPathNames = [...routePolicies.keys()];
 const allowedOperationKeys = [
   'description',
@@ -999,7 +1002,7 @@ allowedSchemaNames.push(
 );
 allowedParameterNames.push('OperationId', 'OperationIdempotencyKey');
 allowedParameterNames.push(...assistantParameterNames);
-allowedSchemaNames.push(...assistantSchemaNames);
+allowedSchemaNames.push(...assistantSchemaNames, ...runbookSchemaNames);
 const forbiddenPropertyFragments = [
   'accesskey',
   'apikey',
@@ -1018,6 +1021,8 @@ const forbiddenPropertyFragments = [
   'token',
 ];
 const sensitiveInputFieldAllowlist = new Set([
+  'RunbookPreview:confirmation_token',
+  'RunbookCommit:confirmation_token',
   'ProductResource:metadata',
   'CreateUserRequest:password',
   'LoginRequest:password',
@@ -1968,6 +1973,9 @@ const main = async () => {
     if (componentIssues.length > 0) {
       fail(componentIssues.join('; '));
     }
+    const runbookIssues = inspectRunbookPolicy(document);
+    if (runbookIssues.length > 0) fail(runbookIssues.join('; '));
+    runRunbookPolicySelfTests(document);
     const assistantIssues = inspectAssistantPolicy(document);
     if (assistantIssues.length > 0) fail(assistantIssues.join('; '));
     runAssistantPolicySelfTests(document);

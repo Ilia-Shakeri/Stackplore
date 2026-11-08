@@ -53,6 +53,7 @@ type Options struct {
 	ApplicationSettings     ApplicationSettings
 	ApplicationMutationMode ApplicationMutationMode
 	AssistantRuns           AssistantRunReader
+	Runbooks                Runbooks
 	LogRedactionFields      []string
 	WebAssets               fs.FS
 	GuestDemo               *GuestDemoOptions
@@ -143,7 +144,7 @@ func validateOptions(options Options) error {
 	if !validGuestDemo(options.GuestDemo, options.ProductProviders) {
 		return errInvalidOptions
 	}
-	if options.GuestDemo != nil && options.AssistantRuns != nil {
+	if options.GuestDemo != nil && (options.AssistantRuns != nil || options.Runbooks != nil) {
 		return errInvalidOptions
 	}
 	if _, err := logsafe.NewPolicy(options.LogRedactionFields); err != nil {
@@ -187,6 +188,12 @@ func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPoli
 	router.Use(limitRequestBody(options.MaximumRequestBody))
 	router.Use(rejectMalformedQuery)
 	router.Use(guestReadBoundary(authRoutes.guestDemo))
+	books := runbookHTTP{product:productRoutes,service:options.Runbooks,bodyLimit:min(options.MaximumRequestBody,1024*1024)}
+	router.Get("/assistant/runbooks", books.catalog)
+	router.Post("/assistant/runbooks/preview", books.preview)
+	router.Post("/assistant/runbooks/commit", books.commit)
+	router.Post("/assistant/runbooks/search", books.search)
+	router.Post("/assistant/runbooks/document", books.document)
 	if options.AssistantRuns != nil {
 		helper := assistantHTTP{product: productRoutes, runs: options.AssistantRuns}
 		if history, ok := options.AssistantRuns.(AssistantHistoryReader); ok {

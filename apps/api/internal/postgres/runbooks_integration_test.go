@@ -44,9 +44,13 @@ func TestRunbookApprovalSearchReplacementRevocationAndRestore(t *testing.T) {
 	user := authRepositoryTestUser("usr_runbook_viewer", "runbookviewer", auth.RoleViewer, at)
 	session := authRepositoryTestSession(t, store, user, "sess_runbook_viewer", "runbook_viewer", at)
 	if err := store.withinTransaction(ctx, func(ctx context.Context, tx *transaction) error {
-		if err := insertUserTx(ctx, tx.transaction, user); err != nil { return err }
+		if err := insertUserTx(ctx, tx.transaction, user); err != nil {
+			return err
+		}
 		return insertSessionTx(ctx, tx.transaction, session)
-	}); err != nil { t.Fatal("add independent reader", err) }
+	}); err != nil {
+		t.Fatal("add independent reader", err)
+	}
 	viewer := auth.Principal{UserID: user.ID, SessionID: session.ID, Role: user.Role, AuthRevision: user.AuthRevision}
 	query := runbook.Search{Actor: viewer, Query: "service", Locale: "en", Limit: 1, Generation: -1, CatalogVersion: -1}
 	empty, err := store.SearchRunbooks(ctx, query)

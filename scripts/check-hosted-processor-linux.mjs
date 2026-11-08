@@ -181,7 +181,7 @@ async function main() {
     return result.stdout?.toString() ?? '';
   };
   const download = async (url, path, size, digest) => {
-    run(
+    const transfer = (source, headers = []) => run(
       'curl',
       [
         '--fail',
@@ -201,10 +201,18 @@ async function main() {
         String(size),
         '--output',
         path,
-        url,
+        ...headers,
+        source,
       ],
       { timeout: 330_000, stdio: 'ignore' },
     );
+    try {
+      transfer(url);
+    } catch (error) {
+      // The same immutable release asset has a second official transport.
+      if (url !== 'https://github.com/ggml-org/llama.cpp/releases/download/b11729/llama-b11729-bin-ubuntu-x64.tar.gz') throw error;
+      transfer('https://api.github.com/repos/ggml-org/llama.cpp/releases/assets/656081240', ['--header','Accept: application/octet-stream']);
+    }
     const item = await lstat(path);
     if (!item.isFile() || item.size !== size) throw new Error('hosted_processor.asset_size');
     const hash = createHash('sha256');

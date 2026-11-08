@@ -11,6 +11,246 @@ servers:
   - url: /api/v1
     description: Same-origin version 1 API base path
 paths:
+  /assistant/runbooks:
+    get:
+      operationId: listRunbookCatalog
+      summary: Inspect reviewed document revisions
+      description: >-
+        Private reviewed prose, with live account authorization and restore fencing. Search and
+        document reads carry private arguments in the body. Approval and revocation require an
+        administrator, exact material, a two-minute one-use preview, and a runbook.manage grant.
+        Prose remains inert. No guest access, source calls, or external model calls.
+      security:
+        - BrowserSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Current authorized document result; never cached.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunbookCatalog'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runbooks/preview:
+    post:
+      operationId: previewRunbookChange
+      summary: Preview an exact document approval or revocation
+      description: >-
+        Private reviewed prose, with live account authorization and restore fencing. Search and
+        document reads carry private arguments in the body. Approval and revocation require an
+        administrator, exact material, a two-minute one-use preview, and a runbook.manage grant.
+        Prose remains inert. No guest access, source calls, or external model calls.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunbookMaterial'
+      responses:
+        '200':
+          description: Current authorized document result; never cached.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunbookPreview'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runbooks/commit:
+    post:
+      operationId: commitRunbookChange
+      summary: Confirm an exact reviewed document change
+      description: >-
+        Private reviewed prose, with live account authorization and restore fencing. Search and
+        document reads carry private arguments in the body. Approval and revocation require an
+        administrator, exact material, a two-minute one-use preview, and a runbook.manage grant.
+        Prose remains inert. No guest access, source calls, or external model calls.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+          RecentAuthProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunbookCommit'
+      responses:
+        '200':
+          description: Current authorized document result; never cached.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunbookRevision'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runbooks/search:
+    post:
+      operationId: searchRunbooks
+      summary: Search currently approved document prose
+      description: >-
+        Private reviewed prose, with live account authorization and restore fencing. Search and
+        document reads carry private arguments in the body. Approval and revocation require an
+        administrator, exact material, a two-minute one-use preview, and a runbook.manage grant.
+        Prose remains inert. No guest access, source calls, or external model calls.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunbookSearch'
+      responses:
+        '200':
+          description: Current authorized document result; never cached.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunbookResults'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
+  /assistant/runbooks/document:
+    post:
+      operationId: readRunbookDocument
+      summary: Read one currently authorized document revision
+      description: >-
+        Private reviewed prose, with live account authorization and restore fencing. Search and
+        document reads carry private arguments in the body. Approval and revocation require an
+        administrator, exact material, a two-minute one-use preview, and a runbook.manage grant.
+        Prose remains inert. No guest access, source calls, or external model calls.
+      security:
+        - BrowserSession: []
+          CSRFRequestProof: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunbookReference'
+      responses:
+        '200':
+          description: Current authorized document result; never cached.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Set-Cookie:
+              $ref: '#/components/headers/BrowserStateUpdate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunbookDocument'
+        '400':
+          $ref: '#/components/responses/BadRequestProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedProblem'
+        '403':
+          $ref: '#/components/responses/ForbiddenProblem'
+        '409':
+          $ref: '#/components/responses/ConflictProblem'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeProblem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeProblem'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsProblem'
+        '500':
+          $ref: '#/components/responses/InternalProblem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableProblem'
   /setup/status:
     get:
       operationId: getSetupStatus
@@ -3005,6 +3245,227 @@ components:
         idle_expires_at: 2026-01-02T03:34:05Z
         absolute_expires_at: 2026-01-02T15:04:05Z
   schemas:
+    RunbookId:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[a-z][a-z0-9_-]{0,63}$'
+    RunbookDigest:
+      type: string
+      minLength: 64
+      maxLength: 64
+      pattern: '^[a-f0-9]{64}$'
+    RunbookDocument:
+      type: object
+      additionalProperties: false
+      required: [id, locale, title, body]
+      properties:
+        id:
+          $ref: '#/components/schemas/RunbookId'
+        locale:
+          $ref: '#/components/schemas/AssistantLocale'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: At most 256 UTF-8 bytes of visible prose.
+        body:
+          type: string
+          minLength: 1
+          maxLength: 16384
+          description: At most 16384 UTF-8 bytes; inert plain text. LF and tab are allowed.
+    RunbookCorpus:
+      type: object
+      additionalProperties: false
+      required: [id, version, audience, documents]
+      properties:
+        id:
+          $ref: '#/components/schemas/RunbookId'
+        version:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        audience:
+          type: string
+          enum: [administrators, all_users, '']
+          description: Empty only in an exact revocation target stub.
+        documents:
+          type: array
+          minItems: 0
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/RunbookDocument'
+          description: Nonempty for approval; empty for revocation. Combined prose is at most 512 KiB.
+    RunbookMaterial:
+      type: object
+      additionalProperties: false
+      required: [action, expected_version, generation, digest, corpus]
+      properties:
+        action:
+          type: string
+          enum: [approve, revoke]
+        expected_version:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        generation:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        digest:
+          type: string
+          maxLength: 64
+          pattern: '^(?:|[a-f0-9]{64})$'
+          description: Empty for approval; server hashes exact submitted prose. Revocation requires the current digest.
+        corpus:
+          $ref: '#/components/schemas/RunbookCorpus'
+      description: Approval requires version expected_version plus one and valid nonempty prose. Revocation uses current version, digest, empty audience and documents. The deployment body cap can be stricter than material limits.
+    RunbookPreview:
+      type: object
+      additionalProperties: false
+      required: [digest, confirmation_token, expires_at]
+      properties:
+        digest:
+          $ref: '#/components/schemas/RunbookDigest'
+        confirmation_token:
+          $ref: '#/components/schemas/Proof'
+        expires_at:
+          $ref: '#/components/schemas/Timestamp'
+    RunbookCommit:
+      type: object
+      additionalProperties: false
+      required: [material, confirmation_token, confirmed]
+      properties:
+        material:
+          $ref: '#/components/schemas/RunbookMaterial'
+        confirmation_token:
+          $ref: '#/components/schemas/Proof'
+        confirmed:
+          type: boolean
+          const: true
+    RunbookRevision:
+      type: object
+      additionalProperties: false
+      required: [id, version, digest, audience, approved, generation, documents, bytes]
+      properties:
+        id:
+          $ref: '#/components/schemas/RunbookId'
+        version:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        digest:
+          $ref: '#/components/schemas/RunbookDigest'
+        audience:
+          type: string
+          enum: [administrators, all_users]
+        approved:
+          type: boolean
+        generation:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        documents:
+          type: integer
+          minimum: 0
+          maximum: 32
+        bytes:
+          type: integer
+          minimum: 0
+          maximum: 524288
+    RunbookCatalog:
+      type: object
+      additionalProperties: false
+      required: [generation, version, revisions, maximum_request_bytes]
+      properties:
+        generation:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        version:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        revisions:
+          type: array
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/RunbookRevision'
+        maximum_request_bytes:
+          type: integer
+          minimum: 1024
+          maximum: 1048576
+    RunbookReference:
+      type: object
+      additionalProperties: false
+      required: [corpus_id, version, digest, document_id, locale, generation]
+      properties:
+        corpus_id:
+          $ref: '#/components/schemas/RunbookId'
+        version:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        digest:
+          $ref: '#/components/schemas/RunbookDigest'
+        document_id:
+          $ref: '#/components/schemas/RunbookId'
+        locale:
+          $ref: '#/components/schemas/AssistantLocale'
+        generation:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+    RunbookSearch:
+      type: object
+      additionalProperties: false
+      required: [query, locale, limit, cursor]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: At most 256 UTF-8 bytes. Never persisted by this feature.
+        locale:
+          $ref: '#/components/schemas/AssistantLocale'
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 10
+        cursor:
+          type: string
+          maxLength: 768
+          pattern: '^(?:|[A-Za-z0-9_-]{1,724}\.[A-Za-z0-9_-]{43})$'
+    RunbookHit:
+      type: object
+      additionalProperties: false
+      required: [reference, title, snippet]
+      properties:
+        reference:
+          $ref: '#/components/schemas/RunbookReference'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        snippet:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: First at most 512 UTF-8 bytes; can contain leading whitespace.
+    RunbookResults:
+      type: object
+      additionalProperties: false
+      required: [hits, next_cursor]
+      properties:
+        hits:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/RunbookHit'
+        next_cursor:
+          type: string
+          maxLength: 768
+          pattern: '^(?:|[A-Za-z0-9_-]{1,724}\.[A-Za-z0-9_-]{43})$'
     AssistantRunId:
       type: string
       minLength: 67

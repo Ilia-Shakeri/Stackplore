@@ -187,6 +187,11 @@ func runWithStorage(
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(errAlertStart)
 	}
+	runbooks, err := buildRunbookRuntime(settings, database)
+	if err != nil { readiness.SetDatabaseReady(false); return closeDatabase(errHTTPBoundary) }
+	defer runbooks.Close()
+	var reviewedDocuments httpapi.Runbooks
+	if runbooks != nil { reviewedDocuments = runbooks }
 	assistantMaintenance, err := buildAssistantMaintenance(database)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
@@ -198,7 +203,7 @@ func runWithStorage(
 		assistantRuns = assistantProduct.service
 	}
 	server, err := newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, observations.settings, operations, applicationSettings,
-		httpapi.ApplicationMutationMode{Enabled: settings.MutationsEnabled && !settings.DemoDeployment, DockerWriteEnabled: settings.DockerWriteEnabled, KubernetesWriteEnabled: settings.KubernetesWriteEnabled}, assistantRuns, historyReader)
+		httpapi.ApplicationMutationMode{Enabled: settings.MutationsEnabled && !settings.DemoDeployment, DockerWriteEnabled: settings.DockerWriteEnabled, KubernetesWriteEnabled: settings.KubernetesWriteEnabled}, assistantRuns, reviewedDocuments, historyReader)
 	if err != nil {
 		readiness.SetDatabaseReady(false)
 		return closeDatabase(err)
@@ -445,7 +450,7 @@ func newHTTPServerWithProviders(
 	sourceSettings httpapi.SourceSettings,
 	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
-	return newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, sourceSettings, nil, nil, httpapi.ApplicationMutationMode{}, nil, historyReaders...)
+	return newHTTPServerWithServices(settings, logger, readiness, authentication, providers, alertManager, sourceSettings, nil, nil, httpapi.ApplicationMutationMode{}, nil, nil, historyReaders...)
 }
 
 func newHTTPServerWithServices(
@@ -460,6 +465,7 @@ func newHTTPServerWithServices(
 	applicationSettings httpapi.ApplicationSettings,
 	applicationMode httpapi.ApplicationMutationMode,
 	assistantRuns httpapi.AssistantRunReader,
+	runbooks httpapi.Runbooks,
 	historyReaders ...productHistoryReader,
 ) (*http.Server, error) {
 	if config.Validate(settings) != nil || logger == nil || readiness == nil || authentication == nil ||
@@ -503,6 +509,7 @@ func newHTTPServerWithServices(
 		ApplicationSettings:     applicationSettings,
 		ApplicationMutationMode: applicationMode,
 		AssistantRuns:           assistantRuns,
+		Runbooks:                runbooks,
 		LogRedactionFields:      settings.LogRedactionFields,
 		WebAssets:               webui.Assets(),
 		GuestDemo:               guestHTTPOptions(settings),

@@ -1,7 +1,6 @@
 # Smart Assistant — reviewed document approval and search
 
-Development **2.0.0-alpha.7**, schema **20**. The repository/domain increment is
-authored; no successful hosted receipt or HTTP/UI delivery is claimed yet.
+Development **2.0.0-alpha.7**, schema **20**. Repository, use case and private HTTP routes are authored; no green full gate or browser delivery is claimed yet.
 Migration20 is appended; earlier migration bytes remain immutable. Starting this
 source applies schema20 even when the optional processor is disabled. Use only
 isolated development data until its own upgrade/recovery and release gates pass.
@@ -94,3 +93,26 @@ shutdown. These are authored tests until the owning hosted source passes.
 پشتیبان وعده داده نمی‌شود. بازیابی، تأیید قبلی را زنده نمی‌کند. جست‌وجو فقط
 نسخهٔ تأییدشده و نقش مجاز را ببیند. متن سند دستور اجرا نیست. تست‌ها فقط روی
 GitHub Actions؛ اتصال HTTP، رابط و پذیرش کل گام هنوز باز است.
+
+## Private HTTP boundary (authored, hosted verification pending)
+
+The normal installation composes the document service independently of the optional
+processor. Guest deployments omit it. Five private routes are declared in OpenAPI:
+`GET /assistant/runbooks` for administrator metadata, and body-only POST routes
+`/preview`, `/commit`, `/search`, `/document` below that path. All POST requests
+require same-origin session and CSRF proof; commit also requires the dedicated
+recent grant. There are no query parameters or browser-supplied owner identifiers.
+The catalog exposes the effective request cap: min(deployment cap, 1 MiB), normally
+256 KiB. The complete commit envelope, not just the corpus, must fit that cap.
+Approval sends an empty digest and exact prose; the server computes its canonical
+digest and binds it into the preview. Commit resubmits that same material. Revocation
+uses the catalog's digest, current version and an empty audience/document stub.
+Search returns ten or fewer plain-text snippets and an opaque cursor; opening a
+result rechecks the exact revision and current rights. No HTML or Markdown is run.
+
+Run `42467186114` at `bbba0b1` passed focused domain/use-case/transport and real
+PostgreSQL checks. Its full gate stopped at Go formatting; the hosted correction
+was applied. Its cluster jobs failed downloading the pinned tool with HTTP 504;
+its processor receipt failed in the archive phase, before any runtime case. Both
+release assets now have a second official transport with the same pinned digest.
+These failed receipts remain failures; new source needs its own fresh full gate.
