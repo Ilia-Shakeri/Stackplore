@@ -1,11 +1,18 @@
 # Version 2 implementation ledger
 
-> Development candidate **2.0.0-alpha.6.2**, schema **19**, branch `v2/alpha6`.
+> Development candidate **2.0.0-alpha.6.3**, schema **19**, branch `v2/runbooks-prep`.
 > Selected history/report/interface integration passes its recorded hosted source checks.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
 > Stage-6 report source and later stages remain unaccepted.
+
+Private history preview: the isolated branch adds current-owner metadata reads,
+authenticated pagination and a separate bilingual desktop page. Earlier retained
+attempts expose SQL fixture, type and formatting failures; current-source full
+verification and signed publication are pending. Reviewed-corpus approval/search,
+held-out human quality and pilot acceptance are not supplied by this increment.
+[Contract and attempt trail](runbooks.md).
 
 History candidate adds two independently reserved read families, sealed-proof
 coverage, typed historical report fields, qualified workload recovery and bilingual

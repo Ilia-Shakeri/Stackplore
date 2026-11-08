@@ -15,7 +15,11 @@ import './assistant.css';
 
 const noOwner = () => null;
 const noSubscription = () => () => {};
-type Scope = { readonly owner: AssistantOwner; readonly state: AssistantRunState };
+type Scope = {
+  readonly api: AssistantApi;
+  readonly owner: AssistantOwner;
+  readonly state: AssistantRunState;
+};
 type Navigation = {
   readonly scope: Scope;
   readonly cursors: readonly string[];
@@ -45,8 +49,12 @@ export function AssistantHistoryPage() {
         <p>{t('assistant.history.notice')}</p>
       </header>
       <a href="/assistant">{t('assistant.history.back')}</a>
-      {snapshot.status === 'authenticated' && api !== null && owner !== null ? (
-        <PrivateHistory api={api} owner={owner} />
+      {snapshot.status === 'authenticated' ? (
+        api !== null && owner !== null ? (
+          <PrivateHistory api={api} owner={owner} />
+        ) : (
+          <p role="status">{t('assistant.history.unavailable')}</p>
+        )
       ) : (
         <p role="status">{t('assistant.workspace.guest')}</p>
       )}
@@ -66,7 +74,7 @@ function PrivateHistory({
   const selected = view.read('history_state');
   const state: AssistantRunState =
     assistantHistoryStates.find((item) => item === selected) ?? 'completed';
-  const scope = useMemo(() => ({ owner, state }), [owner, state]);
+  const scope = useMemo(() => ({ api, owner, state }), [api, owner, state]);
   const [navigation, setNavigation] = useState<Navigation | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [revision, setRevision] = useState(0);

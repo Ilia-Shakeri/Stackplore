@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -60,6 +61,13 @@ func TestPrivateHistoryRouteBindsCurrentActorAndRejectsExtraArguments(t *testing
 		if response.Code != 400 || calls != 1 {
 			t.Fatal("invalid history arguments reached reader", query, response.Code)
 		}
+	}
+	withBody := helperRequest(http.MethodGet, path)
+	withBody.Body = io.NopCloser(strings.NewReader(`{"owner":"other"}`))
+	withBody.ContentLength = 17
+	response = serve(handler, withBody)
+	if response.Code != 400 || calls != 1 {
+		t.Fatal("history body reached reader")
 	}
 	response = serve(handler, makeRequest(http.MethodGet, path, "198.51.100.10:4000"))
 	if response.Code != 401 || calls != 1 {

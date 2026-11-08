@@ -1,6 +1,7 @@
 # Documentation
 
-Current history candidate: **2.0.0-alpha.6.2**, schema19.
+Current private-history preview candidate: **2.0.0-alpha.6.3**, schema19.
+[Owner-private metadata and remaining runbook work](v2/runbooks.md).
 [Selected history/report integration](v2/incident-history.md) records its bounds;
 [the ledger](v2/implementation.md) separates pending and published checkpoints.
 
@@ -12,7 +13,7 @@ and owner-metadata work; its pure model grants no approval or public capability.
 
 Current published prerelease: **2.0.0-alpha.6.1**, schema19;
 [desktop source and tag receipts](v2/implementation.md).
-Current development: **2.0.0-alpha.6.2**; [desktop workspaces](desktop-workspaces.md) and [incident workflow candidate](v2/incident-workflows.md);
+Current development: **2.0.0-alpha.6.3** on isolated `v2/runbooks-prep`; [desktop workspaces](desktop-workspaces.md) and [incident workflow candidate](v2/incident-workflows.md);
 [stage ledger](v2/implementation.md), [hosted-only validation](v2/hosted-validation.md),
 [English runtime guide](v2/runtime.md), [راهنمای اجرا](v2/runtime.fa.md).
 Stable2.0, quality, new-runtime branch measurement and pilot acceptance remain open.

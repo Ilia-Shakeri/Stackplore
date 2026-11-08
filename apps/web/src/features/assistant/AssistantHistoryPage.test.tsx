@@ -77,8 +77,10 @@ describe('separate private history page', () => {
       );
       expect((next as HTMLButtonElement).disabled).toBe(true);
       expect(
-        screen.getByRole('link', { name: translateText(locale, 'assistant.history.openResource') }).getAttribute('href'),
-      ).toBe( `/assistant?source=source_next&resource_id=${scope.resourceId}`);
+        screen
+          .getByRole('link', { name: translateText(locale, 'assistant.history.openResource') })
+          .getAttribute('href'),
+      ).toBe(`/assistant?source=source_next&resource_id=${scope.resourceId}`);
       expect(window.location.href).not.toContain(cursor);
       expect(api.admit).not.toHaveBeenCalled();
       expect(api.report).not.toHaveBeenCalled();

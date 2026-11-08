@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0-alpha.6.3] - 2026-11-08
+
+### Smart Assistant — private metadata history candidate
+
+- Add bounded current-owner history over retained metadata, authenticated session-
+  and restore-bound cursors, explicit safe HTTP projection and strict typed replies.
+- Add a separate English/Persian desktop page, ten-row replacement pagination,
+  URL status filters, keyboard focus, explicit refresh and owner/page-exit cleanup.
+- Preserve fresh resource authority and explicit new-question submission; history
+  never reconstructs an expired response or report and cannot dispatch work.
+- Prepare the pure reviewed-corpus model without granting approval or adding search.
+  Stage 7 remains partial; human quality, pilot and stable acceptance remain open.
+- Schema19 is unchanged. All verification and package/security checks run on Actions;
+  this candidate needs its own passing receipts before tagging/publication.
+  [Contract, limits and attempts](docs/v2/runbooks.md).
+
 ## [2.0.0-alpha.6.2] - 2026-11-04
 
 ### Smart Analysis — history integration candidate

@@ -128,6 +128,7 @@ export async function assistantLiveJourney(
     return value;
   };
   const original = page.viewportSize();
+  const resourcePage = page.url();
   await page.setViewportSize({ width: 1536, height: 960 });
   const heading = page.locator('#resource-detail-name');
   const identity = new URL(page.url()).pathname.split('/').map(decodeURIComponent)[5];
@@ -278,6 +279,25 @@ export async function assistantLiveJourney(
     metadata.cleared = true;
     expect(admissions).toBe(1);
     await page.getByRole('button', { name: label('assistant.close'), exact: true }).click();
+    const historyRead = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        new URL(response.url()).pathname === '/api/v1/assistant/history',
+    );
+    await page.goto('/assistant/history');
+    const historyResponse = await historyRead;
+    expect(historyResponse.status()).toBe(200);
+    expect(historyResponse.headers()['cache-control']).toBe('no-store');
+    await expect(page.locator('.assistant-history-row').first()).toBeVisible();
+    const historyCount = await page.locator('.assistant-history-row').count();
+    expect(historyCount >= 1 && historyCount <= 10).toBe(true);
+    await expect(
+      page.getByRole('heading', { name: label('assistant.history.title'), exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText(question, { exact: true })).toHaveCount(0);
+    expect(await page.locator('.assistant__text').count()).toBe(0);
+    expect(admissions).toBe(1);
+    await page.goto(resourcePage);
   } finally {
     page.off('request', observe);
     page.off('response', observeReply);

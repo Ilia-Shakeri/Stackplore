@@ -1,5 +1,8 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
+Development preview candidate: **2.0.0-alpha.6.3**, schema19. This metadata
+increment does not claim completion of the reviewed-corpus/search stage.
+
 Hosted preparation attempts: pure model source `2e78a91` passes seven jobs and
 fails only Go formatting in run `41810618993`; its hosted formatting patch is
 applied at `df275bd`. Owner-history source `72fcc59` reaches the actual SQL
@@ -96,6 +99,18 @@ check. That failure also blocks container/browser builds; it is one source defec
 not a container acceptance receipt. The hosted formatting patch is applied.
 Review also closes the zero-length time-window gap in domain and client validation,
 with matching negative tests; canonical windows require `to` strictly after `from`.
+
+The real processor/application browser journey also opens this production history
+page after each actual run in both languages and roles. It requires a successful
+`no-store` metadata read, one to ten visible rows, no prior question/answer text and
+no extra admission, then returns to the original resource. This new integration
+check must pass on its owning source; it is not yet an acceptance receipt.
+
+Source `a09a944` in run `42457323366` passes 27 focused transport tests and 163
+focused desktop checks, including all five new history-page cases. Full source
+verification stops at formatting in three files. Two corrections are retrieved
+from the hosted artifact; the public barrel export is aligned by hand and added
+to the hosted correction list. New source still needs a complete passing gate.
 
 Run `42455338720` at `8206322` reaches session revocation, then rejects the
 fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
