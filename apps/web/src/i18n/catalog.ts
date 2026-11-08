@@ -34,7 +34,11 @@ import operationFa from '../features/product/operation.messages.fa.json';
 import assistantEn from '../features/assistant/messages.en.json';
 import assistantFa from '../features/assistant/messages.fa.json';
 
+import runbooksEn from '../features/assistant/runbooks.messages.en.json';
+import runbooksFa from '../features/assistant/runbooks.messages.fa.json';
+
 const enCatalog = {
+  ...runbooksEn,
   ...workspaceEn,
   ...assistantEn,
   ...settingsEn,
@@ -66,6 +70,7 @@ export type TextMessageKey = {
 export type PluralMessageKey = Exclude<MessageKey, TextMessageKey>;
 
 const faCatalog = {
+  ...runbooksFa,
   ...workspaceFa,
   ...assistantFa,
   ...settingsFa,

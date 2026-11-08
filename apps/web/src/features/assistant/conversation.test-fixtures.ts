@@ -210,6 +210,11 @@ export function controlledConversationApi() {
   let owner: symbol | null = Symbol();
   const listeners = new Set<() => void>();
   const api = {
+    runbookCatalog: vi.fn<AssistantApi['runbookCatalog']>().mockRejectedValue(new Error('No catalog fixture')),
+    runbookPreview: vi.fn<AssistantApi['runbookPreview']>().mockRejectedValue(new Error('No preview fixture')),
+    runbookCommit: vi.fn<AssistantApi['runbookCommit']>().mockRejectedValue(new Error('No commit fixture')),
+    runbookSearch: vi.fn<AssistantApi['runbookSearch']>().mockResolvedValue({hits:[],next_cursor:''}),
+    runbookDocument: vi.fn<AssistantApi['runbookDocument']>().mockRejectedValue(new Error('No document fixture')),
     history: vi.fn<AssistantApi['history']>().mockResolvedValue({ entries: [], next_cursor: null }),
     getOwner: () => owner,
     subscribeOwner(listener: () => void) {

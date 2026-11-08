@@ -188,10 +188,15 @@ func runWithStorage(
 		return closeDatabase(errAlertStart)
 	}
 	runbooks, err := buildRunbookRuntime(settings, database)
-	if err != nil { readiness.SetDatabaseReady(false); return closeDatabase(errHTTPBoundary) }
+	if err != nil {
+		readiness.SetDatabaseReady(false)
+		return closeDatabase(errHTTPBoundary)
+	}
 	defer runbooks.Close()
 	var reviewedDocuments httpapi.Runbooks
-	if runbooks != nil { reviewedDocuments = runbooks }
+	if runbooks != nil {
+		reviewedDocuments = runbooks
+	}
 	assistantMaintenance, err := buildAssistantMaintenance(database)
 	if err != nil {
 		readiness.SetDatabaseReady(false)

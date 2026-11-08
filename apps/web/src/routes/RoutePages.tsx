@@ -24,6 +24,7 @@ const PrivateAssistantHistoryPage = lazy(() =>
     default: module.AssistantHistoryPage,
   })),
 );
+const PrivateRunbooksPage=lazy(()=>import('../features/assistant/RunbooksPage').then(module=>({default:module.RunbooksPage})));
 const ProductHelpPage = lazy(() =>
   import('./HelpPage').then((module) => ({ default: module.HelpPage })),
 );
@@ -181,6 +182,7 @@ export function AssistantPage() {
     </ProductBoundary>
   );
 }
+export function RunbooksPage(){return <ProductBoundary><PrivateRunbooksPage/></ProductBoundary>}
 export function AssistantHistoryPage() {
   return (
     <ProductBoundary>

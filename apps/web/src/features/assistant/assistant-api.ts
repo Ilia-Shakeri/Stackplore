@@ -1,11 +1,15 @@
 import {
   createAssistantClient,
+  createRunbookClient,
   ApiTransportError,
   readAssistantStatus,
   type ApiClient,
   type AssistantRunRequest,
   type AssistantStatusMessage,
   type AssistantHistoryInput,
+  type RunbookMaterial,
+  type RunbookSearch,
+  type RunbookReference,
 } from '@stackplore/api-client';
 
 import { AuthStateError, type AuthStore } from '../auth/auth-store';
@@ -20,6 +24,7 @@ export function createAssistantApi(
   statusReader: typeof readAssistantStatus = readAssistantStatus,
 ) {
   const runs = createAssistantClient(client);
+  const books = createRunbookClient(client);
   const owned = async <T>(
     owner: AssistantOwner,
     signal: AbortSignal | undefined,
@@ -68,6 +73,24 @@ export function createAssistantApi(
     }
   };
   return {
+    runbookCatalog(owner: AssistantOwner, signal?: AbortSignal) {
+      return owned(owner,signal,15_000,signal=>books.catalog(signal));
+    },
+    runbookPreview(owner: AssistantOwner, material: RunbookMaterial, signal?: AbortSignal) {
+      return owned(owner,signal,15_000,signal=>auth.runSessionAction(protection=>books.preview(material,protection,signal)));
+    },
+    runbookCommit(owner: AssistantOwner, material: RunbookMaterial, token: string, password: string, signal?: AbortSignal) {
+      return owned(owner,signal,30_000,signal=>auth.runRecentAction('runbook.manage',password,protection=>{
+        if(signal.aborted)throw new DOMException('Private request stopped.','AbortError');
+        return books.commit({material,confirmation_token:token,confirmed:true},protection,signal);
+      }));
+    },
+    runbookSearch(owner: AssistantOwner, input: RunbookSearch, signal?: AbortSignal) {
+      return owned(owner,signal,15_000,signal=>auth.runSessionAction(protection=>books.search(input,protection,signal)));
+    },
+    runbookDocument(owner: AssistantOwner, reference: RunbookReference, signal?: AbortSignal) {
+      return owned(owner,signal,15_000,signal=>auth.runSessionAction(protection=>books.document(reference,protection,signal)));
+    },
     history(owner: AssistantOwner, input: AssistantHistoryInput, signal?: AbortSignal) {
       return owned(
         owner,

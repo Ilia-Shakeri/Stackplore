@@ -188,7 +188,7 @@ func apiRouter(proxy proxyPolicy, options Options, now func() time.Time, logPoli
 	router.Use(limitRequestBody(options.MaximumRequestBody))
 	router.Use(rejectMalformedQuery)
 	router.Use(guestReadBoundary(authRoutes.guestDemo))
-	books := runbookHTTP{product:productRoutes,service:options.Runbooks,bodyLimit:min(options.MaximumRequestBody,1024*1024)}
+	books := runbookHTTP{product: productRoutes, service: options.Runbooks, bodyLimit: min(options.MaximumRequestBody, 1024*1024)}
 	router.Get("/assistant/runbooks", books.catalog)
 	router.Post("/assistant/runbooks/preview", books.preview)
 	router.Post("/assistant/runbooks/commit", books.commit)

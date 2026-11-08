@@ -42,3 +42,4 @@ export {
   type AssistantMutationOptions,
   type AssistantAdmissionOptions,
 } from './assistant-client';
+export * from './runbook-client';

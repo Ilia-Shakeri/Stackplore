@@ -13,7 +13,12 @@ import {
   runAssistantPolicySelfTests,
 } from './assistant-contract-policy.mjs';
 
-import { runbookSchemaNames, runbookRoutePolicies, inspectRunbookPolicy, runRunbookPolicySelfTests } from './runbook-contract-policy.mjs';
+import {
+  runbookSchemaNames,
+  runbookRoutePolicies,
+  inspectRunbookPolicy,
+  runRunbookPolicySelfTests,
+} from './runbook-contract-policy.mjs';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const contractPath = join(repositoryRoot, 'contracts', 'openapi.yaml');

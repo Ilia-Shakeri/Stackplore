@@ -1,7 +1,7 @@
 # Version 2 implementation ledger
 
-> Private-history preview **2.0.0-alpha.6.3**, schema **19**, branch `v2/runbooks-prep`.
-> Selected history/report/interface integration passes its recorded hosted source checks.
+> Reviewed-document candidate **2.0.0-alpha.7**, schema **20**, branch `v2/runbooks-prep`.
+> History preview receipts remain valid for their immutable sources. Document approval/search and desktop routes are authored; their fresh full hosted gate is pending.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
@@ -113,7 +113,7 @@ not accept the correction.
 | 4 | `2.0.0-alpha.4` | Chosen local checkpoint published | Optional remote disabled; independent public consumption and whole-version gates separate |
 | 5 | `2.0.0-alpha.5` | Candidate in separate branch | New-mode hosted source, SQL/browser, scan and exact-tag acceptance |
 | 6     | `2.0.0-alpha.6`        | Not delivered                | Incident analysis                                          |
-| 7     | `2.0.0-alpha.7`        | Not delivered                | Approved corpus and safe history                           |
+| 7     | `2.0.0-alpha.7`        | In progress                  | Approval/search, exact document reads and desktop page authored; hosted proof pending |
 | 8     | `2.0.0-alpha.8`        | Not delivered                | Held-out quality, attack and failure gates                 |
 | 9     | `2.0.0-beta.1`         | Not delivered                | Actual pilot, upgrade and deployment                       |
 | 10    | `2.0.0-rc.N` → `2.0.0` | Not delivered                | Independent candidate and stable acceptance                |

@@ -2,6 +2,113 @@ export type ClientOptions = {
   baseUrl: `${string}://${string}/api/v1` | (string & {});
 };
 
+export type RunbookId = string;
+
+export type RunbookDigest = string;
+
+export type RunbookDocument = {
+  id: RunbookId;
+  locale: AssistantLocale;
+  /**
+   * At most 256 UTF-8 bytes of visible prose.
+   */
+  title: string;
+  /**
+   * At most 16384 UTF-8 bytes; inert plain text. LF and tab are allowed.
+   */
+  body: string;
+};
+
+export type RunbookCorpus = {
+  id: RunbookId;
+  version: number;
+  /**
+   * Empty only in an exact revocation target stub.
+   */
+  audience: 'administrators' | 'all_users' | '';
+  /**
+   * Nonempty for approval; empty for revocation. Combined prose is at most 512 KiB.
+   */
+  documents: Array<RunbookDocument>;
+};
+
+/**
+ * Approval requires version expected_version plus one and valid nonempty prose. Revocation uses current version, digest, empty audience and documents. The deployment body cap can be stricter than material limits.
+ */
+export type RunbookMaterial = {
+  action: 'approve' | 'revoke';
+  expected_version: number;
+  generation: number;
+  /**
+   * Empty for approval; server hashes exact submitted prose. Revocation requires the current digest.
+   */
+  digest: string;
+  corpus: RunbookCorpus;
+};
+
+export type RunbookPreview = {
+  digest: RunbookDigest;
+  confirmation_token: Proof;
+  expires_at: Timestamp;
+};
+
+export type RunbookCommit = {
+  material: RunbookMaterial;
+  confirmation_token: Proof;
+  confirmed: true;
+};
+
+export type RunbookRevision = {
+  id: RunbookId;
+  version: number;
+  digest: RunbookDigest;
+  audience: 'administrators' | 'all_users';
+  approved: boolean;
+  generation: number;
+  documents: number;
+  bytes: number;
+};
+
+export type RunbookCatalog = {
+  generation: number;
+  version: number;
+  revisions: Array<RunbookRevision>;
+  maximum_request_bytes: number;
+};
+
+export type RunbookReference = {
+  corpus_id: RunbookId;
+  version: number;
+  digest: RunbookDigest;
+  document_id: RunbookId;
+  locale: AssistantLocale;
+  generation: number;
+};
+
+export type RunbookSearch = {
+  /**
+   * At most 256 UTF-8 bytes. Never persisted by this feature.
+   */
+  query: string;
+  locale: AssistantLocale;
+  limit: number;
+  cursor: string;
+};
+
+export type RunbookHit = {
+  reference: RunbookReference;
+  title: string;
+  /**
+   * First at most 512 UTF-8 bytes; can contain leading whitespace.
+   */
+  snippet: string;
+};
+
+export type RunbookResults = {
+  hits: Array<RunbookHit>;
+  next_cursor: string;
+};
+
 /**
  * Server-issued opaque private run identity; it grants no authority by itself.
  */
@@ -2734,6 +2841,318 @@ export type OperationId = string;
  * Opaque per-action key, bound by a keyed digest. Never place it in a URL or browser persistence.
  */
 export type OperationIdempotencyKey = string;
+
+export type ListRunbookCatalogData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/assistant/runbooks';
+};
+
+export type ListRunbookCatalogErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListRunbookCatalogError = ListRunbookCatalogErrors[keyof ListRunbookCatalogErrors];
+
+export type ListRunbookCatalogResponses = {
+  /**
+   * Current authorized document result; never cached.
+   */
+  200: RunbookCatalog;
+};
+
+export type ListRunbookCatalogResponse =
+  ListRunbookCatalogResponses[keyof ListRunbookCatalogResponses];
+
+export type PreviewRunbookChangeData = {
+  body: RunbookMaterial;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/assistant/runbooks/preview';
+};
+
+export type PreviewRunbookChangeErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type PreviewRunbookChangeError =
+  PreviewRunbookChangeErrors[keyof PreviewRunbookChangeErrors];
+
+export type PreviewRunbookChangeResponses = {
+  /**
+   * Current authorized document result; never cached.
+   */
+  200: RunbookPreview;
+};
+
+export type PreviewRunbookChangeResponse =
+  PreviewRunbookChangeResponses[keyof PreviewRunbookChangeResponses];
+
+export type CommitRunbookChangeData = {
+  body: RunbookCommit;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/assistant/runbooks/commit';
+};
+
+export type CommitRunbookChangeErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type CommitRunbookChangeError = CommitRunbookChangeErrors[keyof CommitRunbookChangeErrors];
+
+export type CommitRunbookChangeResponses = {
+  /**
+   * Current authorized document result; never cached.
+   */
+  200: RunbookRevision;
+};
+
+export type CommitRunbookChangeResponse =
+  CommitRunbookChangeResponses[keyof CommitRunbookChangeResponses];
+
+export type SearchRunbooksData = {
+  body: RunbookSearch;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/assistant/runbooks/search';
+};
+
+export type SearchRunbooksErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type SearchRunbooksError = SearchRunbooksErrors[keyof SearchRunbooksErrors];
+
+export type SearchRunbooksResponses = {
+  /**
+   * Current authorized document result; never cached.
+   */
+  200: RunbookResults;
+};
+
+export type SearchRunbooksResponse = SearchRunbooksResponses[keyof SearchRunbooksResponses];
+
+export type ReadRunbookDocumentData = {
+  body: RunbookReference;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: never;
+  url: '/assistant/runbooks/document';
+};
+
+export type ReadRunbookDocumentErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The request conflicts with the current stable state.
+   */
+  409: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * The request body media type is not supported.
+   */
+  415: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ReadRunbookDocumentError = ReadRunbookDocumentErrors[keyof ReadRunbookDocumentErrors];
+
+export type ReadRunbookDocumentResponses = {
+  /**
+   * Current authorized document result; never cached.
+   */
+  200: RunbookDocument;
+};
+
+export type ReadRunbookDocumentResponse =
+  ReadRunbookDocumentResponses[keyof ReadRunbookDocumentResponses];
 
 export type GetSetupStatusData = {
   body?: never;

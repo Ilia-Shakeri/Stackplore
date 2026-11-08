@@ -116,3 +116,25 @@ was applied. Its cluster jobs failed downloading the pinned tool with HTTP 504;
 its processor receipt failed in the archive phase, before any runtime case. Both
 release assets now have a second official transport with the same pinned digest.
 These failed receipts remain failures; new source needs its own fresh full gate.
+## Desktop document page (authored)
+
+Open `/assistant/runbooks` from the assistant workspace. The Browse documents
+section searches in the current interface language, replaces result pages, and
+opens exact currently authorized references as plain text. Search terms and
+references stay in request bodies, never navigation parameters or local storage.
+The separate Review and approve section appears only for administrators. Load
+current metadata, paste a bounded corpus JSON, review every exact document and
+audience, acknowledge the change, and enter the current password. Editing the
+candidate discards the preview. Leaving the page, changing account or language,
+expiry, and cancellation clear private text and confirmation state. A network
+failure during commit reports an unknown outcome and requires inspecting the
+catalog; there is no automatic resubmission. Browser imports are additionally
+bounded by the shared 256-KiB client cap and an envelope safety reserve.
+
+Hosted unit and full-browser journeys are authored for English/Persian approval,
+revocation, reopened version2, viewer reads, inert script-like text, query/body
+privacy, changed owners, and late responses after pagehide. A passing unit test
+alone does not establish the browser, PostgreSQL or publication gates. The API
+client's generated shapes were obtained from run `42468005066`; no generator,
+formatter, test, build or service ran on the user's host. That source's focused
+transport and PostgreSQL jobs passed; full formatting corrections were applied.

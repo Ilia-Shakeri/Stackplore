@@ -19,6 +19,7 @@ import {
   AboutPage,
   AssistantPage,
   AssistantHistoryPage,
+  RunbooksPage,
   HelpPage,
   InsightsPage,
   MonitoringPage,
@@ -331,6 +332,7 @@ const assistantRoute = createRoute({
   path: '/assistant',
   component: AssistantPage,
 });
+const runbooksRoute = createRoute({getParentRoute:()=>appRoute,path:'/assistant/runbooks',component:RunbooksPage});
 const assistantHistoryRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/assistant/history',
@@ -494,6 +496,7 @@ const routeTree = rootRoute.addChildren([
     insightsRoute,
     assistantRoute,
     assistantHistoryRoute,
+    runbooksRoute,
     helpRoute,
     topologyRoute,
     resourcesRoute,

@@ -1,7 +1,6 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
-Development preview candidate: **2.0.0-alpha.6.3**, schema19. This metadata
-increment does not claim completion of the reviewed-corpus/search stage.
+Development candidate: **2.0.0-alpha.7**, schema20. Reviewed approval/search, private HTTP and a separate desktop document page are authored. Their own hosted gate is pending; stage7 and stable acceptance remain open. See [approval and search](runbook-approval.md).
 
 The implemented owner-history boundary at
 `48b3aec446303926f6f8e0ad993a257cbf6fdd11` passes all eight hosted source jobs;

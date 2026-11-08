@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { expect, test, type Locator, type Page, type Request } from '@playwright/test';
+import { runbookAdminJourney, runbookViewerJourney } from './runbook-journey';
 import { assistantJourney } from './assistant-journey';
 import { assistantLiveJourney } from './assistant-live-journey';
 
@@ -10,6 +11,7 @@ const locale = process.env.SP_BROWSER_LOCALE === 'fa' ? 'fa' : 'en';
 const text = Object.assign(
   {},
   ...[
+    'assistant/runbooks.messages',
     'auth/messages',
     'users/messages',
     'product/trend.messages',
@@ -210,6 +212,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
       true,
     );
 
+    await runbookAdminJourney(page,locale,administratorPassword,label,privateInput);
     await page.goto('/audit');
     await expect(page.locator('.audit-list article').first()).toBeVisible();
     expect((await page.request.get('/api/v1/audit')).status()).toBe(200);
@@ -271,6 +274,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     await privateInput(page.locator('input[name="password"]'), viewerPassword);
     await page.getByRole('button', { name: label('auth.login.submit'), exact: true }).click();
     await expect(page).toHaveURL(/\/overview/u);
+    await runbookViewerJourney(page,locale,label);
     expect((await page.request.get('/api/v1/users')).status()).toBe(403);
     expect((await page.request.get('/api/v1/audit')).status()).toBe(403);
     await page.goto('/settings/users');
