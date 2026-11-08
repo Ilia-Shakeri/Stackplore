@@ -16,6 +16,13 @@ No local execution. The maintainer has no independent evaluator/pilot available;
 hosted preparation continues without substituting synthetic checks for those gates.
 Stage-6 held-out quality and later security/pilot/stable gates remain unaccepted.
 
+Fresh runtime repair source `da7574edc4b9a8734705fd3181ed96c5190545ec` passes
+all eight [verification jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42455611513)
+and the [signed package/security trial](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42455612875)
+on 2026-11-08. Repaired musl/musl-utils/zlib pins retain the PostgreSQL engine,
+strict scan policy and signed provenance. Publication remains a separate gate;
+later runbook/history preparation stays isolated from this release checkpoint.
+
 The desktop preview **2.0.0-alpha.6.1** is published at
 `ac163c34bef357042b9854d38a9ee856ae6797a7`: all eight
 [exact-tag jobs](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41643410361)
