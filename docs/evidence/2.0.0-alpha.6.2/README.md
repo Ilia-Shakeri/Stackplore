@@ -23,6 +23,24 @@ acceptance remain open; later preparation is outside this immutable tag.
 
 ## Retained attempts
 
+### Later documentation-source runtime measurement
+
+The documentation-only source `a45affcb6455f3dcd5347989beebb39030cedfe9` has a
+failed real-processor [attempt 1](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42460595851/attempts/1).
+All six direct probes and the English application journeys pass. The Persian
+administrator investigation reaches the unchanged 40-second limit: 1,202 input
+tokens, 40,002 ms, `client_closed`, incomplete output and durable `uncertain` state.
+No report or citation is published for that failed run, and owned processor/database
+shutdown succeeds. The receipt proves a budget timeout, not its hardware cause.
+It does not invalidate the earlier exact-tag source receipt, and that source's
+green snapshot does not erase this later failed measurement.
+
+Fresh same-source measurements keep the same profile, budget, assertions and
+owned-fixture cleanup. Any successful retry is a separate attempt, never evidence
+of zero failures or accepted latency/capacity. The stage-9 performance/pilot gate
+and independent semantic quality remain open. No automatic production replay,
+larger time budget or relaxed language/citation assertion is introduced.
+
 Initial source `46afaabca5e083e9b086dd0641e7b9601e2d9153` in
 [41807130071](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41807130071)
 passes the focused Go suite and actual PostgreSQL history/migration checks.
