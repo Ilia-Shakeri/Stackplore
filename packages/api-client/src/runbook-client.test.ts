@@ -107,10 +107,12 @@ describe('private reviewed document transport', () => {
     const controller = new AbortController();
     const fetcher = vi.fn<typeof fetch>().mockImplementation(() => {
       controller.abort();
-      return Promise.resolve(new Response(JSON.stringify(raw), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', 'X-Request-ID': 'req_test' },
-      }));
+      return Promise.resolve(
+        new Response(JSON.stringify(raw), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'X-Request-ID': 'req_test' },
+        }),
+      );
     });
     const client = createRunbookClient(
       createApiClient({ fetch: fetcher, requestIdFactory: () => 'req_test' }),

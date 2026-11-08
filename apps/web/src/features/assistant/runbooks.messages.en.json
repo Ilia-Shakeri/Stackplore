@@ -17,6 +17,7 @@
   "runbooks.catalog": "Document collections",
   "runbooks.noCorpus": "No collection yet. Add its first revision below.",
   "runbooks.approved": "Approved",
+  "runbooks.stale": "Needs review after restore",
   "runbooks.revoked": "Revoked",
   "runbooks.revoke": "Preview revocation",
   "runbooks.candidate": "Submit a collection revision",

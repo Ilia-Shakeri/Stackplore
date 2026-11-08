@@ -148,7 +148,9 @@ function PrivateRunbooks({
       setAcknowledged(false);
       form.current?.reset();
     }, duration);
-    return () => { clearTimeout(timer); };
+    return () => {
+      clearTimeout(timer);
+    };
   }, [review]);
   const perform = async <T,>(
     action: (signal: AbortSignal) => Promise<T>,
@@ -207,7 +209,9 @@ function PrivateRunbooks({
     form.current?.reset();
     void perform(
       (signal) => api.runbookPreview(owner, material, signal),
-      (value) => { setReview({ material, preview: value }); },
+      (value) => {
+        setReview({ material, preview: value });
+      },
     );
   };
   const prepare = () => {
@@ -281,14 +285,18 @@ function PrivateRunbooks({
       <nav className="runbooks-tabs" aria-label={t('runbooks.sections')}>
         <Button
           variant={mode === 'search' ? 'primary' : 'secondary'}
-          onClick={() => { switchMode('search'); }}
+          onClick={() => {
+            switchMode('search');
+          }}
         >
           {t('runbooks.browse')}
         </Button>
         {admin ? (
           <Button
             variant={mode === 'manage' ? 'primary' : 'secondary'}
-            onClick={() => { switchMode('manage'); }}
+            onClick={() => {
+              switchMode('manage');
+            }}
           >
             {t('runbooks.manage')}
           </Button>
@@ -341,7 +349,9 @@ function PrivateRunbooks({
                     <Button
                       variant="secondary"
                       disabled={busy || paused}
-                      onClick={() => { open(hit.reference); }}
+                      onClick={() => {
+                        open(hit.reference);
+                      }}
                     >
                       {hit.title}
                     </Button>
@@ -358,7 +368,9 @@ function PrivateRunbooks({
                 <Button
                   disabled={busy || paused}
                   variant="secondary"
-                  onClick={() => { search(results.next_cursor); }}
+                  onClick={() => {
+                    search(results.next_cursor);
+                  }}
                 >
                   {t('runbooks.next')}
                 </Button>
@@ -375,7 +387,12 @@ function PrivateRunbooks({
                   <p className="runbooks-prose" dir="auto">
                     {document.body}
                   </p>
-                  <Button variant="secondary" onClick={() => { setDocument(null); }}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setDocument(null);
+                    }}
+                  >
                     {t('runbooks.close')}
                   </Button>
                 </>
@@ -401,7 +418,13 @@ function PrivateRunbooks({
                         {revision.id} · v{revision.version}
                       </bdi>
                       <p>
-                        {t(revision.approved ? 'runbooks.approved' : 'runbooks.revoked')} ·{' '}
+                        {t(
+                          !revision.approved
+                            ? 'runbooks.revoked'
+                            : revision.generation === catalog.generation
+                              ? 'runbooks.approved'
+                              : 'runbooks.stale',
+                        )} ·{' '}
                         {formatNumber(revision.documents)}
                       </p>
                       {revision.approved ? (
@@ -490,7 +513,9 @@ function PrivateRunbooks({
                   <input
                     type="checkbox"
                     checked={acknowledged}
-                    onChange={(event) => { setAcknowledged(event.target.checked); }}
+                    onChange={(event) => {
+                      setAcknowledged(event.target.checked);
+                    }}
                   />
                   {t('runbooks.confirm')}
                 </label>

@@ -17,6 +17,7 @@
   "runbooks.catalog": "مجموعه‌های سند",
   "runbooks.noCorpus": "هنوز مجموعه‌ای نیست. نخستین نسخه را در این بخش وارد کنید.",
   "runbooks.approved": "تأییدشده",
+  "runbooks.stale": "پس از بازیابی، بازبینی تازه لازم است",
   "runbooks.revoked": "تأیید لغوشده",
   "runbooks.revoke": "پیش‌نمایش لغو تأیید",
   "runbooks.candidate": "ارسال نسخهٔ مجموعه",

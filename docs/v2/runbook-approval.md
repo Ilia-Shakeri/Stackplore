@@ -215,3 +215,12 @@ the installation's default collation. A real SQL test pages punctuation/digit/
 underscore IDs without omissions or duplicates. The Metrics API fixture download
 also returned HTTP504; its official immutable API fallback preserves the exact
 4330-byte size and SHA256. These corrections require a fresh full receipt.
+
+Run `42470063649` at `4bd0dcf` passes all six install/provider/tool jobs and the
+focused SQL/client/page suites; its full gate stops at formatting. Its hosted
+formatting patch is applied. Follow-up desktop correction labels a restored
+old-generation approval as needing review, even while its retained metadata
+still says approved. It must not be presented as currently readable. The SQL
+reader already rejects that generation; a page regression test covers the label.
+Signed package/security trial `42469491808` passed at `e23376c`; that source had
+a failed full verification, so the trial is not reused as release acceptance.

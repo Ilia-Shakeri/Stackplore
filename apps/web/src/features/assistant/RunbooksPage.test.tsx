@@ -33,6 +33,32 @@ function show(
   return controlled;
 }
 describe('separate reviewed documents page', () => {
+  it('marks an old approval as needing review after restore', async () => {
+    const controlled = controlledConversationApi();
+    controlled.api.runbookCatalog.mockResolvedValue({
+      generation: 1,
+      version: 2,
+      maximum_request_bytes: 262144,
+      revisions: [
+        {
+          id: 'ops',
+          version: 1,
+          digest: 'a'.repeat(64),
+          audience: 'all_users',
+          approved: true,
+          generation: 0,
+          documents: 1,
+          bytes: 100,
+        },
+      ],
+    });
+    show('en', 'administrator', controlled);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Review and approve' }));
+    await user.click(screen.getByRole('button', { name: 'Load current catalog' }));
+    await screen.findByText('Needs review after restore · 1');
+    expect(controlled.api.runbookDocument).not.toHaveBeenCalled();
+  });
   it.each(['en', 'fa'] as const)(
     'searches, opens inert text and clears it on owner change in %s',
     async (locale) => {
@@ -65,7 +91,9 @@ describe('separate reviewed documents page', () => {
       await screen.findByText('<script>private-inert-text</script>');
       expect(screen.getByRole('heading', { name: 'Opened document' })).toBe(document.activeElement);
       expect(document.querySelector('.runbooks-document script')).toBeNull();
-      act(() => { controlled.setOwner(Symbol()); });
+      act(() => {
+        controlled.setOwner(Symbol());
+      });
       expect(screen.queryByText('<script>private-inert-text</script>')).toBeNull();
       expect(screen.queryByText('Private result')).toBeNull();
     },
@@ -113,7 +141,9 @@ describe('separate reviewed documents page', () => {
         }),
     );
     await user.click(screen.getByRole('button', { name: 'Review exact text' }));
-    await waitFor(() => { expect(finish).toBeDefined(); });
+    await waitFor(() => {
+      expect(finish).toBeDefined();
+    });
     fireEvent(window, new Event('pagehide'));
     await act(async () => {
       await Promise.resolve();
