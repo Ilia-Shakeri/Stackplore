@@ -424,8 +424,8 @@ function PrivateRunbooks({
                             : revision.generation === catalog.generation
                               ? 'runbooks.approved'
                               : 'runbooks.stale',
-                        )} ·{' '}
-                        {formatNumber(revision.documents)}
+                        )}{' '}
+                        · {formatNumber(revision.documents)}
                       </p>
                       {revision.approved ? (
                         <Button
