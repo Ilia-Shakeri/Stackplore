@@ -40,3 +40,27 @@ in the fixed tuple fixture and a test callback marked async without awaiting.
 The correction uses definite tuple members and explicitly flushes the asynchronous
 witness response. Lint remains enabled. The signed branch trial is a separate
 receipt and does not accept this failed source gate.
+
+## Verified integration source
+
+Source `2405beebf748c6d965d81500d1e60342c158a0b6` passes all eight jobs in
+[41810337668](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41810337668).
+This includes current authorization/reservations, actual PostgreSQL history and
+schema19 upgrade checks, strict contracts/locales, the full source/build gate,
+concurrency, Docker/Kubernetes, fresh Compose and external-TLS Helm installs,
+the chosen actual processor journeys and production browser/offline checks.
+History facts reach the report and bilingual interface; explicit historical
+witness reads focus their own row and closing clears it. The empty-family proof
+substitution regression is included. Integration code review: **9/10** in this
+bounded scope, subject to the remaining quality and public artifact gates.
+
+Signed branch trial
+[41809415323](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/41809415323)
+passes at the earlier exact source `8b42489f88cabe1f368b816617cac36e88976f4f`.
+That trial is not a substitute for publication of the final source. Fresh signed
+packaging, exact-tag verification and publication remain separate gates.
+
+The maintainer reports no independent human evaluator or pilot environment and
+authorizes hosted preparation to continue. Stage-6 held-out semantic quality,
+stages 7–10 and stable 2.0 remain unaccepted. The runbook model is isolated on a
+preparation branch; it is not part of this integration checkpoint.

@@ -10,8 +10,10 @@
   readable-empty versus unread coverage, and closed scalar fields into the report.
 - Add bilingual historical rows and fresh-authorized witness focus. Keep eight
   reads maximum, one final generation, the shared 64-KiB bounds and volatile cleanup.
-- Validation runs only on GitHub Actions. Stage-6 quality and stable-2.0 acceptance
-  remain pending; schema 19 is unchanged.
+- All eight hosted source jobs pass at the recorded integration checkpoint.
+  [Receipts](docs/evidence/2.0.0-alpha.6.2/README.md) separate source and publication.
+  Stage-6 independent quality and stable-2.0 acceptance remain pending; schema19
+  is unchanged. All execution is on GitHub Actions.
 
 ## [2.0.0-alpha.6.1] - 2026-11-03
 
