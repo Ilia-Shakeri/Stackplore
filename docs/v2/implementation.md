@@ -1,11 +1,19 @@
 # Version 2 implementation ledger
 
-> Development candidate **2.0.0-alpha.6.2**, schema **19**, branch `v2/alpha6`.
+> Published history preview **2.0.0-alpha.6.2**, schema **19**, branch `v2/alpha6`.
 > Selected history/report/interface integration passes its recorded hosted source checks.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
-> Stage-6 report source and later stages remain unaccepted.
+> Stage-6 independent semantic quality and later stages remain unaccepted.
+
+Immutable `v2.0.0-alpha.6.2` at `662fc0e14b1b8dd2f55ba4afc104ce0f8406f617`
+passes all eight source jobs, all eight exact-tag jobs and signed public packaging.
+Release `438106331` publishes 39 digest-bearing assets on 2026-11-08.
+[Exact receipts and limits](../evidence/2.0.0-alpha.6.2/README.md).
+This accepts the selected history/report/interface preview, not whole-stage
+semantic quality, a customer pilot or stable 2.0. Later metadata/runbook
+preparation remains isolated on `v2/runbooks-prep`.
 
 History candidate adds two independently reserved read families, sealed-proof
 coverage, typed historical report fields, qualified workload recovery and bilingual

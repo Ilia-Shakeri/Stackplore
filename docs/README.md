@@ -1,15 +1,15 @@
 # Documentation
 
-Current history candidate: **2.0.0-alpha.6.2**, schema19.
+Current published history preview: **2.0.0-alpha.6.2**, schema19.
 [Selected history/report integration](v2/incident-history.md) records its bounds;
 [the ledger](v2/implementation.md) separates pending and published checkpoints.
 
 - [Desktop workspaces — 2.0.0-alpha.6.1](desktop-workspaces.md)
 - [صفحه‌های جدا برای کار دسکتاپ](desktop-workspaces.fa.md)
 
-Current published prerelease: **2.0.0-alpha.6.1**, schema19;
-[desktop source and tag receipts](v2/implementation.md).
-Current development: **2.0.0-alpha.6.2**; [desktop workspaces](desktop-workspaces.md) and [incident workflow candidate](v2/incident-workflows.md);
+Current published prerelease: **2.0.0-alpha.6.2**, schema19;
+[source, tag and signed publication receipts](evidence/2.0.0-alpha.6.2/README.md).
+This checkpoint: **2.0.0-alpha.6.2**; [desktop workspaces](desktop-workspaces.md) and [incident workflow](v2/incident-workflows.md);
 [stage ledger](v2/implementation.md), [hosted-only validation](v2/hosted-validation.md),
 [English runtime guide](v2/runtime.md), [راهنمای اجرا](v2/runtime.fa.md).
 Stable2.0, quality, new-runtime branch measurement and pilot acceptance remain open.
