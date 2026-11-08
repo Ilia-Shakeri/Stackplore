@@ -296,6 +296,33 @@ export async function assistantLiveJourney(
     ).toBeVisible();
     await expect(page.getByText(question, { exact: true })).toHaveCount(0);
     expect(await page.locator('.assistant__text').count()).toBe(0);
+    const selection = page.locator('.assistant-history-row input[type="checkbox"]').first();
+    const selectedLabel = await selection.getAttribute('aria-label');
+    if (selectedLabel === null) throw new Error('Private metadata selection unavailable');
+    const selectedID = selectedLabel.slice(-67);
+    expect(/^ar_[0-9a-f]{64}$/u.test(selectedID)).toBe(true);
+    await selection.check();
+    const pendingExport = page.waitForEvent('download');
+    await page.getByRole('button', { name: label('assistant.history.export.action'), exact: true }).click();
+    const exported = await pendingExport;
+    expect(exported.suggestedFilename()).toBe('stackplore-run-history.json');
+    const exportedStream = await exported.createReadStream();
+    const exportedChunks: Buffer[] = [];
+    let exportedBytes = 0;
+    for await (const chunk of exportedStream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array);
+      exportedBytes += bytes.length;
+      if (exportedBytes > 32 * 1024) throw new Error('Private metadata export exceeded its bound');
+      exportedChunks.push(bytes);
+    }
+    const exportText = Buffer.concat(exportedChunks).toString('utf8');
+    const exportData = JSON.parse(exportText) as { schema_version?: unknown; entries?: unknown };
+    expect(exportData.schema_version).toBe(1);
+    if (!Array.isArray(exportData.entries) || exportData.entries.length !== 1) throw new Error('Private metadata selection changed');
+    const exportEntry = exportData.entries[0] as Record<string, unknown>;
+    expect(exportEntry.id).toBe(selectedID);
+    expect(Object.keys(exportEntry).sort()).toEqual(['id','source_id','resource_id','goal','state','created_at','updated_at','range','tool_calls','inference_calls','usage_uncertain'].sort());
+    expect(exportText.includes(question)).toBe(false);
     expect(admissions).toBe(1);
     await page.goto(resourcePage);
   } finally {

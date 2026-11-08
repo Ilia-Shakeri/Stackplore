@@ -66,7 +66,7 @@ jobs:
     timeout-minutes: 40
     env:
       CI: 'true'
-      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:2.0.0-alpha.7
+      STACKPLORE_TEST_POSTGRES_IMAGE: stackplore-postgres:2.0.0-alpha.7.1
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -99,7 +99,7 @@ jobs:
           corepack pnpm --filter @stackplore/api-client typecheck
           corepack pnpm --filter @stackplore/web typecheck
           corepack pnpm --filter @stackplore/api-client exec vitest run src/assistant-report-response.test.ts src/assistant-history-response.test.ts src/assistant-history.test.ts src/runbook-client.test.ts
-          corepack pnpm --filter @stackplore/web exec vitest run src/app/App.test.tsx src/features/product/overview-refresh.test.tsx src/routes/HelpPage.test.tsx src/features/assistant/AssistantWorkspacePage.test.tsx src/features/assistant/AssistantHistoryPage.test.tsx src/features/assistant/RunbooksPage.test.tsx src/app/shell/CommandPalette.test.tsx src/test/ui-primitives.test.tsx src/test/branding-theme.test.ts src/test/ui-state.test.tsx src/i18n/locale-provider.test.tsx src/features/users/user-admin-flow.test.tsx src/features/auth/auth-flow.test.tsx src/features/product/DashboardLayout.test.tsx src/features/product/MetricTrend.test.tsx src/features/assistant/conversation-report.test.ts src/features/assistant/AssistantResourcePanel.test.tsx
+          corepack pnpm --filter @stackplore/web exec vitest run src/app/App.test.tsx src/features/product/overview-refresh.test.tsx src/routes/HelpPage.test.tsx src/features/assistant/AssistantWorkspacePage.test.tsx src/features/assistant/AssistantHistoryPage.test.tsx src/features/assistant/history-export.test.ts src/features/assistant/RunbooksPage.test.tsx src/app/shell/CommandPalette.test.tsx src/test/ui-primitives.test.tsx src/test/branding-theme.test.ts src/test/ui-state.test.tsx src/i18n/locale-provider.test.tsx src/features/users/user-admin-flow.test.tsx src/features/auth/auth-flow.test.tsx src/features/product/DashboardLayout.test.tsx src/features/product/MetricTrend.test.tsx src/features/assistant/conversation-report.test.ts src/features/assistant/AssistantResourcePanel.test.tsx
       - name: Run full gate
         run: corepack pnpm verify
       - name: Prepare formatting correction after a failed gate
@@ -313,8 +313,8 @@ jobs:
           cluster_name="stackplore-install-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "STACKPLORE_INSTALL_KIND_NAME=$cluster_name" >> "$GITHUB_ENV"
           kind create cluster --name "$cluster_name" --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 --wait 180s
-          docker build --file deploy/Dockerfile.postgres --tag stackplore-postgres:2.0.0-alpha.7 .
-          kind load docker-image stackplore-postgres:2.0.0-alpha.7 --name "$cluster_name"
+          docker build --file deploy/Dockerfile.postgres --tag stackplore-postgres:2.0.0-alpha.7.1 .
+          kind load docker-image stackplore-postgres:2.0.0-alpha.7.1 --name "$cluster_name"
           docker build --file deploy/Dockerfile.api --tag stackplore-api:verify .
           kind load docker-image stackplore-api:verify --name "$cluster_name"
       - name: Validate long chart names against the Kubernetes API
@@ -363,7 +363,7 @@ jobs:
                   fsGroup: 70
                 containers:
                   - name: postgres
-                    image: stackplore-postgres:2.0.0-alpha.7
+                    image: stackplore-postgres:2.0.0-alpha.7.1
                     imagePullPolicy: Never
                     args: ["postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/tls/tls.crt", "-c", "ssl_key_file=/tls/tls.key"]
                     env:

@@ -1,8 +1,9 @@
 # Documentation
 
-Reviewed-document candidate: **2.0.0-alpha.7**, schema20; hosted validation pending.
+Selected-history-export candidate: **2.0.0-alpha.7.1**, schema20; own hosted validation pending.
 [Reviewed approval/search and private desktop page](v2/runbook-approval.md).
-[Source, exact-tag and publication receipts](evidence/2.0.0-alpha.6.3/README.md).
+[Reviewed-document source, exact-tag and publication receipts](evidence/2.0.0-alpha.7/README.md).
+[Selected metadata export preparation](v2/history-export.md).
 [Selected history/report integration](v2/incident-history.md) records its bounds;
 [the ledger](v2/implementation.md) separates pending and published checkpoints.
 

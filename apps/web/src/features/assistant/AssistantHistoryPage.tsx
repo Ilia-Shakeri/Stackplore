@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { flushSync } from 'react-dom';
 import { useOptionalAssistantApi } from './assistant-context';
 import type { AssistantApi, AssistantOwner } from './assistant-api';
+import { HistoryMetadataExport } from './HistoryMetadataExport';
 import { useAuth } from '../auth/auth-context';
 import { useExplorationView } from '../product/exploration-ui';
 import { useLocale } from '../../i18n';
@@ -69,7 +70,7 @@ function PrivateHistory({
   readonly api: AssistantApi;
   readonly owner: AssistantOwner;
 }) {
-  const { t, formatDate, formatNumber } = useLocale();
+  const { t, locale, formatDate, formatNumber } = useLocale();
   const view = useExplorationView();
   const selected = view.read('history_state');
   const state: AssistantRunState =
@@ -180,10 +181,24 @@ function PrivateHistory({
       {current?.failed === true ? <p role="alert">{t('assistant.history.unavailable')}</p> : null}
       {data?.entries.length === 0 ? <p role="status">{t('assistant.history.empty')}</p> : null}
       {data !== undefined && data.entries.length > 0 ? (
+        <HistoryMetadataExport
+          key={`${locale}:${state}:${String(index)}:${String(revision)}`}
+          api={api}
+          owner={owner}
+          input={{state,limit:10,...(cursor === '' ? {} : {cursor})}}
+          entries={data.entries}
+        >
+        {({selected,busy,select}) => (
         <ol className="assistant-history-list" start={index * 10 + 1}>
           {data.entries.map((entry) => (
             <li key={entry.id}>
               <article className="assistant-history-row">
+                <label>
+                  <input type="checkbox" checked={selected.includes(entry.id)} disabled={busy}
+                    aria-label={`${t('assistant.history.export.select')}: ${entry.id}`}
+                    onChange={event => { select(entry.id,event.target.checked); }}/>
+                  {t('assistant.history.export.select')}
+                </label>
                 <h3>
                   {t(
                     entry.goal === 'investigate_incident'
@@ -224,6 +239,8 @@ function PrivateHistory({
             </li>
           ))}
         </ol>
+        )}
+        </HistoryMetadataExport>
       ) : null}
       <nav className="assistant__actions" aria-label={t('assistant.history.pages')}>
         <Button

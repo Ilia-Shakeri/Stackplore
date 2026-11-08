@@ -1,7 +1,7 @@
 # Version 2 implementation ledger
 
-> Reviewed-document candidate **2.0.0-alpha.7**, schema **20**, branch `v2/runbooks-prep`.
-> History preview receipts remain valid for their immutable sources. Document approval/search and desktop routes are authored; their fresh full hosted gate is pending.
+> Selected-history-export candidate **2.0.0-alpha.7.1**, schema **20**, branch `v2/runbooks-prep`.
+> Reviewed-document source `94425f8` passes eight source jobs and a signed package trial; exact-tag/publication gates remain pending. Selected metadata export is authored and needs its own hosted proof.
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).
@@ -113,7 +113,7 @@ not accept the correction.
 | 4 | `2.0.0-alpha.4` | Chosen local checkpoint published | Optional remote disabled; independent public consumption and whole-version gates separate |
 | 5 | `2.0.0-alpha.5` | Published; recorded scope accepted | Broader quality and customer acceptance remain separate |
 | 6 | `2.0.0-alpha.6.2` / `.6.3` | Bounded previews published | Independent semantic quality remains unaccepted |
-| 7     | `2.0.0-alpha.7`        | In progress                  | Approval/search, exact document reads and desktop page authored; hosted proof pending |
+| 7 | `2.0.0-alpha.7` / `.7.1` | Bounded previews in progress | Document source gates pass; tag/publication pending. Selected metadata export authored; provenance and document-to-answer integration remain |
 | 8     | `2.0.0-alpha.8`        | Not delivered                | Held-out quality, attack and failure gates                 |
 | 9     | `2.0.0-beta.1`         | Not delivered                | Actual pilot, upgrade and deployment                       |
 | 10    | `2.0.0-rc.N` → `2.0.0` | Not delivered                | Independent candidate and stable acceptance                |
@@ -756,3 +756,6 @@ locked k8s.io/api module from the official Go proxy in run 41622203263, before
 code tests started. Verification and packaging now retry that exact checksum-
 checked module download at most three times, with 5 and 10 second waits. Final
 failure still fails the job; no dependency versions, checksums or tests change.
+
+
+Selected metadata export preparation: [behavior, privacy and hosted checks](history-export.md). The [alpha7 evidence index](../evidence/2.0.0-alpha.7/README.md) retains source success and the exact-tag processor timeout; neither is silently reused as stable acceptance.

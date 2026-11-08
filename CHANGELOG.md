@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0-alpha.7.1] - 2026-11-08
+
+### Smart Assistant — selected metadata export candidate
+
+- Download at most ten selected current-page run metadata records, using a fresh
+  owner-authorized history read before export.
+- Reject changed/missing selections without partial files; fence owner, page,
+  filter, locale and pagehide changes. Keep a closed 32-KiB projection without
+  questions, responses, reports, session details or cursors.
+- Revoke temporary download URLs and leave file custody to the user. Add unit
+  privacy cases and real bilingual administrator/viewer download journeys.
+- Keep schema20 and existing HTTP/retention/usage boundaries. Hosted proof,
+  full stage7 integration and stable2 acceptance remain separate open gates.
+
 ## [2.0.0-alpha.7] - 2026-11-08
 
 ### Smart Assistant — reviewed document candidate

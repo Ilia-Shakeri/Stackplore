@@ -1,4 +1,12 @@
 {
+  "assistant.history.export.title": "خروجی فرادادهٔ انتخاب‌شده",
+  "assistant.history.export.select": "انتخاب برای خروجی",
+  "assistant.history.export.count": "{number} مورد انتخاب شده",
+  "assistant.history.export.action": "دریافت فرادادهٔ انتخاب‌شده",
+  "assistant.history.export.loading": "در حال بررسی دسترسی کنونی…",
+  "assistant.history.export.notice": "فقط فرادادهٔ اجراهای انتخاب‌شده، با خواندن تازه و مجاز دریافت می‌شود؛ بدون پرسش، پاسخ، گزارش یا مشخصات نشست. اگر ردیف جابه‌جا یا منقضی شده، صفحه را تازه کنید و دوباره انتخاب کنید. نگهداری فایل دریافتی با شماست.",
+  "assistant.history.export.error": "خروجی در دسترس نیست یا انتخاب تغییر کرده است. صفحه را تازه کنید و دوباره انتخاب کنید. خروجی ناقص ساخته نشد.",
+  "assistant.history.export.started": "دریافت فراداده آغاز شد.",
   "assistant.history.title": "تاریخچهٔ بررسی‌های من",
   "assistant.history.notice": "فرادادهٔ بررسی‌های حساب شما در هفت روز گذشته. پرسش، پاسخ و گزارش اینجا ذخیره نمی‌شود. بازکردن منبع به دسترسی جاری نیاز دارد و بررسی تازه‌ای آغاز نمی‌کند.",
   "assistant.history.back": "بازگشت به دستیار هوشمند",

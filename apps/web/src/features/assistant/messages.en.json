@@ -1,4 +1,12 @@
 {
+  "assistant.history.export.title": "Export selected metadata",
+  "assistant.history.export.select": "Select for export",
+  "assistant.history.export.count": "{number} selected",
+  "assistant.history.export.action": "Download selected metadata",
+  "assistant.history.export.loading": "Checking current access…",
+  "assistant.history.export.notice": "Downloads only selected run metadata from a fresh authorized page. No questions, responses, reports or session details. If a selected row moved or expired, refresh and select it again. The downloaded file is your responsibility.",
+  "assistant.history.export.error": "Export unavailable or selection changed. Refresh this page and select again. No partial export was created.",
+  "assistant.history.export.started": "Metadata download started.",
   "assistant.history.title": "My run history",
   "assistant.history.notice": "Your run metadata from the last seven days. Questions, responses and reports are not stored here. Opening a resource checks current access and starts no new run.",
   "assistant.history.back": "Back to Smart Assistant",
