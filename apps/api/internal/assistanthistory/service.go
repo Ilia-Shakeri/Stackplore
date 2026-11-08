@@ -30,8 +30,8 @@ type Service struct {
 }
 
 type signingKey struct {
-	mu sync.RWMutex
-	value [32]byte
+	mu     sync.RWMutex
+	value  [32]byte
 	closed bool
 }
 
@@ -54,14 +54,18 @@ func New(repository assistant.HistoryRepository, key []byte, now func() time.Tim
 }
 
 func (service *Service) open() bool {
-	if service == nil || service.key == nil { return false }
+	if service == nil || service.key == nil {
+		return false
+	}
 	service.key.mu.RLock()
 	defer service.key.mu.RUnlock()
 	return !service.key.closed
 }
 
 func (service *Service) Close() {
-	if service == nil || service.key == nil { return }
+	if service == nil || service.key == nil {
+		return
+	}
 	service.key.mu.Lock()
 	service.key.closed = true
 	clear(service.key.value[:])
@@ -93,7 +97,9 @@ func (service *Service) signature(actor assistant.Actor, body []byte) []byte {
 	key, closed := service.key.value, service.key.closed
 	service.key.mu.RUnlock()
 	defer clear(key[:])
-	if closed { return nil }
+	if closed {
+		return nil
+	}
 	mac := hmac.New(sha256.New, key[:])
 	_, _ = io.WriteString(mac, "stackplore-run-history-v1\x00"+actor.UserID+"\x00"+actor.DigestKeyID+"\x00"+strconv.FormatInt(actor.AuthRevision, 10)+"\x00")
 	_, _ = mac.Write(actor.SessionDigest[:])
@@ -142,7 +148,9 @@ func (service *Service) List(ctx context.Context, actor assistant.Actor, state a
 	if service == nil || ctx == nil || ctx.Err() != nil || !actor.Valid() {
 		return Page{}, assistant.ErrInvalid
 	}
-	if !service.open() { return Page{}, assistant.ErrUnavailable }
+	if !service.open() {
+		return Page{}, assistant.ErrUnavailable
+	}
 	at := service.now().UTC().Truncate(time.Microsecond)
 	query, err := service.decode(actor, state, limit, encoded, at)
 	if err != nil {
@@ -189,9 +197,15 @@ func (service *Service) List(ctx context.Context, actor assistant.Actor, state a
 		}
 		defer clear(body)
 		proof := service.signature(actor, body)
-		if len(proof) != sha256.Size { clear(page.Entries); return Page{}, assistant.ErrUnavailable }
+		if len(proof) != sha256.Size {
+			clear(page.Entries)
+			return Page{}, assistant.ErrUnavailable
+		}
 		page.NextCursor = base64.RawURLEncoding.EncodeToString(body) + "." + base64.RawURLEncoding.EncodeToString(proof)
 	}
-	if !service.open() || work.Err() != nil { clear(page.Entries); return Page{}, assistant.ErrUnavailable }
+	if !service.open() || work.Err() != nil {
+		clear(page.Entries)
+		return Page{}, assistant.ErrUnavailable
+	}
 	return page, nil
 }

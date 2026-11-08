@@ -69,7 +69,12 @@ export function createAssistantApi(
   };
   return {
     history(owner: AssistantOwner, input: AssistantHistoryInput, signal?: AbortSignal) {
-      return owned(owner, signal, 15_000, async (signal) => (await runs.history(input, { signal })).data);
+      return owned(
+        owner,
+        signal,
+        15_000,
+        async (signal) => (await runs.history(input, { signal })).data,
+      );
     },
     getOwner: auth.getSessionOwner,
     subscribeOwner(listener: () => void) {

@@ -1,6 +1,10 @@
 import { ApiTransportError, type ApiClient, type ApiResponse } from './client';
 import { parseAssistantIncidentReportResponse } from './assistant-report-response';
-import { assistantHistoryInput, parseAssistantHistoryResponse, type AssistantHistoryInput } from './assistant-history';
+import {
+  assistantHistoryInput,
+  parseAssistantHistoryResponse,
+  type AssistantHistoryInput,
+} from './assistant-history';
 import {
   parseAssistantCitation,
   parseAssistantRunReceipt,
@@ -43,7 +47,10 @@ export interface AssistantAdmissionOptions extends AssistantMutationOptions {
   readonly idempotencyKey: string;
 }
 export interface AssistantClient {
-  history(input?: AssistantHistoryInput, options?: AssistantReadOptions): Promise<ApiResponse<AssistantHistoryResponse>>;
+  history(
+    input?: AssistantHistoryInput,
+    options?: AssistantReadOptions,
+  ): Promise<ApiResponse<AssistantHistoryResponse>>;
   admit(
     input: AssistantRunRequest,
     options: AssistantAdmissionOptions,
@@ -182,8 +189,26 @@ export const createAssistantClient = (client: ApiClient): AssistantClient => {
     history(input = {}, options = {}) {
       if (options.signal?.aborted === true) return stopped();
       let query: ReturnType<typeof assistantHistoryInput>;
-      try { query = assistantHistoryInput(input); } catch { return invalid(); }
-      return client.request<unknown>({ path: '/assistant/history', query, ...(options.signal === undefined ? {} : { signal: options.signal }) }).then((response) => checkedReply(response, 200, (value) => parseAssistantHistoryResponse(value, query.state, query.limit, query.cursor ?? ''), options.signal));
+      try {
+        query = assistantHistoryInput(input);
+      } catch {
+        return invalid();
+      }
+      return client
+        .request<unknown>({
+          path: '/assistant/history',
+          query,
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        })
+        .then((response) =>
+          checkedReply(
+            response,
+            200,
+            (value) =>
+              parseAssistantHistoryResponse(value, query.state, query.limit, query.cursor ?? ''),
+            options.signal,
+          ),
+        );
     },
     admit(input, options) {
       if (options.signal?.aborted === true) return stopped();

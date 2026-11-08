@@ -26,6 +26,7 @@ export function AssistantWorkspacePage() {
         <p>{t('route.assistant.description')}</p>
       </header>
       <WorkspaceNavigation current="assistant" />
+      {snapshot.status === 'authenticated' ? <a href="/assistant/history">{t('assistant.history.title')}</a> : null}
       {snapshot.status === 'authenticated' ? (
         <AssistantSelection key={snapshot.user.id} />
       ) : (

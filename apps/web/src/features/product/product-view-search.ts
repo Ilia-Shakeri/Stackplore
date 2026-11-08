@@ -16,6 +16,7 @@ const enums: Readonly<Record<string, readonly string[]>> = {
   minutes: ['60', '360', '1440'],
   monitor: ['cpu', 'memory', 'restarts', 'receive', 'send', 'dashboard'],
   help_topic: ['start', 'monitoring', 'assistant', 'security'],
+  history_state: ['queued', 'running', 'completed', 'failed', 'cancelled', 'expired', 'interrupted', 'uncertain'],
   severity: ['trace', 'debug', 'info', 'warning', 'error', 'critical', 'unknown'],
   alert_state: ['pending', 'firing', 'acknowledged', 'resolved'],
   topology_health: ['healthy', 'degraded', 'unhealthy', 'unknown'],

@@ -19,6 +19,7 @@ const AssistantWorkspacePage = lazy(() =>
     default: module.AssistantWorkspacePage,
   })),
 );
+const PrivateAssistantHistoryPage = lazy(() => import('../features/assistant/AssistantHistoryPage').then((module) => ({ default: module.AssistantHistoryPage })));
 const ProductHelpPage = lazy(() =>
   import('./HelpPage').then((module) => ({ default: module.HelpPage })),
 );
@@ -175,6 +176,9 @@ export function AssistantPage() {
       <AssistantWorkspacePage />
     </ProductBoundary>
   );
+}
+export function AssistantHistoryPage() {
+  return <ProductBoundary><PrivateAssistantHistoryPage /></ProductBoundary>;
 }
 export function HelpPage() {
   return (

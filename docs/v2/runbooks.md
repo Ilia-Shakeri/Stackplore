@@ -54,7 +54,8 @@ an old run's expired session does not need to be resurrected to read safe metada
 An administrator has no other-owner shortcut. Changing restore generation hides
 old records. No question, answer, report, evidence body, session digest or provider
 credential is selected. The candidate HTTP boundary is registered only with the
-enabled authenticated run service; no desktop history page ships yet.
+enabled authenticated run service. The candidate desktop history view is a separate
+lazy-loaded `/assistant/history` page linked from the Smart Assistant workspace.
 
 The metadata use case adds a ten-minute authenticated cursor bound to owner,
 session, authentication revision, state, page size, anchor and restore generation.
@@ -70,8 +71,23 @@ from the current session. Responses are `no-store`, contain closed metadata rows
 and a nullable next cursor, and have no session, restore-generation or text fields.
 The typed client checks shape, ordering, timestamps, count bounds and cursor loops.
 Contract derivation, race, SQL and negative HTTP/client tests run only on Actions.
-These newly authored boundaries still need their own passing receipt; desktop
-views, reviewed-corpus approval and search remain open.
+These newly authored boundaries still need their own passing receipt;
+reviewed-corpus approval and search remain open.
+
+The desktop page replaces ten rows per page, uses a URL-backed closed status filter
+and keeps at most 32 page cursors in volatile component memory. It clears displayed
+rows/cursors on owner change or page exit, cancels outstanding reads, ignores late
+old-owner replies and starts from the first page on return. Loading, empty and
+unavailable/expired pages have distinct states. Explicit refresh resets pagination;
+keyboard pagination focuses the results heading. English/Persian labels and the
+existing theme/focus styles are shared. Resource links carry an exact source and
+resource reference to a new question view; they neither replay an expired answer
+nor start a run. Historic report replay is not supplied by metadata retention.
+
+HTTP/client source `647c9ae` in run `42456685204` passes focused Go, actual SQL,
+typed client and web gates, then fails source formatting. The hosted correction
+also supplies canonical contract-derived types. It is applied before the desktop
+increment; that newer combined source needs fresh full verification.
 
 Run `42455338720` at `8206322` reaches session revocation, then rejects the
 fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
@@ -122,4 +138,5 @@ before serving content. No new external store or outbound fetch is introduced.
 احراز تازه، تأیید صریح و ثبت اتمی نیاز دارد. جست‌وجو فقط روی نسخهٔ تأییدشده
 و با سقف روشن باشد. متن، دستور اجرا نیست. تاریخچهٔ حساب فقط فرادادهٔ همان
 مالک را نشان دهد؛ پرسش و پاسخ منقضی‌شده بازسازی نشود. تست، ساخت و اسکن
-فقط روی GitHub Actions. مسیر SQL، رابط و پذیرش کل گام هنوز آماده نیستند.
+فقط روی GitHub Actions. مسیر خواندن و صفحهٔ جدا آمادهٔ تست است؛ جست‌وجو،
+تأیید سند و پذیرش کل گام هنوز باز است.

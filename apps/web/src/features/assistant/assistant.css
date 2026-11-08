@@ -5,6 +5,19 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+.assistant-history-list {
+  display: grid;
+  gap: 1rem;
+  padding-inline-start: 1.5rem;
+}
+.assistant-history-row {
+  padding-block: 0.5rem 1rem;
+  border-block-end: 1px solid var(--sp-border);
+  overflow-wrap: anywhere;
+}
+.assistant-history-row h3 { margin-block: 0 0.5rem; }
+.assistant-history-row dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1rem; }
+.assistant-history-row dd { margin: 0; min-width: 0; }
 .assistant__header,
 .assistant__actions {
   display: flex;

@@ -3357,7 +3357,20 @@ components:
     AssistantHistoryEntry:
       type: object
       additionalProperties: false
-      required: [id, source_id, resource_id, goal, state, created_at, updated_at, range, tool_calls, inference_calls, usage_uncertain]
+      required:
+        [
+          id,
+          source_id,
+          resource_id,
+          goal,
+          state,
+          created_at,
+          updated_at,
+          range,
+          tool_calls,
+          inference_calls,
+          usage_uncertain,
+        ]
       properties:
         id:
           $ref: '#/components/schemas/AssistantRunId'

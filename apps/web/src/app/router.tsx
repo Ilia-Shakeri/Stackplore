@@ -18,6 +18,7 @@ import { NotFoundPage } from '../routes/NotFoundPage';
 import {
   AboutPage,
   AssistantPage,
+  AssistantHistoryPage,
   HelpPage,
   InsightsPage,
   MonitoringPage,
@@ -330,6 +331,7 @@ const assistantRoute = createRoute({
   path: '/assistant',
   component: AssistantPage,
 });
+const assistantHistoryRoute = createRoute({ getParentRoute: () => appRoute, path: '/assistant/history', component: AssistantHistoryPage });
 const helpRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/help',
@@ -487,6 +489,7 @@ const routeTree = rootRoute.addChildren([
     monitoringRoute,
     insightsRoute,
     assistantRoute,
+    assistantHistoryRoute,
     helpRoute,
     topologyRoute,
     resourcesRoute,

@@ -195,8 +195,14 @@ export type AssistantRunResponse =
   | AssistantUnavailableResponse
   | AssistantReadyResponse;
 
+/**
+ * Opaque authenticated owner/session/filter/restore-bound cursor. Not an access grant.
+ */
 export type AssistantHistoryCursor = string;
 
+/**
+ * Safe owner-private retained metadata. No old question, reply, report, session or evidence body is reconstructed.
+ */
 export type AssistantHistoryEntry = {
   id: AssistantRunId;
   source_id: SourceId;
@@ -211,6 +217,9 @@ export type AssistantHistoryEntry = {
   usage_uncertain: boolean;
 };
 
+/**
+ * Descending creation-time/ID keyset page. Only full pages may carry a next cursor.
+ */
 export type AssistantHistoryResponse = {
   entries: Array<AssistantHistoryEntry>;
   next_cursor: AssistantHistoryCursor | null;
@@ -6493,6 +6502,71 @@ export type GetOperationResponses = {
 };
 
 export type GetOperationResponse = GetOperationResponses[keyof GetOperationResponses];
+
+export type ListAssistantHistoryData = {
+  body?: never;
+  headers?: {
+    /**
+     * Optional safe caller correlation identifier. Invalid values are replaced.
+     */
+    'X-Request-ID'?: RequestId;
+  };
+  path?: never;
+  query?: {
+    state?: AssistantRunState;
+    limit?: number;
+    cursor?: AssistantHistoryCursor;
+  };
+  url: '/assistant/history';
+};
+
+export type ListAssistantHistoryErrors = {
+  /**
+   * The request is malformed or fails strict validation.
+   */
+  400: Problem;
+  /**
+   * A valid local session is required.
+   */
+  401: Problem;
+  /**
+   * The current principal cannot perform the request.
+   */
+  403: Problem;
+  /**
+   * The requested safe identifier does not exist.
+   */
+  404: Problem;
+  /**
+   * The bounded request body limit was exceeded.
+   */
+  413: Problem;
+  /**
+   * A bounded request rate was exceeded.
+   */
+  429: Problem;
+  /**
+   * The request failed without exposing internal detail.
+   */
+  500: Problem;
+  /**
+   * The service cannot complete the request now.
+   */
+  503: Problem;
+};
+
+export type ListAssistantHistoryError =
+  ListAssistantHistoryErrors[keyof ListAssistantHistoryErrors];
+
+export type ListAssistantHistoryResponses = {
+  /**
+   * One detached metadata page; null cursor ends pagination.
+   */
+  200: AssistantHistoryResponse;
+};
+
+export type ListAssistantHistoryResponse =
+  ListAssistantHistoryResponses[keyof ListAssistantHistoryResponses];
 
 export type CreateAssistantRunData = {
   body: AssistantRunRequest;

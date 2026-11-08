@@ -174,18 +174,49 @@ export const inspectAssistantPolicy = (document) => {
   const bounded = (value, minimum, maximum) =>
     value?.type === 'integer' && value.minimum === minimum && value.maximum === maximum;
 
-  closed('AssistantHistoryEntry', ['id', 'source_id', 'resource_id', 'goal', 'state', 'created_at', 'updated_at', 'range', 'tool_calls', 'inference_calls', 'usage_uncertain']);
+  closed('AssistantHistoryEntry', [
+    'id',
+    'source_id',
+    'resource_id',
+    'goal',
+    'state',
+    'created_at',
+    'updated_at',
+    'range',
+    'tool_calls',
+    'inference_calls',
+    'usage_uncertain',
+  ]);
   closed('AssistantHistoryResponse', ['entries', 'next_cursor']);
-  for (const [field, target] of [['id', 'AssistantRunId'], ['source_id', 'SourceId'], ['state', 'AssistantRunState'], ['created_at', 'Timestamp'], ['updated_at', 'Timestamp'], ['range', 'AssistantTimeRange']]) ref('AssistantHistoryEntry', field, target);
+  for (const [field, target] of [
+    ['id', 'AssistantRunId'],
+    ['source_id', 'SourceId'],
+    ['state', 'AssistantRunState'],
+    ['created_at', 'Timestamp'],
+    ['updated_at', 'Timestamp'],
+    ['range', 'AssistantTimeRange'],
+  ])
+    ref('AssistantHistoryEntry', field, target);
   const historyEntry = schemas.AssistantHistoryEntry?.properties;
   const historyPage = schemas.AssistantHistoryResponse?.properties;
   check(
-    schemas.AssistantHistoryCursor?.type === 'string' && schemas.AssistantHistoryCursor.minLength === 45 && schemas.AssistantHistoryCursor.maxLength === 768 && schemas.AssistantHistoryCursor.pattern === '^[A-Za-z0-9_-]{1,724}\\.[A-Za-z0-9_-]{43}$' &&
+    schemas.AssistantHistoryCursor?.type === 'string' &&
+      schemas.AssistantHistoryCursor.minLength === 45 &&
+      schemas.AssistantHistoryCursor.maxLength === 768 &&
+      schemas.AssistantHistoryCursor.pattern === '^[A-Za-z0-9_-]{1,724}\\.[A-Za-z0-9_-]{43}$' &&
       same(historyEntry?.goal?.enum, ['explain_resource', 'investigate_incident']) &&
-      historyEntry?.resource_id?.oneOf?.length === 2 && historyEntry.resource_id.oneOf[0].$ref === schemaRef('ResourceId') && historyEntry.resource_id.oneOf[1].type === 'null' &&
-      bounded(historyEntry?.tool_calls, 0, 12) && bounded(historyEntry?.inference_calls, 0, 3) && historyEntry?.usage_uncertain?.type === 'boolean' &&
-      historyPage?.entries?.type === 'array' && historyPage.entries.maxItems === 10 && historyPage.entries.items?.$ref === schemaRef('AssistantHistoryEntry') &&
-      historyPage?.next_cursor?.oneOf?.length === 2 && historyPage.next_cursor.oneOf[0].$ref === schemaRef('AssistantHistoryCursor') && historyPage.next_cursor.oneOf[1].type === 'null',
+      historyEntry?.resource_id?.oneOf?.length === 2 &&
+      historyEntry.resource_id.oneOf[0].$ref === schemaRef('ResourceId') &&
+      historyEntry.resource_id.oneOf[1].type === 'null' &&
+      bounded(historyEntry?.tool_calls, 0, 12) &&
+      bounded(historyEntry?.inference_calls, 0, 3) &&
+      historyEntry?.usage_uncertain?.type === 'boolean' &&
+      historyPage?.entries?.type === 'array' &&
+      historyPage.entries.maxItems === 10 &&
+      historyPage.entries.items?.$ref === schemaRef('AssistantHistoryEntry') &&
+      historyPage?.next_cursor?.oneOf?.length === 2 &&
+      historyPage.next_cursor.oneOf[0].$ref === schemaRef('AssistantHistoryCursor') &&
+      historyPage.next_cursor.oneOf[1].type === 'null',
     'history.closed_bounds',
   );
 
@@ -731,20 +762,42 @@ export const inspectAssistantPolicy = (document) => {
       const operation = document.paths?.[path]?.[method];
       const expected = [
         'RequestId',
-        ...(path === '/assistant/history' ? [] : path === '/assistant/runs' ? ['AssistantIdempotencyKey'] : ['AssistantRunId']),
+        ...(path === '/assistant/history'
+          ? []
+          : path === '/assistant/runs'
+            ? ['AssistantIdempotencyKey']
+            : ['AssistantRunId']),
       ];
       if (path.endsWith('/{citation_id}')) expected.push('AssistantCitationId');
       if (path.endsWith('/events')) expected.push('AssistantLastEventId');
       check(
         same(
-          operation?.parameters?.filter((item) => path !== '/assistant/history' || item.$ref !== undefined).map((item) => item.$ref),
+          operation?.parameters
+            ?.filter((item) => path !== '/assistant/history' || item.$ref !== undefined)
+            .map((item) => item.$ref),
           expected.map(parameterRef),
         ),
         `${policy.operationId}.parameters`,
       );
       if (path === '/assistant/history') {
         const query = operation?.parameters?.filter((item) => item.in === 'query') ?? [];
-        check(operation?.parameters?.length === 4 && same(query.map((item) => item.name), ['state', 'limit', 'cursor']) && query.every((item) => item.required !== true && (item.name === 'state' ? item.schema?.$ref === schemaRef('AssistantRunState') : item.name === 'cursor' ? item.schema?.$ref === schemaRef('AssistantHistoryCursor') : bounded(item.schema, 1, 10) && item.schema.default === 10)), 'history.parameters');
+        check(
+          operation?.parameters?.length === 4 &&
+            same(
+              query.map((item) => item.name),
+              ['state', 'limit', 'cursor'],
+            ) &&
+            query.every(
+              (item) =>
+                item.required !== true &&
+                (item.name === 'state'
+                  ? item.schema?.$ref === schemaRef('AssistantRunState')
+                  : item.name === 'cursor'
+                    ? item.schema?.$ref === schemaRef('AssistantHistoryCursor')
+                    : bounded(item.schema, 1, 10) && item.schema.default === 10),
+            ),
+          'history.parameters',
+        );
       }
       check(
         Array.isArray(operation?.security) &&
@@ -770,13 +823,16 @@ export const inspectAssistantPolicy = (document) => {
       if (path.endsWith('/events')) {
         check(response?.$ref === '#/components/responses/AssistantStatusStream', 'stream.response');
       } else {
-        const target = path === '/assistant/history' ? 'AssistantHistoryResponse' : path.endsWith('/{citation_id}')
-          ? 'AssistantResourceCitation'
-          : path.endsWith('/report')
-            ? 'AssistantIncidentReportResponse'
-            : method === 'get'
-              ? 'AssistantRunResponse'
-              : 'AssistantRunReceipt';
+        const target =
+          path === '/assistant/history'
+            ? 'AssistantHistoryResponse'
+            : path.endsWith('/{citation_id}')
+              ? 'AssistantResourceCitation'
+              : path.endsWith('/report')
+                ? 'AssistantIncidentReportResponse'
+                : method === 'get'
+                  ? 'AssistantRunResponse'
+                  : 'AssistantRunReceipt';
         check(
           response?.headers?.['Cache-Control']?.schema?.const === 'no-store' &&
             response.headers?.['Set-Cookie']?.$ref === '#/components/headers/BrowserStateUpdate' &&
@@ -832,7 +888,11 @@ export const runAssistantPolicySelfTests = (document) => {
     value.components.schemas.AssistantHistoryResponse.properties.entries.maxItems = 11;
   });
   reject('history.parameters', (value) => {
-    value.paths['/assistant/history'].get.parameters.push({ name: 'owner', in: 'query', schema: { type: 'string' } });
+    value.paths['/assistant/history'].get.parameters.push({
+      name: 'owner',
+      in: 'query',
+      schema: { type: 'string' },
+    });
   });
   reject('report.hypothesis', (value) => {
     value.components.schemas.AssistantIncidentHypothesis.properties.qualified.const = false;
