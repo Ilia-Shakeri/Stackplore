@@ -52,9 +52,13 @@ describe('separate private history page', () => {
       controlled.api.history.mockResolvedValue({ entries: [record()], next_cursor: null });
       const rendered = show('en', controlled);
       const user = userEvent.setup();
-      await user.click(await screen.findByRole('checkbox', { name: `Select for export: ${record().id}` }));
+      await user.click(
+        await screen.findByRole('checkbox', { name: `Select for export: ${record().id}` }),
+      );
       await user.click(screen.getByRole('button', { name: 'Download selected metadata' }));
-      await waitFor(() => { expect(create).toHaveBeenCalledTimes(1); });
+      await waitFor(() => {
+        expect(create).toHaveBeenCalledTimes(1);
+      });
       expect(controlled.api.history).toHaveBeenCalledTimes(2);
       expect(click).toHaveBeenCalledTimes(1);
       expect(document.querySelector('a[download]')).toBeNull();
@@ -77,15 +81,27 @@ describe('separate private history page', () => {
       const controlled = controlledConversationApi();
       controlled.api.history.mockResolvedValueOnce({ entries: [record()], next_cursor: null });
       let finish: ((page: AssistantHistoryResponse) => void) | undefined;
-      controlled.api.history.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+      controlled.api.history.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      );
       const rendered = show('en', controlled);
       const user = userEvent.setup();
-      await user.click(await screen.findByRole('checkbox', { name: `Select for export: ${record().id}` }));
+      await user.click(
+        await screen.findByRole('checkbox', { name: `Select for export: ${record().id}` }),
+      );
       await user.click(screen.getByRole('button', { name: 'Download selected metadata' }));
-      await waitFor(() => { expect(finish).toBeDefined(); });
+      await waitFor(() => {
+        expect(finish).toBeDefined();
+      });
       const signal = controlled.api.history.mock.calls[1]?.[2];
       fireEvent(window, new Event('pagehide'));
-      await act(async () => { await Promise.resolve(); finish?.({ entries: [record()], next_cursor: null }); });
+      await act(async () => {
+        await Promise.resolve();
+        finish?.({ entries: [record()], next_cursor: null });
+      });
       expect(signal?.aborted).toBe(true);
       expect(create).not.toHaveBeenCalled();
       rendered.unmount();
