@@ -12,9 +12,9 @@ import (
 
 var _ runbook.Repository = (*Store)(nil)
 
-func (store *Store) PreviewRunbook(ctx context.Context,p runbook.Preview) (runbook.Revision,error) {
-	if ctx==nil || p.Validate()!=nil{return runbook.Revision{},runbook.ErrInvalid}
-	ctx,cancel:=context.WithTimeout(ctx,3*time.Second);defer cancel();current:=runbook.Revision{ID:p.CorpusID}
+func (store *Store) PreviewRunbook(ctx context.Context,p runbook.Preview) (runbook.PreviewResult,error) {
+	if ctx==nil || p.Validate()!=nil{return runbook.PreviewResult{},runbook.ErrInvalid}
+	ctx,cancel:=context.WithTimeout(ctx,3*time.Second);defer cancel();current:=runbook.Revision{ID:p.CorpusID};var expires int64
 	err:=store.withinAuthTransaction(ctx,func(ctx context.Context,transaction *transaction) error {
 		tx:=transaction.transaction;if err:=runbookLive(ctx,tx,p.Actor,true);err!=nil{return err}
 		generation,_,err:=runbookScope(ctx,tx,true);if err!=nil{return err};if generation!=p.ExpectedGeneration{return runbook.ErrConflict}
@@ -24,11 +24,11 @@ func (store *Store) PreviewRunbook(ctx context.Context,p runbook.Preview) (runbo
 		if current.Version!=p.ExpectedVersion || p.Revoke && (!current.Approved || current.Digest!=p.Digest){return runbook.ErrConflict}
 		if current.Version==0{var count int;if err:=tx.QueryRow(ctx,`SELECT count(*) FROM runbook_corpora`).Scan(&count);err!=nil{return err};if count>=runbook.MaximumCorpora{return runbook.ErrConflict}}
 		if _,err:=tx.Exec(ctx,`DELETE FROM runbook_confirmations WHERE session_id IN (SELECT session_id FROM runbook_confirmations WHERE expires_at_us<=(extract(epoch FROM clock_timestamp())*1000000)::bigint ORDER BY expires_at_us,session_id LIMIT 100)`);err!=nil{return err}
-		_,err=tx.Exec(ctx,`INSERT INTO runbook_confirmations(session_id,user_id,corpus_id,expected_version,restore_generation,candidate_digest,revoke,token_digest,created_at_us,expires_at_us)
+		err=tx.QueryRow(ctx,`INSERT INTO runbook_confirmations(session_id,user_id,corpus_id,expected_version,restore_generation,candidate_digest,revoke,token_digest,created_at_us,expires_at_us)
 VALUES($1,$2,$3,$4,$5,$6,$7,$8,(extract(epoch FROM statement_timestamp())*1000000)::bigint,(extract(epoch FROM statement_timestamp())*1000000)::bigint+120000000)
-ON CONFLICT(session_id) DO UPDATE SET user_id=EXCLUDED.user_id,corpus_id=EXCLUDED.corpus_id,expected_version=EXCLUDED.expected_version,restore_generation=EXCLUDED.restore_generation,candidate_digest=EXCLUDED.candidate_digest,revoke=EXCLUDED.revoke,token_digest=EXCLUDED.token_digest,created_at_us=EXCLUDED.created_at_us,expires_at_us=EXCLUDED.expires_at_us`,string(p.Actor.SessionID),string(p.Actor.UserID),p.CorpusID,p.ExpectedVersion,generation,p.Digest[:],p.Revoke,p.ConfirmationDigest[:])
+ON CONFLICT(session_id) DO UPDATE SET user_id=EXCLUDED.user_id,corpus_id=EXCLUDED.corpus_id,expected_version=EXCLUDED.expected_version,restore_generation=EXCLUDED.restore_generation,candidate_digest=EXCLUDED.candidate_digest,revoke=EXCLUDED.revoke,token_digest=EXCLUDED.token_digest,created_at_us=EXCLUDED.created_at_us,expires_at_us=EXCLUDED.expires_at_us RETURNING expires_at_us`,string(p.Actor.SessionID),string(p.Actor.UserID),p.CorpusID,p.ExpectedVersion,generation,p.Digest[:],p.Revoke,p.ConfirmationDigest[:]).Scan(&expires)
 		if err!=nil{return err};return runbookLive(ctx,tx,p.Actor,true)
-	});if err!=nil{return runbook.Revision{},runbookError(err)};return current,nil
+	});if err!=nil{return runbook.PreviewResult{},runbookError(err)};return runbook.PreviewResult{Current:current,ExpiresAt:time.UnixMicro(expires).UTC()},nil
 }
 
 func runbookError(err error) error {

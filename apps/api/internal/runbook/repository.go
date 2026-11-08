@@ -104,7 +104,7 @@ func (Page) Format(state fmt.State, _ rune) { _, _ = io.WriteString(state, "[pro
 func (Page) MarshalJSON() ([]byte,error) { return []byte("{}"),nil }
 
 type Repository interface {
-	PreviewRunbook(context.Context,Preview) (Revision,error)
+	PreviewRunbook(context.Context,Preview) (PreviewResult,error)
 	InspectRunbooks(context.Context,auth.Principal) (Catalog,error)
 	ChangeRunbook(context.Context,Change) (Revision,error)
 	SearchRunbooks(context.Context,Search) (Page,error)
@@ -129,5 +129,17 @@ func (preview Preview) Validate() error {
 type Catalog struct { Generation int64; Version int64; Revisions []Revision }
 func (Catalog) Format(state fmt.State, _ rune) { _, _ = io.WriteString(state, "[protected runbook catalog]") }
 func (Catalog) MarshalJSON() ([]byte,error) { return []byte("{}"),nil }
+
+type PreviewResult struct { Current Revision; ExpiresAt time.Time }
+func (PreviewResult) Format(state fmt.State, _ rune) { _, _ = io.WriteString(state,"[protected runbook preview result]") }
+func (PreviewResult) MarshalJSON() ([]byte,error) { return []byte("{}"),nil }
+
+func ValidID(value string) bool { return identifier.MatchString(value) }
+func (revision Revision) Validate() error {
+	if !ValidID(revision.ID) || revision.Version<1 || revision.Version>MaximumVersion || revision.Digest==[32]byte{} || revision.Audience!=Administrators && revision.Audience!=AllUsers || revision.Generation<0 || revision.Documents<0 || revision.Documents>MaximumDocuments || revision.Bytes<0 || revision.Bytes>MaximumCorpusBytes || revision.Approved && (revision.Documents==0 || revision.Bytes==0) || !revision.Approved && (revision.Documents!=0 || revision.Bytes!=0) { return ErrInvalid };return nil
+}
+func (hit Hit) Validate() error {
+	if hit.Reference.Validate()!=nil || (Document{ID:hit.Reference.DocumentID,Locale:hit.Reference.Locale,Title:hit.Title,Body:"x"}).Validate()!=nil || len(hit.Snippet)<1 || !text(hit.Snippet+"x",MaximumSnippetBytes+1,true){return ErrInvalid};return nil
+}
 
 func Timestamp(value time.Time) bool { return !value.IsZero() && value.Location()==time.UTC && value.UnixMicro()>=0 && value.Equal(value.Truncate(time.Microsecond)) }

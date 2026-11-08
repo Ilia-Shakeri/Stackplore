@@ -68,6 +68,22 @@ and full rollback on audit failure. No test or formatter runs on the workstation
 The HTTP contract/client, management/search/document pages, independent human
 quality, pilot and final stable acceptance remain open.
 
+First source `6ce64ad` in run `42466426878` fails a reader fixture that attempts
+to bootstrap already initialized installation metadata. The correction inserts
+only the additional reader/session. A separate verified kind download receives
+HTTP504 on all three original attempts; the bounded retry window is expanded,
+with HTTPS-only redirects and unchanged version/hash checks. Neither failure is
+hidden or reused as acceptance. The hosted Go formatting correction for the test
+is applied; newer repository/use-case bytes need their own complete gate.
+
+The authored use case now owns two-minute confirmation tokens, exact repository
+expiry, bounded authenticated ten-minute search cursors and shutdown cancellation.
+Cursor signatures bind query, locale, page size and actor/session/revision without
+putting query text or owner/session identifiers in cursor payloads. New unit tests
+cover changed-scope cursors before I/O, expiry, wrong recent-auth purpose,
+confirmation, malformed returned documents and late reads after key-clearing
+shutdown. These are authored tests until the owning hosted source passes.
+
 ## فارسی
 
 این نامزد، طرح پایگاه ۲۰ را اضافه می‌کند؛ با شروع برنامه حتی در حالت خاموش
