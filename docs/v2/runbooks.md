@@ -119,6 +119,11 @@ cast. The input validator now accepts `unknown` at its validation boundary, with
 null/array/scalar negatives, and the return keeps the proven nullable cursor type.
 No guard or lint rule is removed.
 
+Operational review also finds the build-info metric fixed at `0.0.0`. The preview
+uses the existing canonical application-version constant, preserves the fixed
+metric shape and access policy, and adds a regression check. No user/source/run
+identifier is added as a metric label.
+
 Run `42455338720` at `8206322` reaches session revocation, then rejects the
 fixture's missing reason. The fixture now sets `session.revoked` with its timestamp;
 the real session constraint remains intact. Container jobs in that run also used

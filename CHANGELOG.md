@@ -4,6 +4,8 @@
 
 ### Smart Assistant — private metadata history candidate
 
+- Repair the operational build-info metric to report the canonical application
+  version instead of the fixed `0.0.0` placeholder, with a regression check.
 - Add bounded current-owner history over retained metadata, authenticated session-
   and restore-bound cursors, explicit safe HTTP projection and strict typed replies.
 - Add a separate English/Persian desktop page, ten-row replacement pagination,

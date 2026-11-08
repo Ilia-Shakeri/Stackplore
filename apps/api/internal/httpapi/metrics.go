@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/config"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
@@ -71,7 +72,7 @@ func (metrics *Metrics) serveHTTP(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = fmt.Fprintln(w, "# HELP stackplore_build_info Static build identity.")
 	_, _ = fmt.Fprintln(w, "# TYPE stackplore_build_info gauge")
-	_, _ = fmt.Fprintln(w, `stackplore_build_info{version="0.0.0"} 1`)
+	_, _ = fmt.Fprintf(w, "stackplore_build_info{version=%q} 1\n", config.ApplicationVersion)
 	_, _ = fmt.Fprintln(w, "# HELP stackplore_ready Whether the local service is ready.")
 	_, _ = fmt.Fprintln(w, "# TYPE stackplore_ready gauge")
 	ready := 0
