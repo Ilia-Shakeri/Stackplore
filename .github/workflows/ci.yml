@@ -88,6 +88,8 @@ jobs:
             if [ "$attempt" -eq 3 ]; then exit 1; fi
             sleep "$((attempt * 5))"
           done
+      - name: Verify existing-tag publication safety before the full gate
+        run: node --test scripts/release.test.mjs
       - name: Build patched database and start owned PostgreSQL fixture
         run: bash scripts/start-test-postgres.sh start code
       - name: Verify bounded investigation contracts on hosted runner
