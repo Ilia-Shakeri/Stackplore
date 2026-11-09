@@ -11,6 +11,36 @@ tokens. Rejected usage stays uncertain. Gap sections are observations, not corre
 abstention judgments. Human grounding, adversarial profile evaluation and blind
 holdout acceptance remain pending; `release_accepted` stays false.
 
+Passes run on three hosted workers in parallel, each limited to one processor
+and 24 observations. An aggregator rejects missing/duplicate passes, mixed
+source/profile pins, missing cases, out-of-budget memory and unproven cleanup.
+The separate main gate retains all actual browser assertions. Slow answers may
+require the existing explicit status-follow control after its 30-second stream
+ends; browser journeys now exercise this bounded control without resubmission.
+
+## Attempt trail
+
+Sources `e981cfb` and `4ab9cb6` were superseded/cancelled; the latter's code job
+found script formatting. The hosted formatter artifact was applied without local
+execution. Source `605b108`, [42612228372](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42612228372),
+passes 47 release and 23 focused corpus/evaluation tests and all nineteen fault
+regressions, but code validation finds a missing `URL` import in its test fixture.
+The import is fixed and script lint moves ahead of expensive hosted work.
+
+Source `619a4a0`, [42613156363](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42613156363),
+and development [42613156209](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42613156209)
+fail the real application/browser journey before seed evaluation. Both preserve
+owned cleanup. All baseline English and the earlier Persian journeys pass; the
+Persian viewer incident answer completes in SQL but the client status lifetime
+ends before publication is observed. Actual generation approaches 39 seconds
+against an unchanged 30-second web status lifetime. The test incorrectly waited
+for automatic delivery instead of using the explicit status-follow control.
+Failure stays failure; stream/generation budgets and one-admission assertions
+are unchanged. The correction exercises bounded explicit follow in both owning
+journeys. The before-failure protocol RSS sample is about 3.05 GiB; it does not
+represent an end-of-failed-run resource measurement. Final sampling now runs
+before cleanup on failures as well. Fresh source/profile receipts are required.
+
 The existing real processor gate now records the owned process's kernel RSS
 high-water mark and CPU ticks, pinned profile, runner hardware and an 8-GiB CI
 RSS ceiling. This is neither customer capacity nor an approved production limit.

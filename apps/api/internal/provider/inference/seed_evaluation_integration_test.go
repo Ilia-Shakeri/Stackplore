@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -33,6 +34,8 @@ func TestPinnedSeedEvaluationIntegration(t *testing.T) {
 	if os.Getenv("GITHUB_ACTIONS") != "true" || os.Getenv("RUNNER_ENVIRONMENT") != "github-hosted" {
 		t.Fatal("seed_evaluation.hosted_required")
 	}
+	passID, passErr := strconv.Atoi(os.Getenv("STACKPLORE_TEST_SEED_PASS"))
+	if passErr != nil || passID < 1 || passID > 3 || strconv.Itoa(passID) != os.Getenv("STACKPLORE_TEST_SEED_PASS") { t.Fatal("seed_evaluation.pass") }
 	local := pinnedIntegrationLocal(t)
 	gateway, err := port.New(local, time.Now)
 	if err != nil {
@@ -62,7 +65,7 @@ func TestPinnedSeedEvaluationIntegration(t *testing.T) {
 	}
 	overall, stop := context.WithTimeout(context.Background(), 18*time.Minute)
 	defer stop()
-	for pass := 1; pass <= 3; pass++ {
+	for _, pass := range []int{passID} {
 		for _, item := range corpus.Scenarios {
 			for _, locale := range []string{"en", "fa"} {
 				measured := seedMeasurement{CaseID: item.ID, Locale: locale, Pass: pass, Status: "not_run", Fault: "budget"}

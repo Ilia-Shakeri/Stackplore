@@ -31,7 +31,7 @@ test('three complete synthetic passes retain denominators and never claim human 
   const result = summarizeSeedEvaluation(manifest, bytes, rows());
   assert.equal(result.totals.expected, 72);
   assert.equal(result.parameters.output_token_limit, 256);
-  assert.equal(result.parameters.overall_deadline_ms, 1080000);
+  assert.equal(result.parameters.pass_deadline_ms, 1080000);
   assert.equal(result.totals.completed, 72);
   assert.equal(result.structural_threshold_met, true);
   assert.equal(result.release_accepted, false);
@@ -131,4 +131,13 @@ test('empty receipt reports absent passes and null timings without granting qual
   assert.equal(result.totals.latency_p95_ms, null);
   assert.equal(result.structural_threshold_met, false);
   assert.equal(result.release_accepted, false);
+});
+
+test('one selected pass has its own complete denominator and rejects foreign-pass rows', () => {
+  const selected = rows().filter((row) => row.pass === 2);
+  const result = summarizeSeedEvaluation(manifest, bytes, selected, [2]);
+  assert.equal(result.totals.expected, 24);
+  assert.deepEqual(result.parameters.pass_ids, [2]);
+  for (const passes of [[], [1, 1], [4]])
+    assert.throws(() => summarizeSeedEvaluation(manifest, bytes, selected, passes), { message: 'seed_evaluation.invalid_metadata' });
 });

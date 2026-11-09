@@ -13,15 +13,16 @@ or a measured quality result; source/tag/package receipts remain separate.
 
 ### Smart Assistant — development measurements, alpha8.1
 
-The separate `stage8-quality` hosted workflow runs the pinned real processor and
-existing bilingual application gate, then three passes across all twelve public
-seed scenarios: 72 planned case/locale/pass observations. Original questions and
+The separate `stage8-quality` hosted workflow runs three parallel hosted jobs,
+each with one pinned processor and one pass across all twelve public seed
+scenarios: 24 case/locale observations per pass, 72 overall. The unchanged main
+eight-job gate separately exercises the bilingual application. Original questions and
 synthetic evidence are used; expected answer text is not copied into instructions.
 The seed itself stays twelve paired scenarios and eighteen attacks. No artificial
 case inflation or new independent review is claimed.
 
 Each generation has one shared 40-second count/dispatch context and at most 256
-output tokens. The complete seed loop has an 18-minute budget. Exhaustion records
+output tokens. Each independent pass has an 18-minute budget. Exhaustion records
 remaining cases as `not_run`, not success. The collector does not retry rejected
 answers. It stores metadata only, with all missing/rejected cases in denominators.
 No answer text or input content is retained. Summary groups separate language,
@@ -36,11 +37,14 @@ not establish correct abstention. Human grounding, correct abstention and actual
 adversarial-profile scores remain pending. The summary always has
 `release_accepted: false` and `independent_holdout: false`. A green measurement
 workflow means collection completed; inspect its structural threshold and actual
-counts before interpreting any result. Neither the three repeated passes nor the
+counts before interpreting any result. Aggregation requires three disjoint pass
+IDs, the same exact source/profile pins, owned cleanup and complete observations.
+Runner measurements remain separate when hardware differs; this is not a
+same-hardware capacity comparison. Neither the three repeated passes nor the
 public seed's holdout labels are independent blind acceptance samples.
 
 The owned processor's `/proc` RSS high-water mark and CPU ticks are read after
-major phases; CPU conversion records the kernel tick rate. Kernel high-water RSS
+major phases and before cleanup even on failure; CPU conversion records the kernel tick rate. Kernel high-water RSS
 captures peaks during synchronous child work. Runner CPU model/count and host
 memory are recorded. The 8-GiB ceiling is a hosted regression limit, not an
 approved production budget. CPU totals include the whole owned processor lifetime,

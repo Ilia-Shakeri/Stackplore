@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, type Page, type Request, type Response } from '@playwright/test';
+import { waitForLiveAssistant } from './assistant-live-state';
 
 // No routes are intercepted. Replies pass through the production application.
 export async function assistantLiveJourney(
@@ -32,6 +33,7 @@ export async function assistantLiveJourney(
     report_status: 0,
     cleared: false,
     view_state: 'not_visible',
+    status_reconnections: 0,
   };
   const reads: Promise<void>[] = [];
   const observeReply = (response: Response) => {
@@ -166,11 +168,7 @@ export async function assistantLiveJourney(
     await page.keyboard.press('Enter');
     // Avoid locator-error DOM dumps containing a generated reply.
     try {
-      await page.waitForFunction(
-        () => document.querySelectorAll('.assistant__turns .assistant__text').length > 0,
-        undefined,
-        { timeout: 110_000 },
-      );
+      metadata.status_reconnections = await waitForLiveAssistant(page, label('assistant.listen'));
     } catch {
       throw new Error('Real bounded resource completion was not published');
     }

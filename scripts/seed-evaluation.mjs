@@ -36,10 +36,12 @@ function percentile(values, fraction) {
 }
 
 // Public development material cannot establish blind or human-reviewed quality.
-export function summarizeSeedEvaluation(manifest, bytes, observations) {
+export function summarizeSeedEvaluation(manifest, bytes, observations, selectedPasses = [1, 2, 3]) {
   validateCorpus(manifest, bytes);
   const corpus = JSON.parse(bytes.toString('utf8'));
-  if (!Array.isArray(observations) || observations.length > corpus.scenarios.length * 6) reject();
+  if (!Array.isArray(selectedPasses) || selectedPasses.length < 1 || selectedPasses.length > 3 ||
+      new Set(selectedPasses).size !== selectedPasses.length || selectedPasses.some((pass) => ![1, 2, 3].includes(pass))) reject();
+  if (!Array.isArray(observations) || observations.length > corpus.scenarios.length * 2 * selectedPasses.length) reject();
   const cases = new Map(corpus.scenarios.map((item) => [item.id, item]));
   const seen = new Set();
   for (const row of observations) {
@@ -51,7 +53,7 @@ export function summarizeSeedEvaluation(manifest, bytes, observations) {
       keys.some((key) => !Object.hasOwn(row, key)) ||
       !cases.has(row.case_id) ||
       !['en', 'fa'].includes(row.locale) ||
-      ![1, 2, 3].includes(row.pass) ||
+      !selectedPasses.includes(row.pass) ||
       !['completed', 'rejected', 'not_run'].includes(row.status) ||
       !faults.has(row.fault) ||
       !Number.isInteger(row.input_tokens) ||
@@ -92,7 +94,7 @@ export function summarizeSeedEvaluation(manifest, bytes, observations) {
     if (seen.has(key)) reject();
     seen.add(key);
   }
-  const expected = corpus.scenarios.length * 6;
+  const expected = corpus.scenarios.length * 2 * selectedPasses.length;
   const aggregate = (rows, expectedCount) => {
     const completed = rows.filter((row) => row.status === 'completed');
     const attempted = rows.filter((row) => row.status !== 'not_run');
@@ -123,15 +125,16 @@ export function summarizeSeedEvaluation(manifest, bytes, observations) {
     schema_version: 1,
     scope: 'public-seed-development-only',
     parameters: {
-      passes: 3,
+      passes: selectedPasses.length,
+      pass_ids: [...selectedPasses],
       output_token_limit: 256,
       per_case_deadline_ms: 40000,
-      overall_deadline_ms: 1080000,
+      pass_deadline_ms: 1080000,
     },
     corpus_id: manifest.corpus_id,
     corpus_revision: manifest.revision,
     corpus_sha256: createHash('sha256').update(Buffer.from(bytes)).digest('hex'),
-    passes: [1, 2, 3].map((pass) => ({
+    passes: selectedPasses.map((pass) => ({
       pass,
       ...aggregate(
         observations.filter((row) => row.pass === pass),
@@ -146,7 +149,7 @@ export function summarizeSeedEvaluation(manifest, bytes, observations) {
           observations.filter(
             (row) => row.locale === locale && cases.get(row.case_id).provider === provider,
           ),
-          corpus.scenarios.filter((item) => item.provider === provider).length * 3,
+              corpus.scenarios.filter((item) => item.provider === provider).length * selectedPasses.length,
         ),
       })),
     ),

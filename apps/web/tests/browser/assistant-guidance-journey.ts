@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, type Page } from '@playwright/test';
 import { parseAssistantRunResponse } from '@stackplore/api-client';
+import { waitForLiveAssistant } from './assistant-live-state';
 
 // Production routes and the real local processor are used; no request is intercepted.
 export async function assistantGuidanceJourney(
@@ -26,6 +27,7 @@ export async function assistantGuidanceJourney(
     guide_section_exact: false,
     guide_text_exact: false,
     guide_citation_exact: false,
+    status_reconnections: 0,
   };
   const words = Object.assign(
     {},
@@ -89,19 +91,15 @@ export async function assistantGuidanceJourney(
       reviewed_document?: { consent?: unknown };
     };
     metadata.consent_sent = posted.reviewed_document?.consent === true;
-    const id = new URL((await ownedRead).url()).pathname.split('/').at(-1);
-    if (id === undefined || !/^ar_[a-f0-9]{64}$/u.test(id))
-      throw new Error('Guidance run identity missing');
     metadata.phase = 'completion';
     try {
-      await page.waitForFunction(
-        () => document.querySelectorAll('.assistant__turns .assistant__text').length > 0,
-        undefined,
-        { timeout: 110_000 },
-      );
+      metadata.status_reconnections = await waitForLiveAssistant(page, label('assistant.listen'));
     } catch {
       throw new Error('Bounded guidance completion was not published');
     }
+    const id = new URL((await ownedRead).url()).pathname.split('/').at(-1);
+    if (id === undefined || !/^ar_[a-f0-9]{64}$/u.test(id))
+      throw new Error('Guidance run identity missing');
     metadata.phase = 'snapshot';
     const current = await page.request.get(`/api/v1/assistant/runs/${id}`);
     metadata.snapshot_status = current.status();

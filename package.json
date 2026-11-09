@@ -31,7 +31,7 @@
     "test:release": "node --test scripts/release.test.mjs scripts/runtime-images.test.mjs scripts/hosted-assistant-profile.test.mjs scripts/check-hosted-processor-linux.test.mjs scripts/hosted-processor-observer.test.mjs",
     "check:v2-corpus": "node scripts/check-v2-corpus.mjs",
     "check:brand": "node scripts/check-brand-assets.mjs",
-    "test:v2-corpus": "node --test scripts/check-v2-corpus.test.mjs scripts/seed-evaluation.test.mjs scripts/check-stage8-hardening.test.mjs",
+    "test:v2-corpus": "node --test scripts/check-v2-corpus.test.mjs scripts/seed-evaluation.test.mjs scripts/combine-seed-evaluations.test.mjs scripts/check-stage8-hardening.test.mjs",
     "test:coverage": "corepack pnpm --filter @stackplore/web exec vitest run --coverage --reporter=dot",
     "check:locales": "node scripts/check-locales.mjs",
     "derive:api-client": "corepack pnpm --filter @stackplore/api-client derive",

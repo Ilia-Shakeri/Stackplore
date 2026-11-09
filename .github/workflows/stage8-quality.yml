@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/stage8-quality.yml'
       - 'scripts/seed-evaluation*.mjs'
+      - 'scripts/combine-seed-evaluations*.mjs'
       - 'scripts/check-stage8-hardening*.mjs'
       - 'scripts/check-hosted-processor-linux*.mjs'
       - 'apps/api/internal/provider/inference/seed_evaluation_integration_test.go'
@@ -23,6 +24,10 @@ jobs:
   development-measurement:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        pass: [1, 2, 3]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -32,34 +37,80 @@ jobs:
         with:
           go-version: 1.26.10
           cache-dependency-path: apps/api/go.sum
-      - name: Install pinned hosted tooling
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.17.0 --activate
-          corepack pnpm install --frozen-lockfile
-          corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
+      - name: Download pinned Go dependencies
+        run: go -C apps/api mod download
       - name: Check measurement and fault receipt contracts
-        run: node --test scripts/seed-evaluation.test.mjs scripts/check-stage8-hardening.test.mjs scripts/check-hosted-processor-linux.test.mjs
+        run: node --test scripts/seed-evaluation.test.mjs scripts/combine-seed-evaluations.test.mjs scripts/check-stage8-hardening.test.mjs scripts/check-hosted-processor-linux.test.mjs
       - name: Start only the owned patched database
         run: bash scripts/start-test-postgres.sh start code
       - name: Measure faults, usage settlement, query plans and parser mutations
         run: node scripts/check-stage8-hardening.mjs
-      - name: Measure real profile across three public seed passes
+      - name: Measure one real public seed pass
         env:
           SP_STAGE8_SEED_EVALUATION: 'true'
+          SP_STAGE8_SEED_PASS: ${{ matrix.pass }}
         run: node scripts/check-hosted-processor-linux.mjs
       - name: Stop only the owned database
         if: always()
         run: bash scripts/start-test-postgres.sh stop code
-      - name: Retain only metadata measurements
+      - name: Retain profile metadata
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: stage8-development-measurements
+          name: stage8-pass-${{ matrix.pass }}
+          path: .tmp/hosted-processor.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - name: Retain fault metadata and synthetic fuzz reproducers
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stage8-faults-${{ matrix.pass }}
           path: |
             .tmp/stage8-hardening.json
-            .tmp/hosted-processor.json
             apps/api/internal/inference/testdata/fuzz/FuzzStage8ClosedAnswerBoundary/*
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  aggregate:
+    needs: development-measurement
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: stage8-pass-*
+          path: .tmp/stage8-pass-inputs
+      - name: Combine exact-source disjoint passes without claiming independent acceptance
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,lstat,writeFile} from 'node:fs/promises';
+          import process from 'node:process';
+          import {combineSeedEvaluations} from './scripts/combine-seed-evaluations.mjs';
+          import {assertHostedProcessorEnvironment} from './scripts/check-hosted-processor-linux.mjs';
+          assertHostedProcessorEnvironment(process.platform,process.env);
+          const parts=[];
+          for(const pass of [1,2,3]) {
+            const file=`.tmp/stage8-pass-inputs/stage8-pass-${pass}/hosted-processor.json`;
+            const info=await lstat(file);
+            if(!info.isFile()||info.isSymbolicLink()||info.size>1048576) throw new Error('seed_evaluation.part_file');
+            parts.push(JSON.parse(await readFile(file,'utf8')));
+          }
+          const manifest=JSON.parse(await readFile('tests/fixtures/assistant/corpus.manifest.json','utf8'));
+          const bytes=await readFile('tests/fixtures/assistant/corpus.seed.json');
+          const summary=combineSeedEvaluations(manifest,bytes,parts,process.env.GITHUB_SHA);
+          await writeFile('.tmp/stage8-evaluation-summary.json',JSON.stringify(summary,null,2)+'\n',{flag:'wx',mode:0o600});
+          NODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stage8-evaluation-summary
+          path: .tmp/stage8-evaluation-summary.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 14

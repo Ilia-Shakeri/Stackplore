@@ -26,6 +26,10 @@ const modelHash = '061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590c
 const templateHash = '57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361';
 const modelRevision = '90862c4b9d2787eaed51d12237eafdfe7c5f6077';
 const build = 'b11729-412a363c6';
+export const hostedProfileIdentity = Object.freeze({
+  archive_sha256: archiveHash, model_sha256: modelHash, model_revision: modelRevision,
+  template_sha256: templateHash, build, context_tokens: 20480, call_timeout_seconds: 40,
+});
 
 export function parseProcessMeasurement(status, stat, ticksPerSecond) {
   const peak = /^VmHWM:\s+([0-9]+)\s+kB$/mu.exec(status)?.[1];
@@ -199,11 +203,14 @@ export function safeArchiveLinks(text) {
 async function main() {
   assertHostedProcessorEnvironment(process.platform, process.env);
   const seedEvaluation = process.env.SP_STAGE8_SEED_EVALUATION;
+  const seedPass = Number(process.env.SP_STAGE8_SEED_PASS);
   if (
     seedEvaluation !== undefined &&
     (seedEvaluation !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage8-quality')
   )
     throw new Error('hosted_processor.evaluation_scope');
+  if (seedEvaluation === 'true' && (![1, 2, 3].includes(seedPass) || String(seedPass) !== process.env.SP_STAGE8_SEED_PASS))
+    throw new Error('hosted_processor.evaluation_pass');
   const root = resolve(import.meta.dirname, '..');
   const temporary = await realpath(process.env.RUNNER_TEMP);
   const work = await mkdtemp(resolve(temporary, 'stackplore-profile-'));
@@ -218,8 +225,9 @@ async function main() {
     phase: 'archive',
     stopped: false,
     postgres_stopped: false,
-    scope:
-      'Real bilingual protocol and desktop application with synthetic Demo evidence; not Windows runtime or general quality acceptance',
+    scope: seedEvaluation === 'true'
+      ? 'One real public-seed development pass; not application, blind or human quality acceptance'
+      : 'Real bilingual protocol and desktop application with synthetic Demo evidence; not Windows runtime or general quality acceptance',
     archive_sha256: archiveHash,
     model_sha256: modelHash,
     model_revision: modelRevision,
@@ -265,6 +273,7 @@ async function main() {
     ]);
     const tickRate = Number(run('getconf', ['CLK_TCK'], { maxBuffer: 1024 }).trim());
     report.resources = parseProcessMeasurement(status, stat, tickRate);
+    report.resources_measured_phase = report.phase;
     if (report.resources.peak_rss_bytes > report.ci_peak_rss_limit_bytes)
       throw new Error('hosted_processor.memory_budget');
   };
@@ -602,6 +611,7 @@ async function main() {
     )
       throw new Error('hosted_processor.protocol_failed');
     await measure();
+    if (seedEvaluation !== 'true') {
     report.phase = 'web_build';
     run('corepack', ['pnpm', 'run', 'build:web'], { stdio: 'ignore' });
     run('node', ['scripts/embed-web-assets.mjs'], { stdio: 'ignore' });
@@ -661,6 +671,7 @@ async function main() {
                 'guide_citation_exact',
                 'witness_current',
                 'cleared',
+                'status_reconnections',
               ].map((key) => [key, guidance[key]]),
             ),
           });
@@ -694,6 +705,7 @@ async function main() {
                   'report_status',
                   'cleared',
                   'view_state',
+                'status_reconnections',
                 ].map((key) => [key, journey[key]]),
               ),
             );
@@ -750,6 +762,7 @@ async function main() {
     )
       throw new Error('hosted_processor.browser_failed');
     await measure();
+    }
     if (seedEvaluation === 'true') {
       report.phase = 'seed_evaluation';
       await checkCorpus(root);
@@ -772,7 +785,7 @@ async function main() {
         ],
         {
           cwd: root,
-          env: { ...environment, STACKPLORE_TEST_SEED_EVALUATION: 'true' },
+          env: { ...environment, STACKPLORE_TEST_SEED_EVALUATION: 'true', STACKPLORE_TEST_SEED_PASS: String(seedPass) },
           encoding: 'utf8',
           timeout: 1220000,
           maxBuffer: 4 * 1024 * 1024,
@@ -793,7 +806,7 @@ async function main() {
             JSON.parse(event.Output.slice(marker + 'seed_measurement='.length).trim()),
           );
       }
-      report.seed_evaluation = summarizeSeedEvaluation(manifest, bytes, observations);
+      report.seed_evaluation = summarizeSeedEvaluation(manifest, bytes, observations, [seedPass]);
       await measure();
       if (
         seed.status !== 0 ||
@@ -812,6 +825,13 @@ async function main() {
       : 'hosted_processor.operation_failed';
     process.exitCode = 1;
   } finally {
+    if (child?.pid && child.exitCode === null) {
+      try { await measure(); } catch {
+        report.status = 'failed';
+        report.resource_error_code = 'hosted_processor.final_measurement_failed';
+        process.exitCode = 1;
+      }
+    }
     if (!child || child.pid === undefined) report.stopped = true;
     else {
       if (child.exitCode === null) child.kill('SIGTERM');
