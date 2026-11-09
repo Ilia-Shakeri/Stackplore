@@ -87,9 +87,12 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
       row.sections > 12 ||
       typeof row.citations_valid !== 'boolean' ||
       typeof row.gap_section !== 'boolean' ||
-      typeof row.generation_observed !== 'boolean' || typeof row.generation_complete !== 'boolean' ||
-      typeof row.input_match !== 'boolean' || !Number.isInteger(row.generated_tokens) ||
-      row.generated_tokens < -1 || row.generated_tokens > 4096
+      typeof row.generation_observed !== 'boolean' ||
+      typeof row.generation_complete !== 'boolean' ||
+      typeof row.input_match !== 'boolean' ||
+      !Number.isInteger(row.generated_tokens) ||
+      row.generated_tokens < -1 ||
+      row.generated_tokens > 4096
     )
       reject();
     if (
@@ -98,8 +101,11 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
           !row.citations_valid ||
           row.sections < 1 ||
           row.input_tokens < 1 ||
-          row.output_tokens < 1 || !row.generation_observed || !row.generation_complete ||
-          !row.input_match || row.generated_tokens !== row.output_tokens
+          row.output_tokens < 1 ||
+          !row.generation_observed ||
+          !row.generation_complete ||
+          !row.input_match ||
+          row.generated_tokens !== row.output_tokens
         : row.fault === 'none' || row.citations_valid || row.sections !== 0 || row.gap_section
     )
       reject();
@@ -108,7 +114,11 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
       (row.fault !== 'budget' ||
         row.elapsed_ms !== 0 ||
         row.input_tokens !== 0 ||
-        row.output_tokens !== 0 || row.generation_observed || row.generation_complete || row.input_match || row.generated_tokens !== 0)
+        row.output_tokens !== 0 ||
+        row.generation_observed ||
+        row.generation_complete ||
+        row.input_match ||
+        row.generated_tokens !== 0)
     )
       reject();
     const key = JSON.stringify([row.case_id, row.locale, row.pass]);

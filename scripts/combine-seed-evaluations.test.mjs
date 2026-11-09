@@ -26,7 +26,10 @@ function fixture() {
         sections: 1,
         citations_valid: true,
         gap_section: false,
-        generation_observed: true, generated_tokens: 5, generation_complete: true, input_match: true,
+        generation_observed: true,
+        generated_tokens: 5,
+        generation_complete: true,
+        input_match: true,
       })),
     );
     return {
@@ -70,9 +73,15 @@ test('missing, duplicate, stale, wrong-profile and unclean parts cannot be combi
     (parts) => {
       parts[0].stopped = false;
     },
-    (parts) => { parts[0].seed_evaluation.corpus_sha256 = 'b'.repeat(64); },
-    (parts) => { parts[0].seed_evaluation.parameters.output_token_limit = 256; },
-    (parts) => { parts[0].seed_evaluation.parameters.per_case_deadline_ms = 80000; },
+    (parts) => {
+      parts[0].seed_evaluation.corpus_sha256 = 'b'.repeat(64);
+    },
+    (parts) => {
+      parts[0].seed_evaluation.parameters.output_token_limit = 256;
+    },
+    (parts) => {
+      parts[0].seed_evaluation.parameters.per_case_deadline_ms = 80000;
+    },
     (parts) => {
       parts[0].resources.peak_rss_bytes = 9 * 1024 ** 3;
     },

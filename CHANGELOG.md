@@ -8,6 +8,9 @@
   provider and locale denominators; preserve rejected, missing and budget cases.
 - Report latency and validated completion tokens without fabricating human
   grounding, correct abstention, blind holdout acceptance or failed-call usage.
+- Match the existing application output budget and retain generation-completeness
+  diagnostics. Request concise, nonrepeating sections while preserving evidence,
+  uncertainty and unchanged safety/time limits; preserve earlier rejected baselines.
 - Record owned processor peak RSS, CPU ticks and runner hardware with a CI-only
   8-GiB RSS ceiling; production capacity remains separately unproven.
 - Add nineteen named fault/database/usage regressions, 72 malformed-output

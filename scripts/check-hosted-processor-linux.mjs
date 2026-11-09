@@ -36,6 +36,22 @@ export const hostedProfileIdentity = Object.freeze({
   call_timeout_seconds: 40,
 });
 
+const safeSystemCodes = new Set([
+  'EADDRINUSE',
+  'ENOENT',
+  'ENOSPC',
+  'EACCES',
+  'EMFILE',
+  'EAGAIN',
+  'ETIMEDOUT',
+  'E2BIG',
+  'EIO',
+]);
+const knownOperations = new Set(['tar', 'curl', 'go', 'corepack', 'node', 'getconf']);
+export function safeSystemError(error) {
+  return safeSystemCodes.has(error?.code) ? error.code : 'not_classified';
+}
+
 export function parseProcessMeasurement(status, stat, ticksPerSecond) {
   const peak = /^VmHWM:\s+([0-9]+)\s+kB$/mu.exec(status)?.[1];
   const fields = stat
@@ -270,7 +286,12 @@ async function main() {
       maxBuffer: 4 * 1024 * 1024,
       ...options,
     });
-    if (result.status !== 0) throw new Error('hosted_processor.subprocess_failed');
+    if (result.status !== 0) {
+      report.failed_operation = knownOperations.has(command) ? command : 'other';
+      report.subprocess_exit_code = result.status;
+      report.subprocess_error_code = safeSystemError(result.error);
+      throw new Error('hosted_processor.subprocess_failed');
+    }
     return result.stdout?.toString() ?? '';
   };
   const measure = async () => {
@@ -405,10 +426,12 @@ async function main() {
         if (entry.isFile() && entry.name === 'llama-server') executables.push(path);
       }
     };
+    report.phase = 'runtime_inspection';
     await inspect(runtime);
     if (executables.length !== 1) throw new Error('hosted_processor.executable');
     const executable = executables[0];
     await chmod(executable, 0o700);
+    report.phase = 'port_reservation';
     await new Promise((accept, reject) => {
       const reservation = createServer();
       reservation.once('error', reject);
@@ -834,6 +857,7 @@ async function main() {
     report.status = 'passed';
     report.phase = 'complete';
   } catch (error) {
+    report.system_error_code = safeSystemError(error);
     report.error_code = /^hosted_processor\.[a-z_]+$/u.test(error.message)
       ? error.message
       : 'hosted_processor.operation_failed';

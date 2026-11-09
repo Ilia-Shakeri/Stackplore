@@ -61,6 +61,24 @@ new explicit setting; the 256-token baseline is not averaged away. The collector
 adds bounded generation-completeness/token-count diagnostics before output is
 cleared. Fresh results are still required before tagging this correction.
 
+Source `8314908`, [42620827701](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42620827701),
+again stops early on formatting of new diagnostics. In the separate
+[measurement 42620827588](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42620827588),
+[pass1](baseline-831-pass1-512.json) records 23/24 structurally complete answers
+and one uncertain Persian `kubernetes_backoff` at 40,015 ms;
+[pass2](baseline-831-pass2-512.json) records 24/24, including that case in 11,476 ms
+with 39 output tokens. [Pass3](attempt-831-pass3.json) fails during runtime setup,
+before any seed evaluation; its generic error does not establish a root cause.
+There is no accepted three-pass 512-token aggregate from this source.
+
+The correction retains these failures, applies the exact hosted formatting patch,
+and records safe operating-system/subprocess error classes plus more precise setup
+phases. Generic trusted task wording now requests short nonrepeating answers while
+retaining citation, inert-evidence, gap and uncertainty rules. It inserts no seed
+answer, changes no question/evidence and raises no application timeout or token
+ceiling. Prompt tuning remains public development work; grounding and blind
+acceptance stay pending. All source/application and three-pass measurements repeat.
+
 The existing real processor gate now records the owned process's kernel RSS
 high-water mark and CPU ticks, pinned profile, runner hardware and an 8-GiB CI
 RSS ceiling. This is neither customer capacity nor an approved production limit.

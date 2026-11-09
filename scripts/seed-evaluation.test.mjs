@@ -24,7 +24,10 @@ const rows = () =>
         sections: 1,
         citations_valid: true,
         gap_section: false,
-        generation_observed: true, generated_tokens: 5, generation_complete: true, input_match: true,
+        generation_observed: true,
+        generated_tokens: 5,
+        generation_complete: true,
+        input_match: true,
       })),
     ),
   );
@@ -66,7 +69,10 @@ test('rejections, missing results and budget exhaustion cannot disappear from qu
     ...values[1],
     status: 'not_run',
     fault: 'budget',
-    generation_observed: false, generated_tokens: 0, generation_complete: false, input_match: false,
+    generation_observed: false,
+    generated_tokens: 0,
+    generation_complete: false,
+    input_match: false,
     sections: 0,
     citations_valid: false,
     input_tokens: 0,
@@ -112,9 +118,15 @@ test('unknown, duplicate, extra-field and inconsistent measurements fail without
     (value) => {
       value.fault = 'unavailable';
     },
-    (value) => { value.generation_complete = false; },
-    (value) => { value.generation_observed = false; },
-    (value) => { value.generated_tokens = value.output_tokens + 1; },
+    (value) => {
+      value.generation_complete = false;
+    },
+    (value) => {
+      value.generation_observed = false;
+    },
+    (value) => {
+      value.generated_tokens = value.output_tokens + 1;
+    },
     (value) => {
       value.private_text = 'never echoed';
     },

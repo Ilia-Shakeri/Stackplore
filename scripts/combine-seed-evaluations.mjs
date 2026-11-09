@@ -32,12 +32,18 @@ export function combineSeedEvaluations(manifest, bytes, parts, revision) {
     )
       reject();
     seen.add(passes[0]);
-    if (part.seed_evaluation.corpus_sha256 !== manifest.sha256 ||
-        part.seed_evaluation.corpus_id !== manifest.corpus_id || part.seed_evaluation.corpus_revision !== manifest.revision ||
-        part.seed_evaluation.scope !== 'public-seed-development-only' || part.seed_evaluation.release_accepted !== false ||
-        part.seed_evaluation.parameters.output_token_limit !== seedEvaluationOutputTokens ||
-        part.seed_evaluation.parameters.passes !== 1 || part.seed_evaluation.parameters.per_case_deadline_ms !== 40000 ||
-        part.seed_evaluation.parameters.pass_deadline_ms !== 1080000) reject();
+    if (
+      part.seed_evaluation.corpus_sha256 !== manifest.sha256 ||
+      part.seed_evaluation.corpus_id !== manifest.corpus_id ||
+      part.seed_evaluation.corpus_revision !== manifest.revision ||
+      part.seed_evaluation.scope !== 'public-seed-development-only' ||
+      part.seed_evaluation.release_accepted !== false ||
+      part.seed_evaluation.parameters.output_token_limit !== seedEvaluationOutputTokens ||
+      part.seed_evaluation.parameters.passes !== 1 ||
+      part.seed_evaluation.parameters.per_case_deadline_ms !== 40000 ||
+      part.seed_evaluation.parameters.pass_deadline_ms !== 1080000
+    )
+      reject();
     const summary = summarizeSeedEvaluation(
       manifest,
       bytes,

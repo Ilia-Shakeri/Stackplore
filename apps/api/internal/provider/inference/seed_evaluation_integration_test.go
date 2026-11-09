@@ -13,34 +13,40 @@ import (
 )
 
 type seedMeasurement struct {
-	CaseID         string `json:"case_id"`
-	Locale         string `json:"locale"`
-	Pass           int    `json:"pass"`
-	Status         string `json:"status"`
-	Fault          string `json:"fault"`
-	InputTokens    int    `json:"input_tokens"`
-	OutputTokens   int    `json:"output_tokens"`
-	ElapsedMS      int64  `json:"elapsed_ms"`
-	Sections       int    `json:"sections"`
-	CitationsValid bool   `json:"citations_valid"`
-	GapSection     bool   `json:"gap_section"`
-	GenerationObserved bool `json:"generation_observed"`
-	GeneratedTokens int `json:"generated_tokens"`
-	GenerationComplete bool `json:"generation_complete"`
-	InputMatch bool `json:"input_match"`
+	CaseID             string `json:"case_id"`
+	Locale             string `json:"locale"`
+	Pass               int    `json:"pass"`
+	Status             string `json:"status"`
+	Fault              string `json:"fault"`
+	InputTokens        int    `json:"input_tokens"`
+	OutputTokens       int    `json:"output_tokens"`
+	ElapsedMS          int64  `json:"elapsed_ms"`
+	Sections           int    `json:"sections"`
+	CitationsValid     bool   `json:"citations_valid"`
+	GapSection         bool   `json:"gap_section"`
+	GenerationObserved bool   `json:"generation_observed"`
+	GeneratedTokens    int    `json:"generated_tokens"`
+	GenerationComplete bool   `json:"generation_complete"`
+	InputMatch         bool   `json:"input_match"`
 }
 
-type seedObservedBackend struct { *Local; measured *seedMeasurement }
+type seedObservedBackend struct {
+	*Local
+	measured *seedMeasurement
+}
+
 func (backend *seedObservedBackend) Generate(ctx context.Context, input port.CountedInput, limit int) (port.Generated, error) {
- generated, err := backend.Local.Generate(ctx, input, limit)
- if err == nil {
-  backend.measured.GenerationObserved = true
-  backend.measured.GeneratedTokens = generated.OutputTokens
-  if generated.OutputTokens < 0 || generated.OutputTokens > port.MaximumOutputTokens { backend.measured.GeneratedTokens = -1 }
-  backend.measured.GenerationComplete = generated.Complete
-  backend.measured.InputMatch = generated.InputTokens == len(input.Tokens)
- }
- return generated, err
+	generated, err := backend.Local.Generate(ctx, input, limit)
+	if err == nil {
+		backend.measured.GenerationObserved = true
+		backend.measured.GeneratedTokens = generated.OutputTokens
+		if generated.OutputTokens < 0 || generated.OutputTokens > port.MaximumOutputTokens {
+			backend.measured.GeneratedTokens = -1
+		}
+		backend.measured.GenerationComplete = generated.Complete
+		backend.measured.InputMatch = generated.InputTokens == len(input.Tokens)
+	}
+	return generated, err
 }
 
 // Public synthetic development cases. No output text is retained or scored as human judgment.
@@ -57,7 +63,9 @@ func TestPinnedSeedEvaluationIntegration(t *testing.T) {
 	}
 	local := pinnedIntegrationLocal(t)
 	outputLimit, limitErr := strconv.Atoi(os.Getenv("STACKPLORE_TEST_SEED_OUTPUT_TOKENS"))
-	if limitErr != nil || outputLimit < 1 || outputLimit > port.MaximumOutputTokens || strconv.Itoa(outputLimit) != os.Getenv("STACKPLORE_TEST_SEED_OUTPUT_TOKENS") { t.Fatal("seed_evaluation.output_limit") }
+	if limitErr != nil || outputLimit < 1 || outputLimit > port.MaximumOutputTokens || strconv.Itoa(outputLimit) != os.Getenv("STACKPLORE_TEST_SEED_OUTPUT_TOKENS") {
+		t.Fatal("seed_evaluation.output_limit")
+	}
 	bytes, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "..", "tests", "fixtures", "assistant", "corpus.seed.json"))
 	if err != nil || len(bytes) > 4*1024*1024 {
 		t.Fatal("seed_evaluation.corpus")
@@ -99,7 +107,9 @@ func TestPinnedSeedEvaluationIntegration(t *testing.T) {
 					}
 					measured.Status = "rejected"
 					gateway, gatewayErr := port.New(&seedObservedBackend{Local: local, measured: &measured}, time.Now)
-					if gatewayErr != nil { t.Fatal("seed_evaluation.gateway") }
+					if gatewayErr != nil {
+						t.Fatal("seed_evaluation.gateway")
+					}
 					prepared, prepareErr := gateway.Prepare(ctx, port.Request{Locale: locale, Question: item.Questions[locale], Evidence: evidence, OutputLimit: outputLimit})
 					measured.Fault = probeFault(prepareErr)
 					if prepareErr == nil {

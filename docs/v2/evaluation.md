@@ -42,6 +42,14 @@ generation completeness, reported token counts and input-count agreement before
 the gateway clears volatile output; no answer text is retained. Profile tuning
 uses public development material and cannot establish held-out quality.
 
+At 512 tokens the earlier pass1 still has one uncertain completion at the unchanged
+40-second deadline while pass2 completes all cases. Those separate hardware-bound
+observations remain in the attempt ledger; no partial two-pass result is accepted
+as three passes. Trusted task wording now asks for concise, nonrepeating sections
+while retaining uncertainty and missing evidence. The seed, required/forbidden
+assertions and safety validator remain unchanged. New measurements and independent
+judgment are required after this generic task-contract change.
+
 Gateway-accepted output establishes closed shape and synthetic citation membership,
 not factual grounding or current product authorization. Observed gap sections do
 not establish correct abstention. Human grounding, correct abstention and actual

@@ -8,7 +8,14 @@ import {
   validHostedGuidanceMetadata,
   validHostedIncidentReportMetadata,
   parseProcessMeasurement,
+  safeSystemError,
 } from './check-hosted-processor-linux.mjs';
+
+test('system diagnostics expose only fixed codes and never private paths or messages', () => {
+  assert.equal(safeSystemError({ code: 'EADDRINUSE', message: 'private path' }), 'EADDRINUSE');
+  assert.equal(safeSystemError({ code: 'private path', message: 'private text' }), 'not_classified');
+  assert.equal(safeSystemError(null), 'not_classified');
+});
 
 test('owned process measurement keeps RSS high-water and CPU ticks with spaced process names', () => {
   const fields = ['S', ...Array(10).fill('0'), '125', '75', ...Array(10).fill('0')];
