@@ -94,6 +94,8 @@ jobs:
         run: node --test scripts/check-v2-corpus.test.mjs scripts/seed-evaluation.test.mjs scripts/check-stage8-hardening.test.mjs
       - name: Check new stage8 source formatting before heavy tests
         run: corepack pnpm exec prettier --check scripts/seed-evaluation.mjs scripts/seed-evaluation.test.mjs scripts/check-stage8-hardening.mjs scripts/check-stage8-hardening.test.mjs scripts/check-hosted-processor-linux.mjs scripts/check-hosted-processor-linux.test.mjs .github/workflows/stage8-quality.yml
+      - name: Verify stage8 script boundaries before heavy tests
+        run: corepack pnpm exec eslint scripts/seed-evaluation.mjs scripts/seed-evaluation.test.mjs scripts/check-stage8-hardening.mjs scripts/check-stage8-hardening.test.mjs scripts/check-hosted-processor-linux.mjs scripts/check-hosted-processor-linux.test.mjs
       - name: Build patched database and start owned PostgreSQL fixture
         run: bash scripts/start-test-postgres.sh start code
       - name: Verify bounded investigation contracts on hosted runner

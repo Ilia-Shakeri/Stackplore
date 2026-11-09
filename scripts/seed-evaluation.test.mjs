@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { URL } from 'node:url';
 import { summarizeSeedEvaluation } from './seed-evaluation.mjs';
 
 const root = new URL('../tests/fixtures/assistant/', import.meta.url);
