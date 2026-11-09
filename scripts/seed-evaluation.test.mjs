@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { URL } from 'node:url';
 import { summarizeSeedEvaluation } from './seed-evaluation.mjs';
+import { hostedAssistantOutputTokens } from './hosted-assistant-profile.mjs';
 
 const root = new URL('../tests/fixtures/assistant/', import.meta.url);
 const manifest = JSON.parse(await readFile(new URL('corpus.manifest.json', root), 'utf8'));
@@ -23,6 +24,7 @@ const rows = () =>
         sections: 1,
         citations_valid: true,
         gap_section: false,
+        generation_observed: true, generated_tokens: 5, generation_complete: true, input_match: true,
       })),
     ),
   );
@@ -30,7 +32,8 @@ const rows = () =>
 test('three complete synthetic passes retain denominators and never claim human or blind acceptance', () => {
   const result = summarizeSeedEvaluation(manifest, bytes, rows());
   assert.equal(result.totals.expected, 72);
-  assert.equal(result.parameters.output_token_limit, 256);
+  assert.equal(result.parameters.output_token_limit, 512);
+  assert.equal(result.parameters.output_token_limit, hostedAssistantOutputTokens);
   assert.equal(result.parameters.pass_deadline_ms, 1080000);
   assert.equal(result.totals.completed, 72);
   assert.equal(result.structural_threshold_met, true);
@@ -63,6 +66,7 @@ test('rejections, missing results and budget exhaustion cannot disappear from qu
     ...values[1],
     status: 'not_run',
     fault: 'budget',
+    generation_observed: false, generated_tokens: 0, generation_complete: false, input_match: false,
     sections: 0,
     citations_valid: false,
     input_tokens: 0,
@@ -94,7 +98,7 @@ test('unknown, duplicate, extra-field and inconsistent measurements fail without
       value.locale = 'de';
     },
     (value) => {
-      value.output_tokens = 257;
+      value.output_tokens = 513;
     },
     (value) => {
       value.input_tokens = -1;
@@ -108,6 +112,9 @@ test('unknown, duplicate, extra-field and inconsistent measurements fail without
     (value) => {
       value.fault = 'unavailable';
     },
+    (value) => { value.generation_complete = false; },
+    (value) => { value.generation_observed = false; },
+    (value) => { value.generated_tokens = value.output_tokens + 1; },
     (value) => {
       value.private_text = 'never echoed';
     },
@@ -139,5 +146,7 @@ test('one selected pass has its own complete denominator and rejects foreign-pas
   assert.equal(result.totals.expected, 24);
   assert.deepEqual(result.parameters.pass_ids, [2]);
   for (const passes of [[], [1, 1], [4]])
-    assert.throws(() => summarizeSeedEvaluation(manifest, bytes, selected, passes), { message: 'seed_evaluation.invalid_metadata' });
+    assert.throws(() => summarizeSeedEvaluation(manifest, bytes, selected, passes), {
+      message: 'seed_evaluation.invalid_metadata',
+    });
 });

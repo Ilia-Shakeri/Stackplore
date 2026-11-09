@@ -24,6 +24,23 @@ type seedMeasurement struct {
 	Sections       int    `json:"sections"`
 	CitationsValid bool   `json:"citations_valid"`
 	GapSection     bool   `json:"gap_section"`
+	GenerationObserved bool `json:"generation_observed"`
+	GeneratedTokens int `json:"generated_tokens"`
+	GenerationComplete bool `json:"generation_complete"`
+	InputMatch bool `json:"input_match"`
+}
+
+type seedObservedBackend struct { *Local; measured *seedMeasurement }
+func (backend *seedObservedBackend) Generate(ctx context.Context, input port.CountedInput, limit int) (port.Generated, error) {
+ generated, err := backend.Local.Generate(ctx, input, limit)
+ if err == nil {
+  backend.measured.GenerationObserved = true
+  backend.measured.GeneratedTokens = generated.OutputTokens
+  if generated.OutputTokens < 0 || generated.OutputTokens > port.MaximumOutputTokens { backend.measured.GeneratedTokens = -1 }
+  backend.measured.GenerationComplete = generated.Complete
+  backend.measured.InputMatch = generated.InputTokens == len(input.Tokens)
+ }
+ return generated, err
 }
 
 // Public synthetic development cases. No output text is retained or scored as human judgment.
@@ -35,12 +52,12 @@ func TestPinnedSeedEvaluationIntegration(t *testing.T) {
 		t.Fatal("seed_evaluation.hosted_required")
 	}
 	passID, passErr := strconv.Atoi(os.Getenv("STACKPLORE_TEST_SEED_PASS"))
-	if passErr != nil || passID < 1 || passID > 3 || strconv.Itoa(passID) != os.Getenv("STACKPLORE_TEST_SEED_PASS") { t.Fatal("seed_evaluation.pass") }
-	local := pinnedIntegrationLocal(t)
-	gateway, err := port.New(local, time.Now)
-	if err != nil {
-		t.Fatal("seed_evaluation.gateway")
+	if passErr != nil || passID < 1 || passID > 3 || strconv.Itoa(passID) != os.Getenv("STACKPLORE_TEST_SEED_PASS") {
+		t.Fatal("seed_evaluation.pass")
 	}
+	local := pinnedIntegrationLocal(t)
+	outputLimit, limitErr := strconv.Atoi(os.Getenv("STACKPLORE_TEST_SEED_OUTPUT_TOKENS"))
+	if limitErr != nil || outputLimit < 1 || outputLimit > port.MaximumOutputTokens || strconv.Itoa(outputLimit) != os.Getenv("STACKPLORE_TEST_SEED_OUTPUT_TOKENS") { t.Fatal("seed_evaluation.output_limit") }
 	bytes, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "..", "tests", "fixtures", "assistant", "corpus.seed.json"))
 	if err != nil || len(bytes) > 4*1024*1024 {
 		t.Fatal("seed_evaluation.corpus")
@@ -81,7 +98,9 @@ func TestPinnedSeedEvaluationIntegration(t *testing.T) {
 						evidence = append(evidence, port.Evidence{ID: record.ID, Text: string(encoded)})
 					}
 					measured.Status = "rejected"
-					prepared, prepareErr := gateway.Prepare(ctx, port.Request{Locale: locale, Question: item.Questions[locale], Evidence: evidence, OutputLimit: 256})
+					gateway, gatewayErr := port.New(&seedObservedBackend{Local: local, measured: &measured}, time.Now)
+					if gatewayErr != nil { t.Fatal("seed_evaluation.gateway") }
+					prepared, prepareErr := gateway.Prepare(ctx, port.Request{Locale: locale, Question: item.Questions[locale], Evidence: evidence, OutputLimit: outputLimit})
 					measured.Fault = probeFault(prepareErr)
 					if prepareErr == nil {
 						result, dispatchErr := gateway.Dispatch(ctx, prepared)

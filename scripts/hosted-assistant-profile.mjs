@@ -1,4 +1,5 @@
 // Trusted test composition only. Product defaults remain disabled.
+export const hostedAssistantOutputTokens = 512;
 export function hostedAssistantProfile(environment) {
   const enabled = environment.SP_BROWSER_REAL_ASSISTANT;
   if (enabled === undefined) return Object.freeze({});
@@ -20,7 +21,7 @@ export function hostedAssistantProfile(environment) {
       '57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361',
     STACKPLORE_ASSISTANT_CONTEXT_TOKENS: '20480',
     STACKPLORE_ASSISTANT_GENERATION: '1',
-    STACKPLORE_ASSISTANT_OUTPUT_TOKENS: '512',
+    STACKPLORE_ASSISTANT_OUTPUT_TOKENS: String(hostedAssistantOutputTokens),
     STACKPLORE_ASSISTANT_CALL_TIMEOUT: '40s',
   });
 }

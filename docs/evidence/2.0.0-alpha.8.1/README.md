@@ -41,6 +41,26 @@ journeys. The before-failure protocol RSS sample is about 3.05 GiB; it does not
 represent an end-of-failed-run resource measurement. Final sampling now runs
 before cleanup on failures as well. Fresh source/profile receipts are required.
 
+Source `17d5819`, [42617789160](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42617789160):
+all seven non-code jobs pass, including the corrected real application/browser
+journey. Code stops on formatting of the new correction; the hosted patch is
+applied. The separate three-worker [measurement 42617789173](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42617789173)
+successfully collects all 72 observations and combines the disjoint parts.
+[The 256-token baseline](baseline-17d-256.json) has **69 completed, three rejected,
+zero missing and zero not-run**, so its structural threshold is **false**.
+All three rejected observations are Persian `kubernetes_backoff` with
+`output_limit`; they remain rejected. Attempted latency p95 is 21,534 ms; measured
+owned processor RSS is about 3.05 GiB on four logical AMD EPYC 9V74 processors.
+These descriptive measurements do not establish grounding or customer capacity.
+
+The measurement initially used a 256-token output setting while the existing
+hosted application uses 512. New measurements derive their limit from that same
+canonical hosted profile setting. The application's generation/time limits and
+the 100% structural threshold are unchanged. All 72 observations repeat with the
+new explicit setting; the 256-token baseline is not averaged away. The collector
+adds bounded generation-completeness/token-count diagnostics before output is
+cleared. Fresh results are still required before tagging this correction.
+
 The existing real processor gate now records the owned process's kernel RSS
 high-water mark and CPU ticks, pinned profile, runner hardware and an 8-GiB CI
 RSS ceiling. This is neither customer capacity nor an approved production limit.

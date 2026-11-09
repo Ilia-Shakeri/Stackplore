@@ -1,6 +1,9 @@
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { validateCorpus } from './check-v2-corpus.mjs';
+import { hostedAssistantOutputTokens } from './hosted-assistant-profile.mjs';
+
+export const seedEvaluationOutputTokens = hostedAssistantOutputTokens;
 
 const faults = new Set([
   'none',
@@ -25,6 +28,10 @@ const keys = [
   'sections',
   'citations_valid',
   'gap_section',
+  'generation_observed',
+  'generated_tokens',
+  'generation_complete',
+  'input_match',
 ];
 function reject() {
   throw new Error('seed_evaluation.invalid_metadata');
@@ -39,9 +46,19 @@ function percentile(values, fraction) {
 export function summarizeSeedEvaluation(manifest, bytes, observations, selectedPasses = [1, 2, 3]) {
   validateCorpus(manifest, bytes);
   const corpus = JSON.parse(bytes.toString('utf8'));
-  if (!Array.isArray(selectedPasses) || selectedPasses.length < 1 || selectedPasses.length > 3 ||
-      new Set(selectedPasses).size !== selectedPasses.length || selectedPasses.some((pass) => ![1, 2, 3].includes(pass))) reject();
-  if (!Array.isArray(observations) || observations.length > corpus.scenarios.length * 2 * selectedPasses.length) reject();
+  if (
+    !Array.isArray(selectedPasses) ||
+    selectedPasses.length < 1 ||
+    selectedPasses.length > 3 ||
+    new Set(selectedPasses).size !== selectedPasses.length ||
+    selectedPasses.some((pass) => ![1, 2, 3].includes(pass))
+  )
+    reject();
+  if (
+    !Array.isArray(observations) ||
+    observations.length > corpus.scenarios.length * 2 * selectedPasses.length
+  )
+    reject();
   const cases = new Map(corpus.scenarios.map((item) => [item.id, item]));
   const seen = new Set();
   for (const row of observations) {
@@ -61,7 +78,7 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
       row.input_tokens > 16000 ||
       !Number.isInteger(row.output_tokens) ||
       row.output_tokens < 0 ||
-      row.output_tokens > 256 ||
+      row.output_tokens > seedEvaluationOutputTokens ||
       !Number.isInteger(row.elapsed_ms) ||
       row.elapsed_ms < 0 ||
       row.elapsed_ms > 80000 ||
@@ -69,7 +86,10 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
       row.sections < 0 ||
       row.sections > 12 ||
       typeof row.citations_valid !== 'boolean' ||
-      typeof row.gap_section !== 'boolean'
+      typeof row.gap_section !== 'boolean' ||
+      typeof row.generation_observed !== 'boolean' || typeof row.generation_complete !== 'boolean' ||
+      typeof row.input_match !== 'boolean' || !Number.isInteger(row.generated_tokens) ||
+      row.generated_tokens < -1 || row.generated_tokens > 4096
     )
       reject();
     if (
@@ -78,7 +98,8 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
           !row.citations_valid ||
           row.sections < 1 ||
           row.input_tokens < 1 ||
-          row.output_tokens < 1
+          row.output_tokens < 1 || !row.generation_observed || !row.generation_complete ||
+          !row.input_match || row.generated_tokens !== row.output_tokens
         : row.fault === 'none' || row.citations_valid || row.sections !== 0 || row.gap_section
     )
       reject();
@@ -87,7 +108,7 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
       (row.fault !== 'budget' ||
         row.elapsed_ms !== 0 ||
         row.input_tokens !== 0 ||
-        row.output_tokens !== 0)
+        row.output_tokens !== 0 || row.generation_observed || row.generation_complete || row.input_match || row.generated_tokens !== 0)
     )
       reject();
     const key = JSON.stringify([row.case_id, row.locale, row.pass]);
@@ -127,7 +148,7 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
     parameters: {
       passes: selectedPasses.length,
       pass_ids: [...selectedPasses],
-      output_token_limit: 256,
+      output_token_limit: seedEvaluationOutputTokens,
       per_case_deadline_ms: 40000,
       pass_deadline_ms: 1080000,
     },
@@ -149,7 +170,8 @@ export function summarizeSeedEvaluation(manifest, bytes, observations, selectedP
           observations.filter(
             (row) => row.locale === locale && cases.get(row.case_id).provider === provider,
           ),
-              corpus.scenarios.filter((item) => item.provider === provider).length * selectedPasses.length,
+          corpus.scenarios.filter((item) => item.provider === provider).length *
+            selectedPasses.length,
         ),
       })),
     ),

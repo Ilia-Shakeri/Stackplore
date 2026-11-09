@@ -18,7 +18,7 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 import process from 'node:process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { summarizeSeedEvaluation } from './seed-evaluation.mjs';
+import { summarizeSeedEvaluation, seedEvaluationOutputTokens } from './seed-evaluation.mjs';
 import { checkCorpus } from './check-v2-corpus.mjs';
 
 const archiveHash = 'ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25';
@@ -27,8 +27,13 @@ const templateHash = '57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e2
 const modelRevision = '90862c4b9d2787eaed51d12237eafdfe7c5f6077';
 const build = 'b11729-412a363c6';
 export const hostedProfileIdentity = Object.freeze({
-  archive_sha256: archiveHash, model_sha256: modelHash, model_revision: modelRevision,
-  template_sha256: templateHash, build, context_tokens: 20480, call_timeout_seconds: 40,
+  archive_sha256: archiveHash,
+  model_sha256: modelHash,
+  model_revision: modelRevision,
+  template_sha256: templateHash,
+  build,
+  context_tokens: 20480,
+  call_timeout_seconds: 40,
 });
 
 export function parseProcessMeasurement(status, stat, ticksPerSecond) {
@@ -209,7 +214,10 @@ async function main() {
     (seedEvaluation !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage8-quality')
   )
     throw new Error('hosted_processor.evaluation_scope');
-  if (seedEvaluation === 'true' && (![1, 2, 3].includes(seedPass) || String(seedPass) !== process.env.SP_STAGE8_SEED_PASS))
+  if (
+    seedEvaluation === 'true' &&
+    (![1, 2, 3].includes(seedPass) || String(seedPass) !== process.env.SP_STAGE8_SEED_PASS)
+  )
     throw new Error('hosted_processor.evaluation_pass');
   const root = resolve(import.meta.dirname, '..');
   const temporary = await realpath(process.env.RUNNER_TEMP);
@@ -225,9 +233,10 @@ async function main() {
     phase: 'archive',
     stopped: false,
     postgres_stopped: false,
-    scope: seedEvaluation === 'true'
-      ? 'One real public-seed development pass; not application, blind or human quality acceptance'
-      : 'Real bilingual protocol and desktop application with synthetic Demo evidence; not Windows runtime or general quality acceptance',
+    scope:
+      seedEvaluation === 'true'
+        ? 'One real public-seed development pass; not application, blind or human quality acceptance'
+        : 'Real bilingual protocol and desktop application with synthetic Demo evidence; not Windows runtime or general quality acceptance',
     archive_sha256: archiveHash,
     model_sha256: modelHash,
     model_revision: modelRevision,
@@ -612,156 +621,156 @@ async function main() {
       throw new Error('hosted_processor.protocol_failed');
     await measure();
     if (seedEvaluation !== 'true') {
-    report.phase = 'web_build';
-    run('corepack', ['pnpm', 'run', 'build:web'], { stdio: 'ignore' });
-    run('node', ['scripts/embed-web-assets.mjs'], { stdio: 'ignore' });
-    report.phase = 'application_browser';
-    const browser = spawnSync('node', ['scripts/browser-gate.mjs'], {
-      cwd: root,
-      stdio: 'ignore',
-      timeout: 600_000,
-      env: {
-        ...process.env,
-        SP_BROWSER_MODES: 'normal-en,normal-fa',
-        SP_BROWSER_REAL_ASSISTANT: 'true',
-        SP_BROWSER_WORK_ROOT: temporary,
-      },
-    });
-    report.application_browser = {
-      cases: [],
-      journeys: [],
-      guidance_journeys: [],
-      database_metadata: [],
-      inference_metadata: [],
-    };
-    for (const locale of ['en', 'fa']) {
-      const results = JSON.parse(
-        await readFile(resolve(root, `.tmp/browser-results-normal-${locale}.json`), 'utf8'),
-      );
-      report.application_browser.cases.push({
-        locale,
-        ...Object.fromEntries(
-          ['expected', 'unexpected', 'flaky', 'skipped'].map((key) => [key, results.stats[key]]),
-        ),
+      report.phase = 'web_build';
+      run('corepack', ['pnpm', 'run', 'build:web'], { stdio: 'ignore' });
+      run('node', ['scripts/embed-web-assets.mjs'], { stdio: 'ignore' });
+      report.phase = 'application_browser';
+      const browser = spawnSync('node', ['scripts/browser-gate.mjs'], {
+        cwd: root,
+        stdio: 'ignore',
+        timeout: 600_000,
+        env: {
+          ...process.env,
+          SP_BROWSER_MODES: 'normal-en,normal-fa',
+          SP_BROWSER_REAL_ASSISTANT: 'true',
+          SP_BROWSER_WORK_ROOT: temporary,
+        },
       });
-      for (const role of ['administrator', 'viewer']) {
-        try {
-          const guidance = await metadata(`hosted-guidance-${locale}-${role}.json`);
-          report.application_browser.guidance_journeys.push({
-            valid_receipt: validHostedGuidanceMetadata(
-              guidance,
-              process.env.GITHUB_SHA,
-              locale,
-              role,
-            ),
-            ...Object.fromEntries(
-              [
-                'locale',
-                'role',
-                'status',
-                'phase',
-                'snapshot_status',
-                'consent_sent',
-                'document_current',
-                'not_facts',
-                'coverage_valid',
-                'guide_supported',
-                'guide_section_exact',
-                'guide_text_exact',
-                'guide_citation_exact',
-                'witness_current',
-                'cleared',
-                'status_reconnections',
-              ].map((key) => [key, guidance[key]]),
-            ),
-          });
-        } catch {
-          /* Missing guidance receipts fail the candidate gate below. */
-        }
-        for (const goal of ['explain_resource', 'investigate_incident']) {
+      report.application_browser = {
+        cases: [],
+        journeys: [],
+        guidance_journeys: [],
+        database_metadata: [],
+        inference_metadata: [],
+      };
+      for (const locale of ['en', 'fa']) {
+        const results = JSON.parse(
+          await readFile(resolve(root, `.tmp/browser-results-normal-${locale}.json`), 'utf8'),
+        );
+        report.application_browser.cases.push({
+          locale,
+          ...Object.fromEntries(
+            ['expected', 'unexpected', 'flaky', 'skipped'].map((key) => [key, results.stats[key]]),
+          ),
+        });
+        for (const role of ['administrator', 'viewer']) {
           try {
-            const journey = await metadata(`hosted-live-${locale}-${role}-${goal}.json`);
-            report.application_browser.journeys.push(
-              Object.fromEntries(
+            const guidance = await metadata(`hosted-guidance-${locale}-${role}.json`);
+            report.application_browser.guidance_journeys.push({
+              valid_receipt: validHostedGuidanceMetadata(
+                guidance,
+                process.env.GITHUB_SHA,
+                locale,
+                role,
+              ),
+              ...Object.fromEntries(
                 [
                   'locale',
                   'role',
-                  'goal',
+                  'status',
+                  'phase',
+                  'snapshot_status',
+                  'consent_sent',
+                  'document_current',
+                  'not_facts',
                   'coverage_valid',
-                  'citation_count',
-                  'admissions',
-                  'admission_status',
-                  'run_state',
-                  'content_state',
-                  'resource_identity_supported',
-                  'identity_contained',
-                  'identity_text_bytes',
-                  'identity_shape',
-                  'citation_current',
-                  'citation_status',
-                  'report_current',
-                  'report_cleared',
-                  'report_rows',
-                  'report_status',
+                  'guide_supported',
+                  'guide_section_exact',
+                  'guide_text_exact',
+                  'guide_citation_exact',
+                  'witness_current',
                   'cleared',
-                  'view_state',
-                'status_reconnections',
-                ].map((key) => [key, journey[key]]),
+                  'status_reconnections',
+                ].map((key) => [key, guidance[key]]),
               ),
-            );
+            });
           } catch {
-            /* A missing role or goal fails the complete journey below. */
+            /* Missing guidance receipts fail the candidate gate below. */
+          }
+          for (const goal of ['explain_resource', 'investigate_incident']) {
+            try {
+              const journey = await metadata(`hosted-live-${locale}-${role}-${goal}.json`);
+              report.application_browser.journeys.push(
+                Object.fromEntries(
+                  [
+                    'locale',
+                    'role',
+                    'goal',
+                    'coverage_valid',
+                    'citation_count',
+                    'admissions',
+                    'admission_status',
+                    'run_state',
+                    'content_state',
+                    'resource_identity_supported',
+                    'identity_contained',
+                    'identity_text_bytes',
+                    'identity_shape',
+                    'citation_current',
+                    'citation_status',
+                    'report_current',
+                    'report_cleared',
+                    'report_rows',
+                    'report_status',
+                    'cleared',
+                    'view_state',
+                    'status_reconnections',
+                  ].map((key) => [key, journey[key]]),
+                ),
+              );
+            } catch {
+              /* A missing role or goal fails the complete journey below. */
+            }
           }
         }
+        report.application_browser.database_metadata.push(
+          await metadata(`hosted-database-normal-${locale}.json`),
+        );
+        report.application_browser.inference_metadata.push(
+          await metadata(`hosted-inference-normal-${locale}.json`),
+        );
       }
-      report.application_browser.database_metadata.push(
-        await metadata(`hosted-database-normal-${locale}.json`),
-      );
-      report.application_browser.inference_metadata.push(
-        await metadata(`hosted-inference-normal-${locale}.json`),
-      );
-    }
-    if (
-      browser.status !== 0 ||
-      report.application_browser.database_metadata.some(
-        (value) => !validHostedDatabaseMetadata(value, process.env.GITHUB_SHA),
-      ) ||
-      report.application_browser.journeys.length !== 8 ||
-      report.application_browser.guidance_journeys.length !== 4 ||
-      report.application_browser.guidance_journeys.some(
-        (value) =>
-          value.valid_receipt !== true ||
-          value.status !== 'passed' ||
-          !value.consent_sent ||
-          !value.document_current ||
-          !value.not_facts ||
-          !value.coverage_valid ||
-          !value.witness_current ||
-          !value.cleared,
-      ) ||
-      report.application_browser.journeys.some(
-        (value) =>
-          !validHostedIncidentReportMetadata(value) ||
-          !value.coverage_valid ||
-          value.admissions !== 1 ||
-          value.admission_status !== 202 ||
-          value.run_state !== 'completed' ||
-          value.content_state !== 'ready' ||
-          !value.resource_identity_supported ||
-          !value.citation_current ||
-          value.citation_status !== 200 ||
-          !value.cleared,
-      ) ||
-      report.application_browser.cases.some(
-        (value) =>
-          value.expected !== 1 ||
-          value.unexpected !== 0 ||
-          value.flaky !== 0 ||
-          value.skipped !== 0,
+      if (
+        browser.status !== 0 ||
+        report.application_browser.database_metadata.some(
+          (value) => !validHostedDatabaseMetadata(value, process.env.GITHUB_SHA),
+        ) ||
+        report.application_browser.journeys.length !== 8 ||
+        report.application_browser.guidance_journeys.length !== 4 ||
+        report.application_browser.guidance_journeys.some(
+          (value) =>
+            value.valid_receipt !== true ||
+            value.status !== 'passed' ||
+            !value.consent_sent ||
+            !value.document_current ||
+            !value.not_facts ||
+            !value.coverage_valid ||
+            !value.witness_current ||
+            !value.cleared,
+        ) ||
+        report.application_browser.journeys.some(
+          (value) =>
+            !validHostedIncidentReportMetadata(value) ||
+            !value.coverage_valid ||
+            value.admissions !== 1 ||
+            value.admission_status !== 202 ||
+            value.run_state !== 'completed' ||
+            value.content_state !== 'ready' ||
+            !value.resource_identity_supported ||
+            !value.citation_current ||
+            value.citation_status !== 200 ||
+            !value.cleared,
+        ) ||
+        report.application_browser.cases.some(
+          (value) =>
+            value.expected !== 1 ||
+            value.unexpected !== 0 ||
+            value.flaky !== 0 ||
+            value.skipped !== 0,
+        )
       )
-    )
-      throw new Error('hosted_processor.browser_failed');
-    await measure();
+        throw new Error('hosted_processor.browser_failed');
+      await measure();
     }
     if (seedEvaluation === 'true') {
       report.phase = 'seed_evaluation';
@@ -785,7 +794,12 @@ async function main() {
         ],
         {
           cwd: root,
-          env: { ...environment, STACKPLORE_TEST_SEED_EVALUATION: 'true', STACKPLORE_TEST_SEED_PASS: String(seedPass) },
+          env: {
+            ...environment,
+            STACKPLORE_TEST_SEED_EVALUATION: 'true',
+            STACKPLORE_TEST_SEED_PASS: String(seedPass),
+            STACKPLORE_TEST_SEED_OUTPUT_TOKENS: String(seedEvaluationOutputTokens),
+          },
           encoding: 'utf8',
           timeout: 1220000,
           maxBuffer: 4 * 1024 * 1024,
@@ -826,7 +840,9 @@ async function main() {
     process.exitCode = 1;
   } finally {
     if (child?.pid && child.exitCode === null) {
-      try { await measure(); } catch {
+      try {
+        await measure();
+      } catch {
         report.status = 'failed';
         report.resource_error_code = 'hosted_processor.final_measurement_failed';
         process.exitCode = 1;

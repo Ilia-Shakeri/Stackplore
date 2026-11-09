@@ -21,7 +21,7 @@ synthetic evidence are used; expected answer text is not copied into instruction
 The seed itself stays twelve paired scenarios and eighteen attacks. No artificial
 case inflation or new independent review is claimed.
 
-Each generation has one shared 40-second count/dispatch context and at most 256
+Each generation has one shared 40-second count/dispatch context and the same 512
 output tokens. Each independent pass has an 18-minute budget. Exhaustion records
 remaining cases as `not_run`, not success. The collector does not retry rejected
 answers. It stores metadata only, with all missing/rejected cases in denominators.
@@ -30,6 +30,17 @@ provider and pass, report nearest-rank latency p50/p95 for attempted cases, and
 sum only validated completion tokens. Rejected calls retain uncertain usage;
 these sums are not total billed/charged usage. Existing real SQL settlement tests
 separately verify that unknown usage cannot refund confirmed dispatches.
+
+The initial 256-token development configuration recorded 69 structurally complete
+answers and three `output_limit` rejections, all Persian `kubernetes_backoff`,
+across 72 observations. Its [immutable baseline](../evidence/2.0.0-alpha.8.1/baseline-17d-256.json)
+remains a failed structural threshold, never relabelled successful. The measurement
+budget now derives from the existing hosted application profile's 512-token
+setting, without changing that application's limit or the 40-second ceiling.
+All cases repeat under the explicitly recorded configuration. Diagnostics capture
+generation completeness, reported token counts and input-count agreement before
+the gateway clears volatile output; no answer text is retained. Profile tuning
+uses public development material and cannot establish held-out quality.
 
 Gateway-accepted output establishes closed shape and synthetic citation membership,
 not factual grounding or current product authorization. Observed gap sections do
