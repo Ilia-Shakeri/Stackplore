@@ -92,6 +92,7 @@ func (Request) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 type CountedInput struct {
 	Tokens       []int32
 	ReferenceIDs []string
+	GuidanceIDs  []string
 	Bytes        int
 	Revision     string
 }

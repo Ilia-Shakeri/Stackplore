@@ -121,6 +121,18 @@ journeys, fixed budgets and server fact rejection remain mandatory. It also
 bounds desktop witness height and verifies keyboard scrolling, close-to-question
 focus and an authorized reopen before pagehide. Fresh hosted proof remains open.
 
+Source `8f210c04e1cbb0c69a0f6d4ce8c1f65a3d7aa938`,
+[42583592659](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42583592659):
+focused Go/SQL/client/UI and six deployment/provider/tool jobs pass; full gate
+needs hosted Go formatting. Both English role journeys pass. Persian has the
+exact guide text, current reference, witness and clearing, but cites an
+observation rather than the guide. [Failed receipt](attempt-8f2-processor.json).
+Keep the failed binding assertion. The next correction uses distinct request-local
+guide handles `gN` alongside observation `eN`, with trusted gateway-owned
+classification cloned through preparation and generation. Public canonical
+citations and the independent server guard are unchanged. Unit cases cover
+exact remapping, unknown/duplicate classification and backend mutation.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates

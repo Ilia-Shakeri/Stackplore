@@ -14,7 +14,10 @@ func TestGuidanceCannotBecomeAReportedFactOrBeDowngradedByBackend(t *testing.T) 
 				request.Evidence[0].Guidance = false
 				return original(ctx, request)
 			}
-			backend.generate = func(context.Context, CountedInput, int) (Generated, error) {
+			backend.generate = func(_ context.Context, input CountedInput, _ int) (Generated, error) {
+				if len(input.GuidanceIDs) != 1 || input.GuidanceIDs[0] != fixtureRequest().Evidence[0].ID {
+					t.Fatal("backend rewrote guidance classification")
+				}
 				value := fixtureGenerated()
 				value.Content = []byte(strings.Replace(string(value.Content), `"kind":"facts"`, `"kind":"`+kind+`"`, 1))
 				return value, nil

@@ -36,6 +36,12 @@ not in observation records. Unrecognized internal guidance remains opaque user
 data. No document prose enters system instructions. Observation handles and
 the complete canonical citation mapping stay unchanged; exact formatted token
 counting includes both arrays before the single dispatch.
+Within that counted request, observation handles use `eN` and guidance handles
+use `gN`. The gateway derives and copies the classification from its trusted
+original evidence before calling a backend. Counting and generation use the same
+closed mapping; unknown or repeated guide IDs are rejected. This extends the
+internal ADR-0019 encoding only: public canonical citations and authority do not
+change, and post-generation fact/citation validation remains mandatory.
 It cannot enter the observed-facts section or deterministic
 incident timeline. Typed document citations can support hypotheses/next checks;
 the witness is reopened through a fresh authorized exact-reference read. Normal

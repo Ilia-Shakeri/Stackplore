@@ -12,6 +12,23 @@ import (
 	port "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 )
 
+func TestGuidanceHandlesAreDistinctAndBoundToTheirOriginalReferences(t *testing.T) {
+	ids := []string{"canonical_observation", "canonical_guide"}
+	aliases, bindings, err := compactEvidenceReferences(ids, []string{ids[1]})
+	if err != nil || len(aliases) != 2 || aliases[0] != "e1" || aliases[1] != "g1" || bindings["g1"] != ids[1] || bindings["e1"] != ids[0] {
+		t.Fatal("guidance handle classification lost", err)
+	}
+	encoded, err := canonicalAnswer([]byte(`{"sections":[{"kind":"next_checks","text":"Inspect current health.","citations":["g1"]}]}`), bindings)
+	if err != nil || !strings.Contains(string(encoded), ids[1]) || strings.Contains(string(encoded), ids[0]) {
+		t.Fatal("guide handle rebound to observation", err)
+	}
+	for _, guides := range [][]string{{"unknown"}, {ids[1], ids[1]}} {
+		if _, _, err := compactEvidenceReferences(ids, guides); err != port.ErrInvalid {
+			t.Fatal("unbound guidance classification accepted", err)
+		}
+	}
+}
+
 func TestCompactCitationHandlesRestoreOnlyTheOriginalOrderedReferences(t *testing.T) {
 	t.Parallel()
 	references := []string{"ev_" + strings.Repeat("a", 64), "ev_" + strings.Repeat("b", 64)}

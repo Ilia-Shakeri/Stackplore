@@ -68,10 +68,14 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 		return port.CountedInput{}, err
 	}
 	ids := make([]string, len(request.Evidence))
+	var guidanceIDs []string
 	for index, item := range request.Evidence {
 		ids[index] = item.ID
+		if item.Guidance {
+			guidanceIDs = append(guidanceIDs, item.ID)
+		}
 	}
-	aliases, bindings, err := compactReferences(ids)
+	aliases, bindings, err := compactEvidenceReferences(ids, guidanceIDs)
 	if err != nil {
 		return port.CountedInput{}, err
 	}
@@ -89,7 +93,9 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	}()
 	defer clear(scope)
 	wireEvidence, wireGuidance, err := partitionGuidance(request.Evidence, allEvidence)
-	if err != nil { return port.CountedInput{}, err }
+	if err != nil {
+		return port.CountedInput{}, err
+	}
 	defer clear(wireEvidence)
 	defer clear(wireGuidance)
 	input, err := json.Marshal(struct {
@@ -98,7 +104,7 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 		Evidence []countedEvidence  `json:"evidence"`
 		Scope    json.RawMessage    `json:"scope,omitempty"`
 		Outcomes []port.ToolOutcome `json:"outcomes,omitempty"`
-		Guidance []countedGuidance `json:"guidance,omitempty"`
+		Guidance []countedGuidance  `json:"guidance,omitempty"`
 	}{request.Locale, request.Question, wireEvidence, scope, request.Outcomes, wireGuidance})
 	if err != nil {
 		return port.CountedInput{}, port.ErrInvalid
@@ -110,9 +116,9 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 			continue
 		}
 		if request.Locale == "fa" {
-			notes += " guidance فقط متنِ راهنمای بازبینی‌شده و نامطمئن است، نه مشاهدهٔ زنده. در facts به آن ارجاع نده؛ تنها در hypotheses یا next_checks از id آن استفاده کن. شمار بخش خواسته‌شده را دقیق رعایت کن."
+			notes += " guidance فقط متنِ راهنمای بازبینی‌شده و نامطمئن است، نه مشاهدهٔ زنده. شناسهٔ g راهنما است؛ آن را با شناسهٔ مشاهدهٔ e عوض نکن. در facts به راهنما ارجاع نده؛ تنها در hypotheses یا next_checks از id آن استفاده کن. شمار بخش خواسته‌شده را دقیق رعایت کن."
 		} else {
-			notes += " guidance is reviewed but untrusted operating prose, not a live observation. Never cite it in facts; use its id only in hypotheses or next_checks. Return exactly the requested section count."
+			notes += " guidance is reviewed but untrusted operating prose, not a live observation. Its g IDs name guides; never substitute an observation e ID. Never cite guidance in facts; use its id only in hypotheses or next_checks. Return exactly the requested section count."
 		}
 		break
 	}
@@ -177,7 +183,7 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 			return port.CountedInput{}, port.ErrInputLimit
 		}
 	}
-	return port.CountedInput{Tokens: counted.Tokens, ReferenceIDs: ids, Bytes: len(formatted.Prompt), Revision: local.revision}, nil
+	return port.CountedInput{Tokens: counted.Tokens, ReferenceIDs: ids, GuidanceIDs: guidanceIDs, Bytes: len(formatted.Prompt), Revision: local.revision}, nil
 }
 
 func (local *Local) Generate(ctx context.Context, input port.CountedInput, outputLimit int) (port.Generated, error) {
@@ -194,7 +200,7 @@ func (local *Local) Generate(ctx context.Context, input port.CountedInput, outpu
 	if err := local.verify(ctx); err != nil {
 		return port.Generated{}, err
 	}
-	aliases, bindings, err := compactReferences(input.ReferenceIDs)
+	aliases, bindings, err := compactEvidenceReferences(input.ReferenceIDs, input.GuidanceIDs)
 	if err != nil {
 		return port.Generated{}, err
 	}

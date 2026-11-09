@@ -60,10 +60,12 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	refs := make(map[string]struct{}, len(request.Evidence))
 	guidance := make(map[string]struct{})
 	references := make([]string, 0, len(request.Evidence))
+	var guidanceReferences []string
 	for _, item := range request.Evidence {
 		refs[item.ID] = struct{}{}
 		if item.Guidance {
 			guidance[item.ID] = struct{}{}
+			guidanceReferences = append(guidanceReferences, item.ID)
 		}
 		references = append(references, item.ID)
 	}
@@ -93,6 +95,7 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	}
 	input.Tokens = slices.Clone(input.Tokens)
 	input.ReferenceIDs = references
+	input.GuidanceIDs = guidanceReferences
 	return &Prepared{owner: gateway, input: input, evidence: refs, guidance: guidance, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
 }
 
@@ -109,11 +112,14 @@ func (gateway *Gateway) Dispatch(ctx context.Context, prepared *Prepared) (Resul
 	}
 	defer clear(prepared.input.Tokens)
 	defer clear(prepared.input.ReferenceIDs)
+	defer clear(prepared.input.GuidanceIDs)
 	work, cancel := context.WithTimeout(ctx, MaximumCallDuration)
 	defer cancel()
 	input := prepared.input
 	input.ReferenceIDs = slices.Clone(input.ReferenceIDs)
 	defer clear(input.ReferenceIDs)
+	input.GuidanceIDs = slices.Clone(input.GuidanceIDs)
+	defer clear(input.GuidanceIDs)
 	input.Tokens = slices.Clone(input.Tokens)
 	generated, err := gateway.backend.Generate(work, input, prepared.limit)
 	clear(input.Tokens)
