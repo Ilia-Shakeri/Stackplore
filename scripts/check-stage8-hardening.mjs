@@ -17,16 +17,33 @@ export function hardeningResults(stdout) {
     package: `github.com/Ilia-Shakeri/stackplore/apps/api/internal/${pkg}`, name,
   })));
   const observed = new Map();
+  const children = new Map();
+  const terminal = new Set();
   for (const line of stdout.split('\n').filter(Boolean)) {
     let event;
     try { event = JSON.parse(line); } catch { throw new Error('stage8_hardening.invalid_events'); }
-    if (!['pass', 'fail', 'skip'].includes(event.Action) || !expected.some((item) => item.package === event.Package && item.name === event.Test)) continue;
+    if (!['pass', 'fail', 'skip'].includes(event.Action) || typeof event.Test !== 'string') continue;
+    const parent = expected.find((item) => item.package === event.Package && item.name === event.Test.split('/')[0]);
+    if (!parent) continue;
     const key = JSON.stringify([event.Package, event.Test]);
-    if (observed.has(key) || !Number.isFinite(event.Elapsed) || event.Elapsed < 0 || event.Elapsed > 360)
+    if (terminal.has(key) || !Number.isFinite(event.Elapsed) || event.Elapsed < 0 || event.Elapsed > 360)
       throw new Error('stage8_hardening.invalid_events');
+    terminal.add(key);
+    if (event.Test !== parent.name) {
+      const parentKey = JSON.stringify([parent.package, parent.name]);
+      const counts = children.get(parentKey) ?? { subcases: 0, skipped_subcases: 0, failed_subcases: 0 };
+      counts.subcases++;
+      if (event.Action === 'skip') counts.skipped_subcases++;
+      if (event.Action === 'fail') counts.failed_subcases++;
+      children.set(parentKey, counts);
+      continue;
+    }
     observed.set(key, { status: event.Action, elapsed_seconds: event.Elapsed });
   }
-  return expected.map((item) => ({ ...item, ...(observed.get(JSON.stringify([item.package, item.name])) ?? { status: 'missing', elapsed_seconds: null }) }));
+  return expected.map((item) => ({ ...item,
+    ...(observed.get(JSON.stringify([item.package, item.name])) ?? { status: 'missing', elapsed_seconds: null }),
+    ...(children.get(JSON.stringify([item.package, item.name])) ?? { subcases: 0, skipped_subcases: 0, failed_subcases: 0 }),
+  }));
 }
 
 async function main() {
@@ -41,7 +58,11 @@ async function main() {
       '-run', `^(${names.join('|')})$`, '-count=1', '-timeout=6m', '-json'],
       { cwd: root, encoding: 'utf8', timeout: 390000, maxBuffer: 4 * 1024 * 1024 });
     report.cases = hardeningResults(tested.stdout ?? '');
-    if (tested.status !== 0 || report.cases.some((item) => item.status !== 'pass')) throw new Error('stage8_hardening.case_failed');
+    if (tested.status !== 0 || report.cases.some((item) => item.status !== 'pass' || item.skipped_subcases > 0 || item.failed_subcases > 0) ||
+        report.cases.find((item) => item.name === 'TestStage8MalformedOutputMatrixNeverRetriesOrPublishes')?.subcases !== 72 ||
+        report.cases.find((item) => item.name === 'TestAssistantNativeCrashBoundaries')?.subcases !== 3 ||
+        (report.cases.find((item) => item.name === 'TestAssistantHotPathQueryPlansAndRetentionBoundsOnRealPostgreSQL')?.subcases ?? 0) < 7)
+      throw new Error('stage8_hardening.case_failed');
     const fuzzed = spawnSync('go', ['-C', 'apps/api', 'test', './internal/inference', '-run', '^$',
       '-fuzz', '^FuzzStage8ClosedAnswerBoundary$', '-fuzztime=10s', '-parallel=1', '-timeout=1m'],
       { cwd: root, timeout: 75000, maxBuffer: 1024 * 1024 });

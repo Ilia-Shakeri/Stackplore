@@ -22,3 +22,13 @@ test('duplicate and malformed events reject without exposing private output', ()
   assert.throws(() => hardeningResults('not-json private text'), { message: 'stage8_hardening.invalid_events' });
   assert.ok(hardeningResults(JSON.stringify({ Action: 'output', Output: 'private text' })).every((row) => !JSON.stringify(row).includes('private text')));
 });
+
+test('nested skipped and failed boundaries remain visible even under a passing parent', () => {
+  const values = events();
+  values.push({ ...values[0], Test: `${values[0].Test}/skipped`, Action: 'skip' });
+  values.push({ ...values[0], Test: `${values[0].Test}/failed`, Action: 'fail' });
+  const first = hardeningResults(encode(values))[0];
+  assert.equal(first.subcases, 2);
+  assert.equal(first.skipped_subcases, 1);
+  assert.equal(first.failed_subcases, 1);
+});

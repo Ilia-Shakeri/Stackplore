@@ -744,7 +744,7 @@ async function main() {
       report.seed_evaluation = summarizeSeedEvaluation(manifest, bytes, observations);
       await measure();
       if (seed.status !== 0 || parentResults.length !== 1 || parentResults[0] !== 'pass' ||
-          report.seed_evaluation.totals.missing !== 0)
+          report.seed_evaluation.totals.missing !== 0 || report.seed_evaluation.totals.not_run !== 0)
         throw new Error('hosted_processor.evaluation_incomplete');
     }
     report.status = 'passed';
