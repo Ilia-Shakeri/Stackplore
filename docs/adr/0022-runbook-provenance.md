@@ -3,6 +3,11 @@
 Status: accepted implementation design; alpha7.2 source/tag hosted verification and publication pass. See [exact receipts](../evidence/2.0.0-alpha.7.2/README.md). This does not accept later processing guidance or stable2.
 Date: 2026-11-08.
 
+Amendment: [ADR-0023](0023-selected-document-guidance.md) extends new approvals
+with explicit separate processing permission and a v3 digest. The v2 digest and
+absence of processing handoff described here apply to immutable alpha7.2;
+existing revisions retain those exact digests and default to reference use only.
+
 ## Decision
 
 New collection approvals require an explicit operator record: kind
@@ -30,7 +35,8 @@ authorized readers. Reads return separate `document` and nullable `provenance`
 objects; imports still contain plain documents and one collection provenance.
 The bilingual interface displays source and usage basis as plain text during
 review and reading. Legacy absence is visible and cannot be treated as permission
-for a future document-to-generation handoff. That handoff remains unimplemented.
+for a document-to-generation handoff. Alpha7.2 implements no such handoff;
+the later alpha7.3 candidate requires the separate ADR-0023 permission path.
 
 ## Verification and limits
 

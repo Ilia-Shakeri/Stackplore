@@ -28,7 +28,11 @@ configuration and normal evidence ownership fences remain necessary.
 The context includes at most 256 UTF-8 body bytes with its exact title and explicit
 guidance marker. The counted processor envelope also carries trusted usage
 classification, with localized system rules that never incorporate document
-prose. It cannot enter the observed-facts section or deterministic
+prose. Exact corpus/version/digest/document/locale metadata stays in the sealed
+server witness instead of processor text; its private revision binding remains
+part of the canonical citation fingerprint. The processor receives the same
+bounded title/excerpt/usage/truncation data and request-local citation handle.
+It cannot enter the observed-facts section or deterministic
 incident timeline. Typed document citations can support hypotheses/next checks;
 the witness is reopened through a fresh authorized exact-reference read. Normal
 observation citations retain a null document reference.

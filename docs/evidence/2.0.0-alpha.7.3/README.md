@@ -72,6 +72,25 @@ plain-prototype guard and used permissive end anchors. Restore that guard and
 reject final-newline identifiers/digests without invoking getters. New focused
 negative tests cover these regressions. Fresh hosted proof is required.
 
+Source `c555747f8259f61ae50c0a1c5cb2d9774c0ee790`,
+[42577914887](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42577914887):
+focused checks and six deployment/provider/tool jobs pass; the full gate needs
+two hosted formatting corrections. The real English administrator guide journey
+passes every binding/witness/clearing assertion. Viewer English generation is
+rejected and Persian generation reaches the unchanged 40-second limit.
+[Failed receipt](attempt-c555-processor.json) retains known and uncertain runs
+and passing owned cleanup.
+
+The next correction minimizes processor data: exact revision metadata stays in
+the sealed witness and still binds the citation fingerprint, while title,
+bounded excerpt, truncation and usage remain processor data. The new functional
+guide fixture uses a short ordinary operating note in each language; all eight
+existing baseline journeys and strict assertions remain. UTF-8 clipping at the
+256-byte maximum and revision-substitution checks remain separate focused tests.
+This smoke does not certify maximum-size processor throughput or semantic quality.
+Closing/including a selection returns focus to its persistent heading; real
+witness focus is also asserted. Existing time and retry caps remain unchanged.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates

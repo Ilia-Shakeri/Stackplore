@@ -25,6 +25,17 @@ func TestReviewedGuidanceIsLocalBoundedAndNeverAnObservation(t *testing.T) {
 	if _, err := bundle.Observations(); err != ErrInvalid {
 		t.Fatal("guide became live observation", err)
 	}
+	if strings.Contains(items[0].Text, `"corpus_id"`) || strings.Contains(items[0].Text, `"digest"`) {
+		t.Fatal("private revision metadata entered processor text")
+	}
+	changed := request
+	selected := *request.Guidance
+	selected.Reference.Digest[0]++
+	changed.Guidance = &selected
+	other, err := Build(context.Background(), changed)
+	if err != nil || other.Citations()[0].ID == bundle.Citations()[0].ID {
+		t.Fatal("revision omitted from sealed citation binding", err)
+	}
 	request.Destination = Remote
 	if _, err := Build(context.Background(), request); err != ErrDenied {
 		t.Fatal("guide crossed structured-only boundary", err)

@@ -6,9 +6,7 @@ const fail = (): never => {
   throw new ApiTransportError('unexpected_response');
 };
 const id = (value: unknown): string =>
-  typeof value === 'string' && /^[a-z][a-z0-9_-]{0,63}$(?![\s\S])/u.test(value)
-    ? value
-    : fail();
+  typeof value === 'string' && /^[a-z][a-z0-9_-]{0,63}$(?![\s\S])/u.test(value) ? value : fail();
 const integer = (value: unknown, minimum: number): number =>
   typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum ? value : fail();
 

@@ -19,11 +19,12 @@ func (ReviewedGuidance) Format(state fmt.State, _ rune) {
 func (ReviewedGuidance) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 type guidanceFact struct {
-	CorpusID   string `json:"corpus_id"`
-	Version    int64  `json:"version"`
-	Digest     string `json:"digest"`
-	DocumentID string `json:"document_id"`
-	Locale     string `json:"locale"`
+	// Exact revision metadata stays in the sealed witness, outside processor text.
+	CorpusID   string `json:"-"`
+	Version    int64  `json:"-"`
+	Digest     string `json:"-"`
+	DocumentID string `json:"-"`
+	Locale     string `json:"-"`
 	Title      string `json:"title"`
 	Excerpt    string `json:"excerpt"`
 	Truncated  bool   `json:"truncated"`

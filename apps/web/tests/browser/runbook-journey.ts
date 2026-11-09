@@ -37,8 +37,8 @@ const corpus = (version: number) => ({
       title: locale === 'en' ? 'Local check guide' : 'راهنمای بررسی محلی',
       body:
         locale === 'en'
-          ? 'For next checks only: compare current service health and recent events. This guide is not a live observation.'
-          : 'فقط برای بررسی بعدی: سلامت کنونی سرویس و رخدادهای اخیر را مقایسه کنید. این راهنما مشاهدهٔ زنده نیست.',
+          ? 'Inspect current service health.'
+          : 'سلامت سرویس را بررسی کنید.',
     },
   ]),
 });

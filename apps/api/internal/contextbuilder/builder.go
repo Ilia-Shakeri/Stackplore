@@ -181,6 +181,14 @@ func (projection *projection) add(kind, identity string, item record) error {
 	if err != nil {
 		return ErrInvalid
 	}
+	if kind == "document" {
+		if item.Guidance == nil {
+			return ErrInvalid
+		}
+		guide := item.Guidance
+		binding := fingerprint("document-revision", guide.CorpusID+"\x00"+strconv.FormatInt(guide.Version, 10)+"\x00"+guide.Digest+"\x00"+guide.DocumentID+"\x00"+guide.Locale)
+		encoded = append(encoded, []byte("\x00"+binding)...)
+	}
 	item.CitationID = fingerprint(kind, string(scope.RunID)+"\x00"+string(scope.Source.SourceID)+"\x00"+strconv.FormatInt(scope.ConfigurationVersion, 10)+"\x00"+strconv.FormatInt(scope.PolicyVersion, 10)+"\x00"+strconv.FormatInt(scope.RestoreGeneration, 10)+"\x00"+scope.Range.Start.Format(time.RFC3339Nano)+"\x00"+scope.Range.End.Format(time.RFC3339Nano)+"\x00"+identity+"\x00"+string(encoded))
 	projection.bundle.document.Records = append(projection.bundle.document.Records, item)
 	projection.bundle.references = append(projection.bundle.references, CitationReference{ID: item.CitationID, Kind: kind, ObjectID: identity, Source: scope.Source, ConfigurationVersion: scope.ConfigurationVersion, PolicyVersion: scope.PolicyVersion, RestoreGeneration: scope.RestoreGeneration, ResourceID: domain.ResourceID(item.ResourceID), ObservedAt: item.Quality.ObservedAt, Range: scope.Range})

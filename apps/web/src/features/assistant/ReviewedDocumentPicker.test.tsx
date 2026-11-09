@@ -106,6 +106,9 @@ describe('explicit reviewed guide selection', () => {
     expect(chosen?.reference).toEqual(reference);
     expect(new TextEncoder().encode(chosen?.excerpt).length).toBe(256);
     expect(chosen?.excerpt).toBe('ظ'.repeat(128));
+    expect(screen.getByRole('heading', { name: 'Reviewed guidance (optional)' })).toBe(
+      document.activeElement,
+    );
     view.unmount();
   });
 });

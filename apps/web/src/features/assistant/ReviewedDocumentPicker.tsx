@@ -67,6 +67,7 @@ export function ReviewedDocumentPicker({
     setConsent(false);
     setBusy(false);
     setFailed(false);
+    heading.current?.focus();
   };
   const perform = async <T,>(
     action: (signal: AbortSignal) => Promise<T>,

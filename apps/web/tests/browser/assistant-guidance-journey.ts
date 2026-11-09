@@ -45,8 +45,8 @@ export async function assistantGuidanceJourney(
   const guideTitle = locale === 'en' ? 'Local check guide' : 'راهنمای بررسی محلی';
   const guideBody =
     locale === 'en'
-      ? 'For next checks only: compare current service health and recent events. This guide is not a live observation.'
-      : 'فقط برای بررسی بعدی: سلامت کنونی سرویس و رخدادهای اخیر را مقایسه کنید. این راهنما مشاهدهٔ زنده نیست.';
+      ? 'Inspect current service health.'
+      : 'سلامت سرویس را بررسی کنید.';
   try {
     await page.getByRole('button', { name: label('assistant.open'), exact: true }).click();
     const panel = page.locator('.assistant');
@@ -120,8 +120,7 @@ export async function assistantGuidanceJourney(
       (section) => section.kind !== 'facts' || !section.citations.includes(guide?.id ?? ''),
     );
     metadata.guide_section_exact =
-      ready.answer.sections.length === 1 &&
-      ready.answer.sections[0]?.kind === 'next_checks';
+      ready.answer.sections.length === 1 && ready.answer.sections[0]?.kind === 'next_checks';
     metadata.guide_text_exact = ready.answer.sections[0]?.text === guideBody;
     metadata.guide_citation_exact =
       ready.answer.sections[0]?.citations.length === 1 &&
@@ -139,6 +138,7 @@ export async function assistantGuidanceJourney(
       .click();
     const witness = panel.getByRole('article', { name: label('runbooks.document'), exact: true });
     await expect(witness).toBeVisible();
+    await expect(witness.getByRole('heading')).toBeFocused();
     metadata.witness_current = await witness.evaluate(
       (element, body) => element.textContent.includes(body),
       guideBody,
