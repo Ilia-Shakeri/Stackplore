@@ -12,6 +12,8 @@
   non-alpha version2 publication; retain alpha technical release gates.
 - Add hosted regression coverage and [stage8 readiness](docs/v2/stage8-readiness.md).
   Independent review, held-out profile quality, pilot and stable acceptance remain open.
+- Source `ec866ca` passes all eight hosted jobs and signed package/security trial;
+  immutable-tag verification and public publication have [separate receipts](docs/evidence/2.0.0-alpha.8/README.md).
 
 ## [2.0.0-alpha.7.3] - 2026-11-09
 

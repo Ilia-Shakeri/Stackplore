@@ -4,6 +4,11 @@ Current work is **2.0.0-alpha.8**, schema22. This is a preparation checkpoint,
 not completion of stage8. Workstation activity is limited to file edits and
 lightweight Git; execution belongs to GitHub Actions.
 
+Immutable tag `v2.0.0-alpha.8` identifies `ec866ca`, which passes all eight source
+jobs and signed package/security trial. Exact-tag and publication have separate
+[owning live receipts](../evidence/2.0.0-alpha.8/README.md); these results do not
+close the independent quality or pilot gates below.
+
 ## Verified entry point
 
 Published alpha7.3 source `20daeeb` passes all eight source jobs, all eight

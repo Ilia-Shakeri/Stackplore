@@ -1,8 +1,9 @@
 # Version 2 implementation ledger
 
-> Current stage8 candidate **2.0.0-alpha.8**, schema22: actual review-receipt
-> validation and non-alpha publication floor. Hosted source/package/tag gates
-> remain pending. [Scope and roadmap](stage8-readiness.md),
+> Tagged stage8 preparation **2.0.0-alpha.8**, schema22, source `ec866ca`: actual
+> review-receipt validation and non-alpha publication floor pass all eight source
+> jobs and signed trial. Exact-tag/publication have separate live receipts.
+> [Scope and roadmap](stage8-readiness.md),
 > [attempt ledger](../evidence/2.0.0-alpha.8/README.md).
 
 > Published selected-document-guidance checkpoint **2.0.0-alpha.7.3**, schema **22**, branch `v2/runbooks-prep`; source `20daeeb` passes all eight source jobs, all eight exact-tag jobs, signed trial and public publication. Independent quality, pilot and stable acceptance remain open. [Current receipts](../evidence/2.0.0-alpha.7.3/README.md).
@@ -119,7 +120,7 @@ not accept the correction.
 | 5 | `2.0.0-alpha.5` | Published; recorded scope accepted | Broader quality and customer acceptance remain separate |
 | 6 | `2.0.0-alpha.6.2` / `.6.3` | Bounded previews published | Independent semantic quality remains unaccepted |
 | 7 | `2.0.0-alpha.7.1` / `.7.2` / `.7.3` | Metadata export, provenance and selected guidance published | Selected guidance passes its own complete source, exact-tag and signed publication gates; independent semantic quality and stable acceptance remain open |
-| 8 | `2.0.0-alpha.8` | Corpus review/publication floor under hosted verification | Held-out quality, independent review, attack/failure results and measured limits remain open |
+| 8 | `2.0.0-alpha.8` | Corpus review/publication floor tagged; source and signed trial pass | Own exact-tag/publication receipts; held-out quality, independent review, attack/failure results and measured limits remain open |
 | 9     | `2.0.0-beta.1`         | Not delivered                | Actual pilot, upgrade and deployment                       |
 | 10    | `2.0.0-rc.N` → `2.0.0` | Not delivered                | Independent candidate and stable acceptance                |
 

@@ -1,13 +1,13 @@
 # Stackplore active implementation evidence
 
-**2026-11-09 — stage8:** candidate **2.0.0-alpha.8**, schema22, adds actual
-corpus review-receipt validation and a non-alpha publication floor. Initial
-focused hosted checks pass; the complete gate found script formatting and its
-hosted correction is applied. Fresh source/package/tag receipts remain required.
+**2026-11-09 — stage8:** tagged **2.0.0-alpha.8**, schema22, source `ec866ca`,
+adds actual corpus review-receipt validation and a non-alpha publication floor.
+All eight source jobs and signed package/security trial pass after the hosted
+formatting correction. Exact-tag/publication have separate live receipts.
 [Scope, roadmap and acceptance gaps](v2/stage8-readiness.md),
 [attempt trail](evidence/2.0.0-alpha.8/README.md).
 
-**2026-11-09:** latest published development checkpoint is **2.0.0-alpha.7.3**,
+**2026-11-09:** prior published development checkpoint **2.0.0-alpha.7.3**,
 schema22, source `20daeeba9c7c1d96ee468f07a2f2a9e2e9417490`.
 Source [42588544856](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42588544856),
 exact tag [42591682187](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42591682187)
