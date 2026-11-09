@@ -23,6 +23,9 @@ export async function assistantGuidanceJourney(
     cleared: false,
     coverage_valid: false,
     guide_supported: false,
+    guide_section_exact: false,
+    guide_text_exact: false,
+    guide_citation_exact: false,
   };
   const words = Object.assign(
     {},
@@ -63,13 +66,19 @@ export async function assistantGuidanceJourney(
       .getByRole('textbox', { name: label('assistant.question'), exact: true })
       .fill(
         locale === 'en'
-          ? 'Return exactly one next_checks section. Its text must be exactly the excerpt field in the selected guide. Cite that guide evidence id once. No facts or other claims.'
-          : 'فقط یک بخش next_checks بده. در text فقط مقدار فیلد excerpt از راهنمای منتخب را عیناً کپی کن؛ توضیح اضافه نده. در citations مقدار id شاهدِ همان راهنما را فقط یک بار بگذار. بخش facts و ادعای دیگر نده.',
+          ? 'Return only one next_checks section. Copy text exactly from evidence[1].text.records[0].guidance.excerpt. Set citations to [evidence[1].id]. No other sections.'
+          : 'فقط یک بخش next_checks بده. در text فقط مقدار فیلد evidence[1].text.records[0].guidance.excerpt را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار evidence[1].id را فقط یک بار بگذار. بخش دیگری نده.',
       );
     const admission = page.waitForResponse(
       (response) =>
         response.request().method() === 'POST' &&
         new URL(response.url()).pathname === '/api/v1/assistant/runs',
+    );
+    const ownedRead = page.waitForRequest(
+      (request) =>
+        request.method() === 'GET' &&
+        /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}$/u.test(new URL(request.url()).pathname),
+      { timeout: 110_000 },
     );
     metadata.phase = 'admission';
     await panel.getByRole('button', { name: label('assistant.send'), exact: true }).click();
@@ -79,8 +88,7 @@ export async function assistantGuidanceJourney(
       reviewed_document?: { consent?: unknown };
     };
     metadata.consent_sent = posted.reviewed_document?.consent === true;
-    const receipt = (await response.json()) as { run?: { id?: string } };
-    const id = receipt.run?.id;
+    const id = new URL((await ownedRead).url()).pathname.split('/').at(-1);
     if (id === undefined || !/^ar_[a-f0-9]{64}$/u.test(id))
       throw new Error('Guidance run identity missing');
     metadata.phase = 'completion';
@@ -111,12 +119,15 @@ export async function assistantGuidanceJourney(
     metadata.not_facts = ready.answer.sections.every(
       (section) => section.kind !== 'facts' || !section.citations.includes(guide?.id ?? ''),
     );
-    metadata.guide_supported =
+    metadata.guide_section_exact =
       ready.answer.sections.length === 1 &&
-      ready.answer.sections[0]?.kind === 'next_checks' &&
-      ready.answer.sections[0].text === guideBody &&
-      ready.answer.sections[0].citations.length === 1 &&
+      ready.answer.sections[0]?.kind === 'next_checks';
+    metadata.guide_text_exact = ready.answer.sections[0]?.text === guideBody;
+    metadata.guide_citation_exact =
+      ready.answer.sections[0]?.citations.length === 1 &&
       ready.answer.sections[0].citations[0] === guide?.id;
+    metadata.guide_supported =
+      metadata.guide_section_exact && metadata.guide_text_exact && metadata.guide_citation_exact;
     metadata.coverage_valid =
       ready.coverage?.length === 2 &&
       ready.coverage[0]?.tool === 'inventory' &&

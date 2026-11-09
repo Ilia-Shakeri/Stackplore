@@ -7,6 +7,7 @@ import {
   parseRunbookProvenance,
   parseRunbookMaterial,
   parseRunbookResults,
+  parseRunbookReference,
 } from './runbook-client';
 
 const reference = {
@@ -17,6 +18,24 @@ const reference = {
   locale: 'en' as const,
   generation: 0,
 };
+
+it('rejects reference prototypes and getters without evaluating them', () => {
+  const inherited: unknown = Object.setPrototypeOf({ ...reference }, { extra: true });
+  expect(() => parseRunbookReference(inherited)).toThrow();
+  const getter = vi.fn(() => reference.digest);
+  const accessor = Object.defineProperty({ ...reference }, 'digest', { get: getter });
+  expect(() => parseRunbookReference(accessor)).toThrow();
+  expect(getter).not.toHaveBeenCalled();
+  const plain: unknown = Object.setPrototypeOf({ ...reference }, null);
+  expect(parseRunbookReference(plain)).toEqual(reference);
+  for (const altered of [
+    { ...reference, corpus_id: `${reference.corpus_id}\n` },
+    { ...reference, document_id: `${reference.document_id}\n` },
+    { ...reference, digest: `${reference.digest}\n` },
+    { ...reference, digest: `${'0'.repeat(64)}\n` },
+  ])
+    expect(() => parseRunbookReference(altered)).toThrow();
+});
 const hit = { reference, title: 'Reviewed help', snippet: '  inert snippet' };
 const query = { query: 'private search', locale: 'en' as const, limit: 10, cursor: '' };
 describe('private reviewed document transport', () => {

@@ -572,7 +572,12 @@ async function main() {
         try {
           const guidance = await metadata(`hosted-guidance-${locale}-${role}.json`);
           report.application_browser.guidance_journeys.push({
-            valid_receipt: validHostedGuidanceMetadata(guidance, process.env.GITHUB_SHA, locale, role),
+            valid_receipt: validHostedGuidanceMetadata(
+              guidance,
+              process.env.GITHUB_SHA,
+              locale,
+              role,
+            ),
             ...Object.fromEntries(
               [
                 'locale',
@@ -585,6 +590,9 @@ async function main() {
                 'not_facts',
                 'coverage_valid',
                 'guide_supported',
+                'guide_section_exact',
+                'guide_text_exact',
+                'guide_citation_exact',
                 'witness_current',
                 'cleared',
               ].map((key) => [key, guidance[key]]),

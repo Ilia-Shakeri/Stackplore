@@ -6,13 +6,17 @@ const fail = (): never => {
   throw new ApiTransportError('unexpected_response');
 };
 const id = (value: unknown): string =>
-  typeof value === 'string' && /^[a-z][a-z0-9_-]{0,63}$/u.test(value) ? value : fail();
+  typeof value === 'string' && /^[a-z][a-z0-9_-]{0,63}$(?![\s\S])/u.test(value)
+    ? value
+    : fail();
 const integer = (value: unknown, minimum: number): number =>
   typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum ? value : fail();
 
 // Shared by document transport and answer witnesses, without a response-parser cycle.
 export function parseRunbookReference(value: unknown): RunbookReference {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return fail();
+  const prototype: unknown = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return fail();
   const descriptors = Object.getOwnPropertyDescriptors(value);
   if (Reflect.ownKeys(descriptors).length !== fields.length) return fail();
   const item: Record<string, unknown> = {};
@@ -23,7 +27,7 @@ export function parseRunbookReference(value: unknown): RunbookReference {
   }
   if (
     typeof item.digest !== 'string' ||
-    !/^[a-f0-9]{64}$/u.test(item.digest) ||
+    !/^[a-f0-9]{64}$(?![\s\S])/u.test(item.digest) ||
     item.digest === '0'.repeat(64)
   )
     return fail();

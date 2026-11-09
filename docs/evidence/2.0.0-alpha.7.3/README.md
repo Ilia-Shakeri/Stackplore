@@ -54,6 +54,24 @@ this distinction and both passing cleanup flags. The next receipt retains
 failed journey flags plus a fixed phase/status diagnostic instead of discarding
 the row before validation. No assertion or acceptance condition is removed.
 
+Source `7ca6e30673fc9f7ee6d8ef6a30686bc4ff631811`,
+[42576835165](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42576835165):
+focused Go, PostgreSQL and client/UI checks pass; the full gate needs a single
+hosted formatter correction. Six deployment/provider/tool jobs pass. The real
+Persian guide reaches current snapshot200, exact reference, coverage, fresh
+witness and page-exit clearing; exact answer excerpt binding fails. English
+stops while reading the browser admission receipt. [Failed receipt](attempt-7ca-processor.json).
+The next smoke observes the owning interface's actual authorized GET to obtain
+the admitted identity, rather than reading the admission body a second time.
+Its copy task names the exact envelope field, matching the existing resource
+copy smoke. Text/section/citation equality remain mandatory and receive separate
+metadata flags. Existing baseline journeys and time limits remain unchanged.
+
+Static review also found that the shared exact-reference parser had dropped its
+plain-prototype guard and used permissive end anchors. Restore that guard and
+reject final-newline identifiers/digests without invoking getters. New focused
+negative tests cover these regressions. Fresh hosted proof is required.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates
