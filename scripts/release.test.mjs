@@ -165,8 +165,10 @@ test('v2 beta, release candidates and stable publication require corpus evidence
     }
     await mkdir(path.join(root, 'tests/fixtures/assistant'), { recursive: true });
     for (const name of ['corpus.manifest.json', 'corpus.seed.json']) {
-      await writeFile(path.join(root, 'tests/fixtures/assistant', name),
-        await readFile(path.join(import.meta.dirname, '../tests/fixtures/assistant', name)));
+      await writeFile(
+        path.join(root, 'tests/fixtures/assistant', name),
+        await readFile(path.join(import.meta.dirname, '../tests/fixtures/assistant', name)),
+      );
     }
     const seeded = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: `v${version}` }, hook);
     assert.notEqual(seeded.status, 0);

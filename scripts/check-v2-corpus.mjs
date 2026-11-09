@@ -175,8 +175,7 @@ function validateManifest(manifest) {
   identifier(manifest.revision, 'revision');
   if (!['seed', 'candidate'].includes(manifest.status)) reject('manifest_status');
   if (manifest.corpus_file !== 'corpus.seed.json') reject('corpus_file');
-  if (!exact(/^[a-f0-9]{64}$/u, manifest.sha256))
-    reject('digest');
+  if (!exact(/^[a-f0-9]{64}$/u, manifest.sha256)) reject('digest');
   closed(manifest.target, ['paired_scenarios', 'adversarial_cases'], 'target_shape');
   if (manifest.target.paired_scenarios !== 200 || manifest.target.adversarial_cases !== 1000) {
     reject('target_floor');
@@ -401,21 +400,44 @@ export function validateCorpus(manifest, corpusBytes, { release = false } = {}) 
 }
 
 export function validateReviewReceipt(manifest, summary, receipt) {
-  closed(receipt, [
-    'schema_version', 'corpus_id', 'revision', 'sha256', 'status', 'authors',
-    'reviews', 'paired_scenarios', 'adversarial_cases', 'rubric_revision', 'holdout',
-  ], 'receipt_shape');
-  if (receipt.schema_version !== 1 || receipt.status !== 'accepted' ||
-      receipt.corpus_id !== manifest.corpus_id || receipt.revision !== manifest.revision ||
-      receipt.sha256 !== manifest.sha256) reject('receipt_identity');
+  closed(
+    receipt,
+    [
+      'schema_version',
+      'corpus_id',
+      'revision',
+      'sha256',
+      'status',
+      'authors',
+      'reviews',
+      'paired_scenarios',
+      'adversarial_cases',
+      'rubric_revision',
+      'holdout',
+    ],
+    'receipt_shape',
+  );
+  if (
+    receipt.schema_version !== 1 ||
+    receipt.status !== 'accepted' ||
+    receipt.corpus_id !== manifest.corpus_id ||
+    receipt.revision !== manifest.revision ||
+    receipt.sha256 !== manifest.sha256
+  )
+    reject('receipt_identity');
   identifier(receipt.rubric_revision, 'receipt_rubric');
   array(receipt.authors, 1, 10, 'receipt_authors');
   unique(receipt.authors, 'receipt_authors');
-  if (receipt.authors.length !== manifest.review.authors.length ||
-      receipt.authors.some((person) => !manifest.review.authors.includes(person)))
+  if (
+    receipt.authors.length !== manifest.review.authors.length ||
+    receipt.authors.some((person) => !manifest.review.authors.includes(person))
+  )
     reject('receipt_authors');
-  if (receipt.paired_scenarios !== summary.paired_scenarios ||
-      receipt.adversarial_cases !== summary.adversarial_cases) reject('receipt_counts');
+  if (
+    receipt.paired_scenarios !== summary.paired_scenarios ||
+    receipt.adversarial_cases !== summary.adversarial_cases
+  )
+    reject('receipt_counts');
   array(receipt.reviews, 2, 10, 'receipt_reviews');
   const reviewers = [];
   for (const review of receipt.reviews) {
@@ -425,8 +447,10 @@ export function validateReviewReceipt(manifest, summary, receipt) {
     reviewers.push(review.reviewer);
   }
   unique(reviewers, 'receipt_reviewers');
-  if (reviewers.length !== manifest.review.reviewers.length ||
-      reviewers.some((person) => !manifest.review.reviewers.includes(person)))
+  if (
+    reviewers.length !== manifest.review.reviewers.length ||
+    reviewers.some((person) => !manifest.review.reviewers.includes(person))
+  )
     reject('receipt_reviewers');
   closed(receipt.holdout, ['sealed', 'tuning_access'], 'receipt_holdout');
   if (receipt.holdout.sealed !== true || receipt.holdout.tuning_access !== false)
@@ -448,8 +472,7 @@ async function readBounded(root, relative, maximum) {
   const handle = await open(file, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   try {
     const opened = await handle.stat();
-    if (!opened.isFile() || opened.dev !== info.dev || opened.ino !== info.ino)
-      reject('file_type');
+    if (!opened.isFile() || opened.dev !== info.dev || opened.ino !== info.ino) reject('file_type');
     const buffer = Buffer.alloc(maximum + 1);
     let length = 0;
     while (length < buffer.length) {
@@ -469,19 +492,27 @@ export async function checkCorpus(root = process.cwd(), options = {}) {
   try {
     manifest = JSON.parse(
       new TextDecoder('utf-8', { fatal: true }).decode(
-        await readBounded(root, `${CORPUS_DIRECTORY}/corpus.manifest.json`, 16384)),
+        await readBounded(root, `${CORPUS_DIRECTORY}/corpus.manifest.json`, 16384),
+      ),
     );
   } catch {
     reject('manifest_read');
   }
   validateManifest(manifest);
-  const bytes = await readBounded(root, `${CORPUS_DIRECTORY}/${manifest.corpus_file}`, MAXIMUM_CORPUS_BYTES);
+  const bytes = await readBounded(
+    root,
+    `${CORPUS_DIRECTORY}/${manifest.corpus_file}`,
+    MAXIMUM_CORPUS_BYTES,
+  );
   const summary = validateCorpus(manifest, bytes, options);
   if (manifest.review.status === 'accepted') {
     let receipt;
     try {
-      receipt = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(
-        await readBounded(root, manifest.review.receipt, 65536)));
+      receipt = JSON.parse(
+        new TextDecoder('utf-8', { fatal: true }).decode(
+          await readBounded(root, manifest.review.receipt, 65536),
+        ),
+      );
     } catch {
       reject('receipt_read');
     }

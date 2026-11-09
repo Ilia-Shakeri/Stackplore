@@ -10,7 +10,8 @@ export async function writeTestCandidate(root) {
   const seed = JSON.parse(await readFile(path.join(source, 'corpus.seed.json'), 'utf8'));
   manifest.status = 'candidate';
   manifest.review = {
-    status: 'accepted', authors: ['test-author'],
+    status: 'accepted',
+    authors: ['test-author'],
     reviewers: ['test-reviewer-one', 'test-reviewer-two'],
     receipt: 'docs/evidence/v2/test-review.json',
   };
@@ -46,15 +47,24 @@ export async function writeTestCandidate(root) {
   const bytes = JSON.stringify({ ...seed, scenarios, adversarial_cases: adversarialCases });
   manifest.sha256 = createHash('sha256').update(bytes).digest('hex');
   const receipt = {
-    schema_version: 1, corpus_id: manifest.corpus_id, revision: manifest.revision,
-    sha256: manifest.sha256, status: 'accepted', authors: manifest.review.authors,
+    schema_version: 1,
+    corpus_id: manifest.corpus_id,
+    revision: manifest.revision,
+    sha256: manifest.sha256,
+    status: 'accepted',
+    authors: manifest.review.authors,
     reviews: manifest.review.reviewers.map((reviewer) => ({ reviewer, decision: 'accepted' })),
-    paired_scenarios: 200, adversarial_cases: 1000,
-    rubric_revision: 'test-only-rubric', holdout: { sealed: true, tuning_access: false },
+    paired_scenarios: 200,
+    adversarial_cases: 1000,
+    rubric_revision: 'test-only-rubric',
+    holdout: { sealed: true, tuning_access: false },
   };
   await mkdir(path.join(root, 'tests/fixtures/assistant'), { recursive: true });
   await mkdir(path.join(root, 'docs/evidence/v2'), { recursive: true });
-  await writeFile(path.join(root, 'tests/fixtures/assistant/corpus.manifest.json'), JSON.stringify(manifest));
+  await writeFile(
+    path.join(root, 'tests/fixtures/assistant/corpus.manifest.json'),
+    JSON.stringify(manifest),
+  );
   await writeFile(path.join(root, 'tests/fixtures/assistant/corpus.seed.json'), bytes);
   await writeFile(path.join(root, manifest.review.receipt), JSON.stringify(receipt));
   return { manifest, receipt };

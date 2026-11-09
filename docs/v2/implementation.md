@@ -119,7 +119,7 @@ not accept the correction.
 | 5 | `2.0.0-alpha.5` | Published; recorded scope accepted | Broader quality and customer acceptance remain separate |
 | 6 | `2.0.0-alpha.6.2` / `.6.3` | Bounded previews published | Independent semantic quality remains unaccepted |
 | 7 | `2.0.0-alpha.7.1` / `.7.2` / `.7.3` | Metadata export, provenance and selected guidance published | Selected guidance passes its own complete source, exact-tag and signed publication gates; independent semantic quality and stable acceptance remain open |
-| 8     | `2.0.0-alpha.8`        | Not delivered                | Held-out quality, attack and failure gates                 |
+| 8 | `2.0.0-alpha.8` | Corpus review/publication floor under hosted verification | Held-out quality, independent review, attack/failure results and measured limits remain open |
 | 9     | `2.0.0-beta.1`         | Not delivered                | Actual pilot, upgrade and deployment                       |
 | 10    | `2.0.0-rc.N` → `2.0.0` | Not delivered                | Independent candidate and stable acceptance                |
 
