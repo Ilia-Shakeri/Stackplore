@@ -8,6 +8,7 @@ import path from 'node:path';
 import process from 'node:process';
 import test from 'node:test';
 import { fileURLToPath, URL } from 'node:url';
+import { writeTestCandidate } from './corpus-test-fixture.mjs';
 import {
   checkCorpus,
   familySplit,
@@ -306,4 +307,17 @@ test('receipt links, linked parent directories and non-regular corpus files fail
   await rm(corpusPath);
   await mkdir(corpusPath);
   await assert.rejects(checkCorpus(root), { message: 'corpus invalid: file_type' });
+});
+
+test('release boundary accepts structural candidate fixture and still rejects stale or missing review', async (context) => {
+  const { root } = await diskFixture(context);
+  const { manifest, receipt } = await writeTestCandidate(root);
+  const summary = await checkCorpus(root, { release: true });
+  assert.equal(summary.target_complete, true);
+  assert.equal(summary.profile_evaluation, 'pending');
+  const receiptPath = path.join(root, manifest.review.receipt);
+  await writeFile(receiptPath, JSON.stringify({ ...receipt, sha256: '0'.repeat(64) }));
+  await assert.rejects(checkCorpus(root, { release: true }), { message: 'corpus invalid: receipt_identity' });
+  await rm(receiptPath);
+  await assert.rejects(checkCorpus(root, { release: true }), { message: 'corpus invalid: receipt_read' });
 });

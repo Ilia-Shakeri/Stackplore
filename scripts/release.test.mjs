@@ -9,6 +9,7 @@ import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { isLegalMaterialName } from './legal-file-name.mjs';
 import { releaseNotes } from './release-notes.mjs';
+import { writeTestCandidate } from './corpus-test-fixture.mjs';
 import {
   checkDatabaseImageMetadata,
   checkDatabasePin,
@@ -1149,6 +1150,7 @@ test('alpha, beta and candidate publication preserve exact asset names and stay 
     const { root, directory, run, hook, expected } = await completeReleaseFixture(context, {
       version,
     });
+    await writeTestCandidate(root);
     const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: `v${version}` }, hook);
     assert.equal(result.status, 0, `${version}: ${result.stderr}`);
     const uploaded = (await readFile(path.join(root, 'uploads.jsonl'), 'utf8'))
@@ -1189,6 +1191,7 @@ test('candidate publication refuses mixed version names and mismatched stable ta
   const version = '2.0.0-rc.1';
   for (const mismatch of ['artifact', 'metadata', 'tag']) {
     const { root, directory, run, hook } = await completeReleaseFixture(context, { version });
+    await writeTestCandidate(root);
     if (mismatch === 'artifact') {
       await rm(path.join(directory, `stackplore-${version}.tgz`));
       await writeFile(path.join(directory, 'stackplore-2.0.0.tgz'), 'wrong checkpoint');
