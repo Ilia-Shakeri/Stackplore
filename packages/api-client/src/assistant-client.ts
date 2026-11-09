@@ -1,4 +1,5 @@
 import { ApiTransportError, type ApiClient, type ApiResponse } from './client';
+import { parseRunbookReference } from './runbook-reference';
 import { parseAssistantIncidentReportResponse } from './assistant-report-response';
 import {
   assistantHistoryInput,
@@ -6,6 +7,7 @@ import {
   type AssistantHistoryInput,
 } from './assistant-history';
 import {
+  assistantResponseWire,
   parseAssistantCitation,
   parseAssistantRunReceipt,
   parseAssistantRunResponse,
@@ -35,6 +37,7 @@ const bodyFields = new Set([
   'conversation_id',
   'goal',
   'log_consent',
+  'reviewed_document',
 ]);
 
 export interface AssistantReadOptions {
@@ -126,6 +129,14 @@ const closedInput = (value: unknown): AssistantRunRequest => {
   const conversation = Object.hasOwn(input, 'conversation_id') ? input.conversation_id : undefined;
   const goal = Object.hasOwn(input, 'goal') ? input.goal : 'explain_resource';
   const consent = Object.hasOwn(input, 'log_consent') ? input.log_consent : false;
+  let document:AssistantRunRequest['reviewed_document'];
+  if (Object.hasOwn(input,'reviewed_document')) {
+    const selected=assistantResponseWire.closed(input.reviewed_document,['consent','reference']);
+    if (selected.consent!==true || consent) throw new ApiTransportError('unexpected_response');
+    const reference=parseRunbookReference(selected.reference);
+    if (reference.locale!==input.locale) throw new ApiTransportError('unexpected_response');
+    document={consent:true,reference};
+  }
   if (
     !exact(input.source_id, sourcePattern) ||
     !exact(input.resource_id, resourcePattern) ||
@@ -153,6 +164,7 @@ const closedInput = (value: unknown): AssistantRunRequest => {
     ...(typeof conversation === 'string' ? { conversation_id: conversation } : {}),
     ...(Object.hasOwn(input, 'goal') ? { goal } : {}),
     ...(Object.hasOwn(input, 'log_consent') ? { log_consent: consent } : {}),
+    ...(document===undefined ? {} : {reviewed_document:document}),
   };
 };
 

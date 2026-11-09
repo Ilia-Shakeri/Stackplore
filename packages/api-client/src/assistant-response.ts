@@ -1,4 +1,5 @@
 import { ApiTransportError } from './client';
+import { parseRunbookReference } from './runbook-reference';
 import type {
   AssistantResourceCitation,
   AssistantRun,
@@ -129,11 +130,12 @@ const parseCitation = (value: unknown): AssistantResourceCitation => {
     'resource_id',
     'observed_at',
     'range',
+    'document_reference',
   ]);
   if (
     !matches(citation.id, citationPattern) ||
     typeof citation.kind !== 'string' ||
-    !['resource', 'health', 'metric', 'event', 'relationship', 'log', 'alert', 'workload'].includes(
+    !['resource', 'health', 'metric', 'event', 'relationship', 'log', 'alert', 'workload','document'].includes(
       citation.kind,
     ) ||
     !matches(citation.source_id, sourcePattern) ||
@@ -141,7 +143,9 @@ const parseCitation = (value: unknown): AssistantResourceCitation => {
   )
     return fail();
   timestamp(citation.observed_at);
-  return { ...citation, range: range(citation.range) } as AssistantResourceCitation;
+  const document=citation.kind==='document' ? parseRunbookReference(citation.document_reference) : null;
+  if (citation.kind!=='document' && citation.document_reference!==null) return fail();
+  return { ...citation, document_reference:document, range: range(citation.range) } as AssistantResourceCitation;
 };
 
 const inertText = (value: unknown): value is string => {
@@ -230,7 +234,7 @@ export const parseAssistantRunResponse = (
   const citations = boundedArray(
     response.citations,
     1,
-    run.goal === 'explain_resource' ? 1 : 64,
+    run.goal === 'explain_resource' ? 2 : 64,
   ).map(parseCitation);
   const allowed = new Set(citations.map((citation) => citation.id));
   if (
@@ -241,13 +245,15 @@ export const parseAssistantRunResponse = (
         citation.resource_id !== run.scope.resource_id ||
         citation.range.from !== run.scope.range.from ||
         citation.range.to !== run.scope.range.to ||
-        (run.goal === 'explain_resource' && citation.kind !== 'resource'),
+        (run.goal === 'explain_resource' && citation.kind !== 'resource' && citation.kind!=='document'),
     )
   )
     return fail();
+  const documentCount=citations.filter((citation)=>citation.kind==='document').length;
+  if (documentCount>1 || run.goal==='explain_resource' && citations.length!==1+documentCount) return fail();
   let coverage: AssistantReadCoverage[] | undefined;
-  if (run.goal === 'investigate_incident') {
-    coverage = parseCoverage(response.coverage, citations, run.scope.window_minutes);
+  if (run.goal === 'investigate_incident' || documentCount>0) {
+    coverage = parseCoverage(response.coverage, citations, run.scope.window_minutes,run.goal);
   } else if (Object.hasOwn(response, 'coverage')) return fail();
   const answer = closed(response.answer, ['sections']);
   const sections = boundedArray(answer.sections, 1, 12).map((value) => {
@@ -264,6 +270,7 @@ export const parseAssistantRunResponse = (
       ids.some((id) => typeof id !== 'string' || !allowed.has(id))
     )
       return fail();
+    if (section.kind==='facts' && ids.some((id)=>citations.some((citation)=>citation.id===id && citation.kind==='document'))) return fail();
     return { kind: section.kind, text: section.text, citations: ids };
   });
   if (new TextEncoder().encode(JSON.stringify({ sections })).byteLength > 65536) return fail();
@@ -281,8 +288,10 @@ const parseCoverage = (
   value: unknown,
   citations: readonly AssistantResourceCitation[],
   window: number,
+  goal: 'explain_resource' | 'investigate_incident' = 'investigate_incident',
 ): AssistantReadCoverage[] => {
-  const plan = [
+  const hasDocument=citations.some((citation)=>citation.kind==='document');
+  const basePlan = [
     'inventory',
     'health',
     'metrics',
@@ -290,9 +299,8 @@ const parseCoverage = (
     'topology',
     'alert_history',
     'workload_history',
-    'logs',
   ];
-  const kinds = [
+  const baseKinds = [
     'resource',
     'health',
     'metric',
@@ -300,10 +308,13 @@ const parseCoverage = (
     'relationship',
     'alert',
     'workload',
-    'log',
   ];
-  const values = boundedArray(value, 7, 8);
-  if (values.length === 8 && window > 15) return fail();
+  const values=boundedArray(value,goal==='explain_resource'?2:7,8);
+  const hasLogs=values.some((value)=>closed(value,['tool','availability','completeness','records','more_available']).tool==='logs');
+  if (hasLogs && (hasDocument || window>15 || goal==='explain_resource')) return fail();
+  const plan=[...(goal==='explain_resource'?['inventory']:basePlan),...(hasLogs?['logs']:[]),...(hasDocument?['reviewed_document']:[])];
+  const kinds=[...(goal==='explain_resource'?['resource']:baseKinds),...(hasLogs?['log']:[]),...(hasDocument?['document']:[])];
+  if (values.length!==plan.length) return fail();
   const result = values.map((value, index) => {
     const item = closed(value, [
       'tool',

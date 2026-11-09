@@ -215,6 +215,7 @@ type fakeAuthorizer struct {
 	calls  atomic.Int32
 	reader *assistantevidence.Reader
 	reads  *fixtureInventoryReads
+	documents *fixtureDocumentSource
 }
 
 func (authorizer *fakeAuthorizer) check(ctx context.Context) error {
@@ -444,11 +445,13 @@ func fixtureService(t *testing.T, alter func(*Options, *modelFixture)) (*Service
 	options := Options{Repository: repository, Gateway: gateway, Authorizer: authorizer, Lifetime: context.Background(), Now: time.Now, ProcessID: "process", FingerprintKey: append([]byte{1}, make([]byte, 31)...), Workers: 1, PollInterval: 100 * time.Millisecond, Heartbeat: time.Second, OutputLimit: 128}
 	fixtureScope := inputFixture(t, 0).Scope
 	reads := &fixtureInventoryReads{source: fixtureScope.Source, resource: fixtureScope.Resources[0], now: func() time.Time { return options.Now() }}
-	reader, err := assistantevidence.New(assistantevidence.Options{Gate: fixtureMetadataGate{repository: repository, authorizer: authorizer}, Now: func() time.Time { return options.Now() }, Sources: []assistantevidence.Source{{Reference: reads.source, ConfigurationVersion: 1, Read: reads, History: reads, Live: reads}}})
+	documents:=&fixtureDocumentSource{}
+	reader, err := assistantevidence.New(assistantevidence.Options{Gate: fixtureMetadataGate{repository: repository, authorizer: authorizer}, Now: func() time.Time { return options.Now() }, Sources: []assistantevidence.Source{{Reference: reads.source, ConfigurationVersion: 1, Read: reads, History: reads, Live: reads}},Documents:documents})
 	if err != nil {
 		t.Fatal(err)
 	}
 	authorizer.reader, authorizer.reads = reader, reads
+	authorizer.documents=documents
 	options.Collector = collectorFunc(func(ctx context.Context, request assistantevidence.ReadRequest) (assistantevidence.Evidence, error) {
 		repository.mu.Lock()
 		repository.trace = append(repository.trace, "read:"+string(request.Kind))

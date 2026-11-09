@@ -37,6 +37,8 @@
   "runbooks.paused": "با خروج صفحه از دید، متن خصوصی پاک شد. جست‌وجوی تازه‌ای آغاز کنید یا فهرست را دریافت کنید.",
   "runbooks.loading": "در حال بررسی دسترسی کنونی…",
   "runbooks.provenance.title": "منبع و بازبینی حق استفاده",
+  "runbooks.provenance.assistance": "استفاده در پاسخ محلی صریحاً بازبینی شده",
+  "runbooks.provenance.referenceOnly": "فقط استفاده به‌عنوان مرجع",
   "runbooks.provenance.source": "نام و مشخصات منبع",
   "runbooks.provenance.license": "مبنای ثبت‌شدهٔ حق استفاده",
   "runbooks.provenance.operator_authored": "نوشتهٔ اپراتور",

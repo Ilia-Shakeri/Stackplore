@@ -2,6 +2,8 @@
 package assistantconversation
 
 import (
+	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +13,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runbook"
 )
 
 const MaximumRequestBytes = 64 * 1024
@@ -30,6 +33,7 @@ type Request struct {
 	ConversationID string
 	Goal           assistant.Goal
 	LogConsent     bool
+	Document *runbook.Reference
 }
 
 func (request Request) EffectiveGoal() assistant.Goal {
@@ -50,6 +54,7 @@ func (request Request) Valid() bool {
 		(inference.Request{Locale: request.Locale, Question: request.Question, OutputLimit: 1}).Validate() == nil &&
 		(request.EffectiveGoal() == assistant.ExplainResource || request.EffectiveGoal() == assistant.InvestigateIncident) &&
 		(!request.LogConsent || request.EffectiveGoal() == assistant.InvestigateIncident && request.WindowMinutes <= 15) &&
+		(request.Document==nil || !request.LogConsent && request.Document.Validate()==nil && request.Document.Locale==request.Locale) &&
 		(request.ConversationID == "" || conversationID.MatchString(request.ConversationID))
 }
 
@@ -64,10 +69,10 @@ func (request *Request) UnmarshalJSON(contents []byte) error {
 			clear(field)
 		}
 	}()
-	if json.Unmarshal(contents, &fields) != nil || len(fields) < 5 || len(fields) > 8 {
+	if json.Unmarshal(contents, &fields) != nil || len(fields) < 5 || len(fields) > 9 {
 		return assistant.ErrInvalid
 	}
-	allowed := []string{"source_id", "resource_id", "window_minutes", "locale", "question", "conversation_id", "goal", "log_consent"}
+	allowed := []string{"source_id", "resource_id", "window_minutes", "locale", "question", "conversation_id", "goal", "log_consent","reviewed_document"}
 	for key := range fields {
 		if !slices.Contains(allowed, key) {
 			return assistant.ErrInvalid
@@ -105,6 +110,33 @@ func (request *Request) UnmarshalJSON(contents []byte) error {
 			return assistant.ErrInvalid
 		}
 		decoded.LogConsent = *consent
+	}
+	if raw,exists:=fields["reviewed_document"];exists {
+		var selection map[string]json.RawMessage
+		if json.Unmarshal(raw,&selection)!=nil || len(selection)!=2 || selection["consent"]==nil || selection["reference"]==nil {return assistant.ErrInvalid}
+		var referenceFields map[string]json.RawMessage
+		if json.Unmarshal(selection["reference"],&referenceFields)!=nil || len(referenceFields)!=6 {return assistant.ErrInvalid}
+		for _,key:=range []string{"corpus_id","version","digest","document_id","locale","generation"} {if referenceFields[key]==nil {return assistant.ErrInvalid}}
+		var wire struct {
+			Consent *bool `json:"consent"`
+			Reference *struct {
+				CorpusID string `json:"corpus_id"`
+				Version int64 `json:"version"`
+				Digest string `json:"digest"`
+				DocumentID string `json:"document_id"`
+				Locale string `json:"locale"`
+				Generation *int64 `json:"generation"`
+			} `json:"reference"`
+		}
+		decoder:=json.NewDecoder(bytes.NewReader(raw));decoder.DisallowUnknownFields()
+		if decoder.Decode(&wire)!=nil || wire.Consent==nil || !*wire.Consent || wire.Reference==nil || wire.Reference.Generation==nil {return assistant.ErrInvalid}
+		ref:=wire.Reference
+		digest,err:=hex.DecodeString(ref.Digest)
+		if err!=nil || len(digest)!=32 || hex.EncodeToString(digest)!=ref.Digest {return assistant.ErrInvalid}
+		selected:=runbook.Reference{CorpusID:ref.CorpusID,Version:ref.Version,DocumentID:ref.DocumentID,Locale:ref.Locale,Generation:*ref.Generation}
+		copy(selected.Digest[:],digest)
+		if selected.Validate()!=nil {return assistant.ErrInvalid}
+		decoded.Document=&selected
 	}
 	if !decoded.Valid() {
 		return assistant.ErrInvalid

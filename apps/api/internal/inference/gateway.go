@@ -19,6 +19,7 @@ type Prepared struct {
 	owner    *Gateway
 	input    CountedInput
 	evidence map[string]struct{}
+	guidance map[string]struct{}
 	limit    int
 	expires  time.Time
 	used     *atomic.Bool
@@ -57,9 +58,11 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	work, cancel := context.WithTimeout(ctx, MaximumCallDuration)
 	defer cancel()
 	refs := make(map[string]struct{}, len(request.Evidence))
+	guidance := make(map[string]struct{})
 	references := make([]string, 0, len(request.Evidence))
 	for _, item := range request.Evidence {
 		refs[item.ID] = struct{}{}
+		if item.Guidance { guidance[item.ID]=struct{}{} }
 		references = append(references, item.ID)
 	}
 	// A backend may inspect only detached input; it cannot rewrite its authority.
@@ -88,7 +91,7 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	}
 	input.Tokens = slices.Clone(input.Tokens)
 	input.ReferenceIDs = references
-	return &Prepared{owner: gateway, input: input, evidence: refs, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
+	return &Prepared{owner: gateway, input: input, evidence: refs, guidance:guidance, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
 }
 
 // Dispatch consumes its preparation before any external call. No failed call is retried.
@@ -125,6 +128,12 @@ func (gateway *Gateway) Dispatch(ctx context.Context, prepared *Prepared) (Resul
 	answer, err := parseAnswer(generated.Content, prepared.evidence)
 	if err != nil {
 		return Result{}, err
+	}
+	for _,section:=range answer.Sections {
+		if section.Kind!=SectionFacts {continue}
+		for _,id:=range section.Citations {
+			if _,isGuidance:=prepared.guidance[id];isGuidance {return Result{},ErrInvalidOutput}
+		}
 	}
 	return Result{Answer: answer, InputTokens: generated.InputTokens, OutputTokens: generated.OutputTokens, Revision: generated.Revision}, nil
 }

@@ -1,5 +1,16 @@
 # Stackplore active implementation evidence
 
+**2026-11-09:** latest published development checkpoint is **2.0.0-alpha.7.2**,
+schema21, source `4c48905125266cfd4d887186c11cd6551a114372`.
+Source [42482933094](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42482933094),
+exact tag [42484937014](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42484937014)
+and publication [42484937015](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42484937015)
+pass. The prerelease has 39 public assets with published digests; this does not
+certify independent public installation. Current unverified **alpha.7.3**, schema22,
+adds explicit selected-document guidance; its own hosted gates remain pending.
+Earlier status paragraphs below are historical. Independent quality review,
+held-out corpus, pilot/soak/capacity and stable artifact acceptance remain open.
+
 **2026-11-01:** new execution/validation uses Actions; local work is file editing
 and lightweight Git only. Desktop is primary. The hosted protocol passes at
 `5cebad7`; its new actual application/browser extension awaits exact-source

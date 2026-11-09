@@ -124,7 +124,7 @@ func (corpus Corpus) Digest() ([32]byte, error) {
 		return documents[i].Locale < documents[j].Locale
 	})
 	digest := sha256.New()
-	field(digest, "stackplore-runbook-corpus-v2")
+	field(digest, "stackplore-runbook-corpus-v3")
 	field(digest, corpus.ID)
 	var version [8]byte
 	binary.BigEndian.PutUint64(version[:], uint64(corpus.Version))
@@ -134,6 +134,11 @@ func (corpus Corpus) Digest() ([32]byte, error) {
 	field(digest, corpus.Provenance.Source)
 	field(digest, corpus.Provenance.License)
 	field(digest, "use-reviewed")
+	if corpus.Provenance.AssistanceReviewed {
+		field(digest, "local-assistance-reviewed")
+	} else {
+		field(digest, "reference-use-only")
+	}
 	for _, document := range documents {
 		for _, value := range []string{document.ID, document.Locale, document.Title, document.Body} {
 			field(digest, value)
@@ -162,15 +167,22 @@ func Query(value string, limit int) error {
 }
 
 func Snippet(body string) (string, error) {
+	return Excerpt(body,MaximumSnippetBytes)
+}
+
+// Excerpt preserves original code points; it never normalizes reviewed content.
+func Excerpt(body string,maximum int) (string,error) {
+	if maximum<1 || maximum>MaximumDocumentBytes {return "",ErrInvalid}
 	if !text(body, MaximumDocumentBytes, true) {
 		return "", ErrInvalid
 	}
-	if len(body) <= MaximumSnippetBytes {
+	if len(body) <= maximum {
 		return body, nil
 	}
-	end := MaximumSnippetBytes
+	end := maximum
 	for !utf8.RuneStart(body[end]) {
 		end--
 	}
+	if end==0 {return "",ErrInvalid}
 	return body[:end], nil
 }

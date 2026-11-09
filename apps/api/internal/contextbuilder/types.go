@@ -9,6 +9,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runbook"
 )
 
 // Downstream inference adapters may impose stricter evidence and per-item text caps.
@@ -60,6 +61,7 @@ type Request struct {
 	WorkloadHistory *domain.IncidentWorkloadHistory
 	Logs            *logpolicy.Capture
 	LogConsent      bool
+	Guidance *ReviewedGuidance
 	// MoreAvailable carries source page/cap bounds; projection does not claim a full estate scan.
 	MoreAvailable bool
 	RecordLimit   int
@@ -82,6 +84,7 @@ type CitationReference struct {
 	ResourceID           domain.ResourceID
 	ObservedAt           time.Time
 	Range                domain.TimeRange
+	Document             runbook.Reference
 }
 
 type Bundle struct {
@@ -151,6 +154,7 @@ type record struct {
 	Log              *logFact           `json:"log,omitempty"`
 	Alert            *alertFact         `json:"alert,omitempty"`
 	Workload         *workloadFact      `json:"workload,omitempty"`
+	Guidance         *guidanceFact      `json:"guidance,omitempty"`
 }
 
 type alertFact struct {

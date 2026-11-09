@@ -52,23 +52,26 @@ test('real investigation SQL proof requires exact reservations and known single 
       'investigate_incident',
       'explain_resource',
       'investigate_incident',
-    ].map((goal) => ({
+      'explain_resource',
+      'explain_resource',
+    ].map((goal, index) => ({
       goal,
       state: 'completed',
-      tool_calls: goal === 'explain_resource' ? 1 : 7,
+      tool_calls: goal === 'explain_resource' ? (index >= 4 ? 2 : 1) : 7,
       inference_calls: 1,
       usage_unknown: false,
       usage_conservative: false,
     })),
     steps: Object.entries({
-      inventory: 4,
+      inventory: 6,
       health: 2,
       metrics: 2,
       events: 2,
       topology: 2,
       alert_history: 2,
       workload_history: 2,
-      inference: 4,
+      inference: 6,
+      reviewed_document: 2,
     }).flatMap(([kind, count]) =>
       Array.from({ length: count }, () => ({
         kind,

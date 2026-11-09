@@ -1,5 +1,7 @@
 import { ApiTransportError, type ApiClient, type ApiRequestProtection } from './client';
 import { assistantResponseWire } from './assistant-response';
+import { parseRunbookReference } from './runbook-reference';
+export { parseRunbookReference } from './runbook-reference';
 import type {
   RunbookCatalog,
   RunbookCommit,
@@ -80,8 +82,9 @@ export function parseRunbookDocument(value: unknown): RunbookDocument {
 }
 export function parseRunbookProvenance(value: unknown): RunbookProvenance | null {
   if (value === null) return null;
-  const item = closed(value, ['kind', 'source', 'license', 'use_reviewed']);
+  const item = closed(value, ['kind', 'source', 'license', 'use_reviewed','assistance_reviewed']);
   if (!explicitConfirmation(item.use_reviewed)) return fail();
+  if (typeof item.assistance_reviewed!=='boolean') return fail();
   const kind =
     item.kind === 'operator_authored' ||
     item.kind === 'licensed_copy' ||
@@ -93,6 +96,7 @@ export function parseRunbookProvenance(value: unknown): RunbookProvenance | null
     source: prose(item.source, 512),
     license: prose(item.license, 128),
     use_reviewed: true,
+    assistance_reviewed:item.assistance_reviewed,
   };
 }
 export function parseRunbookContent(value: unknown): RunbookContent {
@@ -100,24 +104,6 @@ export function parseRunbookContent(value: unknown): RunbookContent {
   return {
     document: parseRunbookDocument(item.document),
     provenance: parseRunbookProvenance(item.provenance),
-  };
-}
-export function parseRunbookReference(value: unknown): RunbookReference {
-  const item = closed(value, [
-    'corpus_id',
-    'version',
-    'digest',
-    'document_id',
-    'locale',
-    'generation',
-  ]);
-  return {
-    corpus_id: id(item.corpus_id),
-    version: integer(item.version, 1),
-    digest: digest(item.digest),
-    document_id: id(item.document_id),
-    locale: locale(item.locale),
-    generation: integer(item.generation, 0),
   };
 }
 export function parseRunbookRevision(value: unknown): RunbookRevision {

@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0-alpha.7.3] - 2026-11-09
+
+### Smart Assistant — explicit document guidance candidate
+
+- Require separate operator permission and explicit per-question selection before
+  a local answer may use one reviewed document excerpt, capped at 256 UTF-8 bytes.
+- Reserve the document read in the fixed plan; preserve eight reads, one dispatch
+  and existing time/token budgets. Reject simultaneous document and log selection.
+- Bind admission identity to the exact document revision and recheck live session,
+  audience, generation and permission before read, dispatch, publication and witness.
+- Return a typed document citation; forbid its use as an observed fact or a typed
+  report timeline row. Keep source text inert and private state volatile.
+- Append migration22: existing collections default to reference use only. New
+  approvals require explicit `assistance_reviewed`; new v3 digests bind that choice.
+- Add bilingual selection/witness controls and hosted browser/SQL/ownership tests.
+  Hosted verification is pending; this is not stable2 acceptance.
+
 ## [2.0.0-alpha.7.2] - 2026-11-08
 
 ### Smart Assistant — document provenance candidate

@@ -22,6 +22,7 @@ export const assistantRunFixture = () => ({
 export const assistantCitationFixture = () => ({
   id: assistantCitationId,
   kind: 'resource',
+  document_reference: null,
   source_id: assistantScopeFixture().source_id,
   resource_id: assistantScopeFixture().resource_id,
   range: assistantScopeFixture().range,

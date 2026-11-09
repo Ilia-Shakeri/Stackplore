@@ -231,6 +231,7 @@ export const inspectAssistantPolicy = (document) => {
       'conversation_id',
       'goal',
       'log_consent',
+      'reviewed_document',
     ],
     ['source_id', 'resource_id', 'window_minutes', 'locale', 'question'],
   );
@@ -252,6 +253,8 @@ export const inspectAssistantPolicy = (document) => {
     'request.log_consent',
   );
   const question = schemas.AssistantRunRequest?.properties?.question;
+  const selectedGuide=schemas.AssistantRunRequest?.properties?.reviewed_document;
+  check(selectedGuide?.type==='object' && selectedGuide.additionalProperties===false && same(selectedGuide.required,['consent','reference']) && same(Object.keys(selectedGuide.properties??{}),['consent','reference']) && selectedGuide.properties.consent?.const===true && selectedGuide.properties.reference?.$ref===schemaRef('RunbookReference'),'request.reviewed_document');
   check(
     question?.type === 'string' &&
       question.minLength === 1 &&
@@ -397,6 +400,7 @@ export const inspectAssistantPolicy = (document) => {
     'resource_id',
     'observed_at',
     'range',
+    'document_reference',
   ]);
   check(
     same(schemas.AssistantResourceCitation?.properties?.kind?.enum, [
@@ -408,6 +412,7 @@ export const inspectAssistantPolicy = (document) => {
       'log',
       'alert',
       'workload',
+      'document',
     ]),
     'citation.resource',
   );
@@ -428,6 +433,7 @@ export const inspectAssistantPolicy = (document) => {
       'logs',
       'alert_history',
       'workload_history',
+      'reviewed_document',
     ]),
     'coverage.tools',
   );
@@ -452,7 +458,7 @@ export const inspectAssistantPolicy = (document) => {
   const coverage = schemas.AssistantReadyResponse?.properties?.coverage;
   check(
     coverage?.type === 'array' &&
-      coverage.minItems === 7 &&
+      coverage.minItems === 2 &&
       coverage.maxItems === 8 &&
       coverage.items?.$ref === schemaRef('AssistantReadCoverage'),
     'coverage.bounded',

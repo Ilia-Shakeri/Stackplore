@@ -32,6 +32,7 @@ describe('private assistant contract types', () => {
       | 'conversation_id'
       | 'goal'
       | 'log_consent'
+      | 'reviewed_document'
     >();
     expectTypeOf<AssistantLocale>().toEqualTypeOf<'en' | 'fa'>();
     expectTypeOf<AssistantWindowMinutes>().toEqualTypeOf<5 | 15 | 60 | 360 | 1440>();
@@ -89,10 +90,10 @@ describe('private assistant contract types', () => {
       [AssistantResourceCitation, ...AssistantResourceCitation[]]
     >();
     expectTypeOf<AssistantResourceCitation['kind']>().toEqualTypeOf<
-      'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log' | 'alert' | 'workload'
+      'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log' | 'alert' | 'workload' | 'document'
     >();
     expectTypeOf<keyof AssistantResourceCitation>().toEqualTypeOf<
-      'id' | 'kind' | 'source_id' | 'resource_id' | 'observed_at' | 'range'
+      'id' | 'kind' | 'source_id' | 'resource_id' | 'observed_at' | 'range' | 'document_reference'
     >();
   });
 

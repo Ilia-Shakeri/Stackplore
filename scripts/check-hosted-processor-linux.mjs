@@ -41,41 +41,43 @@ export function validHostedIncidentReportMetadata(value) {
   );
 }
 
-// Metadata-only SQL acceptance: four explicitly admitted runs, no uncertain work.
+// Metadata-only SQL acceptance: six explicitly admitted runs, no uncertain work.
 export function validHostedDatabaseMetadata(value, source) {
   if (
     value?.status !== 'observed' ||
     value.source_revision !== source ||
     !Array.isArray(value.runs) ||
-    value.runs.length !== 4 ||
+    value.runs.length !== 6 ||
     !Array.isArray(value.steps) ||
-    value.steps.length !== 20
+    value.steps.length !== 26
   )
     return false;
   for (const goal of ['explain_resource', 'investigate_incident']) {
     const runs = value.runs.filter((run) => run.goal === goal);
     if (
-      runs.length !== 2 ||
+      runs.length !== (goal === 'explain_resource' ? 4 : 2) ||
       runs.some(
         (run) =>
           run.state !== 'completed' ||
-          run.tool_calls !== (goal === 'explain_resource' ? 1 : 7) ||
+          !(goal === 'explain_resource' ? [1, 2].includes(run.tool_calls) : run.tool_calls === 7) ||
           run.inference_calls !== 1 ||
           run.usage_unknown !== false ||
           run.usage_conservative !== false,
       )
     )
       return false;
+    if (goal === 'explain_resource' && [1, 2].some((calls) => runs.filter((run) => run.tool_calls === calls).length !== 2)) return false;
   }
   const counts = {
-    inventory: 4,
+    inventory: 6,
     health: 2,
     metrics: 2,
     events: 2,
     topology: 2,
     alert_history: 2,
     workload_history: 2,
-    inference: 4,
+    inference: 6,
+    reviewed_document: 2,
   };
   for (const [kind, count] of Object.entries(counts)) {
     if (value.steps.filter((step) => step.kind === kind).length !== count) return false;
@@ -530,6 +532,7 @@ async function main() {
     report.application_browser = {
       cases: [],
       journeys: [],
+      guidance_journeys: [],
       database_metadata: [],
       inference_metadata: [],
     };
@@ -544,6 +547,10 @@ async function main() {
         ),
       });
       for (const role of ['administrator', 'viewer']) {
+        try {
+          const guidance=await metadata(`hosted-guidance-${locale}-${role}.json`);
+          report.application_browser.guidance_journeys.push(Object.fromEntries(['locale','role','status','consent_sent','document_current','not_facts','coverage_valid','witness_current','cleared'].map((key)=>[key,guidance[key]])));
+        } catch { /* Missing guidance receipts fail the candidate gate below. */ }
         for (const goal of ['explain_resource', 'investigate_incident']) {
           try {
             const journey = await metadata(`hosted-live-${locale}-${role}-${goal}.json`);
@@ -592,6 +599,8 @@ async function main() {
         (value) => !validHostedDatabaseMetadata(value, process.env.GITHUB_SHA),
       ) ||
       report.application_browser.journeys.length !== 8 ||
+      report.application_browser.guidance_journeys.length!==4 ||
+      report.application_browser.guidance_journeys.some((value)=>value.status!=='passed' || !value.consent_sent || !value.document_current || !value.not_facts || !value.coverage_valid || !value.witness_current || !value.cleared) ||
       report.application_browser.journeys.some(
         (value) =>
           !validHostedIncidentReportMetadata(value) ||

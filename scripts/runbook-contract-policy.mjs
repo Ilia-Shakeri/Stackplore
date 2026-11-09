@@ -54,7 +54,7 @@ export const runbookRoutePolicies = new Map([
 ]);
 const fields = {
   RunbookDocument: ['id', 'locale', 'title', 'body'],
-  RunbookProvenance: ['kind', 'source', 'license', 'use_reviewed'],
+  RunbookProvenance: ['kind', 'source', 'license', 'use_reviewed','assistance_reviewed'],
   RunbookContent: ['document', 'provenance'],
   RunbookCorpus: ['id', 'version', 'audience', 'documents', 'provenance'],
   RunbookMaterial: ['action', 'expected_version', 'generation', 'digest', 'corpus'],

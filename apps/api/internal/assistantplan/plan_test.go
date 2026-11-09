@@ -36,3 +36,15 @@ func TestPlansAreFiniteFreshAndRequireExplicitLogConsent(t *testing.T) {
 		}
 	}
 }
+
+func TestSelectedDocumentUsesOneReservedReadWithoutRaisingCap(t *testing.T) {
+ for _,goal:=range []assistant.Goal{assistant.ExplainResource,assistant.InvestigateIncident} {
+  before,err:=Reads(goal,false);if err!=nil {t.Fatal(err)}
+  plan,err:=WithDocument(goal,false,true)
+  if err!=nil || len(plan)!=len(before)+1 || len(plan)>MaximumReads || plan[len(plan)-1]!=assistant.ReviewedDocument || !slices.Equal(before,plan[:len(plan)-1]) {t.Fatal("selected guide displaced or widened required reads")}
+  plan[0]=assistant.Logs
+  again,_:=WithDocument(goal,false,true)
+  if again[0]!=assistant.Inventory {t.Fatal("guide plan shared caller storage")}
+  if _,err:=WithDocument(goal,true,true);err!=assistant.ErrInvalid {t.Fatal("document plus logs accepted")}
+ }
+}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/incidentreport"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
@@ -99,7 +100,9 @@ func incidentReply(snapshot assistantservice.Snapshot, owner, id string) (assist
 	}
 	run := snapshot.Run
 	scope := incidentreport.Scope{Source: snapshot.Citations[0].Source, ResourceID: domain.ResourceID(run.ResourceID), ConfigurationVersion: run.SourceVersion, PolicyVersion: run.PolicyVersion, RestoreGeneration: run.RestoreGeneration, Range: domain.TimeRange{Start: run.From, End: run.Until}, ObservedAt: run.UpdatedAt}
-	if incidentreport.ValidateWithHistory(scope, *snapshot.Report, snapshot.Citations, snapshot.HistoryCoverage) != nil {
+	references:=make([]contextbuilder.CitationReference,0,len(snapshot.Citations))
+	for _,ref:=range snapshot.Citations {if ref.Kind!="document" {references=append(references,ref)}}
+	if incidentreport.ValidateWithHistory(scope, *snapshot.Report, references, snapshot.HistoryCoverage) != nil {
 		return assistantIncidentReplyJSON{}, assistant.ErrUnavailable
 	}
 	report := assistantIncidentReportJSON{Timeline: make([]assistantIncidentObservationJSON, 0, len(snapshot.Report.Timeline)), Hypotheses: make([]assistantIncidentHypothesisJSON, 0, len(snapshot.Report.Hypotheses)), Gaps: slices.Clone(snapshot.Report.Gaps), NextReads: slices.Clone(snapshot.Report.NextReads)}

@@ -11,7 +11,7 @@ import (
 
 func readCapability(kind assistant.StepKind) (domain.CapabilityName, bool) {
 	switch kind {
-	case assistant.Inventory, assistant.AlertHistory, assistant.WorkloadHistory:
+	case assistant.Inventory, assistant.AlertHistory, assistant.WorkloadHistory,assistant.ReviewedDocument:
 		return domain.CapabilityInventoryDetail, true
 	case assistant.Health:
 		return domain.CapabilityHealth, true
@@ -34,6 +34,11 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 	if reader == nil || ctx == nil {
 		return Evidence{}, ErrInvalid
 	}
+	if request.Kind==assistant.ReviewedDocument {
+		if request.Document==nil || reader.documents==nil || request.Destination!=contextbuilder.Local || request.LogConsent || request.Document.Validate()!=nil || request.Document.Generation!=request.Scope.RestoreGeneration {return Evidence{},ErrDenied}
+		selected:=*request.Document
+		request.Document=&selected
+	} else if request.Document!=nil {return Evidence{},ErrInvalid}
 	historyRead := request.Kind == assistant.AlertHistory || request.Kind == assistant.WorkloadHistory
 	if historyRead && (request.Run.Goal != assistant.InvestigateIncident || request.Destination != contextbuilder.Local || request.LogConsent || len(request.Scope.Resources) != 1) {
 		return Evidence{}, ErrDenied
@@ -103,7 +108,11 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 		if err := source.Live.Check(work, cloneScope(request.Scope), request.Kind, request.LogConsent); err != nil {
 			return Evidence{}, safeError(work, err)
 		}
-		if err := reader.collect(work, source, request, resources, &project); err != nil {
+		if request.Kind==assistant.ReviewedDocument {
+			content,err:=reader.documents.ReadAssistantRunbook(work,request.Actor,*request.Document)
+			if err!=nil{return Evidence{},documentError(err)}
+			project.Guidance=&contextbuilder.ReviewedGuidance{Reference:*request.Document,Content:content}
+		} else if err := reader.collect(work, source, request, resources, &project); err != nil {
 			return Evidence{}, safeError(work, err)
 		}
 	}
@@ -126,6 +135,11 @@ func (reader *Reader) Read(ctx context.Context, request ReadRequest) (Evidence, 
 		return Evidence{}, err
 	}
 	evidence := Evidence{reader: reader, actor: request.Actor, run: request.Run, scope: cloneScope(project.Scope), bundle: bundle, kind: proofKind, requested: request.Kind, recordLimit: request.RecordLimit, byteLimit: request.ByteLimit, expires: request.Run.CreatedAt.Add(VolatileLifetime)}
+	if request.Kind==assistant.ReviewedDocument {
+		if project.Guidance==nil || proofKind!=assistant.ReviewedDocument {return Evidence{},ErrDenied}
+		evidence.document=*request.Document
+		if err:=reader.documents.AuthorizeAssistantRunbook(work,request.Actor,evidence.document);err!=nil{return Evidence{},documentError(err)}
+	}
 	if request.Kind == assistant.Logs && project.Logs != nil {
 		evidence.logConsent = request.LogConsent
 		evidence.logPolicy = project.Logs.PolicyFingerprint()

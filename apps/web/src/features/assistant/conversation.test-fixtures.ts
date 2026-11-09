@@ -39,6 +39,7 @@ export const readyResponse = () => {
   const citation = {
     id: `ev_${'b'.repeat(64)}`,
     kind: 'resource',
+  document_reference: null,
     source_id: scope.sourceId,
     resource_id: scope.resourceId,
     observed_at: run.created_at,

@@ -43,6 +43,7 @@ func Build(ctx context.Context, request Request) (Bundle, error) {
 		return Bundle{}, ErrInvalid
 	}
 	count := len(request.Resources) + len(request.Health) + len(request.Metrics) + len(request.Events) + len(request.Relationships)
+	if request.Guidance!=nil {count++}
 	if request.AlertHistory != nil {
 		count += len(request.AlertHistory.Transitions)
 	}
@@ -64,7 +65,7 @@ func Build(ctx context.Context, request Request) (Bundle, error) {
 		ConfigurationVersion: request.Scope.ConfigurationVersion, PolicyVersion: request.Scope.PolicyVersion, RestoreGeneration: request.Scope.RestoreGeneration,
 		Range: timeRange{Start: request.Scope.Range.Start, End: request.Scope.Range.End}, Quality: result.quality(request.Status), MoreAvailable: request.MoreAvailable, Records: []record{},
 	}
-	for _, project := range []func() error{result.resources, result.health, result.metrics, result.events, result.relationships, result.logs, result.alertHistory, result.workloadHistory} {
+	for _, project := range []func() error{result.resources, result.health, result.metrics, result.events, result.relationships, result.logs, result.alertHistory, result.workloadHistory,result.guidance} {
 		if err := ctx.Err(); err != nil {
 			return Bundle{}, err
 		}

@@ -12,6 +12,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/contextbuilder"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/logpolicy"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runbook"
 )
 
 const (
@@ -106,6 +107,12 @@ type Options struct {
 	Sources []Source
 	Now     func() time.Time
 	Timeout time.Duration
+	Documents ReviewedDocumentPorts
+}
+
+type ReviewedDocumentPorts interface {
+ ReadAssistantRunbook(context.Context,assistant.Actor,runbook.Reference)(runbook.Content,error)
+ AuthorizeAssistantRunbook(context.Context,assistant.Actor,runbook.Reference)error
 }
 
 func (Options) Format(state fmt.State, _ rune) {
@@ -124,6 +131,7 @@ type ReadRequest struct {
 	LogConsent  bool
 	RecordLimit int
 	ByteLimit   int
+	Document *runbook.Reference
 }
 
 func (ReadRequest) Format(state fmt.State, _ rune) {
@@ -139,6 +147,7 @@ type Reader struct {
 	timeout       time.Duration
 	slots         chan struct{}
 	metadataSlots chan struct{}
+	documents ReviewedDocumentPorts
 }
 
 func (Reader) Format(state fmt.State, _ rune) {
@@ -162,6 +171,7 @@ type Evidence struct {
 	recordLimit int
 	byteLimit   int
 	expires     time.Time
+	document runbook.Reference
 }
 
 func (Evidence) Format(state fmt.State, _ rune) {
@@ -172,6 +182,7 @@ func (evidence Evidence) Bundle() contextbuilder.Bundle { return evidence.bundle
 
 // ReadKind identifies the requested family sealed by the reader, including empty reads.
 func (evidence Evidence) ReadKind() assistant.StepKind { return evidence.requested }
+func (evidence Evidence) DocumentReference() runbook.Reference {return evidence.document}
 func (evidence Evidence) References() []contextbuilder.CitationReference {
 	return evidence.bundle.Citations()
 }
@@ -203,7 +214,7 @@ func New(options Options) (*Reader, error) {
 		}
 		sources[source.Reference.SourceID] = source
 	}
-	return &Reader{gate: options.Gate, sources: sources, versions: &sourceConfigurationVersions{values: make(map[domain.SourceID]int64, len(sources))}, now: options.Now, timeout: options.Timeout, slots: make(chan struct{}, MaximumConcurrent), metadataSlots: make(chan struct{}, MaximumMetadataConcurrent)}, nil
+	return &Reader{gate: options.Gate, sources: sources, versions: &sourceConfigurationVersions{values: make(map[domain.SourceID]int64, len(sources))}, now: options.Now, timeout: options.Timeout, slots: make(chan struct{}, MaximumConcurrent), metadataSlots: make(chan struct{}, MaximumMetadataConcurrent),documents:options.Documents}, nil
 }
 
 func (reader *Reader) work(ctx context.Context) (context.Context, context.CancelFunc, error) {

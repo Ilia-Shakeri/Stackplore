@@ -57,7 +57,7 @@ func runbookRequest(path, body string) *http.Request {
 	return withJSONBody(helperRequest(http.MethodPost, "/api/v1/assistant/runbooks"+path), body)
 }
 
-const runbookMaterialBody = `{"action":"approve","expected_version":0,"generation":0,"digest":"","corpus":{"id":"ops","version":1,"audience":"all_users","provenance":{"kind":"operator_authored","source":"Synthetic fixture","license":"Fixture author permission","use_reviewed":true},"documents":[{"id":"help","locale":"en","title":"Help","body":"Reviewed prose"}]}}`
+const runbookMaterialBody = `{"action":"approve","expected_version":0,"generation":0,"digest":"","corpus":{"id":"ops","version":1,"audience":"all_users","provenance":{"kind":"operator_authored","source":"Synthetic fixture","license":"Fixture author permission","use_reviewed":true,"assistance_reviewed":false},"documents":[{"id":"help","locale":"en","title":"Help","body":"Reviewed prose"}]}}`
 
 func TestRunbookHTTPPrivateBodyAuthorityAndOnePurpose(t *testing.T) {
 	identity := helperIdentity(t)
@@ -124,7 +124,8 @@ func TestRunbookMaterialCanonicalDigestAndExactReference(t *testing.T) {
 		}
 	}
 	version, generation := int64(0), int64(0)
-	wire := runbookMaterialJSON{Action: "approve", ExpectedVersion: &version, Generation: &generation, Corpus: runbookCorpusJSON{ID: "ops", Version: 1, Audience: runbook.AllUsers, Provenance: &runbookProvenanceJSON{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true}, Documents: []runbookDocumentJSON{{ID: "help", Locale: "en", Title: "Help", Body: "Private prose"}}}}
+ referenceOnly := false
+	wire := runbookMaterialJSON{Action: "approve", ExpectedVersion: &version, Generation: &generation, Corpus: runbookCorpusJSON{ID: "ops", Version: 1, Audience: runbook.AllUsers, Provenance: &runbookProvenanceJSON{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true, AssistanceReviewed:&referenceOnly}, Documents: []runbookDocumentJSON{{ID: "help", Locale: "en", Title: "Help", Body: "Private prose"}}}}
 	material, err := wire.material()
 	if err != nil || material.Digest == [32]byte{} {
 		t.Fatal("exact material unavailable")

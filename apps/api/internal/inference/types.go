@@ -41,6 +41,8 @@ var (
 type Evidence struct {
 	ID   string `json:"id"`
 	Text string `json:"text"`
+	// Guidance is trusted validator metadata, not a processor-selected permission.
+	Guidance bool `json:"-"`
 }
 
 // Request contains volatile input supplied only after the shared privacy policy.

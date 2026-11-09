@@ -323,9 +323,11 @@ export const parseAssistantIncidentReportResponse = (
   if (state === 'unavailable') return { run, content_state: state };
   if (state !== 'ready' || run.state !== 'completed') return fail();
   const citations = boundedArray(response.citations, 1, 64).map(parseCitation);
-  const references = new Map(citations.map((ref) => [ref.id, ref]));
+  const allReferences=new Map(citations.map((ref)=>[ref.id,ref]));
+  const observationReferences=citations.filter((ref)=>ref.kind!=='document');
+  const references = new Map(observationReferences.map((ref) => [ref.id, ref]));
   if (
-    references.size !== citations.length ||
+    allReferences.size !== citations.length || citations.length-observationReferences.length>1 ||
     citations.some(
       (ref) =>
         ref.source_id !== run.scope.source_id ||
@@ -337,12 +339,12 @@ export const parseAssistantIncidentReportResponse = (
     return fail();
   const coverage = parseCoverage(response.coverage, citations, run.scope.window_minutes);
   const report = closed(response.report, ['timeline', 'hypotheses', 'gaps', 'next_reads']);
-  const timeline = boundedArray(report.timeline, citations.length, citations.length).map((value) =>
+  const timeline = boundedArray(report.timeline, observationReferences.length, observationReferences.length).map((value) =>
     observation(value, references, run),
   );
   const facts = new Map(timeline.map((item) => [item.citation_id, item]));
   if (
-    facts.size !== citations.length ||
+    facts.size !== observationReferences.length ||
     timeline.some((item, index) => {
       const prior = timeline[index - 1];
       return (

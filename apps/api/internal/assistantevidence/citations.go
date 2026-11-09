@@ -10,6 +10,7 @@ import (
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistant"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runbook"
 )
 
 // CitationLocator contains a closed observation kind and exact normalized IDs.
@@ -21,6 +22,7 @@ type CitationLocator struct {
 	ResourceID domain.ResourceID
 	ObservedAt time.Time
 	Range      domain.TimeRange
+	Document runbook.Reference
 }
 
 func (CitationLocator) Format(state fmt.State, _ rune) {
@@ -46,13 +48,17 @@ func (reader *Reader) Resolve(ctx context.Context, actor assistant.Actor, run as
 	if err != nil {
 		return CitationLocator{}, err
 	}
+	if evidence.requested==assistant.ReviewedDocument {
+		if reader.documents==nil || evidence.document.Validate()!=nil || evidence.kind!=assistant.ReviewedDocument {return CitationLocator{},ErrDenied}
+		if err:=reader.documents.AuthorizeAssistantRunbook(work,actor,evidence.document);err!=nil{return CitationLocator{},documentError(err)}
+	}
 	var found CitationLocator
 	for _, reference := range evidence.bundle.Citations() {
 		if reference.ID != id {
 			continue
 		}
 		switch reference.Kind {
-		case "resource", "health", "metric", "event", "relationship", "log", "alert", "workload":
+		case "resource", "health", "metric", "event", "relationship", "log", "alert", "workload","document":
 		default:
 			return CitationLocator{}, ErrDenied
 		}
@@ -60,6 +66,10 @@ func (reader *Reader) Resolve(ctx context.Context, actor assistant.Actor, run as
 			return CitationLocator{}, ErrDenied
 		}
 		found = CitationLocator{Kind: reference.Kind, Source: reference.Source, ObjectID: reference.ObjectID, ResourceID: reference.ResourceID, ObservedAt: reference.ObservedAt, Range: reference.Range}
+		if reference.Kind=="document" {
+			if evidence.requested!=assistant.ReviewedDocument || reference.Document!=evidence.document {return CitationLocator{},ErrDenied}
+			found.Document=reference.Document
+		}
 		break
 	}
 	if found.Kind == "" {
@@ -106,6 +116,10 @@ func (reader *Reader) AuthorizeEvidence(ctx context.Context, actor assistant.Act
 	source, err := reader.validate(actor, run, evidence.scope)
 	if err != nil {
 		return err
+	}
+	if evidence.requested==assistant.ReviewedDocument {
+		if reader.documents==nil || evidence.document.Validate()!=nil || evidence.kind!=assistant.ReviewedDocument {return ErrDenied}
+		if err:=reader.documents.AuthorizeAssistantRunbook(work,actor,evidence.document);err!=nil{return documentError(err)}
 	}
 	_, err = reader.fence(work, actor, run, evidence.scope, source, evidence.kind, evidence.logConsent)
 	if err != nil {

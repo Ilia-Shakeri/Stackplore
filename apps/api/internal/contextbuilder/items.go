@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runbook"
 )
 
 const (
@@ -66,6 +67,9 @@ func (bundle Bundle) Items() ([]Item, error) {
 	wireBytes := 2 // Array brackets, including for a valid empty bundle.
 	for index, entry := range bundle.document.Records {
 		reference := bundle.references[index]
+		if entry.Kind=="document" {
+			if entry.Guidance==nil || reference.Document.Validate()!=nil || entry.Guidance.CorpusID!=reference.Document.CorpusID || entry.Guidance.Version!=reference.Document.Version || entry.Guidance.DocumentID!=reference.Document.DocumentID || entry.Guidance.Locale!=reference.Document.Locale || entry.Guidance.Digest!=hex.EncodeToString(reference.Document.Digest[:]) || reference.Document.Generation!=reference.RestoreGeneration || entry.Guidance.Usage!="reviewed_guidance_not_live_facts" {return nil,ErrInvalid}
+		} else if entry.Guidance!=nil || reference.Document!=(runbook.Reference{}) {return nil,ErrInvalid}
 		if !canonicalItemID(entry.CitationID) || seen[entry.CitationID] || reference.ID != entry.CitationID || reference.Kind != entry.Kind ||
 			reference.Source.Validate() != nil || reference.Source.Provider != bundle.document.Provider ||
 			reference.ConfigurationVersion != bundle.document.ConfigurationVersion || reference.PolicyVersion != bundle.document.PolicyVersion || reference.RestoreGeneration != bundle.document.RestoreGeneration ||

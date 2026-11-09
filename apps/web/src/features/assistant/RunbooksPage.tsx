@@ -566,6 +566,7 @@ function ProvenanceDetails({ value }: { readonly value: RunbookProvenance | null
   return (
     <section aria-label={t('runbooks.provenance.title')}>
       <p>{t(`runbooks.provenance.${value.kind}`)}</p>
+    <p>{t(value.assistance_reviewed ? 'runbooks.provenance.assistance' : 'runbooks.provenance.referenceOnly')}</p>
       <dl>
         <dt>{t('runbooks.provenance.source')}</dt>
         <dd className="runbooks-prose" dir="auto">

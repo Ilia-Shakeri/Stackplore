@@ -39,13 +39,14 @@ type runbookProvenanceJSON struct {
 	Source      string `json:"source"`
 	License     string `json:"license"`
 	UseReviewed bool   `json:"use_reviewed"`
+	AssistanceReviewed *bool `json:"assistance_reviewed"`
 }
 
 func runbookProvenanceWire(value runbook.Provenance) *runbookProvenanceJSON {
 	if value.Empty() {
 		return nil
 	}
-	return &runbookProvenanceJSON{value.Kind, value.Source, value.License, value.UseReviewed}
+	return &runbookProvenanceJSON{value.Kind, value.Source, value.License, value.UseReviewed,&value.AssistanceReviewed}
 }
 
 type runbookContentJSON struct {
@@ -79,7 +80,8 @@ func (wire runbookMaterialJSON) material() (runbookservice.Material, error) {
 	}
 	corpus := runbook.Corpus{ID: wire.Corpus.ID, Version: wire.Corpus.Version, Audience: wire.Corpus.Audience, Documents: make([]runbook.Document, len(wire.Corpus.Documents))}
 	if p := wire.Corpus.Provenance; p != nil {
-		corpus.Provenance = runbook.Provenance{Kind: p.Kind, Source: p.Source, License: p.License, UseReviewed: p.UseReviewed}
+		if p.AssistanceReviewed==nil {return runbookservice.Material{},runbook.ErrInvalid}
+		corpus.Provenance = runbook.Provenance{Kind: p.Kind, Source: p.Source, License: p.License, UseReviewed: p.UseReviewed,AssistanceReviewed:*p.AssistanceReviewed}
 	}
 	for i, document := range wire.Corpus.Documents {
 		corpus.Documents[i] = runbook.Document{ID: document.ID, Locale: document.Locale, Title: document.Title, Body: document.Body}

@@ -1105,3 +1105,12 @@ Exact source attribution and operator-reviewed usage basis are bound into the
 collection digest and confirmation. Migration21 preserves old text and digests
 without inventing provenance; legacy absence stays explicit on authorized reads.
 No attributed source is fetched, executed or treated as legal certification.
+
+The selected-document candidate follows [ADR-0023](docs/adr/0023-selected-document-guidance.md).
+Separate operator processing permission and explicit user consent are necessary.
+The server reserves one bounded document read, binds the exact reference to
+admission identity and rechecks current audience/session/generation/permission.
+Only a local profile receives a 256-UTF-8-byte excerpt. Guidance cannot become
+observed facts or deterministic report timeline rows. Existing read, inference,
+token and time caps remain unchanged; log consent and document selection cannot
+share one plan. A fresh authorized exact-reference read opens its witness.

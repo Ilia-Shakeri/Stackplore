@@ -50,6 +50,7 @@ func (service *Service) incidentReport(entry *memoryRun) (*incidentreport.Report
 	var observations []contextbuilder.Observation
 	defer func() { clear(observations) }()
 	for _, proof := range proofs {
+		if proof.ReadKind()==assistant.ReviewedDocument {continue}
 		items, err := proof.Bundle().Observations()
 		if err != nil || len(observations)+len(items) > incidentreport.MaximumObservations {
 			clear(items)

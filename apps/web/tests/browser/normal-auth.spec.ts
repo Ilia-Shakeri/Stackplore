@@ -6,6 +6,7 @@ import { expect, test, type Locator, type Page, type Request } from '@playwright
 import { runbookAdminJourney, runbookViewerJourney } from './runbook-journey';
 import { assistantJourney } from './assistant-journey';
 import { assistantLiveJourney } from './assistant-live-journey';
+import {assistantGuidanceJourney} from './assistant-guidance-journey';
 
 const locale = process.env.SP_BROWSER_LOCALE === 'fa' ? 'fa' : 'en';
 const text = Object.assign(
@@ -246,9 +247,10 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     ).toBeVisible();
     if (process.env.SP_BROWSER_REAL_ASSISTANT === 'true') {
       // Four independent runs retain their existing per-run deadlines.
-      test.setTimeout(360_000);
+      test.setTimeout(480_000);
       await assistantLiveJourney(page, locale, 'administrator');
       await assistantLiveJourney(page, locale, 'administrator', 'investigate_incident');
+      await assistantGuidanceJourney(page,locale,'administrator');
     } else await assistantJourney(page, locale, 'administrator', label('insight.healthHistory'));
     await page.locator('main a[href^="/logs?"]').click();
     const pendingDownload = page.waitForEvent('download');
@@ -287,6 +289,7 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
     if (process.env.SP_BROWSER_REAL_ASSISTANT === 'true') {
       await assistantLiveJourney(page, locale, 'viewer');
       await assistantLiveJourney(page, locale, 'viewer', 'investigate_incident');
+      await assistantGuidanceJourney(page,locale,'viewer');
     } else await assistantJourney(page, locale, 'viewer', label('insight.healthHistory'));
     const cachePaths = await page.evaluate(async () => {
       const paths: string[] = [];

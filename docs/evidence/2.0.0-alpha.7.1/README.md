@@ -5,8 +5,8 @@ Source: `6441c15eeab0a8c0ec98df96cd512021f95528a0`, schema20.
 
 - [Source verification 42479936460](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42479936460): all eight jobs pass, including real PostgreSQL, source/unit/build gates, concurrency, bilingual browser/offline, Docker/Kubernetes and Compose/Helm.
 - [Signed package/security trial 42479950922](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42479950922): package passes; branch publication correctly skips.
-- [Exact-tag verification 42481596759](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42481596759): pending at this ledger entry; source success does not replace it.
-- [Signed publication 42481596843](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42481596843): pending at this ledger entry; no public asset is claimed yet.
+- [Exact-tag verification 42481596759](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42481596759): all eight jobs pass.
+- [Signed publication 42481596843](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42481596843): package and publication pass. Prerelease 438257973 exposes 39 public assets with published SHA-256 digests. This is publication metadata, not independent consumer acceptance.
 
 The metadata-only source processor receipt records complete bilingual protocol
 and application journeys and both owned cleanup flags. These synthetic Demo

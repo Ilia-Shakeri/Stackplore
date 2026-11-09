@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Stackplore API
-  version: 2.0.0-alpha.7.2
+  version: 2.0.0-alpha.7.3
   description: Provider-neutral transport shapes for the versioned Stackplore HTTP API.
   license:
     name: Apache-2.0
@@ -3277,7 +3277,7 @@ components:
     RunbookProvenance:
       type: object
       additionalProperties: false
-      required: [kind, source, license, use_reviewed]
+      required: [kind, source, license, use_reviewed, assistance_reviewed]
       properties:
         kind:
           type: string
@@ -3296,6 +3296,9 @@ components:
           type: boolean
           const: true
           description: Operator explicitly reviewed rights for the installation's current document use.
+        assistance_reviewed:
+          type: boolean
+          description: Explicit operator review for excerpts sent to the installation's configured local processor. Migrated approvals remain reference-only until reapproved.
     RunbookContent:
       type: object
       additionalProperties: false
@@ -3576,6 +3579,17 @@ components:
         log_consent:
           type: boolean
           default: false
+        reviewed_document:
+          type: object
+          additionalProperties: false
+          required: [consent, reference]
+          properties:
+            consent:
+              type: boolean
+              const: true
+            reference:
+              $ref: '#/components/schemas/RunbookReference'
+          description: Explicit selection of one currently approved same-language guide. Requires operator-reviewed local assistance use. Cannot be combined with logs. Sends a bounded excerpt, never a caller-supplied document body.
       description: >-
         One explicit local selected-resource request. Omitted goal means explain_resource.
         investigate_incident selects a fixed bounded read recipe. Explicit log_consent true
@@ -3784,13 +3798,13 @@ components:
     AssistantResourceCitation:
       type: object
       additionalProperties: false
-      required: [id, kind, source_id, resource_id, observed_at, range]
+      required: [id, kind, source_id, resource_id, observed_at, range, document_reference]
       properties:
         id:
           $ref: '#/components/schemas/AssistantCitationId'
         kind:
           type: string
-          enum: [resource, health, metric, event, relationship, log, alert, workload]
+          enum: [resource, health, metric, event, relationship, log, alert, workload, document]
         source_id:
           $ref: '#/components/schemas/SourceId'
         resource_id:
@@ -3799,7 +3813,12 @@ components:
           $ref: '#/components/schemas/Timestamp'
         range:
           $ref: '#/components/schemas/AssistantTimeRange'
-      description: Exact observation family mapped to the authorized selected-resource view; no href, path or raw observation text. Ordinary explanations return only resource citations.
+        document_reference:
+          oneOf:
+            - $ref: '#/components/schemas/RunbookReference'
+            - type: 'null'
+          description: Present only for selected document guidance. It is not a live observation or independent read authority.
+      description: Exact read family mapped to a fixed authorized witness view; no href, path or raw prose. Document witnesses require a fresh document read and cannot support facts sections.
     AssistantReadCoverage:
       type: object
       additionalProperties: false
@@ -3808,7 +3827,7 @@ components:
         tool:
           type: string
           enum:
-            [inventory, health, metrics, events, topology, alert_history, workload_history, logs]
+            [inventory, health, metrics, events, topology, alert_history, workload_history, logs, reviewed_document]
         availability:
           type: string
           enum: [available, stale, unavailable, unsupported]
@@ -3842,11 +3861,11 @@ components:
             $ref: '#/components/schemas/AssistantResourceCitation'
         coverage:
           type: array
-          minItems: 7
+          minItems: 2
           maxItems: 8
           items:
             $ref: '#/components/schemas/AssistantReadCoverage'
-      description: Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage and retains one resource citation. All references share the admitted selected-resource scope and exact range.
+      description: Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage for inventory-only runs; an explicitly selected document adds one guidance citation and a two-read coverage plan. All references share the admitted selected-resource scope and exact range. Document guidance cannot support facts sections or enter the incident observation timeline.
     AssistantRunResponse:
       oneOf:
         - $ref: '#/components/schemas/AssistantPendingResponse'

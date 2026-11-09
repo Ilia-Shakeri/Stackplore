@@ -12,6 +12,7 @@ type Provenance struct {
 	Source      string
 	License     string
 	UseReviewed bool
+	AssistanceReviewed bool
 }
 
 func (Provenance) Format(state fmt.State, _ rune) {

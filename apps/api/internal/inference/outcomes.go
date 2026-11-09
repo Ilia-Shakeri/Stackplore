@@ -40,7 +40,7 @@ func outcomeBytes(outcomes []ToolOutcome) (int, error) {
 	seen := make(map[string]bool, len(outcomes))
 	for _, outcome := range outcomes {
 		switch outcome.Tool {
-		case "inventory", "health", "metrics", "events", "topology", "logs", "alert_history", "workload_history":
+		case "inventory", "health", "metrics", "events", "topology", "logs", "alert_history", "workload_history","reviewed_document":
 		default:
 			return 0, ErrInvalid
 		}
