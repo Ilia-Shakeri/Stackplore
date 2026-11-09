@@ -1,6 +1,6 @@
 # Documentation
 
-Selected-document assistance candidate: **2.0.0-alpha.7.3**, schema22; own hosted validation pending. See [handoff design](adr/0023-selected-document-guidance.md).
+Published selected-document assistance checkpoint: **2.0.0-alpha.7.3**, schema22, immutable source `20daeeb`. All eight source jobs, all eight exact-tag jobs, signed package/security trial and public publication pass. Independent quality, pilot and stable acceptance remain open. See [handoff design](adr/0023-selected-document-guidance.md) and [exact receipts](evidence/2.0.0-alpha.7.3/README.md).
 [Reviewed approval/search and private desktop page](v2/runbook-approval.md).
 [Reviewed-document source, exact-tag and publication receipts](evidence/2.0.0-alpha.7/README.md).
 [Selected metadata export preparation](v2/history-export.md).

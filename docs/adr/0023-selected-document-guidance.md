@@ -1,6 +1,6 @@
 # ADR-0023: Explicit selected-document guidance
 
-Status: accepted implementation design; hosted acceptance pending.
+Status: accepted implementation design; complete source, signed trial, exact-tag verification and public prerelease pass at `20daeeb`. Independent quality and stable acceptance remain separate gates. [Receipts](../evidence/2.0.0-alpha.7.3/README.md).
 Date: 2026-11-09.
 
 ## Smart Assistant decision

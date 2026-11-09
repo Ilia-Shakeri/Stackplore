@@ -1,13 +1,13 @@
 # Stackplore active implementation evidence
 
-**2026-11-09:** latest published development checkpoint is **2.0.0-alpha.7.2**,
-schema21, source `4c48905125266cfd4d887186c11cd6551a114372`.
-Source [42482933094](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42482933094),
-exact tag [42484937014](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42484937014)
-and publication [42484937015](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42484937015)
+**2026-11-09:** latest published development checkpoint is **2.0.0-alpha.7.3**,
+schema22, source `20daeeba9c7c1d96ee468f07a2f2a9e2e9417490`.
+Source [42588544856](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42588544856),
+exact tag [42591682187](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42591682187)
+and publication [42591682380](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42591682380)
 pass. The prerelease has 39 public assets with published digests; this does not
-certify independent public installation. Current unverified **alpha.7.3**, schema22,
-adds explicit selected-document guidance; its own hosted gates remain pending.
+certify independent public installation. Selected-document guidance requires
+separate processing permission, user consent and a reserved current-authority read.
 Earlier status paragraphs below are historical. Independent quality review,
 held-out corpus, pilot/soak/capacity and stable artifact acceptance remain open.
 

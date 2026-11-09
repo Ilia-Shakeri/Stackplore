@@ -1,6 +1,6 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
-Current candidate: **2.0.0-alpha.7.3**, schema22. Selected guidance is under hosted correction; [attempts and remaining gates](../evidence/2.0.0-alpha.7.3/README.md). Published alpha7.1 metadata export and alpha7.2 provenance have their own passing source/tag/publication receipts. Alpha7 remains immutable and unpublished after its recorded 403. See [approval/search and selected guidance](runbook-approval.md), [export](history-export.md) and [published provenance evidence](../evidence/2.0.0-alpha.7.2/README.md). Whole-stage quality and stable acceptance remain open.
+Published checkpoint: **2.0.0-alpha.7.3**, schema22. Selected guidance passes all eight source jobs, all eight exact-tag jobs, signed trial and public publication at `20daeeb`. [Attempts and remaining gates](../evidence/2.0.0-alpha.7.3/README.md). Published alpha7.1 metadata export and alpha7.2 provenance have their own passing source/tag/publication receipts. Alpha7 remains immutable and unpublished after its recorded 403. See [approval/search and selected guidance](runbook-approval.md), [export](history-export.md) and [published provenance evidence](../evidence/2.0.0-alpha.7.2/README.md). Whole-stage quality and stable acceptance remain open.
 
 ## Historical preparation trail — superseded by alpha7
 

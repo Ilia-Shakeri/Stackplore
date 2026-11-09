@@ -1,10 +1,12 @@
 # Smart Assistant — bounded investigation
 
-Current alpha7.3 candidate additionally permits one explicitly selected guide
+Published alpha7.3 checkpoint additionally permits one explicitly selected guide
 with separate operator processing review and user consent. Explain uses two
 reads, incident eight; log consent and guide selection cannot coexist. The
 256-UTF-8-byte excerpt is local guidance, never observed facts or a typed report
-timeline row. Current source still needs hosted acceptance; [contract and upgrade](runbook-approval.md).
+timeline row. Source `20daeeb` passes all eight source jobs, all eight exact-tag
+jobs, signed trial and public publication. Independent quality and stable
+acceptance remain open. [Contract and upgrade](runbook-approval.md).
 
 The **2.0.0-alpha.6.2** candidate extends the published five-read recipe with
 alert and workload history before optional logs. It retains at most eight sealed

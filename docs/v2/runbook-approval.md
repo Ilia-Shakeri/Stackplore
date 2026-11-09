@@ -1,7 +1,10 @@
 # Smart Assistant — reviewed document approval and search
 
-Current candidate schema **22**, version **2.0.0-alpha.7.3**. Selected-document
-guidance requires fresh hosted proof. Published alpha7.2 provenance passes source,
+Published checkpoint schema **22**, version **2.0.0-alpha.7.3**. Selected-document
+guidance passes all eight source jobs, all eight exact-tag jobs, signed trial
+and public publication at `20daeeb`. Independent quality and stable acceptance
+remain open. [Current evidence](../evidence/2.0.0-alpha.7.3/README.md).
+Published alpha7.2 provenance passes source,
 exact-tag and publication gates: [receipts](../evidence/2.0.0-alpha.7.2/README.md).
 The bounded alpha7 source `94425f8` passes all eight source jobs
 and a signed package/security trial. Exact-tag attempt2 passes; its first
@@ -33,8 +36,8 @@ Confirmation, grant, content, catalog version and safe audit commit atomically;
 any failure rolls them all back. Audit contains fixed identity/action/reason
 metadata, never document title/body/query. Prose approval is an operator review,
 not a semantic accuracy or legal-rights certificate. The current document-to-answer
-candidate follows [ADR-0023](../adr/0023-selected-document-guidance.md); its own
-hosted acceptance is pending.
+checkpoint follows [ADR-0023](../adr/0023-selected-document-guidance.md); source
+functional proof passes, with later release/quality gates recorded separately.
 
 Every new approval needs collection-level `provenance`: `kind` is
 `operator_authored`, `licensed_copy` or `public_domain`; `source` is visible inert
@@ -206,7 +209,8 @@ language, resource or page ownership clears private state and cancels pending wo
 پرسش وصل کنید. سقف چکیده ۲۵۶ بایت UTF-8 است. سند و رضایت لاگ هم‌زمان نباشند.
 شاهدِ سند با دسترسیِ تازه باز شود؛ متنش واقعیتِ مشاهده‌شده یا ردیف گزارش نشود.
 متن خصوصی به تاریخچه و خروجی فراداده افزوده نشود. وب و سرور با هم ارتقا یابند
-و پیش از مهاجرت پشتیبانِ تأییدشده بگیرید. این مسیر هنوز تست دور کامل می‌خواهد.
+و پیش از مهاجرت پشتیبانِ تأییدشده بگیرید. تستِ کاملِ کد و بستهٔ آزمایشی سبز است؛
+قبولیِ تگ، انتشار و ارزیابیِ مستقل جدا ثبت شود.
 بازیابی، تأیید قدیمی را زنده نمی‌کند. حذف از
 خواندن مجاز به معنی پاک‌شدن فیزیکی نسخه‌های پشتیبان نیست. تست، ساخت و اسکن
 فقط روی GitHub Actions است. نتیجه‌های ساختگی، ارزیابی مستقل یا پایلوت نیستند.

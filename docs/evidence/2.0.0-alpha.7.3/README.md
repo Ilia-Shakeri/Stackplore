@@ -1,7 +1,20 @@
-# Alpha7.3 — selected document guidance candidate
+# Alpha7.3 — selected document guidance checkpoint
 
-Candidate only, schema22. No immutable tag or publication is claimed yet.
+Schema22, immutable tag `v2.0.0-alpha.7.3` at source
+`20daeeba9c7c1d96ee468f07a2f2a9e2e9417490`.
 All execution is on hosted runners; workstation work is file editing and Git.
+
+- [Source verification 42588544856](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42588544856): all eight jobs pass, including full source/build/tests, concurrency, real PostgreSQL, browser/offline, real processor, Docker/Kubernetes and Compose/Helm.
+- [Signed package/security trial 42590072558](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42590072558): package passes; branch publication correctly skips.
+- [Exact-tag verification 42591682187](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42591682187): all eight jobs pass. [Fresh tag processor receipt](tag-processor.json) repeats the bounded bilingual role journeys and owned cleanup.
+- [Signed publication 42591682380](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42591682380): package and publication pass. [Public prerelease 438947453](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.7.3) was published at 2026-11-09T09:39:26Z with 39 public assets, each bearing a SHA-256 digest. This metadata does not prove independent public installation or runtime acceptance.
+
+[Source processor receipt](source-processor.json) records all eight baseline
+journeys plus four explicit guide journeys across English/Persian and both
+roles. Consent, exact guide text/citation, current witness, keyboard controls
+and page-exit clearing pass; SQL proves six completed runs per locale, exact
+reservations and one known generation each. Owned cleanup passes. This is
+synthetic functional evidence, not independent semantic quality or capacity.
 
 ## Smart Assistant correction trail
 
@@ -150,11 +163,11 @@ binding; preparation formatting stays protected and quote maps clear after
 dispatch. Trusted task instructions enumerate only the generated guide handles,
 never source prose. Unit tests exercise correct/wrong attribution and privacy.
 
-Review score: **8/10**, pending complete hosted verification. Remaining checks
-include full client/UI contracts and privacy, real selected-document processor
-journeys, all deployment jobs, signed package/security trial, exact-tag gates
-and actual publication. No local execution, stable acceptance or independent
-semantic evaluation is inferred from this candidate.
+Review score: **9/10 within the implemented stage7 code/architecture boundary**
+after correction and complete source/trial verification, repeated exact-tag
+verification and signed publication. Earlier failed attempts retain their outcomes.
+No local execution, stable acceptance or independent semantic evaluation is
+inferred from this checkpoint.
 
 The selected-document path separately requires operator processing permission,
 user consent, a reserved read and current session/audience/version/generation.

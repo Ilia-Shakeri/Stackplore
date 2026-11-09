@@ -2,7 +2,7 @@
 
 ## [2.0.0-alpha.7.3] - 2026-11-09
 
-### Smart Assistant — explicit document guidance candidate
+### Smart Assistant — explicit document guidance checkpoint
 
 - Require separate operator permission and explicit per-question selection before
   a local answer may use one reviewed document excerpt, capped at 256 UTF-8 bytes.
@@ -15,7 +15,13 @@
 - Append migration22: existing collections default to reference use only. New
   approvals require explicit `assistance_reviewed`; new v3 digests bind that choice.
 - Add bilingual selection/witness controls and hosted browser/SQL/ownership tests.
-  Hosted verification is pending; this is not stable2 acceptance.
+- Reject widened reference prototypes and final-newline identities; reject exact
+  guide quotations with borrowed observation citations without rewriting answers.
+- Keep guide data and request-local guide handles separate from observations;
+  preserve exact sealed revision binding while minimizing processor metadata.
+- Source `20daeeb` passes all eight source jobs, all eight exact-tag jobs, signed package/security trial and public publication;
+  [tag/publication and remaining gates](docs/evidence/2.0.0-alpha.7.3/README.md)
+  are recorded separately. This is not stable2 acceptance.
 
 ## [2.0.0-alpha.7.2] - 2026-11-08
 
