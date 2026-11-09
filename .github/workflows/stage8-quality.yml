@@ -1,0 +1,64 @@
+name: stage8-quality
+
+on:
+  push:
+    branches: ['v2/**']
+    paths:
+      - '.github/workflows/stage8-quality.yml'
+      - 'scripts/seed-evaluation*.mjs'
+      - 'scripts/check-stage8-hardening*.mjs'
+      - 'scripts/check-hosted-processor-linux*.mjs'
+      - 'apps/api/internal/provider/inference/seed_evaluation_integration_test.go'
+      - 'apps/api/internal/inference/stage8_fault_test.go'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage8-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  development-measurement:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: 1.26.10
+          cache-dependency-path: apps/api/go.sum
+      - name: Install pinned hosted tooling
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
+      - name: Check measurement and fault receipt contracts
+        run: node --test scripts/seed-evaluation.test.mjs scripts/check-stage8-hardening.test.mjs scripts/check-hosted-processor-linux.test.mjs
+      - name: Start only the owned patched database
+        run: bash scripts/start-test-postgres.sh start code
+      - name: Measure faults, usage settlement, query plans and parser mutations
+        run: node scripts/check-stage8-hardening.mjs
+      - name: Measure real profile across three public seed passes
+        env:
+          SP_STAGE8_SEED_EVALUATION: 'true'
+        run: node scripts/check-hosted-processor-linux.mjs
+      - name: Stop only the owned database
+        if: always()
+        run: bash scripts/start-test-postgres.sh stop code
+      - name: Retain only metadata measurements
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stage8-development-measurements
+          path: |
+            .tmp/stage8-hardening.json
+            .tmp/hosted-processor.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

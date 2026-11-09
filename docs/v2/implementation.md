@@ -1,5 +1,11 @@
 # Version 2 implementation ledger
 
+> Current candidate **2.0.0-alpha.8.1**, schema22: real public-seed development
+> measurement, owned processor consumption and named fault/database receipts.
+> Hosted source, measurement, package and immutable-tag gates remain required.
+> [Current evidence](../evidence/2.0.0-alpha.8.1/README.md),
+> [stage9 preparation](stage9-preparation.md). Independent stage8 exit is open.
+
 > Tagged stage8 preparation **2.0.0-alpha.8**, schema22, source `ec866ca`: actual
 > review-receipt validation and non-alpha publication floor pass all eight source
 > jobs and signed trial. Exact-tag/publication have separate live receipts.

@@ -13,16 +13,33 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { createServer } from 'node:net';
+import { cpus, totalmem } from 'node:os';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import process from 'node:process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { summarizeSeedEvaluation } from './seed-evaluation.mjs';
+import { checkCorpus } from './check-v2-corpus.mjs';
 
 const archiveHash = 'ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25';
 const modelHash = '061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a';
 const templateHash = '57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361';
 const modelRevision = '90862c4b9d2787eaed51d12237eafdfe7c5f6077';
 const build = 'b11729-412a363c6';
+
+export function parseProcessMeasurement(status, stat, ticksPerSecond) {
+  const peak = /^VmHWM:\s+([0-9]+)\s+kB$/mu.exec(status)?.[1];
+  const fields = stat.slice(stat.lastIndexOf(')') + 2).trim().split(/\s+/u);
+  const user = Number(fields[11]);
+  const system = Number(fields[12]);
+  const rss = Number(peak) * 1024;
+  if (!peak || !Number.isSafeInteger(rss) || rss < 1 ||
+      !Number.isSafeInteger(user) || user < 0 || !Number.isSafeInteger(system) || system < 0 ||
+      !Number.isSafeInteger(user + system) || !Number.isInteger(ticksPerSecond) || ticksPerSecond < 1 || ticksPerSecond > 10000)
+    throw new Error('hosted_processor.measurement_invalid');
+  return { peak_rss_bytes: rss, cpu_user_ticks: user, cpu_system_ticks: system,
+    ticks_per_second: ticksPerSecond, cpu_seconds: (user + system) / ticksPerSecond };
+}
 
 export function validHostedIncidentReportMetadata(value) {
   if (
@@ -163,6 +180,10 @@ export function safeArchiveLinks(text) {
 
 async function main() {
   assertHostedProcessorEnvironment(process.platform, process.env);
+  const seedEvaluation = process.env.SP_STAGE8_SEED_EVALUATION;
+  if (seedEvaluation !== undefined &&
+      (seedEvaluation !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage8-quality'))
+    throw new Error('hosted_processor.evaluation_scope');
   const root = resolve(import.meta.dirname, '..');
   const temporary = await realpath(process.env.RUNNER_TEMP);
   const work = await mkdtemp(resolve(temporary, 'stackplore-profile-'));
@@ -191,6 +212,11 @@ async function main() {
     cases: [],
     evidence_probes: [],
     empty_probes: [],
+    resource_scope: 'owned processor only; shared runner observation, not customer capacity',
+    runner: { platform: process.platform, architecture: process.arch, logical_cpus: cpus().length,
+      processor: /^[\w ().@+-]{1,128}$/u.test(cpus()[0]?.model ?? '') ? cpus()[0].model : 'unavailable',
+      host_memory_bytes: totalmem() },
+    ci_peak_rss_limit_bytes: 8 * 1024 ** 3,
   };
   let child;
   let exited;
@@ -203,6 +229,16 @@ async function main() {
     });
     if (result.status !== 0) throw new Error('hosted_processor.subprocess_failed');
     return result.stdout?.toString() ?? '';
+  };
+  const measure = async () => {
+    if (!child?.pid || child.exitCode !== null) throw new Error('hosted_processor.measurement_missing');
+    const [status, stat] = await Promise.all([
+      readFile(`/proc/${child.pid}/status`, 'utf8'), readFile(`/proc/${child.pid}/stat`, 'utf8'),
+    ]);
+    const tickRate = Number(run('getconf', ['CLK_TCK'], { maxBuffer: 1024 }).trim());
+    report.resources = parseProcessMeasurement(status, stat, tickRate);
+    if (report.resources.peak_rss_bytes > report.ci_peak_rss_limit_bytes)
+      throw new Error('hosted_processor.memory_budget');
   };
   const download = async (url, path, size, digest) => {
     const transfer = (source, headers = []) =>
@@ -420,6 +456,7 @@ async function main() {
       if (!ready) await delay(1000);
     }
     if (!ready) throw new Error('hosted_processor.start_failed');
+    await measure();
     const props = await getJSON('/props');
     const models = await getJSON('/v1/models');
     if (
@@ -536,6 +573,7 @@ async function main() {
       report.empty_probes.length !== 2
     )
       throw new Error('hosted_processor.protocol_failed');
+    await measure();
     report.phase = 'web_build';
     run('corepack', ['pnpm', 'run', 'build:web'], { stdio: 'ignore' });
     run('node', ['scripts/embed-web-assets.mjs'], { stdio: 'ignore' });
@@ -683,6 +721,32 @@ async function main() {
       )
     )
       throw new Error('hosted_processor.browser_failed');
+    await measure();
+    if (seedEvaluation === 'true') {
+      report.phase = 'seed_evaluation';
+      await checkCorpus(root);
+      const manifest = JSON.parse(await readFile(resolve(root, 'tests/fixtures/assistant/corpus.manifest.json'), 'utf8'));
+      const bytes = await readFile(resolve(root, 'tests/fixtures/assistant/corpus.seed.json'));
+      const seed = spawnSync('go', [
+        '-C', resolve(root, 'apps/api'), 'test', './internal/provider/inference',
+        '-run', '^TestPinnedSeedEvaluationIntegration$', '-count=1', '-timeout=20m', '-json',
+      ], { cwd: root, env: { ...environment, STACKPLORE_TEST_SEED_EVALUATION: 'true' },
+        encoding: 'utf8', timeout: 1220000, maxBuffer: 4 * 1024 * 1024 });
+      const observations = [];
+      const parentResults = [];
+      for (const line of (seed.stdout ?? '').split('\n').filter(Boolean)) {
+        const event = JSON.parse(line);
+        if (event.Test === 'TestPinnedSeedEvaluationIntegration' && ['pass', 'fail', 'skip'].includes(event.Action))
+          parentResults.push(event.Action);
+        const marker = event.Output?.indexOf('seed_measurement=') ?? -1;
+        if (marker >= 0) observations.push(JSON.parse(event.Output.slice(marker + 'seed_measurement='.length).trim()));
+      }
+      report.seed_evaluation = summarizeSeedEvaluation(manifest, bytes, observations);
+      await measure();
+      if (seed.status !== 0 || parentResults.length !== 1 || parentResults[0] !== 'pass' ||
+          report.seed_evaluation.totals.missing !== 0)
+        throw new Error('hosted_processor.evaluation_incomplete');
+    }
     report.status = 'passed';
     report.phase = 'complete';
   } catch (error) {

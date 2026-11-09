@@ -1,5 +1,10 @@
 # Documentation
 
+Current **2.0.0-alpha.8.1** preparation adds measured public-seed evaluation,
+processor RSS/CPU metadata and named fault receipts. Fresh source and measurement
+gates remain separate. [Current evidence](evidence/2.0.0-alpha.8.1/README.md),
+[stage8](v2/stage8-readiness.md), [stage9 preparation](v2/stage9-preparation.md).
+
 Current stage8 preparation: **2.0.0-alpha.8**, schema22, immutable tag at `ec866ca`.
 Actual corpus-review receipt validation and a non-alpha publication floor pass
 all eight source jobs and signed package/security trial. Exact-tag and public

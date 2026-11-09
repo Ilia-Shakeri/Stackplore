@@ -7,7 +7,20 @@ import {
   validHostedDatabaseMetadata,
   validHostedGuidanceMetadata,
   validHostedIncidentReportMetadata,
+  parseProcessMeasurement,
 } from './check-hosted-processor-linux.mjs';
+
+test('owned process measurement keeps RSS high-water and CPU ticks with spaced process names', () => {
+  const fields = ['S', ...Array(10).fill('0'), '125', '75', ...Array(10).fill('0')];
+  const stat = `123 (worker with space) ${fields.join(' ')}`;
+  assert.deepEqual(parseProcessMeasurement('Name:\tworker\nVmHWM:\t2048 kB\n', stat, 100), {
+    peak_rss_bytes: 2097152, cpu_user_ticks: 125, cpu_system_ticks: 75, ticks_per_second: 100, cpu_seconds: 2,
+  });
+  for (const [status, changedStat, ticks] of [
+    ['', stat, 100], ['VmHWM: 0 kB', stat, 100], ['VmHWM: 2048 kB', 'invalid', 100],
+    ['VmHWM: 2048 kB', stat, 0], ['VmHWM: 2048 kB', stat, Number.NaN],
+  ]) assert.throws(() => parseProcessMeasurement(status, changedStat, ticks), { message: 'hosted_processor.measurement_invalid' });
+});
 
 test('guidance receipts require exact source, role, locale and literal passing assertions', () => {
   const source = 'a'.repeat(40);

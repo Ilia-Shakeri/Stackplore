@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0-alpha.8.1] - 2026-11-09
+
+### Smart Assistant — measured development evaluation and fault receipts
+
+- Measure three public seed passes on the pinned real profile, with exact case,
+  provider and locale denominators; preserve rejected, missing and budget cases.
+- Report latency and validated completion tokens without fabricating human
+  grounding, correct abstention, blind holdout acceptance or failed-call usage.
+- Record owned processor peak RSS, CPU ticks and runner hardware with a CI-only
+  8-GiB RSS ceiling; production capacity remains separately unproven.
+- Add nineteen named fault/database/usage regressions, 72 malformed-output
+  permutations and a bounded single-worker parser fuzz run with safe metadata.
+- Put focused source checks before expensive hosted gates and add a separate
+  development measurement workflow. [Receipts and limits](docs/evidence/2.0.0-alpha.8.1/README.md).
+- Prepare the [stage9 rehearsal matrix](docs/v2/stage9-preparation.md); stage8
+  independent quality and actual pilot gates remain open.
+
 ## [2.0.0-alpha.8] - 2026-11-09
 
 ### Smart Assistant — corpus review and publication floor

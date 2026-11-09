@@ -1,5 +1,11 @@
 # Stackplore active implementation evidence
 
+**2026-11-09 — alpha8.1 preparation:** three real public-seed passes, processor
+RSS/CPU metadata and named fault/database receipts. Fresh hosted results and
+signed package/tag gates are required. [Evidence](evidence/2.0.0-alpha.8.1/README.md).
+Stage8 human/holdout acceptance remains open; [stage9 rehearsal preparation](v2/stage9-preparation.md)
+does not claim a pilot or bypass the predecessor's exit gates.
+
 **2026-11-09 — stage8:** tagged **2.0.0-alpha.8**, schema22, source `ec866ca`,
 adds actual corpus review-receipt validation and a non-alpha publication floor.
 All eight source jobs and signed package/security trial pass after the hosted

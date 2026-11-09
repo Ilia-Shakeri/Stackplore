@@ -11,6 +11,48 @@ or a measured quality result; source/tag/package receipts remain separate.
 
 ## Dataset and machine checks
 
+### Smart Assistant — development measurements, alpha8.1
+
+The separate `stage8-quality` hosted workflow runs the pinned real processor and
+existing bilingual application gate, then three passes across all twelve public
+seed scenarios: 72 planned case/locale/pass observations. Original questions and
+synthetic evidence are used; expected answer text is not copied into instructions.
+The seed itself stays twelve paired scenarios and eighteen attacks. No artificial
+case inflation or new independent review is claimed.
+
+Each generation has one shared 40-second count/dispatch context and at most 256
+output tokens. The complete seed loop has an 18-minute budget. Exhaustion records
+remaining cases as `not_run`, not success. The collector does not retry rejected
+answers. It stores metadata only, with all missing/rejected cases in denominators.
+No answer text or input content is retained. Summary groups separate language,
+provider and pass, report nearest-rank latency p50/p95 for attempted cases, and
+sum only validated completion tokens. Rejected calls retain uncertain usage;
+these sums are not total billed/charged usage. Existing real SQL settlement tests
+separately verify that unknown usage cannot refund confirmed dispatches.
+
+Gateway-accepted output establishes closed shape and synthetic citation membership,
+not factual grounding or current product authorization. Observed gap sections do
+not establish correct abstention. Human grounding, correct abstention and actual
+adversarial-profile scores remain pending. The summary always has
+`release_accepted: false` and `independent_holdout: false`. A green measurement
+workflow means collection completed; inspect its structural threshold and actual
+counts before interpreting any result. Neither the three repeated passes nor the
+public seed's holdout labels are independent blind acceptance samples.
+
+The owned processor's `/proc` RSS high-water mark and CPU ticks are read after
+major phases; CPU conversion records the kernel tick rate. Kernel high-water RSS
+captures peaks during synchronous child work. Runner CPU model/count and host
+memory are recorded. The 8-GiB ceiling is a hosted regression limit, not an
+approved production budget. CPU totals include the whole owned processor lifetime,
+and RSS excludes the API, browser and database. These are descriptive observations,
+not same-hardware workload regression or customer capacity acceptance.
+
+Nineteen named fault regressions must pass without missing/skipped cases. They
+cover real database crash/restore/settlement/rollback and query-plan boundaries,
+adapter faults, revocation, cancellation and one-use dispatch. A 72-case parser
+mutation matrix and a ten-second, one-worker fuzz run add machine cases; they do
+not add curated adversarial cases or prove universal safety.
+
 Current maintainer execution is [hosted only](hosted-validation.md). Run the
 commands below on an Actions runner; do not start tests, tools or processors on
 the maintainer workstation. An independent evaluator and pilot are not available;

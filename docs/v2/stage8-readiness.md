@@ -1,8 +1,13 @@
 # Stage 8 — evidence and release readiness
 
-Current work is **2.0.0-alpha.8**, schema22. This is a preparation checkpoint,
+Current work is **2.0.0-alpha.8.1**, schema22. This is a preparation checkpoint,
 not completion of stage8. Workstation activity is limited to file edits and
 lightweight Git; execution belongs to GitHub Actions.
+
+Current development adds real three-pass seed measurements, safe grouped summaries,
+owned process RSS/CPU measurements and named database/fault receipts. Fresh hosted
+results are required. [Current evidence](../evidence/2.0.0-alpha.8.1/README.md),
+[evaluation details](evaluation.md), [stage9 preparation](stage9-preparation.md).
 
 Immutable tag `v2.0.0-alpha.8` identifies `ec866ca`, which passes all eight source
 jobs and signed package/security trial. Exact-tag and publication have separate
