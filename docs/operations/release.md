@@ -26,6 +26,14 @@ The later main-only harness/report-retention fix is separate from released sourc
 
 ## Maintainer sequence
 
+Stage8 adds a corpus readiness floor for non-alpha version2 publication in both
+`check-ci` and `publish`. Actual review files must match exact corpus bytes and
+reviewer/count metadata. Alpha checkpoints keep technical verification gates
+without claiming corpus acceptance. This floor does not replace profile quality,
+pilot or independent stable-asset acceptance. [Scope and schema](../v2/stage8-readiness.md).
+The active maintainer runs tests/builds only on GitHub Actions; references below
+to local gates apply to separately authorized environments.
+
 1. Complete the milestone's local gate with real PostgreSQL and all named browser,
    provider, deployment and recovery checks. Review the diff and changelog; keep
    local tools, private data and unknown images outside the commit.

@@ -4,6 +4,11 @@
 
 Status: stage-0 design and a curated synthetic seed. No production processor, runtime, incident-quality score, safety pass rate, capacity baseline, or sealed holdout is accepted here.
 
+Stage8 preparation adds an actual bounded review-receipt check and connects the
+corpus release floor to non-alpha version2 publication. [Schema, limits and
+remaining gates](stage8-readiness.md). This does not create independent review
+or a measured quality result; source/tag/package receipts remain separate.
+
 ## Dataset and machine checks
 
 Current maintainer execution is [hosted only](hosted-validation.md). Run the

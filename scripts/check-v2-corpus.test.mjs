@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import process from 'node:process';
 import test from 'node:test';
 import { fileURLToPath, URL } from 'node:url';
@@ -11,6 +13,7 @@ import {
   familySplit,
   MAXIMUM_CORPUS_BYTES,
   validateCorpus,
+  validateReviewReceipt,
 } from './check-v2-corpus.mjs';
 
 const directory = new URL('../tests/fixtures/assistant/', import.meta.url);
@@ -196,4 +199,111 @@ test('command rejects unknown arguments with only a fixed safe error', () => {
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
   assert.equal(result.stderr.trim(), 'corpus invalid: arguments');
+});
+
+function reviewedFixture() {
+  const { manifest, bytes } = fixture((manifest) => {
+    manifest.review = {
+      status: 'accepted', authors: ['seed-editor'],
+      reviewers: ['first-reviewer', 'second-reviewer'],
+      receipt: 'docs/evidence/v2/fixture-review.json',
+    };
+  });
+  const summary = validateCorpus(manifest, bytes);
+  const receipt = {
+    schema_version: 1, corpus_id: manifest.corpus_id, revision: manifest.revision,
+    sha256: manifest.sha256, status: 'accepted', authors: ['seed-editor'],
+    reviews: [
+      { reviewer: 'first-reviewer', decision: 'accepted' },
+      { reviewer: 'second-reviewer', decision: 'accepted' },
+    ],
+    paired_scenarios: summary.paired_scenarios, adversarial_cases: summary.adversarial_cases,
+    rubric_revision: 'fixture-rubric-v1', holdout: { sealed: true, tuning_access: false },
+  };
+  return { manifest, bytes, summary, receipt };
+}
+
+test('review receipt binds exact bytes, revision, counts, distinct reviewers and sealed scope', () => {
+  const { manifest, summary, receipt } = reviewedFixture();
+  assert.doesNotThrow(() => validateReviewReceipt(manifest, summary, receipt));
+  for (const [edit, code] of [
+    [(value) => { value.sha256 = 'a'.repeat(64); }, 'receipt_identity'],
+    [(value) => { value.revision = 'other-revision'; }, 'receipt_identity'],
+    [(value) => { value.paired_scenarios++; }, 'receipt_counts'],
+    [(value) => { value.adversarial_cases++; }, 'receipt_counts'],
+    [(value) => { value.authors = ['other-author']; }, 'receipt_authors'],
+    [(value) => { value.reviews[1].reviewer = 'first-reviewer'; }, 'receipt_reviewers'],
+    [(value) => { value.reviews[1].reviewer = 'seed-editor'; }, 'receipt_reviewers'],
+    [(value) => { value.reviews[1].decision = 'rejected'; }, 'receipt_decision'],
+    [(value) => { value.holdout.tuning_access = true; }, 'receipt_holdout'],
+    [(value) => { value.holdout.sealed = false; }, 'receipt_holdout'],
+    [(value) => { value.rubric_revision += '\n'; }, 'receipt_rubric'],
+    [(value) => { value.extra = true; }, 'receipt_shape'],
+  ]) {
+    const changed = clone(receipt);
+    edit(changed);
+    assert.throws(() => validateReviewReceipt(manifest, summary, changed), {
+      message: `corpus invalid: ${code}`,
+    });
+  }
+});
+
+test('final newlines cannot alias corpus identities, digests or review paths', () => {
+  invalid((manifest) => { manifest.corpus_id += '\n'; }, 'corpus_id');
+  invalid((manifest) => { manifest.split.salt += '\n'; }, 'split_salt');
+  const { manifest, bytes } = reviewedFixture();
+  manifest.sha256 += '\n';
+  assert.throws(() => validateCorpus(manifest, bytes), { message: 'corpus invalid: digest' });
+  manifest.sha256 = manifest.sha256.trim();
+  manifest.review.receipt += '\n';
+  assert.throws(() => validateCorpus(manifest, bytes), {
+    message: 'corpus invalid: accepted_review_receipt',
+  });
+});
+
+async function diskFixture(context) {
+  const root = await mkdtemp(path.join(tmpdir(), 'stackplore-corpus-test-'));
+  context.after(() => {
+    assert.equal(path.dirname(root), path.resolve(tmpdir()));
+    assert.match(path.basename(root), /^stackplore-corpus-test-[a-z0-9]+$/iu);
+    return rm(root, { recursive: true, force: true });
+  });
+  const value = reviewedFixture();
+  await mkdir(path.join(root, 'tests/fixtures/assistant'), { recursive: true });
+  await mkdir(path.join(root, 'docs/evidence/v2'), { recursive: true });
+  await writeFile(path.join(root, 'tests/fixtures/assistant/corpus.manifest.json'), JSON.stringify(value.manifest));
+  await writeFile(path.join(root, 'tests/fixtures/assistant/corpus.seed.json'), value.bytes);
+  const receiptPath = path.join(root, value.manifest.review.receipt);
+  return { root, receiptPath, ...value };
+}
+
+test('accepted review requires a readable bounded matching receipt; pending seed needs none', async (context) => {
+  const { root, receiptPath, receipt } = await diskFixture(context);
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: receipt_read' });
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  assert.equal((await checkCorpus(root)).semantic_review, 'accepted');
+  await assert.rejects(checkCorpus(root, { release: true }), { message: 'corpus invalid: release_status' });
+  await writeFile(receiptPath, Buffer.from([0xff]));
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: receipt_read' });
+  await writeFile(receiptPath, 'x'.repeat(65537));
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: receipt_read' });
+  await writeFile(receiptPath, JSON.stringify({ ...receipt, revision: 'wrong-revision' }));
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: receipt_identity' });
+});
+
+test('receipt links, linked parent directories and non-regular corpus files fail closed', async (context) => {
+  const { root, receiptPath, receipt } = await diskFixture(context);
+  const actual = path.join(root, 'review.json');
+  await writeFile(actual, JSON.stringify(receipt));
+  await symlink(actual, receiptPath);
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: receipt_read' });
+  await rm(receiptPath);
+  const parent = path.dirname(receiptPath);
+  await rm(parent, { recursive: true });
+  await symlink(root, parent, process.platform === 'win32' ? 'junction' : 'dir');
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: receipt_read' });
+  const corpusPath = path.join(root, 'tests/fixtures/assistant/corpus.seed.json');
+  await rm(corpusPath);
+  await mkdir(corpusPath);
+  await assert.rejects(checkCorpus(root), { message: 'corpus invalid: file_type' });
 });

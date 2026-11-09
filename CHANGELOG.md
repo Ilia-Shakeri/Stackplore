@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.0-alpha.8] - 2026-11-09
+
+### Smart Assistant — corpus review and publication floor
+
+- Validate actual bounded review files against corpus revision, digest, counts,
+  authors and distinct reviewers; require a rubric and sealed-holdout attestation.
+- Reject linked/non-regular corpus inputs, oversized reads and final-newline
+  aliases in corpus identities, digests and receipt paths.
+- Require corpus release readiness before beta, candidate, stable and other
+  non-alpha version2 publication; retain alpha technical release gates.
+- Add hosted regression coverage and [stage8 readiness](docs/v2/stage8-readiness.md).
+  Independent review, held-out profile quality, pilot and stable acceptance remain open.
+
 ## [2.0.0-alpha.7.3] - 2026-11-09
 
 ### Smart Assistant — explicit document guidance checkpoint

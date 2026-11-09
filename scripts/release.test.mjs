@@ -151,6 +151,37 @@ test('matching tag refuses an incomplete artifact set before calling the API', a
   assert.match(result.stderr, /required release artifact is missing/);
 });
 
+test('v2 beta, release candidates and stable publication require corpus evidence before network', async (context) => {
+  for (const version of ['2.0.0-beta.1', '2.0.0-rc.1', '2.0.0', '2.1.0', '2.0.0-preview.1']) {
+    const { root, run } = await fixture(context, { version });
+    const hook = path.join(root, 'no-network.mjs');
+    await writeFile(hook, "globalThis.fetch = () => { throw new Error('unexpected_network'); };\n");
+    for (const command of ['check-ci', 'publish']) {
+      const result = run(command, { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: `v${version}` }, hook);
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /corpus invalid: manifest_read/u);
+      assert.doesNotMatch(result.stderr, /unexpected_network/u);
+    }
+    await mkdir(path.join(root, 'tests/fixtures/assistant'), { recursive: true });
+    for (const name of ['corpus.manifest.json', 'corpus.seed.json']) {
+      await writeFile(path.join(root, 'tests/fixtures/assistant', name),
+        await readFile(path.join(import.meta.dirname, '../tests/fixtures/assistant', name)));
+    }
+    const seeded = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: `v${version}` }, hook);
+    assert.notEqual(seeded.status, 0);
+    assert.match(seeded.stderr, /corpus invalid: release_status/u);
+    assert.doesNotMatch(seeded.stderr, /unexpected_network/u);
+  }
+});
+
+test('numeric alpha checkpoints keep technical publication gates without claiming corpus acceptance', async (context) => {
+  const { run } = await fixture(context, { version: '2.0.0-alpha.8' });
+  const result = run('publish', { GITHUB_REF_TYPE: 'tag', GITHUB_REF_NAME: 'v2.0.0-alpha.8' });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /required release artifact is missing/u);
+  assert.doesNotMatch(result.stderr, /corpus invalid/u);
+});
+
 test('metadata records exact source and supported build targets without credentials', async (context) => {
   const { directory, run } = await fixture(context);
   const result = run('metadata', { GH_TOKEN: 'fixture-value-never-recorded' });

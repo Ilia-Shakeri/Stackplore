@@ -1,5 +1,10 @@
 # Version 2 implementation ledger
 
+> Current stage8 candidate **2.0.0-alpha.8**, schema22: actual review-receipt
+> validation and non-alpha publication floor. Hosted source/package/tag gates
+> remain pending. [Scope and roadmap](stage8-readiness.md),
+> [attempt ledger](../evidence/2.0.0-alpha.8/README.md).
+
 > Published selected-document-guidance checkpoint **2.0.0-alpha.7.3**, schema **22**, branch `v2/runbooks-prep`; source `20daeeb` passes all eight source jobs, all eight exact-tag jobs, signed trial and public publication. Independent quality, pilot and stable acceptance remain open. [Current receipts](../evidence/2.0.0-alpha.7.3/README.md).
 > Published alpha7.2 source `4c48905` passes eight source/tag jobs and signed publication. [Exact receipts](../evidence/2.0.0-alpha.7.2/README.md). Its manual reference review does not grant processing permission. New selection, separate permission and reserved document reads follow [ADR-0023](../adr/0023-selected-document-guidance.md).
 > Published **2.0.0-alpha.5** remains immutable at

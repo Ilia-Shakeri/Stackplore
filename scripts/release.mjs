@@ -4,6 +4,7 @@ import { lstat, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import process from 'node:process';
 import { releaseNotes } from './release-notes.mjs';
+import { checkCorpus } from './check-v2-corpus.mjs';
 import { setTimeout as delay } from 'node:timers/promises';
 import {
   checkDatabaseImageMetadata,
@@ -137,6 +138,9 @@ const readDatabaseDocument = async (name, maximum) => {
 };
 
 if (command === 'check-ci') {
+  if (version.startsWith('2.') && !/^2\.\d+\.\d+-alpha\.[0-9]+(?:\.[0-9]+)*$/u.test(version)) {
+    await checkCorpus(process.cwd(), { release: true });
+  }
   await awaitVerification();
 } else if (command === 'metadata') {
   const database = checkDatabasePin(
@@ -191,6 +195,9 @@ if (command === 'check-ci') {
   await writeFile(join(releaseDirectory, 'SHA256SUMS'), `${lines.join('\n')}\n`);
 } else if (command === 'publish') {
   assertTag();
+  if (version.startsWith('2.') && !/^2\.\d+\.\d+-alpha\.[0-9]+(?:\.[0-9]+)*$/u.test(version)) {
+    await checkCorpus(process.cwd(), { release: true });
+  }
   const names = await files();
   const targets = ['linux_amd64', 'linux_arm64', 'windows_amd64', 'darwin_amd64', 'darwin_arm64'];
   const expected = [

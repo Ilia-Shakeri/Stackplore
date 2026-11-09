@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
-import { readFile, stat } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { lstat, open } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
@@ -82,7 +83,11 @@ function text(value, maximum, code) {
 }
 
 function identifier(value, code) {
-  if (typeof value !== 'string' || !/^[a-z][a-z0-9_-]{2,79}$/u.test(value)) reject(code);
+  if (!exact(/^[a-z][a-z0-9_-]{2,79}$/u, value)) reject(code);
+}
+
+function exact(pattern, value) {
+  return typeof value === 'string' && pattern.exec(value)?.[0] === value;
 }
 
 function array(value, minimum, maximum, code) {
@@ -143,8 +148,7 @@ function validateReview(review) {
     if (review.receipt !== null) reject('pending_review_receipt');
   } else if (
     review.reviewers.length < 2 ||
-    typeof review.receipt !== 'string' ||
-    !/^docs\/evidence\/v2\/[a-z0-9_-]+\.json$/u.test(review.receipt)
+    !exact(/^docs\/evidence\/v2\/[a-z0-9_-]+\.json$/u, review.receipt)
   ) {
     reject('accepted_review_receipt');
   }
@@ -171,7 +175,7 @@ function validateManifest(manifest) {
   identifier(manifest.revision, 'revision');
   if (!['seed', 'candidate'].includes(manifest.status)) reject('manifest_status');
   if (manifest.corpus_file !== 'corpus.seed.json') reject('corpus_file');
-  if (typeof manifest.sha256 !== 'string' || !/^[a-f0-9]{64}$/u.test(manifest.sha256))
+  if (!exact(/^[a-f0-9]{64}$/u, manifest.sha256))
     reject('digest');
   closed(manifest.target, ['paired_scenarios', 'adversarial_cases'], 'target_shape');
   if (manifest.target.paired_scenarios !== 200 || manifest.target.adversarial_cases !== 1000) {
@@ -396,26 +400,94 @@ export function validateCorpus(manifest, corpusBytes, { release = false } = {}) 
   };
 }
 
-async function readBounded(file, maximum) {
-  if ((await stat(file)).size > maximum) reject('file_bytes');
-  const bytes = await readFile(file);
-  if (bytes.length === 0 || bytes.length > maximum) reject('file_bytes');
-  return bytes;
+export function validateReviewReceipt(manifest, summary, receipt) {
+  closed(receipt, [
+    'schema_version', 'corpus_id', 'revision', 'sha256', 'status', 'authors',
+    'reviews', 'paired_scenarios', 'adversarial_cases', 'rubric_revision', 'holdout',
+  ], 'receipt_shape');
+  if (receipt.schema_version !== 1 || receipt.status !== 'accepted' ||
+      receipt.corpus_id !== manifest.corpus_id || receipt.revision !== manifest.revision ||
+      receipt.sha256 !== manifest.sha256) reject('receipt_identity');
+  identifier(receipt.rubric_revision, 'receipt_rubric');
+  array(receipt.authors, 1, 10, 'receipt_authors');
+  unique(receipt.authors, 'receipt_authors');
+  if (receipt.authors.length !== manifest.review.authors.length ||
+      receipt.authors.some((person) => !manifest.review.authors.includes(person)))
+    reject('receipt_authors');
+  if (receipt.paired_scenarios !== summary.paired_scenarios ||
+      receipt.adversarial_cases !== summary.adversarial_cases) reject('receipt_counts');
+  array(receipt.reviews, 2, 10, 'receipt_reviews');
+  const reviewers = [];
+  for (const review of receipt.reviews) {
+    closed(review, ['reviewer', 'decision'], 'receipt_review_shape');
+    identifier(review.reviewer, 'receipt_reviewer');
+    if (review.decision !== 'accepted') reject('receipt_decision');
+    reviewers.push(review.reviewer);
+  }
+  unique(reviewers, 'receipt_reviewers');
+  if (reviewers.length !== manifest.review.reviewers.length ||
+      reviewers.some((person) => !manifest.review.reviewers.includes(person)))
+    reject('receipt_reviewers');
+  closed(receipt.holdout, ['sealed', 'tuning_access'], 'receipt_holdout');
+  if (receipt.holdout.sealed !== true || receipt.holdout.tuning_access !== false)
+    reject('receipt_holdout');
+}
+
+async function readBounded(root, relative, maximum) {
+  const base = path.resolve(root);
+  let current = base;
+  for (const part of [null, ...relative.split('/').slice(0, -1)]) {
+    if (part !== null) current = path.join(current, part);
+    const info = await lstat(current);
+    if (!info.isDirectory() || info.isSymbolicLink()) reject('file_type');
+  }
+  const file = path.join(base, relative);
+  const info = await lstat(file);
+  if (!info.isFile() || info.isSymbolicLink()) reject('file_type');
+  if (info.size === 0 || info.size > maximum) reject('file_bytes');
+  const handle = await open(file, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
+  try {
+    const opened = await handle.stat();
+    if (!opened.isFile() || opened.dev !== info.dev || opened.ino !== info.ino)
+      reject('file_type');
+    const buffer = Buffer.alloc(maximum + 1);
+    let length = 0;
+    while (length < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, length, buffer.length - length, null);
+      if (bytesRead === 0) break;
+      length += bytesRead;
+    }
+    if (length === 0 || length > maximum) reject('file_bytes');
+    return buffer.subarray(0, length);
+  } finally {
+    await handle.close();
+  }
 }
 
 export async function checkCorpus(root = process.cwd(), options = {}) {
-  const directory = path.join(root, CORPUS_DIRECTORY);
   let manifest;
   try {
     manifest = JSON.parse(
-      (await readBounded(path.join(directory, 'corpus.manifest.json'), 16384)).toString('utf8'),
+      new TextDecoder('utf-8', { fatal: true }).decode(
+        await readBounded(root, `${CORPUS_DIRECTORY}/corpus.manifest.json`, 16384)),
     );
   } catch {
     reject('manifest_read');
   }
   validateManifest(manifest);
-  const bytes = await readBounded(path.join(directory, manifest.corpus_file), MAXIMUM_CORPUS_BYTES);
-  return validateCorpus(manifest, bytes, options);
+  const bytes = await readBounded(root, `${CORPUS_DIRECTORY}/${manifest.corpus_file}`, MAXIMUM_CORPUS_BYTES);
+  const summary = validateCorpus(manifest, bytes, options);
+  if (manifest.review.status === 'accepted') {
+    let receipt;
+    try {
+      receipt = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(
+        await readBounded(root, manifest.review.receipt, 65536)));
+    } catch {
+      reject('receipt_read');
+    }
+    validateReviewReceipt(manifest, summary, receipt);
+  }
+  return summary;
 }
 
 async function main() {

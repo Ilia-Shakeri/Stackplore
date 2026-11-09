@@ -6,6 +6,17 @@ Status: proposed stage-0 controls and required tests. Controls below are not imp
 
 ## Assets and trust boundaries
 
+### Smart Assistant — review evidence and release floor
+
+Stage8 checks actual bounded review receipts against exact corpus bytes, authors,
+reviewers and counts; canonical identifiers reject final-newline aliases. Static
+links/non-regular inputs are rejected and reads are bounded. Non-alpha version2
+publication requires the corpus release check before publication network calls.
+Reviewer metadata does not authenticate humans or prove independent review;
+profile quality, pilot and stable acceptance remain separate. Regression ownership
+is `scripts/check-v2-corpus.test.mjs` and `scripts/release.test.mjs` on hosted
+runners. [Current scope and gaps](stage8-readiness.md).
+
 ### Smart Assistant — selected-document candidate, 2026-11-09
 
 Separate processing permission defaults false for existing revisions. Current

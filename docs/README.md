@@ -1,5 +1,9 @@
 # Documentation
 
+Current stage8 preparation: **2.0.0-alpha.8**, schema22. Actual corpus-review
+receipt validation and a non-alpha publication floor await fresh hosted gates.
+[Roadmap, schema and remaining acceptance](v2/stage8-readiness.md).
+
 Published selected-document assistance checkpoint: **2.0.0-alpha.7.3**, schema22, immutable source `20daeeb`. All eight source jobs, all eight exact-tag jobs, signed package/security trial and public publication pass. Independent quality, pilot and stable acceptance remain open. See [handoff design](adr/0023-selected-document-guidance.md) and [exact receipts](evidence/2.0.0-alpha.7.3/README.md).
 [Reviewed approval/search and private desktop page](v2/runbook-approval.md).
 [Reviewed-document source, exact-tag and publication receipts](evidence/2.0.0-alpha.7/README.md).
