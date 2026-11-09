@@ -186,6 +186,14 @@ describe('owning resource view', () => {
     act(() => {
       setOwner(Symbol());
     });
+    expect(screen.getByRole('combobox', { name: 'Read mode' })).toHaveProperty(
+      'value',
+      'explain_resource',
+    );
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Read mode' }), {
+      target: { value: 'investigate_incident' },
+    });
     expect(screen.getByRole('checkbox')).toHaveProperty('checked', false);
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Change test locale' }));

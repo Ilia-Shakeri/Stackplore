@@ -17,6 +17,35 @@ type fixtureDocumentSource struct {
 	reads  atomic.Int32
 }
 
+func TestSelectedDocumentReferenceBindsAdmissionReplay(t *testing.T) {
+	service, _, _, _ := fixtureService(t, func(options *Options, _ *modelFixture) {
+		options.AllowReviewedDocumentProse = true
+	})
+	input := inputFixture(t, 1)
+	original := runbook.Reference{CorpusID: "operations", Version: 2, Digest: [32]byte{1}, DocumentID: "guide", Locale: "en"}
+	input.Document = &original
+	if _, err := service.Submit(context.Background(), input); err != nil {
+		t.Fatal("initial selected document rejected", err)
+	}
+	for _, change := range []func(*runbook.Reference){
+		func(ref *runbook.Reference) { ref.CorpusID = "another" },
+		func(ref *runbook.Reference) { ref.Version++ },
+		func(ref *runbook.Reference) { ref.Digest[0]++ },
+		func(ref *runbook.Reference) { ref.DocumentID = "another" },
+	} {
+		altered := original
+		change(&altered)
+		input.Document = &altered
+		if _, err := service.Submit(context.Background(), input); err != assistant.ErrConflict {
+			t.Fatal("changed document reused admission", err)
+		}
+	}
+	input.Document = nil
+	if _, err := service.Submit(context.Background(), input); err != assistant.ErrConflict {
+		t.Fatal("removed document reused admission", err)
+	}
+}
+
 func (source *fixtureDocumentSource) AuthorizeAssistantRunbook(context.Context, assistant.Actor, runbook.Reference) error {
 	if source.denied.Load() {
 		return runbook.ErrDenied

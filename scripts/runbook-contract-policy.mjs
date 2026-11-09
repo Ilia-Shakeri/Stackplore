@@ -114,6 +114,8 @@ export function inspectRunbookPolicy(document) {
     issues.push('RunbookCommit.confirmed');
   if (schemas.RunbookProvenance?.properties?.use_reviewed?.const !== true)
     issues.push('RunbookProvenance.use_reviewed');
+  if (schemas.RunbookProvenance?.properties?.assistance_reviewed?.type !== 'boolean')
+    issues.push('RunbookProvenance.assistance_reviewed');
   if (
     JSON.stringify(schemas.RunbookProvenance?.properties?.kind?.enum) !==
     JSON.stringify(['operator_authored', 'licensed_copy', 'public_domain'])
@@ -130,6 +132,9 @@ export function runRunbookPolicySelfTests(document) {
     },
     (copy) => {
       copy.components.schemas.RunbookProvenance.properties.use_reviewed.const = false;
+    },
+    (copy) => {
+      copy.components.schemas.RunbookProvenance.properties.assistance_reviewed.type = 'string';
     },
     (copy) => {
       copy.components.schemas.RunbookProvenance.properties.kind.enum.push('inferred');

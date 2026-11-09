@@ -22,21 +22,27 @@ const helperRunID = "ar_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 const helperCitationID = "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
 func TestSelectedDocumentPublicationRequiresCoverageAndRejectsFacts(t *testing.T) {
- snapshot:=helperSnapshot()
- guide:=snapshot.Citations[0]
- guide.ID="ev_"+strings.Repeat("d",64)
- guide.Kind="document"
- guide.ObjectID="guide"
- guide.Document=runbook.Reference{CorpusID:"operations",Version:2,Digest:[32]byte{1},DocumentID:"guide",Locale:"en"}
- snapshot.Citations=append(snapshot.Citations,guide)
- snapshot.Outcomes=[]inference.ToolOutcome{{Tool:"inventory",Availability:domain.AvailabilityAvailable,Completeness:domain.CompletenessComplete,Records:1},{Tool:"reviewed_document",Availability:domain.AvailabilityAvailable,Completeness:domain.CompletenessComplete,Records:1}}
- snapshot.Answer.Sections=append(snapshot.Answer.Sections,inference.Section{Kind:inference.SectionNextChecks,Text:"Use reviewed guidance for the next check.",Citations:[]string{guide.ID}})
- if _,err:=assistantReply(snapshot,"user_helper",helperRunID);err!=nil {t.Fatal("valid guidance rejected",err)}
- snapshot.Answer.Sections[1].Kind=inference.SectionFacts
- if _,err:=assistantReply(snapshot,"user_helper",helperRunID);err==nil {t.Fatal("guide accepted as observed fact")}
- snapshot.Answer.Sections[1].Kind=inference.SectionNextChecks
- snapshot.Outcomes=nil
- if _,err:=assistantReply(snapshot,"user_helper",helperRunID);err==nil {t.Fatal("unreserved guide accepted")}
+	snapshot := helperSnapshot()
+	guide := snapshot.Citations[0]
+	guide.ID = "ev_" + strings.Repeat("d", 64)
+	guide.Kind = "document"
+	guide.ObjectID = "guide"
+	guide.Document = runbook.Reference{CorpusID: "operations", Version: 2, Digest: [32]byte{1}, DocumentID: "guide", Locale: "en"}
+	snapshot.Citations = append(snapshot.Citations, guide)
+	snapshot.Outcomes = []inference.ToolOutcome{{Tool: "inventory", Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Records: 1}, {Tool: "reviewed_document", Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Records: 1}}
+	snapshot.Answer.Sections = append(snapshot.Answer.Sections, inference.Section{Kind: inference.SectionNextChecks, Text: "Use reviewed guidance for the next check.", Citations: []string{guide.ID}})
+	if _, err := assistantReply(snapshot, "user_helper", helperRunID); err != nil {
+		t.Fatal("valid guidance rejected", err)
+	}
+	snapshot.Answer.Sections[1].Kind = inference.SectionFacts
+	if _, err := assistantReply(snapshot, "user_helper", helperRunID); err == nil {
+		t.Fatal("guide accepted as observed fact")
+	}
+	snapshot.Answer.Sections[1].Kind = inference.SectionNextChecks
+	snapshot.Outcomes = nil
+	if _, err := assistantReply(snapshot, "user_helper", helperRunID); err == nil {
+		t.Fatal("unreserved guide accepted")
+	}
 }
 
 func helperSnapshot() assistantservice.Snapshot {
