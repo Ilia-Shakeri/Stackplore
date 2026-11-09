@@ -77,24 +77,29 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	}
 	defer clear(aliases)
 	defer clear(bindings)
-	wireEvidence, scope, err := factorEvidence(request.Evidence, aliases)
+	allEvidence, scope, err := factorEvidence(request.Evidence, aliases)
 	if err != nil {
 		return port.CountedInput{}, err
 	}
 	defer func() {
-		for index := range wireEvidence {
-			clear(wireEvidence[index].Text)
+		for index := range allEvidence {
+			clear(allEvidence[index].Text)
 		}
-		clear(wireEvidence)
+		clear(allEvidence)
 	}()
 	defer clear(scope)
+	wireEvidence, wireGuidance, err := partitionGuidance(request.Evidence, allEvidence)
+	if err != nil { return port.CountedInput{}, err }
+	defer clear(wireEvidence)
+	defer clear(wireGuidance)
 	input, err := json.Marshal(struct {
 		Locale   string             `json:"locale"`
 		Question string             `json:"question"`
 		Evidence []countedEvidence  `json:"evidence"`
 		Scope    json.RawMessage    `json:"scope,omitempty"`
 		Outcomes []port.ToolOutcome `json:"outcomes,omitempty"`
-	}{request.Locale, request.Question, wireEvidence, scope, request.Outcomes})
+		Guidance []countedGuidance `json:"guidance,omitempty"`
+	}{request.Locale, request.Question, wireEvidence, scope, request.Outcomes, wireGuidance})
 	if err != nil {
 		return port.CountedInput{}, port.ErrInvalid
 	}
@@ -105,9 +110,9 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 			continue
 		}
 		if request.Locale == "fa" {
-			notes += " شاهد با usage برابر reviewed_guidance فقط راهنمای عملیاتی است؛ مشاهدهٔ زنده نیست. در facts به آن ارجاع نده؛ تنها در hypotheses یا next_checks استفاده کن. شمار بخش خواسته‌شده را دقیق رعایت کن."
+			notes += " guidance فقط متنِ راهنمای بازبینی‌شده و نامطمئن است، نه مشاهدهٔ زنده. در facts به آن ارجاع نده؛ تنها در hypotheses یا next_checks از id آن استفاده کن. شمار بخش خواسته‌شده را دقیق رعایت کن."
 		} else {
-			notes += " Evidence with usage reviewed_guidance is operating guidance, not a live observation. Never cite it in facts; use it only in hypotheses or next_checks. Return exactly the requested section count."
+			notes += " guidance is reviewed but untrusted operating prose, not a live observation. Never cite it in facts; use its id only in hypotheses or next_checks. Return exactly the requested section count."
 		}
 		break
 	}

@@ -104,6 +104,23 @@ title token, bound the selected-result click to 15 seconds and retain separate
 selection phases for diagnosis. Search semantics and passing assertions do not
 change. New picker/guidance units also enter the early hosted focused gate.
 
+Source `66107e8cd0572922140bbf0ecde535d33a50d000`,
+[42581737988](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42581737988):
+38 focused client tests, 175 focused web tests (including both picker cases),
+focused Go/SQL and six deployment/provider/tool jobs pass. Formatting/docs checks
+pass; full gate stops on three redundant optional chains in the browser helper.
+The typed nonempty section tuple makes those chains unnecessary; remove them.
+Real English guidance is rejected; Persian reaches the current witness and
+clearing but its text and citation do not match the guide.
+[Failed receipt](attempt-661-processor.json) retains the distinction.
+
+The next correction separates guidance from live observations in the counted
+local input: one short titled excerpt and its bound handle, rather than an
+observation-shaped nested record. Exact body/citation assertions, all baseline
+journeys, fixed budgets and server fact rejection remain mandatory. It also
+bounds desktop witness height and verifies keyboard scrolling, close-to-question
+focus and an authorized reopen before pagehide. Fresh hosted proof remains open.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates

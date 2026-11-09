@@ -67,8 +67,8 @@ export async function assistantGuidanceJourney(
       .getByRole('textbox', { name: label('assistant.question'), exact: true })
       .fill(
         locale === 'en'
-          ? 'Return only one next_checks section. Copy text exactly from evidence[1].text.records[0].guidance.excerpt. Set citations to [evidence[1].id]. No other sections.'
-          : 'فقط یک بخش next_checks بده. در text فقط مقدار فیلد evidence[1].text.records[0].guidance.excerpt را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار evidence[1].id را فقط یک بار بگذار. بخش دیگری نده.',
+          ? 'Return only one next_checks section. Copy text exactly from guidance[0].excerpt. Set citations to [guidance[0].id]. No other sections.'
+          : 'فقط یک بخش next_checks بده. در text فقط مقدار فیلد guidance[0].excerpt را عیناً کپی کن؛ نام فیلد یا توضیح اضافه نده. در citations مقدار guidance[0].id را فقط یک بار بگذار. بخش دیگری نده.',
       );
     const admission = page.waitForResponse(
       (response) =>
@@ -121,10 +121,10 @@ export async function assistantGuidanceJourney(
       (section) => section.kind !== 'facts' || !section.citations.includes(guide?.id ?? ''),
     );
     metadata.guide_section_exact =
-      ready.answer.sections.length === 1 && ready.answer.sections[0]?.kind === 'next_checks';
-    metadata.guide_text_exact = ready.answer.sections[0]?.text === guideBody;
+      ready.answer.sections.length === 1 && ready.answer.sections[0].kind === 'next_checks';
+    metadata.guide_text_exact = ready.answer.sections[0].text === guideBody;
     metadata.guide_citation_exact =
-      ready.answer.sections[0]?.citations.length === 1 &&
+      ready.answer.sections[0].citations.length === 1 &&
       ready.answer.sections[0].citations[0] === guide?.id;
     metadata.guide_supported =
       metadata.guide_section_exact && metadata.guide_text_exact && metadata.guide_citation_exact;
@@ -140,10 +140,20 @@ export async function assistantGuidanceJourney(
     const witness = panel.getByRole('article', { name: label('runbooks.document'), exact: true });
     await expect(witness).toBeVisible();
     await expect(witness.getByRole('heading')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(witness.getByText(guideBody, { exact: true })).toBeFocused();
     metadata.witness_current = await witness.evaluate(
       (element, body) => element.textContent.includes(body),
       guideBody,
     );
+    await witness.getByRole('button', { name: label('runbooks.close'), exact: true }).click();
+    await expect(
+      panel.getByRole('textbox', { name: label('assistant.question'), exact: true }),
+    ).toBeFocused();
+    await panel
+      .getByRole('button', { name: label('assistant.guide.witness'), exact: true })
+      .click();
+    await expect(witness).toBeVisible();
     metadata.phase = 'clearing';
     await page.evaluate(() => {
       window.dispatchEvent(new Event('pagehide'));

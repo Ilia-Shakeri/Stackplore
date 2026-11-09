@@ -15,6 +15,11 @@ session, database role, audience, version/digest and restore generation. Recheck
 metadata before dispatch, release and witness resolution. A 256-UTF-8-byte
 excerpt remains local, untrusted guidance; never permit its citation as observed
 facts or a deterministic incident timeline row. No source addresses are fetched.
+The local counted envelope places guidance in a separate data array. Flattening
+retains only its bound handle, bounded title/excerpt and truncation; exact
+revision metadata stays in the server witness. It neither becomes an observation
+nor enters system instructions. The normal post-generation fact/citation guard
+remains mandatory even if the processor ignores the classification.
 
 Regression ownership: domain/context tests cover clipping and local-only use;
 gateway and transport/client tests reject factual promotion; runtime tests cover

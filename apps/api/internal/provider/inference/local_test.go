@@ -706,8 +706,9 @@ func TestLocalGuidanceScopeIsTrustedMetadataAndNeverPromotesProse(t *testing.T) 
 			}
 			var data struct {
 				Evidence []countedEvidence `json:"evidence"`
+				Guidance []countedGuidance `json:"guidance"`
 			}
-			if json.Unmarshal([]byte(body.Messages[1].Content), &data) != nil || len(data.Evidence) != 1 || data.Evidence[0].Usage != "reviewed_guidance" || !strings.Contains(body.Messages[1].Content, poison) || strings.Contains(body.Messages[0].Content, poison) || !strings.Contains(body.Messages[0].Content, "reviewed_guidance") {
+			if json.Unmarshal([]byte(body.Messages[1].Content), &data) != nil || len(data.Evidence) != 0 || len(data.Guidance) != 1 || len(data.Guidance[0].Text) == 0 || !strings.Contains(body.Messages[1].Content, poison) || strings.Contains(body.Messages[0].Content, poison) || !strings.Contains(body.Messages[0].Content, "guidance") {
 				t.Error("guide scope missing or prose promoted to trusted instructions")
 			}
 			observed.Store(true)

@@ -13,6 +13,12 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+.assistant__document-text {
+  max-block-size: 24rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
 .assistant__guide form,
 .assistant__guide article {
   display: grid;

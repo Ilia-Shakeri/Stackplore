@@ -30,8 +30,12 @@ guidance marker. The counted processor envelope also carries trusted usage
 classification, with localized system rules that never incorporate document
 prose. Exact corpus/version/digest/document/locale metadata stays in the sealed
 server witness instead of processor text; its private revision binding remains
-part of the canonical citation fingerprint. The processor receives the same
-bounded title/excerpt/usage/truncation data and request-local citation handle.
+part of the canonical citation fingerprint. The local adapter places the bounded
+title/excerpt/truncation and request-local handle in a separate `guidance` array,
+not in observation records. Unrecognized internal guidance remains opaque user
+data. No document prose enters system instructions. Observation handles and
+the complete canonical citation mapping stay unchanged; exact formatted token
+counting includes both arrays before the single dispatch.
 It cannot enter the observed-facts section or deterministic
 incident timeline. Typed document citations can support hypotheses/next checks;
 the witness is reopened through a fresh authorized exact-reference read. Normal
@@ -52,6 +56,11 @@ rejection, UTF-8 clipping and old migration prefixes. Hosted bilingual
 administrator/viewer journeys exercise actual approval, search, local processing,
 typed citation and witness clearing. These are functional synthetic checks,
 not independent semantic quality or production capacity evidence.
+
+The desktop witness body has a bounded keyboard-scrollable area. Closing it
+returns focus to the question; selection close/include returns focus to the
+persistent guide heading. Hosted journeys reopen the fresh witness before
+page-exit clearing so keyboard checks do not replace the privacy assertion.
 
 Ship matching server and web assets together. Clients now require the nullable
 `document_reference` citation field and the boolean provenance permission.

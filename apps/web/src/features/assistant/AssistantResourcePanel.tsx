@@ -343,7 +343,7 @@ function ConversationView({
             {documentWitness.document.title}
           </h3>
           <p>{t('assistant.guide.witnessNotice')}</p>
-          <p className="assistant__text" dir="auto">
+          <p className="assistant__text assistant__document-text" dir="auto" tabIndex={0}>
             {documentWitness.document.body}
           </p>
           {documentWitness.provenance !== null ? (
@@ -364,6 +364,7 @@ function ConversationView({
             variant="outline"
             onClick={() => {
               setDocumentWitness(null);
+              document.getElementById(`${panelId}-question`)?.focus();
             }}
           >
             {t('runbooks.close')}
