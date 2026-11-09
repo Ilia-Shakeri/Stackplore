@@ -20,6 +20,7 @@ type Prepared struct {
 	input    CountedInput
 	evidence map[string]struct{}
 	guidance map[string]struct{}
+	quotes   map[string][]string
 	limit    int
 	expires  time.Time
 	used     *atomic.Bool
@@ -59,6 +60,7 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	defer cancel()
 	refs := make(map[string]struct{}, len(request.Evidence))
 	guidance := make(map[string]struct{})
+	quotes := make(map[string][]string)
 	references := make([]string, 0, len(request.Evidence))
 	var guidanceReferences []string
 	for _, item := range request.Evidence {
@@ -66,6 +68,9 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 		if item.Guidance {
 			guidance[item.ID] = struct{}{}
 			guidanceReferences = append(guidanceReferences, item.ID)
+			if quote, known := guidanceQuote(item); known {
+				quotes[quote] = append(quotes[quote], item.ID)
+			}
 		}
 		references = append(references, item.ID)
 	}
@@ -96,7 +101,7 @@ func (gateway *Gateway) Prepare(ctx context.Context, request Request) (*Prepared
 	input.Tokens = slices.Clone(input.Tokens)
 	input.ReferenceIDs = references
 	input.GuidanceIDs = guidanceReferences
-	return &Prepared{owner: gateway, input: input, evidence: refs, guidance: guidance, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
+	return &Prepared{owner: gateway, input: input, evidence: refs, guidance: guidance, quotes: quotes, limit: request.OutputLimit, expires: gateway.now().Add(PreparationLifetime), used: new(atomic.Bool)}, nil
 }
 
 // Dispatch consumes its preparation before any external call. No failed call is retried.
@@ -113,6 +118,7 @@ func (gateway *Gateway) Dispatch(ctx context.Context, prepared *Prepared) (Resul
 	defer clear(prepared.input.Tokens)
 	defer clear(prepared.input.ReferenceIDs)
 	defer clear(prepared.input.GuidanceIDs)
+	defer clear(prepared.quotes)
 	work, cancel := context.WithTimeout(ctx, MaximumCallDuration)
 	defer cancel()
 	input := prepared.input
@@ -138,6 +144,9 @@ func (gateway *Gateway) Dispatch(ctx context.Context, prepared *Prepared) (Resul
 		return Result{}, err
 	}
 	for _, section := range answer.Sections {
+		if guides, known := prepared.quotes[section.Text]; known && !slices.ContainsFunc(section.Citations, func(id string) bool { return slices.Contains(guides, id) }) {
+			return Result{}, ErrInvalidOutput
+		}
 		if section.Kind != SectionFacts {
 			continue
 		}

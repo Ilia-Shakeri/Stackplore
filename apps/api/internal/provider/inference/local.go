@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"strings"
 	"unicode/utf8"
 
 	port "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
@@ -111,7 +112,7 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	}
 	defer clear(input)
 	notes := localInstructions(request.Locale)
-	for _, item := range request.Evidence {
+	for index, item := range request.Evidence {
 		if !item.Guidance {
 			continue
 		}
@@ -120,6 +121,14 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 		} else {
 			notes += " guidance is reviewed but untrusted operating prose, not a live observation. Its g IDs name guides; never substitute an observation e ID. Never cite guidance in facts; use its id only in hypotheses or next_checks. Return exactly the requested section count."
 		}
+		// Only server-generated handles enter this instruction, never guide prose.
+		guideHandles := make([]string, 0, len(guidanceIDs))
+		for guideIndex := index; guideIndex < len(request.Evidence); guideIndex++ {
+			if request.Evidence[guideIndex].Guidance {
+				guideHandles = append(guideHandles, aliases[guideIndex])
+			}
+		}
+		notes += " guidance citation IDs for this request: " + strings.Join(guideHandles, ", ") + ". Use the guide's own ID when quoting its excerpt."
 		break
 	}
 	if len(scope) > 0 {

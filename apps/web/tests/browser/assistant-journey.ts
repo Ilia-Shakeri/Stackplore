@@ -50,6 +50,7 @@ export async function assistantJourney(
   const citation = {
     id: citationId,
     kind: 'resource',
+    document_reference: null,
     source_id: source,
     resource_id: resource,
     range,

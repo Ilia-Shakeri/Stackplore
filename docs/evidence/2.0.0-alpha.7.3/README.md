@@ -133,6 +133,23 @@ classification cloned through preparation and generation. Public canonical
 citations and the independent server guard are unchanged. Unit cases cover
 exact remapping, unknown/duplicate classification and backend mutation.
 
+Source `70da7110ce8eaf877081c5e30f337e3bf5c2e65a`,
+[42585121614](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42585121614):
+the full source gate and Go concurrency gate pass. Six deployment/provider/tool
+jobs pass. The separate code-job browser fixture omits the new required nullable
+`document_reference` on observation citations, so the strict client correctly
+rejects its synthetic response in both languages. Add null to the fixture;
+do not relax the parser. Real English guide journeys pass for both roles;
+Persian reproduces exact guide text with the wrong observation citation.
+[Failed receipt](attempt-70d-processor.json) preserves all assertions and cleanup.
+
+The next correction captures known literal guide excerpts in the gateway and
+rejects exact quotations with borrowed observation citations. It never rewrites
+an answer or reassigns evidence. Backend counting cannot change the captured
+binding; preparation formatting stays protected and quote maps clear after
+dispatch. Trusted task instructions enumerate only the generated guide handles,
+never source prose. Unit tests exercise correct/wrong attribution and privacy.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates

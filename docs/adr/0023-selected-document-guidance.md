@@ -42,6 +42,13 @@ original evidence before calling a backend. Counting and generation use the same
 closed mapping; unknown or repeated guide IDs are rejected. This extends the
 internal ADR-0019 encoding only: public canonical citations and authority do not
 change, and post-generation fact/citation validation remains mandatory.
+The gateway also captures recognized literal guide excerpts before backend
+counting. An exact excerpt in an answer must cite its guide; borrowing an
+observation citation is rejected rather than repaired or published. This is a
+conservative exact-match attribution guard, not semantic validation of paraphrases.
+Quote bindings stay private, use protected preparation formatting and are
+cleared when dispatch finishes. Only server-generated guide handles may enter
+the static task instructions; document prose remains untrusted user data.
 It cannot enter the observed-facts section or deterministic
 incident timeline. Typed document citations can support hypotheses/next checks;
 the witness is reopened through a fresh authorized exact-reference read. Normal

@@ -2,9 +2,43 @@ package inference
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 )
+
+func TestExactGuideQuoteCannotBorrowAnObservationCitation(t *testing.T) {
+	const quote = "Inspect current service health."
+	for _, correct := range []bool{false, true} {
+		gateway := fixtureGateway(t, func(backend *fixtureBackend) {
+			backend.generate = func(context.Context, CountedInput, int) (Generated, error) {
+				id := "observation"
+				if correct {
+					id = "guide"
+				}
+				value := fixtureGenerated()
+				value.Content = []byte(`{"sections":[{"kind":"next_checks","text":"` + quote + `","citations":["` + id + `"]}]}`)
+				return value, nil
+			}
+		})
+		request := fixtureRequest()
+		request.Evidence = []Evidence{
+			{ID: "observation", Text: "Current resource observation"},
+			{ID: "guide", Guidance: true, Text: `{"records":[{"citation_id":"guide","kind":"document","guidance":{"excerpt":"` + quote + `","usage":"reviewed_guidance_not_live_facts"}}]}`},
+		}
+		prepared, err := gateway.Prepare(context.Background(), request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(fmt.Sprintf("%#v", prepared), quote) {
+			t.Fatal("private quote escaped preparation formatting")
+		}
+		_, err = gateway.Dispatch(context.Background(), prepared)
+		if correct && err != nil || !correct && err != ErrInvalidOutput {
+			t.Fatal("literal guide quote attribution mismatch", err)
+		}
+	}
+}
 
 func TestGuidanceCannotBecomeAReportedFactOrBeDowngradedByBackend(t *testing.T) {
 	for _, kind := range []string{"facts", "hypotheses", "next_checks"} {
