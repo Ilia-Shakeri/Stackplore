@@ -104,8 +104,10 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 			t.Fatal("seed legacy document")
 		}
 		protected["runbook_documents"] = readSnapshot(previous, "runbook_documents")
-		if previousVersion==21 {
-			if _,err:=previous.pool.Exec(ctx,`UPDATE runbook_corpora SET provenance_kind='operator_authored',provenance_source='Retain recorded source',provenance_license='Retain recorded basis',provenance_use_reviewed=true WHERE id='legacy'`);err!=nil {t.Fatal("seed reference-only review",err)}
+		if previousVersion == 21 {
+			if _, err := previous.pool.Exec(ctx, `UPDATE runbook_corpora SET provenance_kind='operator_authored',provenance_source='Retain recorded source',provenance_license='Retain recorded basis',provenance_use_reviewed=true WHERE id='legacy'`); err != nil {
+				t.Fatal("seed reference-only review", err)
+			}
 		}
 	}
 	var previousCount int
@@ -121,13 +123,17 @@ VALUES($1,'observation','operator_profile','profile_release_upgrade','Upgrade re
 		t.Fatal("forward upgrade from shipped migration prefix to 22 failed")
 	}
 	t.Cleanup(func() { _ = upgraded.Close() })
-	if previousVersion>=20 {
+	if previousVersion >= 20 {
 		var assistance bool
-		if err:=upgraded.pool.QueryRow(ctx,`SELECT provenance_assistance_reviewed FROM runbook_corpora WHERE id='legacy'`).Scan(&assistance);err!=nil || assistance {t.Fatal("upgrade invented assisted-use permission",err)}
+		if err := upgraded.pool.QueryRow(ctx, `SELECT provenance_assistance_reviewed FROM runbook_corpora WHERE id='legacy'`).Scan(&assistance); err != nil || assistance {
+			t.Fatal("upgrade invented assisted-use permission", err)
+		}
 	}
-	if previousVersion==21 {
+	if previousVersion == 21 {
 		var unchanged bool
-		if err:=upgraded.pool.QueryRow(ctx,`SELECT provenance_kind='operator_authored' AND provenance_source='Retain recorded source' AND provenance_license='Retain recorded basis' AND provenance_use_reviewed IS TRUE FROM runbook_corpora WHERE id='legacy'`).Scan(&unchanged);err!=nil || !unchanged {t.Fatal("upgrade changed prior review",err)}
+		if err := upgraded.pool.QueryRow(ctx, `SELECT provenance_kind='operator_authored' AND provenance_source='Retain recorded source' AND provenance_license='Retain recorded basis' AND provenance_use_reviewed IS TRUE FROM runbook_corpora WHERE id='legacy'`).Scan(&unchanged); err != nil || !unchanged {
+			t.Fatal("upgrade changed prior review", err)
+		}
 	}
 	if previousVersion == 20 {
 		var legacy bool

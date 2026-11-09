@@ -253,8 +253,16 @@ export const inspectAssistantPolicy = (document) => {
     'request.log_consent',
   );
   const question = schemas.AssistantRunRequest?.properties?.question;
-  const selectedGuide=schemas.AssistantRunRequest?.properties?.reviewed_document;
-  check(selectedGuide?.type==='object' && selectedGuide.additionalProperties===false && same(selectedGuide.required,['consent','reference']) && same(Object.keys(selectedGuide.properties??{}),['consent','reference']) && selectedGuide.properties.consent?.const===true && selectedGuide.properties.reference?.$ref===schemaRef('RunbookReference'),'request.reviewed_document');
+  const selectedGuide = schemas.AssistantRunRequest?.properties?.reviewed_document;
+  check(
+    selectedGuide?.type === 'object' &&
+      selectedGuide.additionalProperties === false &&
+      same(selectedGuide.required, ['consent', 'reference']) &&
+      same(Object.keys(selectedGuide.properties ?? {}), ['consent', 'reference']) &&
+      selectedGuide.properties.consent?.const === true &&
+      selectedGuide.properties.reference?.$ref === schemaRef('RunbookReference'),
+    'request.reviewed_document',
+  );
   check(
     question?.type === 'string' &&
       question.minLength === 1 &&

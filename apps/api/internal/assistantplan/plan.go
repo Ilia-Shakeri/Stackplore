@@ -32,9 +32,15 @@ func Reads(goal assistant.Goal, logConsent bool) ([]assistant.StepKind, error) {
 // WithDocument adds only an explicitly selected local guidance read. Log and
 // document consent cannot displace a required family or raise the fixed cap.
 func WithDocument(goal assistant.Goal, logConsent, selected bool) ([]assistant.StepKind, error) {
- plan,err:=Reads(goal,logConsent)
- if err!=nil {return nil,err}
- if !selected {return plan,nil}
- if logConsent || len(plan)>=MaximumReads {return nil,assistant.ErrInvalid}
- return append(plan,assistant.ReviewedDocument),nil
+	plan, err := Reads(goal, logConsent)
+	if err != nil {
+		return nil, err
+	}
+	if !selected {
+		return plan, nil
+	}
+	if logConsent || len(plan) >= MaximumReads {
+		return nil, assistant.ErrInvalid
+	}
+	return append(plan, assistant.ReviewedDocument), nil
 }

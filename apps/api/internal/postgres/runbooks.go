@@ -341,32 +341,51 @@ func (store *Store) SearchRunbooks(ctx context.Context, q runbook.Search) (runbo
 	return page, nil
 }
 
-func (store *Store) ReadRunbook(ctx context.Context, actor auth.Principal, reference runbook.Reference) (runbook.Content,error) {
- if ctx==nil || actor.Validate()!=nil || reference.Validate()!=nil {return runbook.Content{},runbook.ErrInvalid}
- ctx,cancel:=context.WithTimeout(ctx,3*time.Second);defer cancel()
- var content runbook.Content
- err:=store.withinTransaction(ctx,func(ctx context.Context,transaction *transaction)error{
-  tx:=transaction.transaction
-  if err:=runbookLive(ctx,tx,actor,false);err!=nil{return err}
-  var err error
-  content,err=readReviewedRunbookTx(ctx,tx,reference,actor.Role==auth.RoleAdministrator,false)
-  if err!=nil{return err}
-  return runbookLive(ctx,tx,actor,false)
- })
- if err!=nil{return runbook.Content{},runbookError(err)}
- return content,nil
+func (store *Store) ReadRunbook(ctx context.Context, actor auth.Principal, reference runbook.Reference) (runbook.Content, error) {
+	if ctx == nil || actor.Validate() != nil || reference.Validate() != nil {
+		return runbook.Content{}, runbook.ErrInvalid
+	}
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	var content runbook.Content
+	err := store.withinTransaction(ctx, func(ctx context.Context, transaction *transaction) error {
+		tx := transaction.transaction
+		if err := runbookLive(ctx, tx, actor, false); err != nil {
+			return err
+		}
+		var err error
+		content, err = readReviewedRunbookTx(ctx, tx, reference, actor.Role == auth.RoleAdministrator, false)
+		if err != nil {
+			return err
+		}
+		return runbookLive(ctx, tx, actor, false)
+	})
+	if err != nil {
+		return runbook.Content{}, runbookError(err)
+	}
+	return content, nil
 }
 
-func readReviewedRunbookTx(ctx context.Context,tx pgx.Tx,reference runbook.Reference,administrator,assistance bool)(runbook.Content,error){
- generation,_,err:=runbookScope(ctx,tx,false)
- if err!=nil{return runbook.Content{},err}
- if generation!=reference.Generation{return runbook.Content{},runbook.ErrDenied}
- var content runbook.Content
- err=tx.QueryRow(ctx,`SELECT d.id,d.locale,d.title,d.body,COALESCE(c.provenance_kind,''),COALESCE(c.provenance_source,''),COALESCE(c.provenance_license,''),COALESCE(c.provenance_use_reviewed,false),c.provenance_assistance_reviewed FROM runbook_corpora c JOIN runbook_documents d ON d.corpus_id=c.id
+func readReviewedRunbookTx(ctx context.Context, tx pgx.Tx, reference runbook.Reference, administrator, assistance bool) (runbook.Content, error) {
+	generation, _, err := runbookScope(ctx, tx, false)
+	if err != nil {
+		return runbook.Content{}, err
+	}
+	if generation != reference.Generation {
+		return runbook.Content{}, runbook.ErrDenied
+	}
+	var content runbook.Content
+	err = tx.QueryRow(ctx, `SELECT d.id,d.locale,d.title,d.body,COALESCE(c.provenance_kind,''),COALESCE(c.provenance_source,''),COALESCE(c.provenance_license,''),COALESCE(c.provenance_use_reviewed,false),c.provenance_assistance_reviewed FROM runbook_corpora c JOIN runbook_documents d ON d.corpus_id=c.id
 WHERE c.id=$1 AND c.version=$2 AND c.digest=$3 AND c.restore_generation=$4 AND c.approved
-AND (c.audience='all_users' OR $5::boolean) AND d.id=$6 AND d.locale=$7 AND (NOT $8::boolean OR c.provenance_assistance_reviewed)`,reference.CorpusID,reference.Version,reference.Digest[:],generation,administrator,reference.DocumentID,reference.Locale,assistance).Scan(&content.Document.ID,&content.Document.Locale,&content.Document.Title,&content.Document.Body,&content.Provenance.Kind,&content.Provenance.Source,&content.Provenance.License,&content.Provenance.UseReviewed,&content.Provenance.AssistanceReviewed)
- if errors.Is(err,pgx.ErrNoRows){return runbook.Content{},runbook.ErrDenied}
- if err!=nil{return runbook.Content{},err}
- if content.Validate()!=nil{return runbook.Content{},runbook.ErrUnavailable}
- return content,nil
+AND (c.audience='all_users' OR $5::boolean) AND d.id=$6 AND d.locale=$7 AND (NOT $8::boolean OR c.provenance_assistance_reviewed)`, reference.CorpusID, reference.Version, reference.Digest[:], generation, administrator, reference.DocumentID, reference.Locale, assistance).Scan(&content.Document.ID, &content.Document.Locale, &content.Document.Title, &content.Document.Body, &content.Provenance.Kind, &content.Provenance.Source, &content.Provenance.License, &content.Provenance.UseReviewed, &content.Provenance.AssistanceReviewed)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return runbook.Content{}, runbook.ErrDenied
+	}
+	if err != nil {
+		return runbook.Content{}, err
+	}
+	if content.Validate() != nil {
+		return runbook.Content{}, runbook.ErrUnavailable
+	}
+	return content, nil
 }

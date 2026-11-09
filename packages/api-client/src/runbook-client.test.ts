@@ -25,7 +25,8 @@ describe('private reviewed document transport', () => {
       kind: 'operator_authored',
       source: 'Private source attribution',
       license: 'Author permission',
-      use_reviewed: true, assistance_reviewed: false,
+      use_reviewed: true,
+      assistance_reviewed: false,
     };
     expect(parseRunbookProvenance(provenance)?.source).toBe('Private source attribution');
     const document = { id: 'help', locale: 'en', title: 'Help', body: 'Inert text' };
@@ -113,7 +114,8 @@ describe('private reviewed document transport', () => {
         kind: 'operator_authored',
         source: 'Synthetic fixture',
         license: 'Fixture author permission',
-        use_reviewed: true, assistance_reviewed: false,
+        use_reviewed: true,
+        assistance_reviewed: false,
       },
       documents: [{ id: 'help', locale: 'fa', title: 'راهنما', body: 'متن\n\tتأییدشده' }],
     };

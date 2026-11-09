@@ -14,7 +14,7 @@ func TestProvenanceReviewIsExplicitBoundedAndBoundIntoIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, mutate := range []func(*Provenance){
-		func(p *Provenance){p.AssistanceReviewed=true},
+		func(p *Provenance) { p.AssistanceReviewed = true },
 		func(p *Provenance) { p.Kind = "licensed_copy" },
 		func(p *Provenance) { p.Source += " Changed" },
 		func(p *Provenance) { p.License += " Changed" },

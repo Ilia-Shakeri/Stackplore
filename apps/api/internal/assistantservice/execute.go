@@ -153,7 +153,7 @@ func (service *Service) execute(ctx context.Context, entry *memoryRun) error {
 	service.mu.Lock()
 	input := entry.input
 	service.mu.Unlock()
-	if input.Admission.Goal == assistant.InvestigateIncident || input.Document!=nil {
+	if input.Admission.Goal == assistant.InvestigateIncident || input.Document != nil {
 		combined, err := service.investigate(ctx, entry, evidence)
 		if err != nil {
 			return err

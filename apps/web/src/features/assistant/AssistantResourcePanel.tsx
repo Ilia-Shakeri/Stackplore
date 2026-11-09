@@ -1,4 +1,8 @@
-import type { ProductResource, AssistantWindowMinutes,RunbookContent } from '@stackplore/api-client';
+import type {
+  ProductResource,
+  AssistantWindowMinutes,
+  RunbookContent,
+} from '@stackplore/api-client';
 import { Button, TechnicalText } from '@stackplore/ui';
 import {
   useCallback,
@@ -17,7 +21,7 @@ import type { AssistantApi, AssistantOwner } from './assistant-api';
 import { useOptionalAssistantApi } from './assistant-context';
 import { AssistantConversation, type ConversationState } from './conversation';
 import { IncidentReportView } from './IncidentReportView';
-import {ReviewedDocumentPicker,type SelectedGuide} from './ReviewedDocumentPicker';
+import { ReviewedDocumentPicker, type SelectedGuide } from './ReviewedDocumentPicker';
 import './assistant.css';
 
 const absentSubscribe = () => () => {};
@@ -55,7 +59,7 @@ const toolKeys = {
   logs: 'assistant.tool.logs',
   alert_history: 'assistant.tool.alertHistory',
   workload_history: 'assistant.tool.workloadHistory',
-  reviewed_document:'assistant.tool.reviewedDocument',
+  reviewed_document: 'assistant.tool.reviewedDocument',
 } as const satisfies Record<string, MessageKey>;
 const availabilityKeys = {
   available: 'assistant.coverage.available',
@@ -81,8 +85,8 @@ export function AssistantResourcePanel({
   const { t, locale } = useLocale();
   const panelId = useId();
   const [open, setOpen] = useState(defaultOpen);
-  const [ownerScope,setOwnerScope]=useState({owner,revision:0});
-  if (ownerScope.owner!==owner) setOwnerScope({owner,revision:ownerScope.revision+1});
+  const [ownerScope, setOwnerScope] = useState({ owner, revision: 0 });
+  if (ownerScope.owner !== owner) setOwnerScope({ owner, revision: ownerScope.revision + 1 });
   if (api === null || owner === null || auth?.status !== 'authenticated') return null;
   return (
     <section className="assistant" aria-labelledby={`${panelId}-title`}>
@@ -132,11 +136,11 @@ function ConversationView({
   const [consentingOwner, setConsentingOwner] = useState<AssistantOwner | null>(null);
   const logConsent = consentingOwner === owner;
   const citationAttempt = useRef(0);
-  const [selectedGuide,setSelectedGuide]=useState<SelectedGuide|null>(null);
-  const [guideRevision,setGuideRevision]=useState(0);
-  const [documentWitness,setDocumentWitness]=useState<RunbookContent|null>(null);
-  const documentWork=useRef<AbortController|null>(null);
-  const documentHeading=useRef<HTMLHeadingElement>(null);
+  const [selectedGuide, setSelectedGuide] = useState<SelectedGuide | null>(null);
+  const [guideRevision, setGuideRevision] = useState(0);
+  const [documentWitness, setDocumentWitness] = useState<RunbookContent | null>(null);
+  const documentWork = useRef<AbortController | null>(null);
+  const documentHeading = useRef<HTMLHeadingElement>(null);
   const [citationWarning, setCitationWarning] = useState<symbol | null>(null);
   const conversation = useMemo(
     () =>
@@ -163,7 +167,7 @@ function ConversationView({
   useEffect(() => {
     setSelectedGuide(null);
     setDocumentWitness(null);
-    setGuideRevision((value)=>value+1);
+    setGuideRevision((value) => value + 1);
     conversation.connect();
     const leave = () => {
       flushSync(() => {
@@ -171,7 +175,7 @@ function ConversationView({
         documentWork.current?.abort();
         setSelectedGuide(null);
         setDocumentWitness(null);
-        setGuideRevision((value)=>value+1);
+        setGuideRevision((value) => value + 1);
         conversation.erase('expired');
       });
     };
@@ -190,8 +194,17 @@ function ConversationView({
       conversation.dispose();
     };
   }, [conversation]);
-  useEffect(()=>{if(documentWitness!==null)documentHeading.current?.focus();},[documentWitness]);
-  useEffect(()=>{if(snapshot.state==='expired'){setSelectedGuide(null);setDocumentWitness(null);setGuideRevision((value)=>value+1);documentWork.current?.abort();}},[snapshot.state]);
+  useEffect(() => {
+    if (documentWitness !== null) documentHeading.current?.focus();
+  }, [documentWitness]);
+  useEffect(() => {
+    if (snapshot.state === 'expired') {
+      setSelectedGuide(null);
+      setDocumentWitness(null);
+      setGuideRevision((value) => value + 1);
+      documentWork.current?.abort();
+    }
+  }, [snapshot.state]);
   const busy = ['admitting', 'pending', 'cancelling'].includes(snapshot.state);
   const uncertain = snapshot.state === 'admission_unknown';
   const citation = (runId: string, citationId: string) => {
@@ -208,13 +221,29 @@ function ConversationView({
       )
         return;
       if (result === null) setCitationWarning(citationScope);
-      else if (result.kind==='document' && result.document_reference!==null) {
-        const controller=new AbortController();documentWork.current=controller;
-        void api.runbookDocument(owner,result.document_reference,controller.signal).then((content)=>{
-          if(!controller.signal.aborted && api.getOwner()===owner && citationAttempt.current===attempt && conversation.getSnapshot()===origin)setDocumentWitness(content);
-        }).catch(()=>{if(!controller.signal.aborted && api.getOwner()===owner && citationAttempt.current===attempt)setCitationWarning(citationScope);});
-      }
-      else {
+      else if (result.kind === 'document' && result.document_reference !== null) {
+        const controller = new AbortController();
+        documentWork.current = controller;
+        void api
+          .runbookDocument(owner, result.document_reference, controller.signal)
+          .then((content) => {
+            if (
+              !controller.signal.aborted &&
+              api.getOwner() === owner &&
+              citationAttempt.current === attempt &&
+              conversation.getSnapshot() === origin
+            )
+              setDocumentWitness(content);
+          })
+          .catch(() => {
+            if (
+              !controller.signal.aborted &&
+              api.getOwner() === owner &&
+              citationAttempt.current === attempt
+            )
+              setCitationWarning(citationScope);
+          });
+      } else {
         const heading =
           (result.kind === 'alert' || result.kind === 'workload'
             ? document.getElementById(`incident-evidence-${result.id}`)
@@ -285,7 +314,7 @@ function ConversationView({
             id={`${panelId}-logs`}
             type="checkbox"
             checked={logConsent}
-            disabled={windowMinutes > 15 || selectedGuide!==null}
+            disabled={windowMinutes > 15 || selectedGuide !== null}
             onChange={(event) => {
               setCitationWarning(null);
               setConsentingOwner(event.target.checked ? owner : null);
@@ -294,23 +323,53 @@ function ConversationView({
           <span>{t('assistant.logConsent')}</span>
         </label>
       ) : null}
-      <ReviewedDocumentPicker key={String(guideRevision)} api={api} owner={owner} disabled={busy || uncertain || logConsent} selected={selectedGuide} onSelect={setSelectedGuide} />
+      <ReviewedDocumentPicker
+        key={String(guideRevision)}
+        api={api}
+        owner={owner}
+        disabled={busy || uncertain || logConsent}
+        selected={selectedGuide}
+        onSelect={setSelectedGuide}
+      />
       <p id={`${panelId}-state`} role="status" aria-live="polite">
         {t(stateKeys[snapshot.state])}
       </p>
       {citationWarning === citationScope ? (
         <p role="alert">{t('assistant.citationUnavailable')}</p>
       ) : null}
-      {documentWitness!==null ? <article className="assistant__guide" aria-label={t('runbooks.document')}>
-        <h3 ref={documentHeading} tabIndex={-1}>{documentWitness.document.title}</h3>
-        <p>{t('assistant.guide.witnessNotice')}</p>
-        <p className="assistant__text" dir="auto">{documentWitness.document.body}</p>
-        {documentWitness.provenance!==null ? <dl>
-          <dt>{t('runbooks.provenance.source')}</dt><dd className="assistant__text" dir="auto">{documentWitness.provenance.source}</dd>
-          <dt>{t('runbooks.provenance.license')}</dt><dd className="assistant__text" dir="auto">{documentWitness.provenance.license}</dd>
-        </dl> : <p>{t('runbooks.provenance.legacy')}</p>}
-        <Button variant="outline" onClick={()=>{setDocumentWitness(null);}}>{t('runbooks.close')}</Button>
-      </article> : null}
+      {documentWitness !== null ? (
+        <article className="assistant__guide" aria-label={t('runbooks.document')}>
+          <h3 ref={documentHeading} tabIndex={-1}>
+            {documentWitness.document.title}
+          </h3>
+          <p>{t('assistant.guide.witnessNotice')}</p>
+          <p className="assistant__text" dir="auto">
+            {documentWitness.document.body}
+          </p>
+          {documentWitness.provenance !== null ? (
+            <dl>
+              <dt>{t('runbooks.provenance.source')}</dt>
+              <dd className="assistant__text" dir="auto">
+                {documentWitness.provenance.source}
+              </dd>
+              <dt>{t('runbooks.provenance.license')}</dt>
+              <dd className="assistant__text" dir="auto">
+                {documentWitness.provenance.license}
+              </dd>
+            </dl>
+          ) : (
+            <p>{t('runbooks.provenance.legacy')}</p>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDocumentWitness(null);
+            }}
+          >
+            {t('runbooks.close')}
+          </Button>
+        </article>
+      ) : null}
       <ol className="assistant__turns">
         {snapshot.turns.map((turn, index) => (
           <li key={`${turn.response?.run.id ?? 'pending'}-${String(index)}`}>
@@ -370,7 +429,11 @@ function ConversationView({
                       citation(turn.response?.run.id ?? '', reference.id);
                     }}
                   >
-                    {t(reference.kind==='document' ? 'assistant.guide.witness' : 'assistant.citation')}
+                    {t(
+                      reference.kind === 'document'
+                        ? 'assistant.guide.witness'
+                        : 'assistant.citation',
+                    )}
                   </Button>
                 ))}
                 {turn.response.run.goal === 'investigate_incident' ? (

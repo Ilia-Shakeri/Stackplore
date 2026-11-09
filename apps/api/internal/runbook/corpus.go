@@ -167,12 +167,14 @@ func Query(value string, limit int) error {
 }
 
 func Snippet(body string) (string, error) {
-	return Excerpt(body,MaximumSnippetBytes)
+	return Excerpt(body, MaximumSnippetBytes)
 }
 
 // Excerpt preserves original code points; it never normalizes reviewed content.
-func Excerpt(body string,maximum int) (string,error) {
-	if maximum<1 || maximum>MaximumDocumentBytes {return "",ErrInvalid}
+func Excerpt(body string, maximum int) (string, error) {
+	if maximum < 1 || maximum > MaximumDocumentBytes {
+		return "", ErrInvalid
+	}
 	if !text(body, MaximumDocumentBytes, true) {
 		return "", ErrInvalid
 	}
@@ -183,6 +185,8 @@ func Excerpt(body string,maximum int) (string,error) {
 	for !utf8.RuneStart(body[end]) {
 		end--
 	}
-	if end==0 {return "",ErrInvalid}
+	if end == 0 {
+		return "", ErrInvalid
+	}
 	return body[:end], nil
 }

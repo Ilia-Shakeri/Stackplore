@@ -194,7 +194,7 @@ func buildAssistantProduct(ctx context.Context, settings config.Config, database
 		reference := domain.ProviderRef{Provider: source.Provider, SourceID: source.ID}
 		sources = append(sources, assistantevidence.Source{Reference: reference, ConfigurationVersion: approved.configuration.Version, Read: approved.read, History: history, Live: assistantevidence.CaptureAuthority{Source: reference, Provider: capture, Now: time.Now}})
 	}
-	reader, err := assistantevidence.New(assistantevidence.Options{Gate: assistantevidence.RepositoryGate{Repository: repository}, Sources: sources, Now: time.Now,Documents:database})
+	reader, err := assistantevidence.New(assistantevidence.Options{Gate: assistantevidence.RepositoryGate{Repository: repository}, Sources: sources, Now: time.Now, Documents: database})
 	if err != nil {
 		return nil, errAssistantStart
 	}
@@ -228,7 +228,7 @@ func buildAssistantProduct(ctx context.Context, settings config.Config, database
 	processID := "helper_" + hex.EncodeToString(random[:])
 	lifetime, stop := context.WithCancel(ctx)
 	// This composition has just constructed the pinned local-only backend.
-	core, err := assistantservice.New(assistantservice.Options{Repository: repository, Gateway: gateway, Authorizer: reader, Collector: reader, Lifetime: lifetime, Now: time.Now, ProcessID: processID, FingerprintKey: fingerprintKey, Workers: 2, PollInterval: time.Second, Heartbeat: time.Second, OutputLimit: limits.OutputTokens,AllowReviewedDocumentProse:true})
+	core, err := assistantservice.New(assistantservice.Options{Repository: repository, Gateway: gateway, Authorizer: reader, Collector: reader, Lifetime: lifetime, Now: time.Now, ProcessID: processID, FingerprintKey: fingerprintKey, Workers: 2, PollInterval: time.Second, Heartbeat: time.Second, OutputLimit: limits.OutputTokens, AllowReviewedDocumentProse: true})
 	if err != nil {
 		stop()
 		return nil, errAssistantStart

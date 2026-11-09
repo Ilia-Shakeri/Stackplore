@@ -117,7 +117,8 @@ describe('separate reviewed documents page', () => {
           kind: 'operator_authored',
           source: 'Reviewed fixture source',
           license: 'Fixture permission',
-          use_reviewed: true, assistance_reviewed: false,
+          use_reviewed: true,
+          assistance_reviewed: false,
         },
       });
       show(locale, 'viewer', controlled);
@@ -171,7 +172,8 @@ describe('separate reviewed documents page', () => {
         kind: 'operator_authored',
         source: 'Synthetic fixture',
         license: 'Fixture author permission',
-        use_reviewed: true, assistance_reviewed: false,
+        use_reviewed: true,
+        assistance_reviewed: false,
       },
       documents: [
         { id: 'help', locale: 'en', title: 'Private title', body: 'Private reviewed body' },

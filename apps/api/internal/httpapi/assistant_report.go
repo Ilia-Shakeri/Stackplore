@@ -100,8 +100,12 @@ func incidentReply(snapshot assistantservice.Snapshot, owner, id string) (assist
 	}
 	run := snapshot.Run
 	scope := incidentreport.Scope{Source: snapshot.Citations[0].Source, ResourceID: domain.ResourceID(run.ResourceID), ConfigurationVersion: run.SourceVersion, PolicyVersion: run.PolicyVersion, RestoreGeneration: run.RestoreGeneration, Range: domain.TimeRange{Start: run.From, End: run.Until}, ObservedAt: run.UpdatedAt}
-	references:=make([]contextbuilder.CitationReference,0,len(snapshot.Citations))
-	for _,ref:=range snapshot.Citations {if ref.Kind!="document" {references=append(references,ref)}}
+	references := make([]contextbuilder.CitationReference, 0, len(snapshot.Citations))
+	for _, ref := range snapshot.Citations {
+		if ref.Kind != "document" {
+			references = append(references, ref)
+		}
+	}
 	if incidentreport.ValidateWithHistory(scope, *snapshot.Report, references, snapshot.HistoryCoverage) != nil {
 		return assistantIncidentReplyJSON{}, assistant.ErrUnavailable
 	}

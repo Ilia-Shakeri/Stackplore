@@ -33,6 +33,10 @@ export type RunbookProvenance = {
    * Operator explicitly reviewed rights for the installation's current document use.
    */
   use_reviewed: true;
+  /**
+   * Explicit operator review for excerpts sent to the installation's configured local processor. Migrated approvals remain reference-only until reapproved.
+   */
+  assistance_reviewed: boolean;
 };
 
 export type RunbookContent = {
@@ -190,6 +194,13 @@ export type AssistantRunRequest = {
   conversation_id?: AssistantConversationId;
   goal?: 'explain_resource' | 'investigate_incident';
   log_consent?: boolean;
+  /**
+   * Explicit selection of one currently approved same-language guide. Requires operator-reviewed local assistance use. Cannot be combined with logs. Sends a bounded excerpt, never a caller-supplied document body.
+   */
+  reviewed_document?: {
+    consent: true;
+    reference: RunbookReference;
+  };
 };
 
 /**
@@ -287,15 +298,28 @@ export type AssistantAnswer = {
 };
 
 /**
- * Exact observation family mapped to the authorized selected-resource view; no href, path or raw observation text. Ordinary explanations return only resource citations.
+ * Exact read family mapped to a fixed authorized witness view; no href, path or raw prose. Document witnesses require a fresh document read and cannot support facts sections.
  */
 export type AssistantResourceCitation = {
   id: AssistantCitationId;
-  kind: 'resource' | 'health' | 'metric' | 'event' | 'relationship' | 'log' | 'alert' | 'workload';
+  kind:
+    | 'resource'
+    | 'health'
+    | 'metric'
+    | 'event'
+    | 'relationship'
+    | 'log'
+    | 'alert'
+    | 'workload'
+    | 'document';
   source_id: SourceId;
   resource_id: ResourceId;
   observed_at: Timestamp;
   range: AssistantTimeRange;
+  /**
+   * Present only for selected document guidance. It is not a live observation or independent read authority.
+   */
+  document_reference: RunbookReference | null;
 };
 
 /**
@@ -310,7 +334,8 @@ export type AssistantReadCoverage = {
     | 'topology'
     | 'alert_history'
     | 'workload_history'
-    | 'logs';
+    | 'logs'
+    | 'reviewed_document';
   availability: 'available' | 'stale' | 'unavailable' | 'unsupported';
   completeness: 'complete' | 'partial';
   records: number;
@@ -318,7 +343,7 @@ export type AssistantReadCoverage = {
 };
 
 /**
- * Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage and retains one resource citation. All references share the admitted selected-resource scope and exact range.
+ * Investigation requires fixed ordered coverage with record counts equal to actual citations. Explanation omits coverage for inventory-only runs; an explicitly selected document adds one guidance citation and a two-read coverage plan. All references share the admitted selected-resource scope and exact range. Document guidance cannot support facts sections or enter the incident observation timeline.
  */
 export type AssistantReadyResponse = {
   run: AssistantCompletedRun;

@@ -88,7 +88,7 @@ func (authority CaptureAuthority) Check(ctx context.Context, scope contextbuilde
 func (authority CaptureAuthority) family(ctx context.Context, scope contextbuilder.Scope, kind assistant.StepKind, fresh func(time.Time) bool) error {
 	var status domain.ObservationStatus
 	switch kind {
-	case assistant.Inventory, assistant.AlertHistory, assistant.WorkloadHistory,assistant.ReviewedDocument:
+	case assistant.Inventory, assistant.AlertHistory, assistant.WorkloadHistory, assistant.ReviewedDocument:
 		return nil
 	case assistant.Health:
 		provider, ok := authority.Provider.(domain.HealthProvider)

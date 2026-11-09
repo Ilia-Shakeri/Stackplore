@@ -8,10 +8,10 @@ import (
 // Provenance records an operator's review, not a legal or factual certification.
 // Source and licence are inert attribution text; neither is fetched or executed.
 type Provenance struct {
-	Kind        string
-	Source      string
-	License     string
-	UseReviewed bool
+	Kind               string
+	Source             string
+	License            string
+	UseReviewed        bool
 	AssistanceReviewed bool
 }
 

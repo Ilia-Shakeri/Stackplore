@@ -13,7 +13,8 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.assistant__guide form, .assistant__guide article {
+.assistant__guide form,
+.assistant__guide article {
   display: grid;
   gap: 0.75rem;
 }

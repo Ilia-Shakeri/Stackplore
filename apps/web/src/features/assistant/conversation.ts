@@ -85,8 +85,18 @@ const sameRun = (a: AssistantRun, b: AssistantRun) =>
       b.usage_uncertain === a.usage_uncertain &&
       b.usage_conservative === a.usage_conservative));
 
-const sameDocument=(a:AssistantResourceCitation['document_reference'],b:AssistantResourceCitation['document_reference'])=>
- a===null || b===null ? a===b : a.corpus_id===b.corpus_id && a.version===b.version && a.digest===b.digest && a.document_id===b.document_id && a.locale===b.locale && a.generation===b.generation;
+const sameDocument = (
+  a: AssistantResourceCitation['document_reference'],
+  b: AssistantResourceCitation['document_reference'],
+) =>
+  a === null || b === null
+    ? a === b
+    : a.corpus_id === b.corpus_id &&
+      a.version === b.version &&
+      a.digest === b.digest &&
+      a.document_id === b.document_id &&
+      a.locale === b.locale &&
+      a.generation === b.generation;
 
 // One mounted resource scope. Text and retry material have no persistence path.
 export class AssistantConversation {
@@ -220,7 +230,7 @@ export class AssistantConversation {
     });
   };
 
-  submit = async (document?:RunbookReference) => {
+  submit = async (document?: RunbookReference) => {
     if (
       !this.#valid() ||
       ['admitting', 'pending', 'admission_unknown', 'cancelling'].includes(this.#snapshot.state)
@@ -236,8 +246,12 @@ export class AssistantConversation {
       return;
     }
     try {
-      const selected=document===undefined ? undefined : parseRunbookReference(document);
-      if (selected!==undefined && (this.#scope.logConsent===true || selected.locale!==this.#scope.locale)) throw new Error('Invalid selected guide');
+      const selected = document === undefined ? undefined : parseRunbookReference(document);
+      if (
+        selected !== undefined &&
+        (this.#scope.logConsent === true || selected.locale !== this.#scope.locale)
+      )
+        throw new Error('Invalid selected guide');
       this.#request = {
         key: createAssistantIdempotencyKey(),
         input: Object.freeze({
@@ -246,7 +260,14 @@ export class AssistantConversation {
           window_minutes: this.#scope.windowMinutes,
           locale: this.#scope.locale,
           question,
-          ...(selected===undefined ? {} : {reviewed_document:Object.freeze({consent:true as const,reference:Object.freeze(selected)})}),
+          ...(selected === undefined
+            ? {}
+            : {
+                reviewed_document: Object.freeze({
+                  consent: true as const,
+                  reference: Object.freeze(selected),
+                }),
+              }),
           ...(this.#scope.goal === 'investigate_incident'
             ? { goal: this.#scope.goal, log_consent: this.#scope.logConsent === true }
             : {}),
@@ -397,7 +418,8 @@ export class AssistantConversation {
         citation.source_id !== response.run.scope.source_id ||
         citation.resource_id !== response.run.scope.resource_id ||
         citation.range.from !== response.run.scope.range.from ||
-        citation.range.to !== response.run.scope.range.to || !sameDocument(citation.document_reference,reference.document_reference)
+        citation.range.to !== response.run.scope.range.to ||
+        !sameDocument(citation.document_reference, reference.document_reference)
       )
         return null;
       return citation;
@@ -449,7 +471,8 @@ export class AssistantConversation {
             original.source_id !== ref.source_id ||
             original.resource_id !== ref.resource_id ||
             original.range.from !== ref.range.from ||
-            original.range.to !== ref.range.to || !sameDocument(original.document_reference,ref.document_reference)
+            original.range.to !== ref.range.to ||
+            !sameDocument(original.document_reference, ref.document_reference)
           );
         }) ||
         new TextEncoder().encode(JSON.stringify(reply.report)).byteLength +

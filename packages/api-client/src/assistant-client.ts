@@ -129,13 +129,16 @@ const closedInput = (value: unknown): AssistantRunRequest => {
   const conversation = Object.hasOwn(input, 'conversation_id') ? input.conversation_id : undefined;
   const goal = Object.hasOwn(input, 'goal') ? input.goal : 'explain_resource';
   const consent = Object.hasOwn(input, 'log_consent') ? input.log_consent : false;
-  let document:AssistantRunRequest['reviewed_document'];
-  if (Object.hasOwn(input,'reviewed_document')) {
-    const selected=assistantResponseWire.closed(input.reviewed_document,['consent','reference']);
-    if (selected.consent!==true || consent) throw new ApiTransportError('unexpected_response');
-    const reference=parseRunbookReference(selected.reference);
-    if (reference.locale!==input.locale) throw new ApiTransportError('unexpected_response');
-    document={consent:true,reference};
+  let document: AssistantRunRequest['reviewed_document'];
+  if (Object.hasOwn(input, 'reviewed_document')) {
+    const selected = assistantResponseWire.closed(input.reviewed_document, [
+      'consent',
+      'reference',
+    ]);
+    if (selected.consent !== true || consent) throw new ApiTransportError('unexpected_response');
+    const reference = parseRunbookReference(selected.reference);
+    if (reference.locale !== input.locale) throw new ApiTransportError('unexpected_response');
+    document = { consent: true, reference };
   }
   if (
     !exact(input.source_id, sourcePattern) ||
@@ -164,7 +167,7 @@ const closedInput = (value: unknown): AssistantRunRequest => {
     ...(typeof conversation === 'string' ? { conversation_id: conversation } : {}),
     ...(Object.hasOwn(input, 'goal') ? { goal } : {}),
     ...(Object.hasOwn(input, 'log_consent') ? { log_consent: consent } : {}),
-    ...(document===undefined ? {} : {reviewed_document:document}),
+    ...(document === undefined ? {} : { reviewed_document: document }),
   };
 };
 

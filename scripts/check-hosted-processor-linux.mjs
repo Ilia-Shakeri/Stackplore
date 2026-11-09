@@ -66,7 +66,11 @@ export function validHostedDatabaseMetadata(value, source) {
       )
     )
       return false;
-    if (goal === 'explain_resource' && [1, 2].some((calls) => runs.filter((run) => run.tool_calls === calls).length !== 2)) return false;
+    if (
+      goal === 'explain_resource' &&
+      [1, 2].some((calls) => runs.filter((run) => run.tool_calls === calls).length !== 2)
+    )
+      return false;
   }
   const counts = {
     inventory: 6,
@@ -548,9 +552,25 @@ async function main() {
       });
       for (const role of ['administrator', 'viewer']) {
         try {
-          const guidance=await metadata(`hosted-guidance-${locale}-${role}.json`);
-          report.application_browser.guidance_journeys.push(Object.fromEntries(['locale','role','status','consent_sent','document_current','not_facts','coverage_valid','witness_current','cleared'].map((key)=>[key,guidance[key]])));
-        } catch { /* Missing guidance receipts fail the candidate gate below. */ }
+          const guidance = await metadata(`hosted-guidance-${locale}-${role}.json`);
+          report.application_browser.guidance_journeys.push(
+            Object.fromEntries(
+              [
+                'locale',
+                'role',
+                'status',
+                'consent_sent',
+                'document_current',
+                'not_facts',
+                'coverage_valid',
+                'witness_current',
+                'cleared',
+              ].map((key) => [key, guidance[key]]),
+            ),
+          );
+        } catch {
+          /* Missing guidance receipts fail the candidate gate below. */
+        }
         for (const goal of ['explain_resource', 'investigate_incident']) {
           try {
             const journey = await metadata(`hosted-live-${locale}-${role}-${goal}.json`);
@@ -599,8 +619,17 @@ async function main() {
         (value) => !validHostedDatabaseMetadata(value, process.env.GITHUB_SHA),
       ) ||
       report.application_browser.journeys.length !== 8 ||
-      report.application_browser.guidance_journeys.length!==4 ||
-      report.application_browser.guidance_journeys.some((value)=>value.status!=='passed' || !value.consent_sent || !value.document_current || !value.not_facts || !value.coverage_valid || !value.witness_current || !value.cleared) ||
+      report.application_browser.guidance_journeys.length !== 4 ||
+      report.application_browser.guidance_journeys.some(
+        (value) =>
+          value.status !== 'passed' ||
+          !value.consent_sent ||
+          !value.document_current ||
+          !value.not_facts ||
+          !value.coverage_valid ||
+          !value.witness_current ||
+          !value.cleared,
+      ) ||
       report.application_browser.journeys.some(
         (value) =>
           !validHostedIncidentReportMetadata(value) ||

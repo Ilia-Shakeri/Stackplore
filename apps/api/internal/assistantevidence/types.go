@@ -103,16 +103,16 @@ func (Source) Format(state fmt.State, _ rune) {
 func (Source) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 type Options struct {
-	Gate    MetadataGate
-	Sources []Source
-	Now     func() time.Time
-	Timeout time.Duration
+	Gate      MetadataGate
+	Sources   []Source
+	Now       func() time.Time
+	Timeout   time.Duration
 	Documents ReviewedDocumentPorts
 }
 
 type ReviewedDocumentPorts interface {
- ReadAssistantRunbook(context.Context,assistant.Actor,runbook.Reference)(runbook.Content,error)
- AuthorizeAssistantRunbook(context.Context,assistant.Actor,runbook.Reference)error
+	ReadAssistantRunbook(context.Context, assistant.Actor, runbook.Reference) (runbook.Content, error)
+	AuthorizeAssistantRunbook(context.Context, assistant.Actor, runbook.Reference) error
 }
 
 func (Options) Format(state fmt.State, _ rune) {
@@ -131,7 +131,7 @@ type ReadRequest struct {
 	LogConsent  bool
 	RecordLimit int
 	ByteLimit   int
-	Document *runbook.Reference
+	Document    *runbook.Reference
 }
 
 func (ReadRequest) Format(state fmt.State, _ rune) {
@@ -147,7 +147,7 @@ type Reader struct {
 	timeout       time.Duration
 	slots         chan struct{}
 	metadataSlots chan struct{}
-	documents ReviewedDocumentPorts
+	documents     ReviewedDocumentPorts
 }
 
 func (Reader) Format(state fmt.State, _ rune) {
@@ -171,7 +171,7 @@ type Evidence struct {
 	recordLimit int
 	byteLimit   int
 	expires     time.Time
-	document runbook.Reference
+	document    runbook.Reference
 }
 
 func (Evidence) Format(state fmt.State, _ rune) {
@@ -181,8 +181,8 @@ func (Evidence) MarshalJSON() ([]byte, error)           { return []byte("{}"), n
 func (evidence Evidence) Bundle() contextbuilder.Bundle { return evidence.bundle }
 
 // ReadKind identifies the requested family sealed by the reader, including empty reads.
-func (evidence Evidence) ReadKind() assistant.StepKind { return evidence.requested }
-func (evidence Evidence) DocumentReference() runbook.Reference {return evidence.document}
+func (evidence Evidence) ReadKind() assistant.StepKind         { return evidence.requested }
+func (evidence Evidence) DocumentReference() runbook.Reference { return evidence.document }
 func (evidence Evidence) References() []contextbuilder.CitationReference {
 	return evidence.bundle.Citations()
 }
@@ -214,7 +214,7 @@ func New(options Options) (*Reader, error) {
 		}
 		sources[source.Reference.SourceID] = source
 	}
-	return &Reader{gate: options.Gate, sources: sources, versions: &sourceConfigurationVersions{values: make(map[domain.SourceID]int64, len(sources))}, now: options.Now, timeout: options.Timeout, slots: make(chan struct{}, MaximumConcurrent), metadataSlots: make(chan struct{}, MaximumMetadataConcurrent),documents:options.Documents}, nil
+	return &Reader{gate: options.Gate, sources: sources, versions: &sourceConfigurationVersions{values: make(map[domain.SourceID]int64, len(sources))}, now: options.Now, timeout: options.Timeout, slots: make(chan struct{}, MaximumConcurrent), metadataSlots: make(chan struct{}, MaximumMetadataConcurrent), documents: options.Documents}, nil
 }
 
 func (reader *Reader) work(ctx context.Context) (context.Context, context.CancelFunc, error) {

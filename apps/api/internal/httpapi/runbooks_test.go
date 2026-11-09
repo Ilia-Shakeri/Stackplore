@@ -124,8 +124,8 @@ func TestRunbookMaterialCanonicalDigestAndExactReference(t *testing.T) {
 		}
 	}
 	version, generation := int64(0), int64(0)
- referenceOnly := false
-	wire := runbookMaterialJSON{Action: "approve", ExpectedVersion: &version, Generation: &generation, Corpus: runbookCorpusJSON{ID: "ops", Version: 1, Audience: runbook.AllUsers, Provenance: &runbookProvenanceJSON{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true, AssistanceReviewed:&referenceOnly}, Documents: []runbookDocumentJSON{{ID: "help", Locale: "en", Title: "Help", Body: "Private prose"}}}}
+	referenceOnly := false
+	wire := runbookMaterialJSON{Action: "approve", ExpectedVersion: &version, Generation: &generation, Corpus: runbookCorpusJSON{ID: "ops", Version: 1, Audience: runbook.AllUsers, Provenance: &runbookProvenanceJSON{Kind: "operator_authored", Source: "Synthetic fixture", License: "Fixture author permission", UseReviewed: true, AssistanceReviewed: &referenceOnly}, Documents: []runbookDocumentJSON{{ID: "help", Locale: "en", Title: "Help", Body: "Private prose"}}}}
 	material, err := wire.material()
 	if err != nil || material.Digest == [32]byte{} {
 		t.Fatal("exact material unavailable")

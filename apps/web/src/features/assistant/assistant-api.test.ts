@@ -113,7 +113,7 @@ describe('owned private transport', () => {
     const citation = {
       id: `ev_${'b'.repeat(64)}`,
       kind: 'resource',
-  document_reference: null,
+      document_reference: null,
       source_id: run.scope.source_id,
       resource_id: run.scope.resource_id,
       observed_at: run.created_at,

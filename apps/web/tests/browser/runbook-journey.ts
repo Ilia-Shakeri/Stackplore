@@ -22,13 +22,25 @@ const corpus = (version: number) => ({
     kind: 'operator_authored',
     source: 'Synthetic browser fixture',
     license: 'Fixture author permission',
-    use_reviewed: true, assistance_reviewed: true,
+    use_reviewed: true,
+    assistance_reviewed: true,
   },
-  documents: (['en', 'fa'] as const).flatMap((locale) => [{
-    id: 'recovery',
-    locale,
-    ...{ title: prose(locale).title, body: prose(locale).body },
-  },{id:'safe_check',locale,title:locale==='en'?'Local check guide':'راهنمای بررسی محلی',body:locale==='en'?'For next checks only: compare current service health and recent events. This guide is not a live observation.':'فقط برای بررسی بعدی: سلامت کنونی سرویس و رخدادهای اخیر را مقایسه کنید. این راهنما مشاهدهٔ زنده نیست.'}]),
+  documents: (['en', 'fa'] as const).flatMap((locale) => [
+    {
+      id: 'recovery',
+      locale,
+      ...{ title: prose(locale).title, body: prose(locale).body },
+    },
+    {
+      id: 'safe_check',
+      locale,
+      title: locale === 'en' ? 'Local check guide' : 'راهنمای بررسی محلی',
+      body:
+        locale === 'en'
+          ? 'For next checks only: compare current service health and recent events. This guide is not a live observation.'
+          : 'فقط برای بررسی بعدی: سلامت کنونی سرویس و رخدادهای اخیر را مقایسه کنید. این راهنما مشاهدهٔ زنده نیست.',
+    },
+  ]),
 });
 async function search(page: Page, locale: 'en' | 'fa', label: Labels) {
   await page.getByRole('button', { name: label('runbooks.browse'), exact: true }).click();

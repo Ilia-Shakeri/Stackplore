@@ -48,16 +48,16 @@ func (g Goal) Valid() bool {
 type StepKind string
 
 const (
-	Inventory       StepKind = "inventory"
-	Health          StepKind = "health"
-	Metrics         StepKind = "metrics"
-	Events          StepKind = "events"
-	Topology        StepKind = "topology"
-	Logs            StepKind = "logs"
-	AlertHistory    StepKind = "alert_history"
-	WorkloadHistory StepKind = "workload_history"
+	Inventory        StepKind = "inventory"
+	Health           StepKind = "health"
+	Metrics          StepKind = "metrics"
+	Events           StepKind = "events"
+	Topology         StepKind = "topology"
+	Logs             StepKind = "logs"
+	AlertHistory     StepKind = "alert_history"
+	WorkloadHistory  StepKind = "workload_history"
 	ReviewedDocument StepKind = "reviewed_document"
-	Inference       StepKind = "inference"
+	Inference        StepKind = "inference"
 )
 
 func (k StepKind) Valid() bool {

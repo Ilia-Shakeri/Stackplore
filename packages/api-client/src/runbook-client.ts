@@ -82,9 +82,9 @@ export function parseRunbookDocument(value: unknown): RunbookDocument {
 }
 export function parseRunbookProvenance(value: unknown): RunbookProvenance | null {
   if (value === null) return null;
-  const item = closed(value, ['kind', 'source', 'license', 'use_reviewed','assistance_reviewed']);
+  const item = closed(value, ['kind', 'source', 'license', 'use_reviewed', 'assistance_reviewed']);
   if (!explicitConfirmation(item.use_reviewed)) return fail();
-  if (typeof item.assistance_reviewed!=='boolean') return fail();
+  if (typeof item.assistance_reviewed !== 'boolean') return fail();
   const kind =
     item.kind === 'operator_authored' ||
     item.kind === 'licensed_copy' ||
@@ -96,7 +96,7 @@ export function parseRunbookProvenance(value: unknown): RunbookProvenance | null
     source: prose(item.source, 512),
     license: prose(item.license, 128),
     use_reviewed: true,
-    assistance_reviewed:item.assistance_reviewed,
+    assistance_reviewed: item.assistance_reviewed,
   };
 }
 export function parseRunbookContent(value: unknown): RunbookContent {

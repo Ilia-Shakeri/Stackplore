@@ -1,7 +1,7 @@
 # Version 2 implementation ledger
 
-> Recorded-document-provenance candidate **2.0.0-alpha.7.2**, schema **21**, branch `v2/runbooks-prep`.
-> Alpha7.1 source `6441c15` passes eight source jobs and signed trial `42479950922`; its exact-tag/publication gates have separate receipts. Recorded provenance is newly authored and needs fresh hosted proof.
+> Selected-document-guidance candidate **2.0.0-alpha.7.3**, schema **22**, branch `v2/runbooks-prep`; fresh hosted acceptance pending.
+> Published alpha7.2 source `4c48905` passes eight source/tag jobs and signed publication. [Exact receipts](../evidence/2.0.0-alpha.7.2/README.md). Its manual reference review does not grant processing permission. New selection, separate permission and reserved document reads follow [ADR-0023](../adr/0023-selected-document-guidance.md).
 > Published **2.0.0-alpha.5** remains immutable at
 > `3038a64d500e044802e7fa43035695f7bf6c2a35`; eight source/tag jobs and signed
 > publication pass. [Evidence](../evidence/2.0.0-alpha.5/README.md).

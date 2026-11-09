@@ -3,9 +3,9 @@ package assistantservice
 
 import (
 	"context"
-	"encoding/hex"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -47,18 +47,18 @@ type EvidenceCollector interface {
 }
 
 type Options struct {
-	Repository     assistant.RuntimeRepository
-	Gateway        *inference.Gateway
-	Authorizer     Authorizer
-	Collector      EvidenceCollector
-	Lifetime       context.Context
-	Now            func() time.Time
-	ProcessID      string
-	FingerprintKey []byte
-	Workers        int
-	PollInterval   time.Duration
-	Heartbeat      time.Duration
-	OutputLimit    int
+	Repository                 assistant.RuntimeRepository
+	Gateway                    *inference.Gateway
+	Authorizer                 Authorizer
+	Collector                  EvidenceCollector
+	Lifetime                   context.Context
+	Now                        func() time.Time
+	ProcessID                  string
+	FingerprintKey             []byte
+	Workers                    int
+	PollInterval               time.Duration
+	Heartbeat                  time.Duration
+	OutputLimit                int
 	AllowReviewedDocumentProse bool
 }
 
@@ -72,7 +72,7 @@ type Input struct {
 	Locale     string
 	Question   string
 	LogConsent bool
-	Document *runbook.Reference
+	Document   *runbook.Reference
 	// Trusted transport presence flag; never accepted as a browser policy field.
 	RequireExistingConversation bool
 }
@@ -98,27 +98,27 @@ func (Snapshot) Format(state fmt.State, _ rune) {
 func (Snapshot) MarshalJSON() ([]byte, error) { return []byte("{}"), nil }
 
 type Service struct {
-	repository    assistant.RuntimeRepository
-	gateway       *inference.Gateway
-	authorizer    Authorizer
-	collector     EvidenceCollector
-	lifetime      context.Context
-	stop          context.CancelFunc
-	stopWatching  func() bool
-	now           func() time.Time
-	processID     string
-	workers       int
-	poll          time.Duration
-	heartbeat     time.Duration
-	output        int
+	repository     assistant.RuntimeRepository
+	gateway        *inference.Gateway
+	authorizer     Authorizer
+	collector      EvidenceCollector
+	lifetime       context.Context
+	stop           context.CancelFunc
+	stopWatching   func() bool
+	now            func() time.Time
+	processID      string
+	workers        int
+	poll           time.Duration
+	heartbeat      time.Duration
+	output         int
 	allowDocuments bool
-	key           [32]byte
-	admissions    chan struct{}
-	mu            sync.Mutex
-	entries       map[string]*memoryRun
-	conversations map[string]conversation
-	closed        bool
-	running       atomic.Bool
+	key            [32]byte
+	admissions     chan struct{}
+	mu             sync.Mutex
+	entries        map[string]*memoryRun
+	conversations  map[string]conversation
+	closed         bool
+	running        atomic.Bool
 }
 
 func (*Service) Format(state fmt.State, _ rune) {
@@ -142,7 +142,7 @@ func New(options Options) (*Service, error) {
 		return nil, assistant.ErrInvalid
 	}
 	lifetime, stop := context.WithCancel(options.Lifetime)
-	service := &Service{repository: options.Repository, gateway: options.Gateway, authorizer: options.Authorizer, collector: options.Collector, lifetime: lifetime, stop: stop, now: options.Now, processID: options.ProcessID, workers: options.Workers, poll: options.PollInterval, heartbeat: options.Heartbeat, output: options.OutputLimit, admissions: make(chan struct{}, 1), entries: map[string]*memoryRun{}, conversations: map[string]conversation{},allowDocuments:options.AllowReviewedDocumentProse}
+	service := &Service{repository: options.Repository, gateway: options.Gateway, authorizer: options.Authorizer, collector: options.Collector, lifetime: lifetime, stop: stop, now: options.Now, processID: options.ProcessID, workers: options.Workers, poll: options.PollInterval, heartbeat: options.Heartbeat, output: options.OutputLimit, admissions: make(chan struct{}, 1), entries: map[string]*memoryRun{}, conversations: map[string]conversation{}, allowDocuments: options.AllowReviewedDocumentProse}
 	copy(service.key[:], options.FingerprintKey)
 	service.mu.Lock()
 	service.stopWatching = context.AfterFunc(lifetime, service.Close)
@@ -167,17 +167,19 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 		return assistant.Run{}, assistant.ErrQuota
 	}
 	input.Scope.Resources = slices.Clone(input.Scope.Resources)
-	if input.Document!=nil {
-		selected:=*input.Document
-		input.Document=&selected
-		if !service.allowDocuments || selected.Validate()!=nil || selected.Locale!=input.Locale || selected.Generation!=input.Scope.RestoreGeneration {return assistant.Run{},assistant.ErrDenied}
+	if input.Document != nil {
+		selected := *input.Document
+		input.Document = &selected
+		if !service.allowDocuments || selected.Validate() != nil || selected.Locale != input.Locale || selected.Generation != input.Scope.RestoreGeneration {
+			return assistant.Run{}, assistant.ErrDenied
+		}
 	}
 	at := service.time()
 	a := input.Admission
 	a.At, a.Deadline, a.Volatile, a.MemoryOwner = at, at.Add(assistant.MaximumRunDuration), true, service.processID
 	a.Fingerprint = [32]byte{1}
 	input.Scope.RunID, input.Scope.ObservedAt = domain.RequestID(a.ID), at
-	if _, err := assistantplan.WithDocument(a.Goal, input.LogConsent,input.Document!=nil); err != nil {
+	if _, err := assistantplan.WithDocument(a.Goal, input.LogConsent, input.Document != nil); err != nil {
 		return assistant.Run{}, assistant.ErrInvalid
 	}
 	if input.LogConsent && input.Scope.Range.End.Sub(input.Scope.Range.Start) > contextbuilder.MaximumLogWindow {
@@ -214,10 +216,13 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 	if input.RequireExistingConversation {
 		_, _ = mac.Write([]byte("explicit-conversation-v1\x00"))
 	}
-	if input.Document!=nil {
-		_,_=mac.Write([]byte("explicit-reviewed-document-v1\x00"))
-		ref:=*input.Document
-		for _,value:=range []string{ref.CorpusID,strconv.FormatInt(ref.Version,10),hex.EncodeToString(ref.Digest[:]),ref.DocumentID,ref.Locale,strconv.FormatInt(ref.Generation,10)} {_,_=mac.Write([]byte(value));_,_=mac.Write([]byte{0})}
+	if input.Document != nil {
+		_, _ = mac.Write([]byte("explicit-reviewed-document-v1\x00"))
+		ref := *input.Document
+		for _, value := range []string{ref.CorpusID, strconv.FormatInt(ref.Version, 10), hex.EncodeToString(ref.Digest[:]), ref.DocumentID, ref.Locale, strconv.FormatInt(ref.Generation, 10)} {
+			_, _ = mac.Write([]byte(value))
+			_, _ = mac.Write([]byte{0})
+		}
 	}
 	copy(a.Fingerprint[:], mac.Sum(nil))
 	input.Admission = a
@@ -226,9 +231,13 @@ func (service *Service) Submit(ctx context.Context, input Input) (assistant.Run,
 	if service.authorizer.AuthorizeAdmission(work, a.Actor, runFrom(a), cloneScope(input.Scope)) != nil {
 		return assistant.Run{}, assistant.ErrDenied
 	}
-	if input.Document!=nil {
-		documents,ok:=service.authorizer.(interface{AuthorizeDocumentAdmission(context.Context,assistant.Actor,assistant.Run,contextbuilder.Scope,runbook.Reference)error})
-		if !ok || documents.AuthorizeDocumentAdmission(work,a.Actor,runFrom(a),cloneScope(input.Scope),*input.Document)!=nil {return assistant.Run{},assistant.ErrDenied}
+	if input.Document != nil {
+		documents, ok := service.authorizer.(interface {
+			AuthorizeDocumentAdmission(context.Context, assistant.Actor, assistant.Run, contextbuilder.Scope, runbook.Reference) error
+		})
+		if !ok || documents.AuthorizeDocumentAdmission(work, a.Actor, runFrom(a), cloneScope(input.Scope), *input.Document) != nil {
+			return assistant.Run{}, assistant.ErrDenied
+		}
 	}
 	// A retained durable retry never restores a lost question or consumes a turn.
 	// The transaction must still find the row after this separate metadata read.

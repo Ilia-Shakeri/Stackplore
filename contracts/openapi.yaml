@@ -3827,7 +3827,17 @@ components:
         tool:
           type: string
           enum:
-            [inventory, health, metrics, events, topology, alert_history, workload_history, logs, reviewed_document]
+            [
+              inventory,
+              health,
+              metrics,
+              events,
+              topology,
+              alert_history,
+              workload_history,
+              logs,
+              reviewed_document,
+            ]
         availability:
           type: string
           enum: [available, stale, unavailable, unsupported]

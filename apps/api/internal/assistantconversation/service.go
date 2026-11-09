@@ -202,7 +202,7 @@ func (service *Service) Submit(ctx context.Context, actor assistant.Actor, reque
 		return assistant.Run{}, assistant.ErrUnavailable
 	}
 	a := assistant.Admission{ID: id, ConversationID: conversation, Actor: actor, IdempotencyDigest: derive("conversation-idempotency-v1"), Goal: request.EffectiveGoal(), SourceID: string(request.SourceID), SourceVersion: scope.ConfigurationVersion, ResourceID: string(request.ResourceID), From: selected.Start, Until: selected.End, RestoreGeneration: scope.RestoreGeneration, PolicyVersion: service.binding.PolicyVersion, ProfileID: service.binding.ProfileID, ProfileVersion: service.binding.ProfileVersion, ReservedUnits: service.binding.ReservedUnits, RequireExisting: requireExisting}
-	return service.runtime.Submit(work, assistantservice.Input{Admission: a, Scope: scope, Locale: request.Locale, Question: request.Question, LogConsent: request.LogConsent, Document:request.Document, RequireExistingConversation: request.ConversationID != ""})
+	return service.runtime.Submit(work, assistantservice.Input{Admission: a, Scope: scope, Locale: request.Locale, Question: request.Question, LogConsent: request.LogConsent, Document: request.Document, RequireExistingConversation: request.ConversationID != ""})
 }
 
 func ownedError(err error) error {

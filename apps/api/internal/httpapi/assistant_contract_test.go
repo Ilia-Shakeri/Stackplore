@@ -29,7 +29,7 @@ func TestSelectedDocumentPublicationRequiresCoverageAndRejectsFacts(t *testing.T
  guide.ObjectID="guide"
  guide.Document=runbook.Reference{CorpusID:"operations",Version:2,Digest:[32]byte{1},DocumentID:"guide",Locale:"en"}
  snapshot.Citations=append(snapshot.Citations,guide)
- snapshot.Outcomes=[]inference.ToolOutcome{{Tool:"inventory",Availability:domain.AvailabilityAvailable,Records:1},{Tool:"reviewed_document",Availability:domain.AvailabilityAvailable,Records:1}}
+ snapshot.Outcomes=[]inference.ToolOutcome{{Tool:"inventory",Availability:domain.AvailabilityAvailable,Completeness:domain.CompletenessComplete,Records:1},{Tool:"reviewed_document",Availability:domain.AvailabilityAvailable,Completeness:domain.CompletenessComplete,Records:1}}
  snapshot.Answer.Sections=append(snapshot.Answer.Sections,inference.Section{Kind:inference.SectionNextChecks,Text:"Use reviewed guidance for the next check.",Citations:[]string{guide.ID}})
  if _,err:=assistantReply(snapshot,"user_helper",helperRunID);err!=nil {t.Fatal("valid guidance rejected",err)}
  snapshot.Answer.Sections[1].Kind=inference.SectionFacts

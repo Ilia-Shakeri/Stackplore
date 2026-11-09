@@ -44,7 +44,7 @@ export async function startHostedProcessorObserver(environment) {
       const started = performance.now();
       let observation;
       if (incoming.url === '/completion') {
-        if (calls.length >= 12) {
+        if (calls.length >= 8) {
           body.fill(0);
           outgoing.writeHead(429).end();
           return;

@@ -45,7 +45,7 @@ func additionalItems(scope contextbuilder.Scope, kind assistant.StepKind, proof 
 	if err != nil || len(items) != len(refs) || len(items) > assistantplan.RecordsPerRead {
 		return nil, assistant.ErrQuota
 	}
-	expected := map[assistant.StepKind]string{assistant.Health: "health", assistant.Metrics: "metric", assistant.Events: "event", assistant.Topology: "relationship", assistant.Logs: "log", assistant.AlertHistory: "alert", assistant.WorkloadHistory: "workload",assistant.ReviewedDocument:"document"}[kind]
+	expected := map[assistant.StepKind]string{assistant.Health: "health", assistant.Metrics: "metric", assistant.Events: "event", assistant.Topology: "relationship", assistant.Logs: "log", assistant.AlertHistory: "alert", assistant.WorkloadHistory: "workload", assistant.ReviewedDocument: "document"}[kind]
 	if expected == "" || len(scope.Resources) != 1 {
 		return nil, assistant.ErrDenied
 	}
@@ -59,8 +59,10 @@ func additionalItems(scope contextbuilder.Scope, kind assistant.StepKind, proof 
 		if ref.Kind != expected || !resourceMatches || !assistant.Identifier(ref.ObjectID) || ref.Source != scope.Source || ref.ConfigurationVersion != scope.ConfigurationVersion || ref.PolicyVersion != scope.PolicyVersion || ref.RestoreGeneration != scope.RestoreGeneration || ref.Range != scope.Range || ref.ID != item.ID {
 			return nil, assistant.ErrDenied
 		}
-		if kind==assistant.ReviewedDocument && (ref.Document.Validate()!=nil || ref.Document!=proof.DocumentReference()) {return nil,assistant.ErrDenied}
-		result = append(result, inference.Evidence{ID: item.ID, Text: item.Text,Guidance:kind==assistant.ReviewedDocument})
+		if kind == assistant.ReviewedDocument && (ref.Document.Validate() != nil || ref.Document != proof.DocumentReference()) {
+			return nil, assistant.ErrDenied
+		}
+		result = append(result, inference.Evidence{ID: item.ID, Text: item.Text, Guidance: kind == assistant.ReviewedDocument})
 	}
 	return result, nil
 }
@@ -76,7 +78,7 @@ func (service *Service) investigate(ctx context.Context, entry *memoryRun, initi
 	}
 	first := coverage(assistant.Inventory, entry.evidence.Bundle())
 	service.mu.Unlock()
-	plan, err := assistantplan.WithDocument(input.Admission.Goal, input.LogConsent,input.Document!=nil)
+	plan, err := assistantplan.WithDocument(input.Admission.Goal, input.LogConsent, input.Document != nil)
 	if err != nil || len(plan) < 2 || len(plan) > assistantplan.MaximumReads {
 		return nil, assistant.ErrInvalid
 	}
@@ -112,13 +114,17 @@ func (service *Service) investigate(ctx context.Context, entry *memoryRun, initi
 		scope.ObservedAt = service.time()
 		work, cancel := service.evidenceContext(ctx)
 		var document *runbook.Reference
-		if kind==assistant.ReviewedDocument {document=input.Document}
-		proof, err := service.collector.Read(work, assistantevidence.ReadRequest{Actor: input.Admission.Actor, Run: run, Scope: scope, Kind: kind, Destination: contextbuilder.Local, LogConsent: kind == assistant.Logs && input.LogConsent, RecordLimit: assistantplan.RecordsPerRead, ByteLimit: assistantplan.BytesPerRead,Document:document})
+		if kind == assistant.ReviewedDocument {
+			document = input.Document
+		}
+		proof, err := service.collector.Read(work, assistantevidence.ReadRequest{Actor: input.Admission.Actor, Run: run, Scope: scope, Kind: kind, Destination: contextbuilder.Local, LogConsent: kind == assistant.Logs && input.LogConsent, RecordLimit: assistantplan.RecordsPerRead, ByteLimit: assistantplan.BytesPerRead, Document: document})
 		cancel()
 		if err != nil {
 			return result, collectionError(err)
 		}
-		if kind==assistant.ReviewedDocument && (document==nil || proof.DocumentReference()!=*document) {return result,assistant.ErrDenied}
+		if kind == assistant.ReviewedDocument && (document == nil || proof.DocumentReference() != *document) {
+			return result, assistant.ErrDenied
+		}
 		items, err := additionalItems(scope, kind, proof)
 		if err != nil {
 			return result, err

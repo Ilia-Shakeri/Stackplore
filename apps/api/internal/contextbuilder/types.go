@@ -61,7 +61,7 @@ type Request struct {
 	WorkloadHistory *domain.IncidentWorkloadHistory
 	Logs            *logpolicy.Capture
 	LogConsent      bool
-	Guidance *ReviewedGuidance
+	Guidance        *ReviewedGuidance
 	// MoreAvailable carries source page/cap bounds; projection does not claim a full estate scan.
 	MoreAvailable bool
 	RecordLimit   int

@@ -80,7 +80,7 @@ type assistantCitationJSON struct {
 	ResourceID string                 `json:"resource_id"`
 	ObservedAt string                 `json:"observed_at"`
 	Range      assistantTimeRangeJSON `json:"range"`
-	Document *runbookReferenceJSON `json:"document_reference"`
+	Document   *runbookReferenceJSON  `json:"document_reference"`
 }
 type assistantReplyJSON struct {
 	Run          assistantRunJSON        `json:"run"`
@@ -144,8 +144,8 @@ func assistantCitation(run assistant.Run, ref contextbuilder.CitationReference) 
 	if ref.Kind == "relationship" && run.Goal == assistant.InvestigateIncident {
 		resourceMatches = ref.ResourceID == ""
 	}
-	if !assistantPublicCitationID.MatchString(ref.ID) || !slices.Contains([]string{"resource", "health", "metric", "event", "relationship", "log", "alert", "workload","document"}, ref.Kind) ||
-		run.Goal == assistant.ExplainResource && ref.Kind != "resource" && ref.Kind!="document" || ref.Source.Validate() != nil ||
+	if !assistantPublicCitationID.MatchString(ref.ID) || !slices.Contains([]string{"resource", "health", "metric", "event", "relationship", "log", "alert", "workload", "document"}, ref.Kind) ||
+		run.Goal == assistant.ExplainResource && ref.Kind != "resource" && ref.Kind != "document" || ref.Source.Validate() != nil ||
 		string(ref.Source.SourceID) != run.SourceID || !resourceMatches || !assistant.Identifier(ref.ObjectID) ||
 		(ref.Kind == "resource" || ref.Kind == "health") && ref.ObjectID != run.ResourceID ||
 		ref.ConfigurationVersion != run.SourceVersion || ref.PolicyVersion != run.PolicyVersion || ref.RestoreGeneration != run.RestoreGeneration ||
@@ -154,11 +154,16 @@ func assistantCitation(run assistant.Run, ref contextbuilder.CitationReference) 
 		return assistantCitationJSON{}, assistant.ErrUnavailable
 	}
 	var document *runbookReferenceJSON
-	if ref.Kind=="document" {
-		if ref.Document.Validate()!=nil || ref.Document.Generation!=run.RestoreGeneration || ref.ObjectID!=ref.Document.DocumentID {return assistantCitationJSON{},assistant.ErrUnavailable}
-		value:=runbookReferenceWire(ref.Document);document=&value
-	} else if ref.Document!=(runbook.Reference{}) {return assistantCitationJSON{},assistant.ErrUnavailable}
-	return assistantCitationJSON{ID: ref.ID, Kind: ref.Kind, SourceID: run.SourceID, ResourceID: run.ResourceID, ObservedAt: ref.ObservedAt.Format(time.RFC3339Nano), Range: assistantTimeRangeJSON{From: run.From.Format(time.RFC3339Nano), To: run.Until.Format(time.RFC3339Nano)},Document:document}, nil
+	if ref.Kind == "document" {
+		if ref.Document.Validate() != nil || ref.Document.Generation != run.RestoreGeneration || ref.ObjectID != ref.Document.DocumentID {
+			return assistantCitationJSON{}, assistant.ErrUnavailable
+		}
+		value := runbookReferenceWire(ref.Document)
+		document = &value
+	} else if ref.Document != (runbook.Reference{}) {
+		return assistantCitationJSON{}, assistant.ErrUnavailable
+	}
+	return assistantCitationJSON{ID: ref.ID, Kind: ref.Kind, SourceID: run.SourceID, ResourceID: run.ResourceID, ObservedAt: ref.ObservedAt.Format(time.RFC3339Nano), Range: assistantTimeRangeJSON{From: run.From.Format(time.RFC3339Nano), To: run.Until.Format(time.RFC3339Nano)}, Document: document}, nil
 }
 
 // Only the explicit publication path receives a serializable answer projection.
@@ -188,10 +193,16 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 	if len(snapshot.Citations) < 1 || len(snapshot.Citations) > inference.MaximumEvidence || len(snapshot.Answer.Sections) < 1 || len(snapshot.Answer.Sections) > inference.MaximumSections {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
-	documents:=0
-	for _,ref:=range snapshot.Citations {if ref.Kind=="document" {documents++}}
-	if documents>1 {return assistantReplyJSON{},assistant.ErrUnavailable}
-	hasDocument:=documents==1
+	documents := 0
+	for _, ref := range snapshot.Citations {
+		if ref.Kind == "document" {
+			documents++
+		}
+	}
+	if documents > 1 {
+		return assistantReplyJSON{}, assistant.ErrUnavailable
+	}
+	hasDocument := documents == 1
 	if run.Goal == assistant.ExplainResource && (len(snapshot.Citations) != 1+documents || !hasDocument && len(snapshot.Outcomes) != 0 || snapshot.Report != nil) {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
@@ -209,16 +220,16 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 		citations = append(citations, citation)
 	}
 	if run.Goal == assistant.InvestigateIncident || hasDocument {
-		hasLogs:=slices.ContainsFunc(snapshot.Outcomes,func(outcome inference.ToolOutcome)bool{return outcome.Tool==string(assistant.Logs)})
-		plan,planErr:=assistantplan.WithDocument(run.Goal,hasLogs,hasDocument)
-		if planErr!=nil || len(snapshot.Outcomes) != len(plan) || inference.ValidateOutcomes(snapshot.Outcomes, len(citations)) != nil || hasLogs && run.Scope.WindowMinutes > 15 {
+		hasLogs := slices.ContainsFunc(snapshot.Outcomes, func(outcome inference.ToolOutcome) bool { return outcome.Tool == string(assistant.Logs) })
+		plan, planErr := assistantplan.WithDocument(run.Goal, hasLogs, hasDocument)
+		if planErr != nil || len(snapshot.Outcomes) != len(plan) || inference.ValidateOutcomes(snapshot.Outcomes, len(citations)) != nil || hasLogs && run.Scope.WindowMinutes > 15 {
 			return assistantReplyJSON{}, assistant.ErrUnavailable
 		}
 		for index, outcome := range snapshot.Outcomes {
 			if outcome.Tool != string(plan[index]) {
 				return assistantReplyJSON{}, assistant.ErrUnavailable
 			}
-			kind := map[string]string{"inventory": "resource", "health": "health", "metrics": "metric", "events": "event", "topology": "relationship", "logs": "log", "alert_history": "alert", "workload_history": "workload","reviewed_document":"document"}[outcome.Tool]
+			kind := map[string]string{"inventory": "resource", "health": "health", "metrics": "metric", "events": "event", "topology": "relationship", "logs": "log", "alert_history": "alert", "workload_history": "workload", "reviewed_document": "document"}[outcome.Tool]
 			count := 0
 			for _, citation := range citations {
 				if citation.Kind == kind {
@@ -241,9 +252,17 @@ func assistantReply(snapshot assistantservice.Snapshot, owner, id string) (assis
 	if inference.ValidateAnswer(answer, allowed) != nil {
 		return assistantReplyJSON{}, assistant.ErrUnavailable
 	}
-	for _,section:=range answer.Sections {
-		if section.Kind!=inference.SectionFacts {continue}
-		for _,id:=range section.Citations {for _,citation:=range citations {if citation.ID==id && citation.Kind=="document" {return assistantReplyJSON{},assistant.ErrUnavailable}}}
+	for _, section := range answer.Sections {
+		if section.Kind != inference.SectionFacts {
+			continue
+		}
+		for _, id := range section.Citations {
+			for _, citation := range citations {
+				if citation.ID == id && citation.Kind == "document" {
+					return assistantReplyJSON{}, assistant.ErrUnavailable
+				}
+			}
+		}
 	}
 	encoded, err := json.Marshal(answer)
 	if err != nil || len(encoded) > inference.MaximumOutputBytes {
