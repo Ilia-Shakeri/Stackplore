@@ -44,18 +44,19 @@ export async function assistantGuidanceJourney(
   const resourcePage = page.url();
   const guideTitle = locale === 'en' ? 'Local check guide' : 'راهنمای بررسی محلی';
   const guideBody =
-    locale === 'en'
-      ? 'Inspect current service health.'
-      : 'سلامت سرویس را بررسی کنید.';
+    locale === 'en' ? 'Inspect current service health.' : 'سلامت سرویس را بررسی کنید.';
   try {
     await page.getByRole('button', { name: label('assistant.open'), exact: true }).click();
     const panel = page.locator('.assistant');
     await panel.getByRole('button', { name: label('assistant.guide.choose'), exact: true }).click();
     await panel
       .getByRole('textbox', { name: label('runbooks.query'), exact: true })
-      .fill(locale === 'en' ? 'checks' : 'بررسی');
+      .fill(locale === 'en' ? 'check' : 'بررسی');
+    metadata.phase = 'search';
     await panel.getByRole('button', { name: label('runbooks.search'), exact: true }).click();
-    await panel.getByRole('button', { name: guideTitle, exact: true }).click();
+    metadata.phase = 'selected_document';
+    await panel.getByRole('button', { name: guideTitle, exact: true }).click({ timeout: 15_000 });
+    metadata.phase = 'consent';
     await panel
       .getByRole('checkbox', { name: label('assistant.guide.consent'), exact: true })
       .check();

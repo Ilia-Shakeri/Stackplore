@@ -91,6 +91,19 @@ This smoke does not certify maximum-size processor throughput or semantic qualit
 Closing/including a selection returns focus to its persistent heading; real
 witness focus is also asserted. Existing time and retry caps remain unchanged.
 
+Source `d8286f1558bb6af82f3d7b19c9d0b75226aabac0`,
+[42580058164](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42580058164):
+focused code/SQL/client checks and six deployment/provider/tool jobs pass;
+full formatting needs two hosted browser-fixture corrections. The shortened
+English guide no longer contains the old search word `checks`; the fixed simple
+tokenizer does not stem it to the title's `check`. The new browser journey stalls
+before guide consent and eventually exhausts the outer browser timeout; this is
+not processor acceptance. [Failed receipt](attempt-d828-processor.json) retains
+the selection phase and passing cleanup. Correct the fixture query to the actual
+title token, bound the selected-result click to 15 seconds and retain separate
+selection phases for diagnosis. Search semantics and passing assertions do not
+change. New picker/guidance units also enter the early hosted focused gate.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates

@@ -35,10 +35,7 @@ const corpus = (version: number) => ({
       id: 'safe_check',
       locale,
       title: locale === 'en' ? 'Local check guide' : 'راهنمای بررسی محلی',
-      body:
-        locale === 'en'
-          ? 'Inspect current service health.'
-          : 'سلامت سرویس را بررسی کنید.',
+      body: locale === 'en' ? 'Inspect current service health.' : 'سلامت سرویس را بررسی کنید.',
     },
   ]),
 });
