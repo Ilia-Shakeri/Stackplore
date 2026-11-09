@@ -41,6 +41,13 @@ journeys. The before-failure protocol RSS sample is about 3.05 GiB; it does not
 represent an end-of-failed-run resource measurement. Final sampling now runs
 before cleanup on failures as well. Fresh source/profile receipts are required.
 
+Source `406f081`, [42623233468](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42623233468):
+code validation stops early on one test assertion's formatting. Its exact hosted
+patch is applied. The independent three-pass measurement continues on its owning
+source. Quality workflow concurrency now preserves in-progress measurements and
+queues newer source work; it never treats superseded or partial results as proof
+for a different revision. Fresh complete source gates remain required.
+
 Source `17d5819`, [42617789160](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42617789160):
 all seven non-code jobs pass, including the corrected real application/browser
 journey. Code stops on formatting of the new correction; the hosted patch is

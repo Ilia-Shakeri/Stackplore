@@ -13,7 +13,10 @@ import {
 
 test('system diagnostics expose only fixed codes and never private paths or messages', () => {
   assert.equal(safeSystemError({ code: 'EADDRINUSE', message: 'private path' }), 'EADDRINUSE');
-  assert.equal(safeSystemError({ code: 'private path', message: 'private text' }), 'not_classified');
+  assert.equal(
+    safeSystemError({ code: 'private path', message: 'private text' }),
+    'not_classified',
+  );
   assert.equal(safeSystemError(null), 'not_classified');
 });
 
