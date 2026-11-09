@@ -25,7 +25,7 @@ export async function writeTestCandidate(root) {
     throw new Error('Test family search exhausted.');
   };
   const scenarios = Array.from({ length: 200 }, (_, index) => {
-    const item = structuredClone(seed.scenarios[0]);
+    const item = globalThis.structuredClone(seed.scenarios[0]);
     item.id = `test_scenario_${index}`;
     [item.cause_family, item.split] = familyFor(index);
     item.provider = providers[index % providers.length];
@@ -35,7 +35,7 @@ export async function writeTestCandidate(root) {
     return item;
   });
   const adversarialCases = Array.from({ length: 1000 }, (_, index) => {
-    const item = structuredClone(seed.adversarial_cases[0]);
+    const item = globalThis.structuredClone(seed.adversarial_cases[0]);
     item.id = `test_attack_${index}`;
     [item.cause_family, item.split] = familyFor(index);
     item.provider = providers[index % providers.length];
