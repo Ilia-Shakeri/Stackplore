@@ -29,16 +29,34 @@ const build = 'b11729-412a363c6';
 
 export function parseProcessMeasurement(status, stat, ticksPerSecond) {
   const peak = /^VmHWM:\s+([0-9]+)\s+kB$/mu.exec(status)?.[1];
-  const fields = stat.slice(stat.lastIndexOf(')') + 2).trim().split(/\s+/u);
+  const fields = stat
+    .slice(stat.lastIndexOf(')') + 2)
+    .trim()
+    .split(/\s+/u);
   const user = Number(fields[11]);
   const system = Number(fields[12]);
   const rss = Number(peak) * 1024;
-  if (!peak || !Number.isSafeInteger(rss) || rss < 1 ||
-      !Number.isSafeInteger(user) || user < 0 || !Number.isSafeInteger(system) || system < 0 ||
-      !Number.isSafeInteger(user + system) || !Number.isInteger(ticksPerSecond) || ticksPerSecond < 1 || ticksPerSecond > 10000)
+  if (
+    !peak ||
+    !Number.isSafeInteger(rss) ||
+    rss < 1 ||
+    !Number.isSafeInteger(user) ||
+    user < 0 ||
+    !Number.isSafeInteger(system) ||
+    system < 0 ||
+    !Number.isSafeInteger(user + system) ||
+    !Number.isInteger(ticksPerSecond) ||
+    ticksPerSecond < 1 ||
+    ticksPerSecond > 10000
+  )
     throw new Error('hosted_processor.measurement_invalid');
-  return { peak_rss_bytes: rss, cpu_user_ticks: user, cpu_system_ticks: system,
-    ticks_per_second: ticksPerSecond, cpu_seconds: (user + system) / ticksPerSecond };
+  return {
+    peak_rss_bytes: rss,
+    cpu_user_ticks: user,
+    cpu_system_ticks: system,
+    ticks_per_second: ticksPerSecond,
+    cpu_seconds: (user + system) / ticksPerSecond,
+  };
 }
 
 export function validHostedIncidentReportMetadata(value) {
@@ -181,8 +199,10 @@ export function safeArchiveLinks(text) {
 async function main() {
   assertHostedProcessorEnvironment(process.platform, process.env);
   const seedEvaluation = process.env.SP_STAGE8_SEED_EVALUATION;
-  if (seedEvaluation !== undefined &&
-      (seedEvaluation !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage8-quality'))
+  if (
+    seedEvaluation !== undefined &&
+    (seedEvaluation !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage8-quality')
+  )
     throw new Error('hosted_processor.evaluation_scope');
   const root = resolve(import.meta.dirname, '..');
   const temporary = await realpath(process.env.RUNNER_TEMP);
@@ -213,9 +233,15 @@ async function main() {
     evidence_probes: [],
     empty_probes: [],
     resource_scope: 'owned processor only; shared runner observation, not customer capacity',
-    runner: { platform: process.platform, architecture: process.arch, logical_cpus: cpus().length,
-      processor: /^[\w ().@+-]{1,128}$/u.test(cpus()[0]?.model ?? '') ? cpus()[0].model : 'unavailable',
-      host_memory_bytes: totalmem() },
+    runner: {
+      platform: process.platform,
+      architecture: process.arch,
+      logical_cpus: cpus().length,
+      processor: /^[\w ().@+-]{1,128}$/u.test(cpus()[0]?.model ?? '')
+        ? cpus()[0].model
+        : 'unavailable',
+      host_memory_bytes: totalmem(),
+    },
     ci_peak_rss_limit_bytes: 8 * 1024 ** 3,
   };
   let child;
@@ -231,9 +257,11 @@ async function main() {
     return result.stdout?.toString() ?? '';
   };
   const measure = async () => {
-    if (!child?.pid || child.exitCode !== null) throw new Error('hosted_processor.measurement_missing');
+    if (!child?.pid || child.exitCode !== null)
+      throw new Error('hosted_processor.measurement_missing');
     const [status, stat] = await Promise.all([
-      readFile(`/proc/${child.pid}/status`, 'utf8'), readFile(`/proc/${child.pid}/stat`, 'utf8'),
+      readFile(`/proc/${child.pid}/status`, 'utf8'),
+      readFile(`/proc/${child.pid}/stat`, 'utf8'),
     ]);
     const tickRate = Number(run('getconf', ['CLK_TCK'], { maxBuffer: 1024 }).trim());
     report.resources = parseProcessMeasurement(status, stat, tickRate);
@@ -725,26 +753,55 @@ async function main() {
     if (seedEvaluation === 'true') {
       report.phase = 'seed_evaluation';
       await checkCorpus(root);
-      const manifest = JSON.parse(await readFile(resolve(root, 'tests/fixtures/assistant/corpus.manifest.json'), 'utf8'));
+      const manifest = JSON.parse(
+        await readFile(resolve(root, 'tests/fixtures/assistant/corpus.manifest.json'), 'utf8'),
+      );
       const bytes = await readFile(resolve(root, 'tests/fixtures/assistant/corpus.seed.json'));
-      const seed = spawnSync('go', [
-        '-C', resolve(root, 'apps/api'), 'test', './internal/provider/inference',
-        '-run', '^TestPinnedSeedEvaluationIntegration$', '-count=1', '-timeout=20m', '-json',
-      ], { cwd: root, env: { ...environment, STACKPLORE_TEST_SEED_EVALUATION: 'true' },
-        encoding: 'utf8', timeout: 1220000, maxBuffer: 4 * 1024 * 1024 });
+      const seed = spawnSync(
+        'go',
+        [
+          '-C',
+          resolve(root, 'apps/api'),
+          'test',
+          './internal/provider/inference',
+          '-run',
+          '^TestPinnedSeedEvaluationIntegration$',
+          '-count=1',
+          '-timeout=20m',
+          '-json',
+        ],
+        {
+          cwd: root,
+          env: { ...environment, STACKPLORE_TEST_SEED_EVALUATION: 'true' },
+          encoding: 'utf8',
+          timeout: 1220000,
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
       const observations = [];
       const parentResults = [];
       for (const line of (seed.stdout ?? '').split('\n').filter(Boolean)) {
         const event = JSON.parse(line);
-        if (event.Test === 'TestPinnedSeedEvaluationIntegration' && ['pass', 'fail', 'skip'].includes(event.Action))
+        if (
+          event.Test === 'TestPinnedSeedEvaluationIntegration' &&
+          ['pass', 'fail', 'skip'].includes(event.Action)
+        )
           parentResults.push(event.Action);
         const marker = event.Output?.indexOf('seed_measurement=') ?? -1;
-        if (marker >= 0) observations.push(JSON.parse(event.Output.slice(marker + 'seed_measurement='.length).trim()));
+        if (marker >= 0)
+          observations.push(
+            JSON.parse(event.Output.slice(marker + 'seed_measurement='.length).trim()),
+          );
       }
       report.seed_evaluation = summarizeSeedEvaluation(manifest, bytes, observations);
       await measure();
-      if (seed.status !== 0 || parentResults.length !== 1 || parentResults[0] !== 'pass' ||
-          report.seed_evaluation.totals.missing !== 0 || report.seed_evaluation.totals.not_run !== 0)
+      if (
+        seed.status !== 0 ||
+        parentResults.length !== 1 ||
+        parentResults[0] !== 'pass' ||
+        report.seed_evaluation.totals.missing !== 0 ||
+        report.seed_evaluation.totals.not_run !== 0
+      )
         throw new Error('hosted_processor.evaluation_incomplete');
     }
     report.status = 'passed';

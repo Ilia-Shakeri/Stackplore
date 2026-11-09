@@ -105,7 +105,9 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: stage8-hardening
-          path: .tmp/stage8-hardening.json
+          path: |
+            .tmp/stage8-hardening.json
+            apps/api/internal/inference/testdata/fuzz/FuzzStage8ClosedAnswerBoundary/*
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14

@@ -59,6 +59,7 @@ jobs:
           path: |
             .tmp/stage8-hardening.json
             .tmp/hosted-processor.json
+            apps/api/internal/inference/testdata/fuzz/FuzzStage8ClosedAnswerBoundary/*
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 14

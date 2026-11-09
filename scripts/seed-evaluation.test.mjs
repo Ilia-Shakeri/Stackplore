@@ -7,10 +7,24 @@ const root = new URL('../tests/fixtures/assistant/', import.meta.url);
 const manifest = JSON.parse(await readFile(new URL('corpus.manifest.json', root), 'utf8'));
 const bytes = await readFile(new URL('corpus.seed.json', root));
 const corpus = JSON.parse(bytes.toString('utf8'));
-const rows = () => [1, 2, 3].flatMap((pass) => corpus.scenarios.flatMap((item) => ['en', 'fa'].map((locale) => ({
-  case_id: item.id, locale, pass, status: 'completed', fault: 'none', input_tokens: 10,
-  output_tokens: 5, elapsed_ms: 100, sections: 1, citations_valid: true, gap_section: false,
-}))));
+const rows = () =>
+  [1, 2, 3].flatMap((pass) =>
+    corpus.scenarios.flatMap((item) =>
+      ['en', 'fa'].map((locale) => ({
+        case_id: item.id,
+        locale,
+        pass,
+        status: 'completed',
+        fault: 'none',
+        input_tokens: 10,
+        output_tokens: 5,
+        elapsed_ms: 100,
+        sections: 1,
+        citations_valid: true,
+        gap_section: false,
+      })),
+    ),
+  );
 
 test('three complete synthetic passes retain denominators and never claim human or blind acceptance', () => {
   const result = summarizeSeedEvaluation(manifest, bytes, rows());
@@ -22,16 +36,36 @@ test('three complete synthetic passes retain denominators and never claim human 
   assert.equal(result.human_grounding, 'pending');
   assert.equal(result.correct_abstention, 'pending');
   assert.equal(result.groups.length, 6);
+  assert.equal(result.observations.length, 72);
+  assert.equal(result.observations[0].case_id, corpus.scenarios[0].id);
   assert.ok(result.passes.every((pass) => pass.expected === 24 && pass.completed === 24));
-  assert.ok(result.groups.every((group) => group.expected > 0 && group.recorded === group.expected));
+  assert.ok(
+    result.groups.every((group) => group.expected > 0 && group.recorded === group.expected),
+  );
 });
 
 test('rejections, missing results and budget exhaustion cannot disappear from quality denominator', () => {
   const values = rows();
-  values[0] = { ...values[0], status: 'rejected', fault: 'uncertain', sections: 0,
-    citations_valid: false, input_tokens: 0, output_tokens: 0, elapsed_ms: 40000 };
-  values[1] = { ...values[1], status: 'not_run', fault: 'budget', sections: 0,
-    citations_valid: false, input_tokens: 0, output_tokens: 0, elapsed_ms: 0 };
+  values[0] = {
+    ...values[0],
+    status: 'rejected',
+    fault: 'uncertain',
+    sections: 0,
+    citations_valid: false,
+    input_tokens: 0,
+    output_tokens: 0,
+    elapsed_ms: 40000,
+  };
+  values[1] = {
+    ...values[1],
+    status: 'not_run',
+    fault: 'budget',
+    sections: 0,
+    citations_valid: false,
+    input_tokens: 0,
+    output_tokens: 0,
+    elapsed_ms: 0,
+  };
   values.pop();
   const result = summarizeSeedEvaluation(manifest, bytes, values);
   assert.equal(result.totals.expected, 72);
@@ -47,21 +81,45 @@ test('rejections, missing results and budget exhaustion cannot disappear from qu
 
 test('unknown, duplicate, extra-field and inconsistent measurements fail without echoing input', () => {
   for (const change of [
-    (value) => { value.case_id = 'foreign_case'; },
-    (value) => { value.pass = 4; },
-    (value) => { value.locale = 'de'; },
-    (value) => { value.output_tokens = 257; },
-    (value) => { value.input_tokens = -1; },
-    (value) => { value.elapsed_ms = Number.NaN; },
-    (value) => { value.citations_valid = 'true'; },
-    (value) => { value.fault = 'unavailable'; },
-    (value) => { value.private_text = 'never echoed'; },
+    (value) => {
+      value.case_id = 'foreign_case';
+    },
+    (value) => {
+      value.pass = 4;
+    },
+    (value) => {
+      value.locale = 'de';
+    },
+    (value) => {
+      value.output_tokens = 257;
+    },
+    (value) => {
+      value.input_tokens = -1;
+    },
+    (value) => {
+      value.elapsed_ms = Number.NaN;
+    },
+    (value) => {
+      value.citations_valid = 'true';
+    },
+    (value) => {
+      value.fault = 'unavailable';
+    },
+    (value) => {
+      value.private_text = 'never echoed';
+    },
   ]) {
-    const values = rows(); change(values[0]);
-    assert.throws(() => summarizeSeedEvaluation(manifest, bytes, values), { message: 'seed_evaluation.invalid_metadata' });
+    const values = rows();
+    change(values[0]);
+    assert.throws(() => summarizeSeedEvaluation(manifest, bytes, values), {
+      message: 'seed_evaluation.invalid_metadata',
+    });
   }
-  const values = rows(); values[1] = values[0];
-  assert.throws(() => summarizeSeedEvaluation(manifest, bytes, values), { message: 'seed_evaluation.invalid_metadata' });
+  const values = rows();
+  values[1] = values[0];
+  assert.throws(() => summarizeSeedEvaluation(manifest, bytes, values), {
+    message: 'seed_evaluation.invalid_metadata',
+  });
 });
 
 test('empty receipt reports absent passes and null timings without granting quality acceptance', () => {
