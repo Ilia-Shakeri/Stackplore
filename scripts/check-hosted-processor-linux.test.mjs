@@ -36,7 +36,10 @@ test('guidance receipts require exact source, role, locale and literal passing a
     { coverage_valid: false },
     { guide_supported: false },
   ]) {
-    assert.equal(validHostedGuidanceMetadata({ ...value, ...change }, source, 'fa', 'viewer'), false);
+    assert.equal(
+      validHostedGuidanceMetadata({ ...value, ...change }, source, 'fa', 'viewer'),
+      false,
+    );
   }
 });
 

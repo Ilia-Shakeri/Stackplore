@@ -8,9 +8,9 @@ import (
 )
 
 type countedEvidence struct {
-	ID   string          `json:"id"`
-	Text json.RawMessage `json:"text"`
-	Usage string `json:"usage,omitempty"`
+	ID    string          `json:"id"`
+	Text  json.RawMessage `json:"text"`
+	Usage string          `json:"usage,omitempty"`
 }
 
 // Factor only complete matching envelopes. Every value is retained, including

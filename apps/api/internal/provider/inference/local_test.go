@@ -696,18 +696,22 @@ func TestLocalGuidanceScopeIsTrustedMetadataAndNeverPromotesProse(t *testing.T) 
 			if request.URL.Path != "/apply-template" {
 				return false
 			}
-			var body struct { Messages []message `json:"messages"` }
+			var body struct {
+				Messages []message `json:"messages"`
+			}
 			if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 {
 				t.Error("invalid guide envelope")
 				response.WriteHeader(http.StatusBadRequest)
 				return true
 			}
-			var data struct { Evidence []countedEvidence `json:"evidence"` }
+			var data struct {
+				Evidence []countedEvidence `json:"evidence"`
+			}
 			if json.Unmarshal([]byte(body.Messages[1].Content), &data) != nil || len(data.Evidence) != 1 || data.Evidence[0].Usage != "reviewed_guidance" || !strings.Contains(body.Messages[1].Content, poison) || strings.Contains(body.Messages[0].Content, poison) || !strings.Contains(body.Messages[0].Content, "reviewed_guidance") {
 				t.Error("guide scope missing or prose promoted to trusted instructions")
 			}
 			observed.Store(true)
-			_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact bounded guide fixture"})
+			_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact formatted fixture prompt"})
 			return true
 		}}
 		local, _ := fixtureLocal(t, fixture, Options{})

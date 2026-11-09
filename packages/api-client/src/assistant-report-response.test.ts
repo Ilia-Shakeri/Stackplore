@@ -142,17 +142,34 @@ describe('owning typed incident report response', () => {
     const ready = {
       ...base,
       citations: [...base.citations, guide],
-      coverage: [...base.coverage, { tool: 'reviewed_document', availability: 'available', completeness: 'complete', records: 1, more_available: false }],
+      coverage: [
+        ...base.coverage,
+        {
+          tool: 'reviewed_document',
+          availability: 'available',
+          completeness: 'complete',
+          records: 1,
+          more_available: false,
+        },
+      ],
     };
     const parsed = parseAssistantIncidentReportResponse(ready, assistantRunId);
     expect(parsed.content_state).toBe('ready');
     if (parsed.content_state !== 'ready') throw new Error('Expected ready report');
     expect(parsed.report.timeline).toHaveLength(1);
     expect(parsed.citations).toHaveLength(2);
-    expect(() => parseAssistantIncidentReportResponse({
-      ...ready,
-      report: { ...ready.report, timeline: [{ ...ready.report.timeline[0], citation_id: guide.id, kind: 'document' }] },
-    }, assistantRunId)).toThrow();
+    expect(() =>
+      parseAssistantIncidentReportResponse(
+        {
+          ...ready,
+          report: {
+            ...ready.report,
+            timeline: [{ ...ready.report.timeline[0], citation_id: guide.id, kind: 'document' }],
+          },
+        },
+        assistantRunId,
+      ),
+    ).toThrow();
   });
   it('accepts actual typed chronology and detaches nested metric/support arrays', () => {
     const value = pressureFixture();

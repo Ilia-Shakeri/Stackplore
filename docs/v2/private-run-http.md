@@ -1,5 +1,12 @@
 # Smart Assistant — private run read boundary
 
+Current alpha7.3 amendment, schema22: ready citations require nullable
+`document_reference`; ordinary observation citations use null. An explicitly
+selected guide adds one exact typed document witness and its reserved coverage,
+even for explain. It cannot supply observed facts or typed report timeline rows.
+Every release still checks all current evidence authority. The alpha4-only
+single-citation description below is historical; see [current selected path](runbook-approval.md).
+
 Development version: **2.0.0-alpha.4**, **2026-10-28**, schema **18**.
 
 The HTTP library accepts an optional trusted `Options.AssistantRuns` capability.

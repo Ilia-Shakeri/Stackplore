@@ -7,6 +7,16 @@ runs on Actions. Earlier local receipts remain historical.
 
 ## Real processor gate
 
+Alpha7.3 extends the existing eight baseline role/language/goal journeys with
+four explicit selected-guide journeys. Each locale database must contain exactly
+six completed runs: two baseline explain (one read), two incident (seven reads)
+and two selected-guide explain (two reads), each with one known dispatch. Guide
+receipts require exact source, role, locale, consent, current reference, exact
+excerpt/citation binding, no factual promotion, fresh witness and page-exit clearing.
+The excerpt-copy smoke is functional binding evidence, not semantic quality.
+Failure receipts and their original limits remain recorded. No workstation
+processor, build, service or test is used.
+
 **Current budget amendment:** [ADR-0017](../adr/0017-profile-call-budgets.md)
 keeps the default 25 seconds and permits explicit profiles up to 40 seconds.
 The current Linux candidate explicitly uses 40s in both direct and application

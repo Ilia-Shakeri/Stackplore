@@ -1,5 +1,13 @@
 # Smart Assistant — closed conversation replies
 
+Current alpha7.3 amendment: each citation has required nullable
+`document_reference`. Explain without a guide retains one resource citation;
+explicitly selected guidance adds one exact document citation and two ordered
+coverage rows. Incident keeps its seven required reads and can add either logs
+or one guide within eight. Client parsers reject guide citations in facts and
+typed report timeline rows; fresh witness replies cannot retarget a reference.
+The alpha4 client description below remains historical. See [selected path](runbook-approval.md).
+
 Development version: **2.0.0-alpha.4**, **2026-10-28**. This is a client boundary,
 not a delivered conversation or permission to enable content routes.
 

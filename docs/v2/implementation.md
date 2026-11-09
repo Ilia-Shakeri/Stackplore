@@ -113,7 +113,7 @@ not accept the correction.
 | 4 | `2.0.0-alpha.4` | Chosen local checkpoint published | Optional remote disabled; independent public consumption and whole-version gates separate |
 | 5 | `2.0.0-alpha.5` | Published; recorded scope accepted | Broader quality and customer acceptance remain separate |
 | 6 | `2.0.0-alpha.6.2` / `.6.3` | Bounded previews published | Independent semantic quality remains unaccepted |
-| 7 | `2.0.0-alpha.7` / `.7.1` | Bounded previews in progress | Document source gates pass; tag/publication pending. Selected metadata export authored; provenance and document-to-answer integration remain |
+| 7 | `2.0.0-alpha.7.1` / `.7.2` / `.7.3` | Metadata export and provenance published; selected guidance under hosted correction | Current selected-document source, exact-tag and publication gates remain open; earlier tags do not accept later code |
 | 8     | `2.0.0-alpha.8`        | Not delivered                | Held-out quality, attack and failure gates                 |
 | 9     | `2.0.0-beta.1`         | Not delivered                | Actual pilot, upgrade and deployment                       |
 | 10    | `2.0.0-rc.N` → `2.0.0` | Not delivered                | Independent candidate and stable acceptance                |

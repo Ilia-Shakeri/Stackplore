@@ -43,6 +43,17 @@ excerpt, verifies its exact text and citation, and still rejects factual promoti
 This is a functional binding smoke, not a semantic quality evaluation. Timeout,
 dispatch and retry caps are unchanged; the prior failed runs remain failed.
 
+Source `f51a67f02d1e6a97d763e77057ed1127b7dc0cba`,
+[42575566316](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42575566316):
+six deployment/provider/tool jobs pass. The new processor unit fixture returned
+a formatted prompt different from its tokenizer's expected fixture; corrected
+without changing real generation. Real application document runs in both
+languages complete with two reads and one known generation, but the browser
+journey fails. [Failed processor receipt](attempt-f51-processor.json) preserves
+this distinction and both passing cleanup flags. The next receipt retains
+failed journey flags plus a fixed phase/status diagnostic instead of discarding
+the row before validation. No assertion or acceptance condition is removed.
+
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor
 journeys, all deployment jobs, signed package/security trial, exact-tag gates

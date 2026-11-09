@@ -571,14 +571,15 @@ async function main() {
       for (const role of ['administrator', 'viewer']) {
         try {
           const guidance = await metadata(`hosted-guidance-${locale}-${role}.json`);
-          if (!validHostedGuidanceMetadata(guidance, process.env.GITHUB_SHA, locale, role))
-            throw new Error('hosted_processor.guidance_receipt');
-          report.application_browser.guidance_journeys.push(
-            Object.fromEntries(
+          report.application_browser.guidance_journeys.push({
+            valid_receipt: validHostedGuidanceMetadata(guidance, process.env.GITHUB_SHA, locale, role),
+            ...Object.fromEntries(
               [
                 'locale',
                 'role',
                 'status',
+                'phase',
+                'snapshot_status',
                 'consent_sent',
                 'document_current',
                 'not_facts',
@@ -588,7 +589,7 @@ async function main() {
                 'cleared',
               ].map((key) => [key, guidance[key]]),
             ),
-          );
+          });
         } catch {
           /* Missing guidance receipts fail the candidate gate below. */
         }
@@ -643,6 +644,7 @@ async function main() {
       report.application_browser.guidance_journeys.length !== 4 ||
       report.application_browser.guidance_journeys.some(
         (value) =>
+          value.valid_receipt !== true ||
           value.status !== 'passed' ||
           !value.consent_sent ||
           !value.document_current ||

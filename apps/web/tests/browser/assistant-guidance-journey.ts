@@ -14,6 +14,8 @@ export async function assistantGuidanceJourney(
     locale,
     role,
     status: 'failed',
+    phase: 'selection',
+    snapshot_status: 0,
     consent_sent: false,
     document_current: false,
     not_facts: false,
@@ -69,6 +71,7 @@ export async function assistantGuidanceJourney(
         response.request().method() === 'POST' &&
         new URL(response.url()).pathname === '/api/v1/assistant/runs',
     );
+    metadata.phase = 'admission';
     await panel.getByRole('button', { name: label('assistant.send'), exact: true }).click();
     const response = await admission;
     if (response.status() !== 202) throw new Error('Guidance admission failed');
@@ -80,6 +83,7 @@ export async function assistantGuidanceJourney(
     const id = receipt.run?.id;
     if (id === undefined || !/^ar_[a-f0-9]{64}$/u.test(id))
       throw new Error('Guidance run identity missing');
+    metadata.phase = 'completion';
     try {
       await page.waitForFunction(
         () => document.querySelectorAll('.assistant__turns .assistant__text').length > 0,
@@ -89,9 +93,12 @@ export async function assistantGuidanceJourney(
     } catch {
       throw new Error('Bounded guidance completion was not published');
     }
+    metadata.phase = 'snapshot';
     const current = await page.request.get(`/api/v1/assistant/runs/${id}`);
+    metadata.snapshot_status = current.status();
     if (current.status() !== 200) throw new Error('Guidance snapshot unavailable');
     const ready = parseAssistantRunResponse(await current.json(), id);
+    metadata.phase = 'parsed';
     if (ready.content_state !== 'ready') throw new Error('Guidance response not ready');
     const guides = ready.citations.filter((citation) => citation.kind === 'document');
     const guide = guides[0];
@@ -115,6 +122,7 @@ export async function assistantGuidanceJourney(
       ready.coverage[0]?.tool === 'inventory' &&
       ready.coverage[1]?.tool === 'reviewed_document' &&
       ready.coverage.every((coverage) => coverage.records === 1);
+    metadata.phase = 'witness';
     await panel
       .getByRole('button', { name: label('assistant.guide.witness'), exact: true })
       .click();
@@ -124,6 +132,7 @@ export async function assistantGuidanceJourney(
       (element, body) => element.textContent.includes(body),
       guideBody,
     );
+    metadata.phase = 'clearing';
     await page.evaluate(() => {
       window.dispatchEvent(new Event('pagehide'));
     });
@@ -131,6 +140,7 @@ export async function assistantGuidanceJourney(
       (body) => !document.body.textContent.includes(body),
       guideBody,
     );
+    metadata.phase = 'assertions';
     for (const key of [
       'consent_sent',
       'document_current',
@@ -142,6 +152,7 @@ export async function assistantGuidanceJourney(
     ] as const)
       expect(metadata[key]).toBe(true);
     metadata.status = 'passed';
+    metadata.phase = 'complete';
   } finally {
     writeFileSync(
       resolve(`../../.tmp/hosted-guidance-${locale}-${role}.json`),

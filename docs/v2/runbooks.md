@@ -1,6 +1,6 @@
 # Smart Assistant — reviewed runbooks and metadata history
 
-Current candidate: **2.0.0-alpha.7.2**, schema21. The alpha7 document source and exact-tag attempt2 pass all eight jobs; publication has a separate gate. Alpha7.1 source `6441c15` passes all eight source jobs and signed trial `42479950922`; its exact tag/publication have separate receipts. Recorded provenance is the new candidate and needs fresh hosted proof. Stage7 and stable acceptance remain open. See [approval/search](runbook-approval.md), [export](history-export.md) and [exact evidence](../evidence/2.0.0-alpha.7/README.md).
+Current candidate: **2.0.0-alpha.7.3**, schema22. Selected guidance is under hosted correction; [attempts and remaining gates](../evidence/2.0.0-alpha.7.3/README.md). Published alpha7.1 metadata export and alpha7.2 provenance have their own passing source/tag/publication receipts. Alpha7 remains immutable and unpublished after its recorded 403. See [approval/search and selected guidance](runbook-approval.md), [export](history-export.md) and [published provenance evidence](../evidence/2.0.0-alpha.7.2/README.md). Whole-stage quality and stable acceptance remain open.
 
 ## Historical preparation trail — superseded by alpha7
 
