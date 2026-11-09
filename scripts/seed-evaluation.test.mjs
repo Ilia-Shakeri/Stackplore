@@ -29,6 +29,8 @@ const rows = () =>
 test('three complete synthetic passes retain denominators and never claim human or blind acceptance', () => {
   const result = summarizeSeedEvaluation(manifest, bytes, rows());
   assert.equal(result.totals.expected, 72);
+  assert.equal(result.parameters.output_token_limit, 256);
+  assert.equal(result.parameters.overall_deadline_ms, 1080000);
   assert.equal(result.totals.completed, 72);
   assert.equal(result.structural_threshold_met, true);
   assert.equal(result.release_accepted, false);

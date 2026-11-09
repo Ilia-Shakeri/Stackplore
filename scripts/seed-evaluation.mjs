@@ -122,6 +122,12 @@ export function summarizeSeedEvaluation(manifest, bytes, observations) {
   return {
     schema_version: 1,
     scope: 'public-seed-development-only',
+    parameters: {
+      passes: 3,
+      output_token_limit: 256,
+      per_case_deadline_ms: 40000,
+      overall_deadline_ms: 1080000,
+    },
     corpus_id: manifest.corpus_id,
     corpus_revision: manifest.revision,
     corpus_sha256: createHash('sha256').update(Buffer.from(bytes)).digest('hex'),
