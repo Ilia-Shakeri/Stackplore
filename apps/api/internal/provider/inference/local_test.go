@@ -687,3 +687,35 @@ func TestLocalTimeoutDefaultAndExplicitCeiling(t *testing.T) {
 		}
 	}
 }
+
+func TestLocalGuidanceScopeIsTrustedMetadataAndNeverPromotesProse(t *testing.T) {
+	for _, locale := range []string{"en", "fa"} {
+		const poison = "UNTRUSTED_GUIDE_MUST_NOT_ENTER_SYSTEM"
+		var observed atomic.Bool
+		fixture := &protocolFixture{mutate: func(response http.ResponseWriter, request *http.Request) bool {
+			if request.URL.Path != "/apply-template" {
+				return false
+			}
+			var body struct { Messages []message `json:"messages"` }
+			if json.NewDecoder(request.Body).Decode(&body) != nil || len(body.Messages) != 2 {
+				t.Error("invalid guide envelope")
+				response.WriteHeader(http.StatusBadRequest)
+				return true
+			}
+			var data struct { Evidence []countedEvidence `json:"evidence"` }
+			if json.Unmarshal([]byte(body.Messages[1].Content), &data) != nil || len(data.Evidence) != 1 || data.Evidence[0].Usage != "reviewed_guidance" || !strings.Contains(body.Messages[1].Content, poison) || strings.Contains(body.Messages[0].Content, poison) || !strings.Contains(body.Messages[0].Content, "reviewed_guidance") {
+				t.Error("guide scope missing or prose promoted to trusted instructions")
+			}
+			observed.Store(true)
+			_ = json.NewEncoder(response).Encode(map[string]string{"prompt": "exact bounded guide fixture"})
+			return true
+		}}
+		local, _ := fixtureLocal(t, fixture, Options{})
+		request := testRequest()
+		request.Locale = locale
+		request.Evidence = []port.Evidence{{ID: "canonical_guide", Text: poison, Guidance: true}}
+		if _, err := local.Count(context.Background(), request); err != nil || !observed.Load() || fixture.completion.Load() != 0 {
+			t.Fatal("guide framing failed or generated while counting", err)
+		}
+	}
+}

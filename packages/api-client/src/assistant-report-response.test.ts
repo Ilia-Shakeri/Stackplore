@@ -122,6 +122,38 @@ const pressureFixture = () => {
 };
 
 describe('owning typed incident report response', () => {
+  it('retains the guide witness but rejects it as an observed timeline row', () => {
+    const base = incidentReportFixture();
+    const resource = base.citations[0];
+    if (resource === undefined) throw new Error('Missing fixture');
+    const guide = {
+      ...resource,
+      id: `ev_${'e'.repeat(64)}`,
+      kind: 'document',
+      document_reference: {
+        corpus_id: 'ops',
+        version: 2,
+        digest: 'a'.repeat(64),
+        document_id: 'guide',
+        locale: 'en',
+        generation: 0,
+      },
+    };
+    const ready = {
+      ...base,
+      citations: [...base.citations, guide],
+      coverage: [...base.coverage, { tool: 'reviewed_document', availability: 'available', completeness: 'complete', records: 1, more_available: false }],
+    };
+    const parsed = parseAssistantIncidentReportResponse(ready, assistantRunId);
+    expect(parsed.content_state).toBe('ready');
+    if (parsed.content_state !== 'ready') throw new Error('Expected ready report');
+    expect(parsed.report.timeline).toHaveLength(1);
+    expect(parsed.citations).toHaveLength(2);
+    expect(() => parseAssistantIncidentReportResponse({
+      ...ready,
+      report: { ...ready.report, timeline: [{ ...ready.report.timeline[0], citation_id: guide.id, kind: 'document' }] },
+    }, assistantRunId)).toThrow();
+  });
   it('accepts actual typed chronology and detaches nested metric/support arrays', () => {
     const value = pressureFixture();
     const parsed = parseAssistantIncidentReportResponse(value, assistantRunId);

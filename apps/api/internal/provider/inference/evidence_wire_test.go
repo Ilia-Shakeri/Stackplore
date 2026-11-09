@@ -26,6 +26,16 @@ func envelopeFixture(t *testing.T, id, availability string, version int) port.Ev
 	return port.Evidence{ID: id, Text: string(encoded)}
 }
 
+func TestGuidanceUsageSurvivesBothFactoredAndOpaqueEvidence(t *testing.T) {
+	for _, item := range []port.Evidence{envelopeFixture(t, "canonical_guide", "available", 1), {ID: "canonical_guide", Text: "Inert guide text"}} {
+		item.Guidance = true
+		wire, _, err := factorEvidence([]port.Evidence{item}, []string{"e1"})
+		if err != nil || len(wire) != 1 || wire[0].Usage != "reviewed_guidance" || item.Text == "" {
+			t.Fatal("trusted guidance scope lost during context factoring", err)
+		}
+	}
+}
+
 func TestFactoredEvidenceReconstructsEveryOriginalValueAndQuality(t *testing.T) {
 	t.Parallel()
 	items := []port.Evidence{envelopeFixture(t, "canonical_first", "available", 1), envelopeFixture(t, "canonical_second", "stale", 1)}

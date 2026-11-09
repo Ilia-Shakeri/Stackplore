@@ -5,8 +5,40 @@ import {
   safeArchiveNames,
   safeArchiveLinks,
   validHostedDatabaseMetadata,
+  validHostedGuidanceMetadata,
   validHostedIncidentReportMetadata,
 } from './check-hosted-processor-linux.mjs';
+
+test('guidance receipts require exact source, role, locale and literal passing assertions', () => {
+  const source = 'a'.repeat(40);
+  const value = {
+    source_revision: source,
+    locale: 'fa',
+    role: 'viewer',
+    status: 'passed',
+    consent_sent: true,
+    document_current: true,
+    not_facts: true,
+    coverage_valid: true,
+    guide_supported: true,
+    witness_current: true,
+    cleared: true,
+  };
+  assert.equal(validHostedGuidanceMetadata(value, source, 'fa', 'viewer'), true);
+  for (const change of [
+    { source_revision: 'b'.repeat(40) },
+    { locale: 'en' },
+    { role: 'administrator' },
+    { consent_sent: 'true' },
+    { witness_current: 1 },
+    { not_facts: false },
+    { cleared: null },
+    { coverage_valid: false },
+    { guide_supported: false },
+  ]) {
+    assert.equal(validHostedGuidanceMetadata({ ...value, ...change }, source, 'fa', 'viewer'), false);
+  }
+});
 
 test('real report receipt requires rendered current authorized content and owned clearing', () => {
   const value = {

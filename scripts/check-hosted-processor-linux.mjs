@@ -41,6 +41,24 @@ export function validHostedIncidentReportMetadata(value) {
   );
 }
 
+export function validHostedGuidanceMetadata(value, source, locale, role) {
+  return (
+    value?.source_revision === source &&
+    value.locale === locale &&
+    value.role === role &&
+    value.status === 'passed' &&
+    [
+      'consent_sent',
+      'document_current',
+      'not_facts',
+      'coverage_valid',
+      'guide_supported',
+      'witness_current',
+      'cleared',
+    ].every((key) => value[key] === true)
+  );
+}
+
 // Metadata-only SQL acceptance: six explicitly admitted runs, no uncertain work.
 export function validHostedDatabaseMetadata(value, source) {
   if (
@@ -553,6 +571,8 @@ async function main() {
       for (const role of ['administrator', 'viewer']) {
         try {
           const guidance = await metadata(`hosted-guidance-${locale}-${role}.json`);
+          if (!validHostedGuidanceMetadata(guidance, process.env.GITHUB_SHA, locale, role))
+            throw new Error('hosted_processor.guidance_receipt');
           report.application_browser.guidance_journeys.push(
             Object.fromEntries(
               [
@@ -563,6 +583,7 @@ async function main() {
                 'document_current',
                 'not_facts',
                 'coverage_valid',
+                'guide_supported',
                 'witness_current',
                 'cleared',
               ].map((key) => [key, guidance[key]]),

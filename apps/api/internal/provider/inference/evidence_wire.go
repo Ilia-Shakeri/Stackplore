@@ -10,6 +10,7 @@ import (
 type countedEvidence struct {
 	ID   string          `json:"id"`
 	Text json.RawMessage `json:"text"`
+	Usage string `json:"usage,omitempty"`
 }
 
 // Factor only complete matching envelopes. Every value is retained, including
@@ -49,6 +50,9 @@ func factorEvidence(items []port.Evidence, aliases []string) ([]countedEvidence,
 			return nil, nil, port.ErrInvalid
 		}
 		result[index] = countedEvidence{ID: aliases[index], Text: contents}
+		if item.Guidance {
+			result[index].Usage = "reviewed_guidance"
+		}
 	}
 	if !group {
 		scope = nil

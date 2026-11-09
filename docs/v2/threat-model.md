@@ -6,6 +6,25 @@ Status: proposed stage-0 controls and required tests. Controls below are not imp
 
 ## Assets and trust boundaries
 
+### Smart Assistant — selected-document candidate, 2026-11-09
+
+Separate processing permission defaults false for existing revisions. Current
+operator review and explicit user selection/consent are both necessary. Exact
+references bind admission identity; a reserved owning read checks current
+session, database role, audience, version/digest and restore generation. Recheck
+metadata before dispatch, release and witness resolution. A 256-UTF-8-byte
+excerpt remains local, untrusted guidance; never permit its citation as observed
+facts or a deterministic incident timeline row. No source addresses are fetched.
+
+Regression ownership: domain/context tests cover clipping and local-only use;
+gateway and transport/client tests reject factual promotion; runtime tests cover
+reservation order, replay substitution and revocation; real PostgreSQL tests
+cover manual-only migration, explicit permission and revoked sessions; hosted
+bilingual administrator/viewer journeys cover selected guidance and fresh witness
+clearing. These checks require their own source-bound passing receipts; they do
+not establish independent semantic quality or resistance to every instruction
+attack. See [ADR-0023](../adr/0023-selected-document-guidance.md).
+
 Protect current browser/session authority, provider credentials and write identities, infrastructure metadata, private volatile questions/answers, budget reservations, durable run state, and protected audit history. Browser input, returned text, provider labels/logs/events, imported documents, tool results, DNS and network responses are untrusted. A host administrator can read memory or replace code; application policy does not defeat a compromised host.
 
 Boundary: authenticated browser → helper use cases and deterministic policy → bounded normalized read ports → domain evidence projector → approved inference gateway → closed output validator → authorized display/status stream. PostgreSQL owns short transactional run/lease/reservation transitions; no database transaction spans external I/O. The planner proposes; the server authorizes. No service bearer or writer credential enters the context.

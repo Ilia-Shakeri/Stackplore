@@ -27,8 +27,9 @@
   reject partial source records. Include the shipped schema20 upgrade prefix.
 - Show attribution during review and exact document reads in English/Persian.
   Keep source text inert; add no crawler, disclosure or generation handoff.
-- Hosted acceptance remains pending; stage7, independent quality, pilot and
-  stable2 gates remain open.
+- Source/tag hosted verification and signed publication pass at `4c48905`;
+  [receipts](docs/evidence/2.0.0-alpha.7.2/README.md). Later guidance, independent
+  quality, pilot and stable2 gates remain open.
 
 ## [2.0.0-alpha.7.1] - 2026-11-08
 

@@ -16,6 +16,7 @@ import (
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/domain"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/incidentreport"
 	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
+	"github.com/Ilia-Shakeri/stackplore/apps/api/internal/runbook"
 )
 
 func reportSnapshot(t *testing.T) assistantservice.Snapshot {
@@ -57,6 +58,24 @@ func TestReportProjectionProtectsOrdinaryFormattingAndDetachesTypedData(t *testi
 	snapshot.Report.Hypotheses[0].Supporting[0] = "changed"
 	if reply.Report.Gaps[0] == "changed" || reply.Report.Timeline[0].CitationID == "changed" || reply.Report.Hypotheses[0].Supporting[0] == "changed" {
 		t.Fatal("wire report retained mutable private slices")
+	}
+}
+
+func TestReportRetainsGuideWitnessWithoutMakingItAnObservation(t *testing.T) {
+	snapshot := reportSnapshot(t)
+	guide := snapshot.Citations[0]
+	guide.ID = "ev_" + strings.Repeat("e", 64)
+	guide.Kind, guide.ObjectID = "document", "guide"
+	guide.Document = runbook.Reference{CorpusID: "operations", Version: 2, Digest: [32]byte{1}, DocumentID: "guide", Locale: "en"}
+	snapshot.Citations = append(snapshot.Citations, guide)
+	snapshot.Outcomes = append(snapshot.Outcomes, inference.ToolOutcome{Tool: "reviewed_document", Availability: domain.AvailabilityAvailable, Completeness: domain.CompletenessComplete, Records: 1})
+	reply, err := incidentReply(snapshot, "user_helper", helperRunID)
+	if err != nil || reply.Report == nil || len(reply.Report.Timeline) != 2 || len(reply.Citations) != 3 || reply.Citations[2].Document == nil {
+		t.Fatal("guide witness changed observed timeline", err)
+	}
+	snapshot.Report.Timeline[0].Reference = guide
+	if _, err := incidentReply(snapshot, "user_helper", helperRunID); err == nil {
+		t.Fatal("guide promoted into observed report")
 	}
 }
 

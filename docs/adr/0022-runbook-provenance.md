@@ -1,6 +1,6 @@
 # ADR-0022: Recorded document provenance and legacy revisions
 
-Status: accepted implementation design; hosted acceptance pending.
+Status: accepted implementation design; alpha7.2 source/tag hosted verification and publication pass. See [exact receipts](../evidence/2.0.0-alpha.7.2/README.md). This does not accept later processing guidance or stable2.
 Date: 2026-11-08.
 
 ## Decision

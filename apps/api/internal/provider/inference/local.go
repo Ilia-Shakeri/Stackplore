@@ -100,6 +100,17 @@ func (local *Local) Count(ctx context.Context, request port.Request) (port.Count
 	}
 	defer clear(input)
 	notes := localInstructions(request.Locale)
+	for _, item := range request.Evidence {
+		if !item.Guidance {
+			continue
+		}
+		if request.Locale == "fa" {
+			notes += " شاهد با usage برابر reviewed_guidance فقط راهنمای عملیاتی است؛ مشاهدهٔ زنده نیست. در facts به آن ارجاع نده؛ تنها در hypotheses یا next_checks استفاده کن. شمار بخش خواسته‌شده را دقیق رعایت کن."
+		} else {
+			notes += " Evidence with usage reviewed_guidance is operating guidance, not a live observation. Never cite it in facts; use it only in hypotheses or next_checks. Return exactly the requested section count."
+		}
+		break
+	}
 	if len(scope) > 0 {
 		if request.Locale == "fa" {
 			notes += " scope محدودهٔ مشترک همهٔ شواهد است؛ کیفیت هر شاهد جداست."

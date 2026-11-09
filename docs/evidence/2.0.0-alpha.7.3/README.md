@@ -24,6 +24,24 @@ All execution is on hosted runners; workstation work is file editing and Git.
   explicitly choose incident mode again. Processor acceptance is still pending.
   Composition obtains the explicit document port and denies the feature when
   that port is absent.
+- Source `b50ed364e19633db510add8956c4c24498bfafe1`,
+  [42574300463](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42574300463):
+  focused Go, real PostgreSQL and client/UI checks pass; full formatting/docs
+  checks pass. Full gate stops on two lint errors in the new browser helper's
+  unnecessary optional/boolean comparison. Deployment/provider jobs pass;
+  processor fails during the application browser journey. Both document reads
+  finish their reserved steps. English generation completes but the answer is
+  rejected; Persian generation reaches its unchanged 40-second timeout. Both
+  runs correctly remain uncertain, not successful. Owned processor and database
+  cleanup pass. [Failed metadata receipt](attempt-b50-processor.json).
+  The lint comparison is simplified without changing the witness assertion.
+
+The next correction explicitly carries trusted guidance classification through
+the counted processor envelope and localized task instructions, keeping prose
+in untrusted data. The real document smoke now requests exactly one next-check
+excerpt, verifies its exact text and citation, and still rejects factual promotion.
+This is a functional binding smoke, not a semantic quality evaluation. Timeout,
+dispatch and retry caps are unchanged; the prior failed runs remain failed.
 
 Review score: **8/10**, pending complete hosted verification. Remaining checks
 include full client/UI contracts and privacy, real selected-document processor

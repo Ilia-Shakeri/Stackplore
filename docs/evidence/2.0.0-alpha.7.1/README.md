@@ -22,8 +22,9 @@ inside pagehide and tests same-event removal, rather than eventual rendering.
 
 The publisher omits an unused new-target parameter for verified existing tags,
 checks exact-tag gates again before finalization and emits bounded operation/quota
-diagnostics. Its 45 unit cases pass. Only actual publication can prove recovery
-from alpha7's create-release403. Alpha7 remains immutable and unpublished; its
+diagnostics. Its 45 unit cases pass. Actual alpha7.1 publication succeeds, proving
+the publisher works for this verified existing tag without asserting the original
+403 cause. Alpha7 remains immutable and unpublished; its
 failed package/publication receipts are preserved separately.
 
 Code/architecture review is 9/10 within this metadata/document privacy boundary.

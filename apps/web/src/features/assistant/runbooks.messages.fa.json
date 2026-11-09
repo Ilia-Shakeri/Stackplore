@@ -21,7 +21,7 @@
   "runbooks.revoked": "تأیید لغوشده",
   "runbooks.revoke": "پیش‌نمایش لغو تأیید",
   "runbooks.candidate": "ارسال نسخهٔ مجموعه",
-  "runbooks.format": "یک شیء JSON با id، version، audience، documents و provenance وارد کنید. هر سند به id، locale با مقدار en یا fa، title و body نیاز دارد. provenance شامل kind با مقدار operator_authored، licensed_copy یا public_domain، مشخصات منبع در source، مبنای حق استفاده در license و use_reviewed برابر true است. نسخه یک واحد بیشتر باشد؛ audience برابر administrators یا all_users. سقف: ۳۲ سند. متن منبع از نشانی بیرونی دریافت نمی‌شود.",
+  "runbooks.format": "یک شیء JSON با id، version، audience، documents و provenance وارد کنید. هر سند به id، locale با مقدار en یا fa، title و body نیاز دارد. provenance شامل kind با مقدار operator_authored، licensed_copy یا public_domain، مشخصات منبع در source، مبنای حق استفاده در license و use_reviewed برابر true و assistance_reviewed برابر true یا false است. مقدار true برای assistance_reviewed تنها پس از بررسی جداگانهٔ مجوز پردازش محلی باشد. نسخه یک واحد بیشتر باشد؛ audience برابر administrators یا all_users. سقف: ۳۲ سند. متن منبع از نشانی بیرونی دریافت نمی‌شود.",
   "runbooks.json": "مجموعه به شکل JSON",
   "runbooks.preview": "بازبینی متن دقیق",
   "runbooks.review": "تأیید نسخهٔ بازبینی‌شده",

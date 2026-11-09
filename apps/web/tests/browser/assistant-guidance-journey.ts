@@ -20,6 +20,7 @@ export async function assistantGuidanceJourney(
     witness_current: false,
     cleared: false,
     coverage_valid: false,
+    guide_supported: false,
   };
   const words = Object.assign(
     {},
@@ -60,8 +61,8 @@ export async function assistantGuidanceJourney(
       .getByRole('textbox', { name: label('assistant.question'), exact: true })
       .fill(
         locale === 'en'
-          ? 'Give one next check using the selected guide. Do not state any facts from the guide.'
-          : 'با راهنمای منتخب فقط یک بررسی بعدی پیشنهاد کنید. متن راهنما را واقعیت مشاهده‌شده ندانید.',
+          ? 'Return exactly one next_checks section. Its text must be exactly the excerpt field in the selected guide. Cite that guide evidence id once. No facts or other claims.'
+          : 'فقط یک بخش next_checks بده. در text فقط مقدار فیلد excerpt از راهنمای منتخب را عیناً کپی کن؛ توضیح اضافه نده. در citations مقدار id شاهدِ همان راهنما را فقط یک بار بگذار. بخش facts و ادعای دیگر نده.',
       );
     const admission = page.waitForResponse(
       (response) =>
@@ -103,6 +104,12 @@ export async function assistantGuidanceJourney(
     metadata.not_facts = ready.answer.sections.every(
       (section) => section.kind !== 'facts' || !section.citations.includes(guide?.id ?? ''),
     );
+    metadata.guide_supported =
+      ready.answer.sections.length === 1 &&
+      ready.answer.sections[0]?.kind === 'next_checks' &&
+      ready.answer.sections[0].text === guideBody &&
+      ready.answer.sections[0].citations.length === 1 &&
+      ready.answer.sections[0].citations[0] === guide?.id;
     metadata.coverage_valid =
       ready.coverage?.length === 2 &&
       ready.coverage[0]?.tool === 'inventory' &&
@@ -114,7 +121,7 @@ export async function assistantGuidanceJourney(
     const witness = panel.getByRole('article', { name: label('runbooks.document'), exact: true });
     await expect(witness).toBeVisible();
     metadata.witness_current = await witness.evaluate(
-      (element, body) => element.textContent?.includes(body) === true,
+      (element, body) => element.textContent.includes(body),
       guideBody,
     );
     await page.evaluate(() => {
@@ -129,6 +136,7 @@ export async function assistantGuidanceJourney(
       'document_current',
       'not_facts',
       'coverage_valid',
+      'guide_supported',
       'witness_current',
       'cleared',
     ] as const)

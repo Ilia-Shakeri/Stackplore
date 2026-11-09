@@ -82,7 +82,9 @@ The effective request cap is min(deployment cap, 1 MiB), normally 256 KiB; the
 complete envelope must fit. The browser additionally keeps its shared 256-KiB
 client cap and an envelope reserve. Other deployment HTTP limits still apply.
 Guest deployments omit the service; normal installations compose it independently
-of the optional processor. There are no source/provider or inference calls.
+of the optional processor. Approval, search and manual document endpoints start
+no source/provider or inference calls. The separate selected-question path below
+requires explicit consent and its own admitted run.
 
 Open `/assistant/runbooks` from the assistant workspace. Browse documents searches
 in the interface language and replaces result pages. Opening a result performs
@@ -131,7 +133,8 @@ A new administrator-only collection can use this JSON:
     "kind": "operator_authored",
     "source": "Operations team's original installation notes",
     "license": "Author permits this installation's document use",
-    "use_reviewed": true
+    "use_reviewed": true,
+    "assistance_reviewed": false
   },
   "documents": [
     {
@@ -170,6 +173,24 @@ their own lifecycle; no physical secure erasure or recall of delivered bytes is
 claimed. Identity/version tombstones prevent stale-reference resurrection.
 Expired confirmations are pruned in bounded batches and cascade with sessions.
 
+## Smart Assistant — selected-question path and upgrade
+
+Deploy matching web/server assets and apply forward-only migration22 after a
+verified backup. The nullable `document_reference` citation field and explicit
+boolean `assistance_reviewed` provenance field are required by the new client.
+Existing approvals remain reference-only; to enable processing, review usage
+rights and approve a new version with `assistance_reviewed: true`.
+
+On a resource page choose a guide, search in the current language, open its exact
+revision, review the 256-UTF-8-byte excerpt and explicitly consent. The next
+question attaches only that reference. Log consent and guide selection cannot
+be combined. The local profile reserves one additional read within the same
+eight-read cap. Explain uses two reads; incident uses eight. A guide citation
+opens a newly authorized exact witness. Guidance never enters observed facts
+or deterministic report timeline rows. No question, excerpt or answer is added
+to retained history metadata or exports. Closing the view or losing account,
+language, resource or page ownership clears private state and cancels pending work.
+
 ## فارسی
 
 از بخش دستیار، «سندهای تأییدشده» را باز کنید. زبان صفحه باید با زبان سند یکی
@@ -178,7 +199,14 @@ Expired confirmations are pruned in bounded batches and cascade with sessions.
 خطای ارتباط، پیش از تلاش دوباره نسخهٔ فهرست را بررسی کنید. تأیید قبلی را
 خودکار تکرار نکنید. برگشت متن قدیمی هم بازبینی تازه و نسخهٔ بعدی می‌خواهد.
 
-متن سند دستور اجرا نیست و به پردازنده ارسال نمی‌شود. منشأ و حق استفاده و پیوند
-سند به پاسخ هنوز کار جدا دارد. بازیابی، تأیید قدیمی را زنده نمی‌کند. حذف از
+متن سند دستور اجرا نیست. خواندن دستی، پردازش را شروع نمی‌کند. در پیش‌نسخهٔ ۷٫۳،
+فقط مدیر با بازبینیِ نسخهٔ تازه و assistance_reviewed برابر true مجوزِ جداگانهٔ
+پردازش محلی می‌دهد. سندهای قبلی پس از مهاجرت ۲۲ این مجوز را ندارند. در صفحهٔ
+منبع، سند هم‌زبان را جست‌وجو و باز کنید، چکیده را ببینید و با رضایت صریح به
+پرسش وصل کنید. سقف چکیده ۲۵۶ بایت UTF-8 است. سند و رضایت لاگ هم‌زمان نباشند.
+شاهدِ سند با دسترسیِ تازه باز شود؛ متنش واقعیتِ مشاهده‌شده یا ردیف گزارش نشود.
+متن خصوصی به تاریخچه و خروجی فراداده افزوده نشود. وب و سرور با هم ارتقا یابند
+و پیش از مهاجرت پشتیبانِ تأییدشده بگیرید. این مسیر هنوز تست دور کامل می‌خواهد.
+بازیابی، تأیید قدیمی را زنده نمی‌کند. حذف از
 خواندن مجاز به معنی پاک‌شدن فیزیکی نسخه‌های پشتیبان نیست. تست، ساخت و اسکن
 فقط روی GitHub Actions است. نتیجه‌های ساختگی، ارزیابی مستقل یا پایلوت نیستند.
