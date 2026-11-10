@@ -66,6 +66,9 @@ acceptance is inferred. The task wording's two-sentence preference is clarified
 to apply only outside exact-copy requests, which must contain the requested value
 alone. Equality assertions, budgets and evidence remain unchanged. This generic
 contract clarification requires a fresh full source and three-part measurement.
+The automatic measurement trigger now includes provider/gateway source, canonical
+profile settings, corpus fixtures and Go dependency changes, so task-contract
+edits cannot silently omit the independent measurement workflow.
 
 Source `17d5819`, [42617789160](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42617789160):
 all seven non-code jobs pass, including the corrected real application/browser

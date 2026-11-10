@@ -9,8 +9,12 @@ on:
       - 'scripts/combine-seed-evaluations*.mjs'
       - 'scripts/check-stage8-hardening*.mjs'
       - 'scripts/check-hosted-processor-linux*.mjs'
-      - 'apps/api/internal/provider/inference/seed_evaluation_integration_test.go'
-      - 'apps/api/internal/inference/stage8_fault_test.go'
+      - 'scripts/hosted-assistant-profile*.mjs'
+      - 'apps/api/internal/provider/inference/**'
+      - 'apps/api/internal/inference/**'
+      - 'tests/fixtures/assistant/**'
+      - 'apps/api/go.mod'
+      - 'apps/api/go.sum'
   workflow_dispatch:
 
 permissions:
