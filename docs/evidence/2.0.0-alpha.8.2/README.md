@@ -50,6 +50,19 @@ New tests cover reversible private binding, unchanged facts/nested IDs, guidance
 ambiguous full-group fallback and unissued-handle rejection. Fresh complete source,
 real application and development measurements are required after the correction.
 
+Source `43f9e54`, [42782527566](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42782527566),
+keeps its [failed receipt](attempt-43f9-processor.json). Both locales and all
+owning desktop actions complete; actual incident generations stay within40 seconds.
+The English administrator incident's DevTools body read fails even though the UI,
+typed report, fresh witness and SQL run all complete. The receipt correctly fails.
+Replace that fragile passive body read with a separately bounded, current-owner
+snapshot GET after UI completion, parsed by the production client parser. Keep
+exact identity, coverage, one admission, report, witness and cleanup assertions.
+The real SQL synthetic-wire fixture also still expected the old embedded canonical
+ID; update only that private-wire expectation to the bound handle, retaining final
+canonical answer, resource ownership, reservations and exact usage assertions.
+Fresh complete hosted receipts remain required; neither failure is hidden.
+
 ## Correction loop
 
 Initial review: **8/10 within lifecycle receipt collection**. Repeated runs need

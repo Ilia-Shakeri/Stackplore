@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, type Page, type Request, type Response } from '@playwright/test';
+import { parseAssistantRunResponse } from '@stackplore/api-client';
 import { waitForLiveAssistant } from './assistant-live-state';
 
 // No routes are intercepted. Replies pass through the production application.
@@ -35,91 +36,19 @@ export async function assistantLiveJourney(
     view_state: 'not_visible',
     status_reconnections: 0,
   };
-  const reads: Promise<void>[] = [];
+  let ownedRunID: string | undefined;
   const observeReply = (response: Response) => {
     const path = new URL(response.url()).pathname;
     if (
       response.request().method() === 'GET' &&
       /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/report$/u.test(path)
-    ) {
-      metadata.report_status = response.status();
-      return;
-    }
+    ) metadata.report_status = response.status();
     if (
       response.request().method() === 'GET' &&
       /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/citations\/ev_[a-f0-9]{64}$/u.test(path)
-    ) {
-      metadata.citation_status = response.status();
-      return;
-    }
-    if (response.request().method() === 'POST' && path === '/api/v1/assistant/runs') {
+    ) metadata.citation_status = response.status();
+    if (response.request().method() === 'POST' && path === '/api/v1/assistant/runs')
       metadata.admission_status = response.status();
-      return;
-    }
-    if (
-      reads.length >= 8 ||
-      response.request().method() !== 'GET' ||
-      !/^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}$/u.test(path)
-    ) {
-      return;
-    }
-    reads.push(
-      response
-        .json()
-        .then((value: unknown) => {
-          if (typeof value !== 'object' || value === null) return;
-          const body = value as Record<string, unknown>;
-          if (body.content_state === 'ready' && Array.isArray(body.citations)) {
-            metadata.citation_count = body.citations.length;
-            if (goal === 'investigate_incident' && Array.isArray(body.coverage)) {
-              const expected = [
-                'inventory',
-                'health',
-                'metrics',
-                'events',
-                'topology',
-                'alert_history',
-                'workload_history',
-              ];
-              metadata.coverage_valid =
-                body.coverage.length === expected.length &&
-                body.coverage.every(
-                  (item: unknown, index) =>
-                    typeof item === 'object' &&
-                    item !== null &&
-                    (item as Record<string, unknown>).tool === expected[index],
-                );
-            }
-          }
-          if (typeof body.run === 'object' && body.run !== null) {
-            const state = (body.run as Record<string, unknown>).state;
-            if (
-              typeof state === 'string' &&
-              [
-                'queued',
-                'running',
-                'completed',
-                'failed',
-                'cancelled',
-                'expired',
-                'interrupted',
-                'uncertain',
-              ].includes(state)
-            ) {
-              metadata.run_state = state;
-            }
-          }
-          if (
-            typeof body.content_state === 'string' &&
-            ['pending', 'ready', 'volatile_lost', 'unavailable'].includes(body.content_state)
-          ) {
-            metadata.content_state = body.content_state;
-          }
-        })
-        .catch(() => {
-          metadata.content_state = 'unreadable';
-        }),
-    );
   };
   const words = JSON.parse(
     readFileSync(resolve(`src/features/assistant/messages.${locale}.json`), 'utf8'),
@@ -139,6 +68,8 @@ export async function assistantLiveJourney(
   let admissions = 0;
   const observe = (request: Request) => {
     const path = new URL(request.url()).pathname;
+    if (admissions === 1 && request.method() === 'GET' && /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}$/u.test(path))
+      ownedRunID ??= path.split('/').at(-1);
     if (request.method() === 'POST' && path === '/api/v1/assistant/runs') {
       admissions++;
     }
@@ -172,6 +103,29 @@ export async function assistantLiveJourney(
     } catch {
       throw new Error('Real bounded resource completion was not published');
     }
+    // The UI may abort its completed fetch while DevTools reads the same body.
+    // Read the current owning snapshot separately, before navigating or clearing.
+    if (ownedRunID === undefined || !/^ar_[a-f0-9]{64}$/u.test(ownedRunID))
+      throw new Error('Real owning run identity was not observed');
+    try {
+      const response = await page.request.get(`/api/v1/assistant/runs/${ownedRunID}`, { timeout: 15_000 });
+      if (response.status() !== 200 || response.headers()['cache-control'] !== 'no-store')
+        throw new Error('snapshot_unavailable');
+      const body = parseAssistantRunResponse(await response.json(), ownedRunID);
+      metadata.run_state = body.run.state;
+      metadata.content_state = body.content_state;
+      if (body.content_state !== 'ready') throw new Error('snapshot_not_ready');
+      metadata.citation_count = body.citations.length;
+      if (goal === 'investigate_incident') {
+        const expected = ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history'];
+        const coverage = body.coverage;
+        metadata.coverage_valid = coverage !== undefined && coverage.length === expected.length && coverage.every((item, index) => item.tool === expected[index]);
+      }
+    } catch {
+      throw new Error('Real current owning snapshot was not verified');
+    }
+    expect(metadata.run_state).toBe('completed');
+    expect(metadata.coverage_valid).toBe(true);
     const identityProbe = await panel.evaluate((element, expected) => {
       const texts = element.querySelectorAll('.assistant__turns .assistant__text');
       const value = texts[0]?.textContent.trim() ?? '';
@@ -343,7 +297,7 @@ export async function assistantLiveJourney(
   } finally {
     page.off('request', observe);
     page.off('response', observeReply);
-    await Promise.allSettled(reads);
+
     metadata.admissions = admissions;
     try {
       const states = await page.locator('.assistant [role="status"]').allTextContents();

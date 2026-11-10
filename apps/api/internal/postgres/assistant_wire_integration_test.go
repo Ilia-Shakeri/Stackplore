@@ -123,7 +123,7 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 			backend.mu.Lock()
 			ref := backend.ref
 			backend.mu.Unlock()
-			if !decode(document.Records[0], &record) || record.CitationID != ref || record.Kind != "resource" || record.Health != "healthy" {
+			if !decode(document.Records[0], &record) || ref == "" || record.CitationID != input.Evidence[0].ID || record.CitationID == ref || record.Kind != "resource" || record.Health != "healthy" {
 				reject()
 				return
 			}
