@@ -1,11 +1,12 @@
 # Version 2 implementation ledger
 
-> Candidate **2.0.0-alpha.8.2**, schema22: hosted repetition of eight service
-> lifecycle boundaries, one hundred times each with race detection. Fresh hosted
-> receipts remain required. Private observation reference metadata is compacted
-> after a real deadline failure; facts, permissions and budgets stay unchanged. This prepares
-> stage9; it does not close independent stage8 quality, load, soak or pilot gates.
-> [Candidate evidence](../evidence/2.0.0-alpha.8.2/README.md).
+> Tagged **2.0.0-alpha.8.2**, schema22, at `01b8cfc`: all eight source jobs,
+> three development passes (72/72 structural observations), 800/800 repeated
+> race-enabled service-boundary observations and signed package/security trial
+> pass. Compact private observation metadata and fresh owning browser snapshots
+> retain facts, permissions and budgets. Exact-tag/publication have their own live
+> receipts. Stage8 human quality, load, real soak and pilot gates remain open.
+> [Current evidence](../evidence/2.0.0-alpha.8.2/README.md).
 
 > Tagged checkpoint **2.0.0-alpha.8.1**, schema22, source `2732f13`: all eight
 > source jobs, 72/72 structural development observations across three hosted

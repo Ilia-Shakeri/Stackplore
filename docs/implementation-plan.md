@@ -1,11 +1,13 @@
 # Stackplore active implementation evidence
 
-**2026-11-10 — alpha8.2 candidate:** add hosted repetition of eight service
-lifecycle boundaries with race detection and exact observation counts. A real
-Persian incident deadline failure requires compact private reference metadata;
-facts, permissions and deadlines stay unchanged. Fresh source, package and publication receipts remain required.
-[Scope](evidence/2.0.0-alpha.8.2/README.md). Independent quality, same-host load,
-real reconnect/restart/soak and pilot gates stay open.
+**2026-11-10 — alpha8.2:** immutable tag at `01b8cfc`; all eight source jobs,
+three hosted passes (72/72 structural observations), 800/800 repeated service
+boundary observations and signed package/security trial pass. Compact private
+reference metadata fixes a measured deadline failure while preserving facts and
+budgets; current owning snapshots repair fragile browser receipt collection.
+Exact-tag/publication have their own live receipts. [Scope and retained failures](evidence/2.0.0-alpha.8.2/README.md).
+Independent quality, same-host load, real reconnect/restart/soak and pilot gates
+stay open. Stage9 service-fixture preparation does not satisfy the pilot entry gate.
 
 **2026-11-10 — alpha8.1:** immutable tag at `2732f13`; all eight source jobs,
 three hosted passes (72/72 structural observations), nineteen named fault checks

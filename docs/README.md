@@ -1,9 +1,12 @@
 # Documentation
 
-Candidate **2.0.0-alpha.8.2**, schema22, adds a separate hosted lifecycle
-repetition gate: eight service boundaries, one hundred iterations each, race
-detection and strict metadata-only receipts. Fresh source and publication gates
-remain required. [Candidate evidence](evidence/2.0.0-alpha.8.2/README.md).
+Tagged **2.0.0-alpha.8.2**, schema22, at `01b8cfc`: all eight source jobs,
+72/72 structural development observations, 800/800 repeated service-boundary
+observations and signed package/security trial pass. Compact private reference
+metadata preserves facts and fixes a measured incident deadline failure; current
+owning snapshot reads make browser receipts reliable. Exact-tag/publication have
+their own live gates. Independent quality, load, soak and pilot acceptance remain
+open. [Current evidence](evidence/2.0.0-alpha.8.2/README.md).
 
 Tagged **2.0.0-alpha.8.1** at `2732f13` adds measured public-seed evaluation,
 processor RSS/CPU metadata and named fault receipts. All eight source jobs,

@@ -54,6 +54,11 @@ or release. Implementation and source-bound proof remain in the active plan.
 observation reference metadata on the private processor wire. Its accepted design
 does not replace exact-source hosted verification or quality acceptance.
 
+Related records: [reviewed document authority](0021-reviewed-document-authority.md),
+[recorded provenance](0022-runbook-provenance.md), and
+[selected guidance](0023-selected-document-guidance.md). Their implementation and
+independent acceptance boundaries remain in their owning evidence records.
+
 1. Copy [`0000-template.md`](0000-template.md).
 2. Allocate the next four-digit number; never reuse a number.
 3. Name the file `NNNN-short-kebab-title.md`.

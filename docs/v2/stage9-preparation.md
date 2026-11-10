@@ -7,8 +7,8 @@ uses GitHub Actions; the workstation performs file editing and lightweight Git.
 ## Hosted lifecycle precursor
 
 The separate `stage9-lifecycle` workflow runs eight service-boundary regressions
-one hundred times each with race detection, two parallel tests, shuffle seed214
-and a ten-minute test deadline. Its report requires all800 planned observations;
+one hundred times each with race detection, two parallel tests, shuffle seed 214
+and a ten-minute test deadline. Its report requires all 800 planned observations;
 missing, failed, skipped, duplicate or incomplete results reject. Only fixed
 names, counts, durations and the source revision are retained.
 
@@ -17,7 +17,10 @@ They exercise active producer shutdown, concurrent cancellation, late admission,
 ownership loss, expiry and revoked-user reads. They do not satisfy real process
 restart, browser reconnect, installation, sixty-minute soak or pilot requirements.
 The main eight-job gate still tests actual PostgreSQL, processor, desktop and
-deployment. [Candidate receipt scope](../evidence/2.0.0-alpha.8.2/README.md).
+deployment. Source `01b8cfc` passes all 800 planned observations with no skipped
+or failed cases and the complete separate eight-job source gate. This closes only
+the deterministic service-regression precursor, not the lifecycle matrix below.
+[Exact receipt scope](../evidence/2.0.0-alpha.8.2/README.md).
 
 ## Entry gate
 

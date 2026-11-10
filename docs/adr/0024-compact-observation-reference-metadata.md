@@ -1,15 +1,16 @@
 # ADR-0024: Compact observation reference metadata on the private wire
 
-- Status: Accepted design; source-bound runtime verification pending
+- Status: Accepted
+- Implementation: Source `01b8cfc` passes all eight hosted jobs, real bilingual protocol/application, three development passes and signed trial. Independent quality and release acceptance remain separate. [Receipts](../evidence/2.0.0-alpha.8.2/README.md).
 - Date: 2026-11-10
 - Owners: Project maintainers
 - Amends: [ADR-0019](0019-request-local-citation-handles.md), embedded observation citation metadata only
 
 ## Context
 
-Source `af93c95` passes all three public development passes and800 service
+Source `af93c95` passes all three public development passes and 800 service
 boundary observations. Its real desktop Persian incident reaches the unchanged
-40-second dispatch limit with1226 counted input tokens. The observer records
+40-second dispatch limit with 1,226 counted input tokens. The observer records
 client closure and incomplete generation; the owning run correctly stays uncertain.
 The failure remains in the [attempt ledger](../evidence/2.0.0-alpha.8.2/README.md).
 Each of seven observation records repeats a long opaque citation already bound

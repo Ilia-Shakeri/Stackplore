@@ -11,12 +11,12 @@ or a measured quality result; source/tag/package receipts remain separate.
 
 ## Dataset and machine checks
 
-### Smart Assistant — development measurements, alpha8.1
+### Smart Assistant — development measurements, alpha8.2
 
-Source `2732f13` passes its complete source gate and three-part development
+Source `01b8cfc` passes its complete source gate and three-part development
 measurement: 72/72 structurally complete, no rejected/missing/not-run cases;
-attempted p95 28,916 ms across the recorded workers. [Current immutable evidence
-and retained failures](../evidence/2.0.0-alpha.8.1/README.md). This does not accept
+attempted p95 28,592 ms across the recorded workers. [Current immutable evidence
+and retained failures](../evidence/2.0.0-alpha.8.2/README.md). This does not accept
 human grounding, correct abstention, a blind holdout or customer capacity.
 
 The separate `stage8-quality` hosted workflow runs three parallel hosted jobs,

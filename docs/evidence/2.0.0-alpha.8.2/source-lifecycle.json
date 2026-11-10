@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_revision": "af93c952c8ede8ee22e1ede602006dab5c07edab",
+  "source_revision": "01b8cfc70ff4b181866c2c391ae8fa931834d452",
   "scope": "Repeated service boundary regressions with deterministic dependencies; not real processor, database restart, reconnect, soak or pilot acceptance",
   "status": "passed",
   "release_accepted": false,
@@ -41,7 +41,7 @@
       "passed": 100,
       "failed": 0,
       "skipped": 0,
-      "elapsed_seconds": 0.060000000000000005
+      "elapsed_seconds": 0
     },
     {
       "name": "TestCancelPendingAdmissionClosesReadinessWithoutReopeningMemory",
@@ -73,10 +73,10 @@
       "passed": 100,
       "failed": 0,
       "skipped": 0,
-      "elapsed_seconds": 0.3100000000000001
+      "elapsed_seconds": 0
     }
   ],
   "package_passed": true,
   "completed_observations": 800,
-  "elapsed_ms": 20409
+  "elapsed_ms": 16620
 }
