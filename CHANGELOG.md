@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0-alpha.8.1] - 2026-11-09
+## [2.0.0-alpha.8.1] - 2026-11-10
 
 ### Smart Assistant — measured development evaluation and fault receipts
 

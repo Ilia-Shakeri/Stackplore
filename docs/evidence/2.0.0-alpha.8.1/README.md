@@ -70,6 +70,17 @@ The automatic measurement trigger now includes provider/gateway source, canonica
 profile settings, corpus fixtures and Go dependency changes, so task-contract
 edits cannot silently omit the independent measurement workflow.
 
+Source `9b8d466`, [measurement 42771304433](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42771304433),
+still has [two](attempt-9b8-protocol2.json) failed [English protocol parts](attempt-9b8-protocol3.json):
+the exact no-evidence phrase is contained but has extra text, so both correctly
+fail before seed evaluation. The English brevity rewrite is therefore reverted
+byte-for-byte to the task contract in published `v2.0.0-alpha.8`; targeted Persian
+brevity remains. This also matches the English contract used by the initial
+three-pass baseline, whose English seed observations all completed. Strict
+equality, original questions/evidence, budgets and validators remain unchanged.
+There is no rewriting, canned-answer substitution or inference retry. Fresh
+complete application and three-part measurements are required after the revert.
+
 Source `17d5819`, [42617789160](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42617789160):
 all seven non-code jobs pass, including the corrected real application/browser
 journey. Code stops on formatting of the new correction; the hosted patch is
