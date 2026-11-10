@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.0-alpha.8.2] - 2026-11-10
+
+### Repeated lifecycle preparation
+
+- Add a hosted-only, race-enabled repetition gate for eight service lifecycle
+  boundaries: one hundred iterations each, fixed concurrency and test deadline.
+- Require exact starts and completions; reject missing, duplicate, skipped,
+  failed, truncated and package-level race outcomes. Retain metadata only.
+- Preserve the complete eight-job source gate, runtime and deployment checks.
+  No product runtime, profile, schema or permission changes in this increment.
+- Keep independent quality, real reconnect/restart/soak, load comparison and
+  pilot acceptance open. This is stage9 preparation, not stable2 acceptance.
+
 ## [2.0.0-alpha.8.1] - 2026-11-10
 
 ### Smart Assistant — measured development evaluation and fault receipts

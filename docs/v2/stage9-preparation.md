@@ -4,6 +4,21 @@ Status: **preparation only**. Stage8 quality acceptance and an opted-in pilot ar
 not available. No beta or pilot acceptance is claimed. All maintainer execution
 uses GitHub Actions; the workstation performs file editing and lightweight Git.
 
+## Hosted lifecycle precursor
+
+The separate `stage9-lifecycle` workflow runs eight service-boundary regressions
+one hundred times each with race detection, two parallel tests, shuffle seed214
+and a ten-minute test deadline. Its report requires all800 planned observations;
+missing, failed, skipped, duplicate or incomplete results reject. Only fixed
+names, counts, durations and the source revision are retained.
+
+These use deterministic service dependencies, not a real processor or database.
+They exercise active producer shutdown, concurrent cancellation, late admission,
+ownership loss, expiry and revoked-user reads. They do not satisfy real process
+restart, browser reconnect, installation, sixty-minute soak or pilot requirements.
+The main eight-job gate still tests actual PostgreSQL, processor, desktop and
+deployment. [Candidate receipt scope](../evidence/2.0.0-alpha.8.2/README.md).
+
 ## Entry gate
 
 The release owner must inspect the complete reviewed corpus and actual independent

@@ -1,5 +1,11 @@
 # Stackplore active implementation evidence
 
+**2026-11-10 — alpha8.2 candidate:** add hosted repetition of eight service
+lifecycle boundaries with race detection and exact observation counts. No runtime
+change. Fresh source, package and publication receipts remain required.
+[Scope](evidence/2.0.0-alpha.8.2/README.md). Independent quality, same-host load,
+real reconnect/restart/soak and pilot gates stay open.
+
 **2026-11-10 — alpha8.1:** immutable tag at `2732f13`; all eight source jobs,
 three hosted passes (72/72 structural observations), nineteen named fault checks
 and signed package/security trial pass. Exact-tag/publication have separate live

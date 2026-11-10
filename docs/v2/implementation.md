@@ -1,5 +1,11 @@
 # Version 2 implementation ledger
 
+> Candidate **2.0.0-alpha.8.2**, schema22: hosted repetition of eight service
+> lifecycle boundaries, one hundred times each with race detection. Fresh hosted
+> receipts remain required. Runtime and permissions do not change. This prepares
+> stage9; it does not close independent stage8 quality, load, soak or pilot gates.
+> [Candidate evidence](../evidence/2.0.0-alpha.8.2/README.md).
+
 > Tagged checkpoint **2.0.0-alpha.8.1**, schema22, source `2732f13`: all eight
 > source jobs, 72/72 structural development observations across three hosted
 > passes, nineteen named fault regressions and signed trial pass. Exact-tag and
