@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "source_revision": "a2fa0de16e08cbc6437edbe9e5317a3173ff17db",
+  "recorded_at": "2026-11-09T13:22:23.495Z",
+  "platform": "linux-x64",
+  "status": "failed",
+  "phase": "protocol",
+  "stopped": true,
+  "postgres_stopped": true,
+  "scope": "One real public-seed development pass; not application, blind or human quality acceptance",
+  "archive_sha256": "ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25",
+  "model_sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+  "model_revision": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+  "model_license": "Apache-2.0",
+  "model_bytes": 1834426016,
+  "context_tokens": 20480,
+  "call_timeout_seconds": 40,
+  "build": "b11729-412a363c6",
+  "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+  "cases": [
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/en",
+      "status": "fail",
+      "elapsed_seconds": 7.02
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 11.92
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration",
+      "status": "fail",
+      "elapsed_seconds": 18.95
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 18
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 24.12
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration",
+      "status": "pass",
+      "elapsed_seconds": 42.12
+    }
+  ],
+  "evidence_probes": [
+    {
+      "locale": "en",
+      "backend_fault": "none",
+      "gateway_fault": "none",
+      "input_tokens": 565,
+      "output_tokens": 72,
+      "input_match": true,
+      "complete": true,
+      "json_valid": true,
+      "sections": 1,
+      "citations_valid": true,
+      "identity_matches": true,
+      "identity_contained": true,
+      "facts_kind": true,
+      "text_bytes": 46
+    },
+    {
+      "locale": "fa",
+      "backend_fault": "none",
+      "gateway_fault": "none",
+      "input_tokens": 781,
+      "output_tokens": 68,
+      "input_match": true,
+      "complete": true,
+      "json_valid": true,
+      "sections": 1,
+      "citations_valid": true,
+      "identity_matches": true,
+      "identity_contained": true,
+      "facts_kind": true,
+      "text_bytes": 46
+    }
+  ],
+  "empty_probes": [
+    {
+      "locale": "en",
+      "gateway_fault": "none",
+      "sections": 1,
+      "gaps_kind": true,
+      "empty_citations": true,
+      "text_exact": false,
+      "text_contains": true,
+      "text_bytes": 77
+    },
+    {
+      "locale": "fa",
+      "gateway_fault": "none",
+      "sections": 1,
+      "gaps_kind": true,
+      "empty_citations": true,
+      "text_exact": true,
+      "text_contains": true,
+      "text_bytes": 44
+    }
+  ],
+  "resource_scope": "owned processor only; shared runner observation, not customer capacity",
+  "runner": {
+    "platform": "linux",
+    "architecture": "x64",
+    "logical_cpus": 4,
+    "processor": "AMD EPYC 7763 64-Core Processor",
+    "host_memory_bytes": 16760344576
+  },
+  "ci_peak_rss_limit_bytes": 8589934592,
+  "resources": {
+    "peak_rss_bytes": 3272663040,
+    "cpu_user_ticks": 24080,
+    "cpu_system_ticks": 97,
+    "ticks_per_second": 100,
+    "cpu_seconds": 241.77
+  },
+  "resources_measured_phase": "protocol",
+  "system_error_code": "not_classified",
+  "error_code": "hosted_processor.protocol_failed"
+}

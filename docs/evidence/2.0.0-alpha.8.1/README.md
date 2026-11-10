@@ -48,6 +48,25 @@ source. Quality workflow concurrency now preserves in-progress measurements and
 queues newer source work; it never treats superseded or partial results as proof
 for a different revision. Fresh complete source gates remain required.
 
+The [406 development measurement](development-406-512.json),
+[42623231636](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42623231636),
+records **72/72 structurally complete**, no rejected/missing/not-run cases and
+attempted p95 21,710 ms. This proves only the recorded public development scope.
+Human grounding, correct abstention and independent held-out acceptance remain
+pending, even with a complete structural result.
+
+Formatted source `a2fa0de` passes all eight
+[source jobs 42624073189](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42624073189)
+and [signed trial 42624310668](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42624310668).
+Its [separate measurement 42624073156](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42624073156)
+has two successful parts and [one failed protocol part](attempt-a2-protocol.json):
+the English no-evidence probe has the required phrase plus extra text, so exact
+equality correctly fails before seed collection. Aggregation skips; no three-part
+acceptance is inferred. The task wording's two-sentence preference is clarified
+to apply only outside exact-copy requests, which must contain the requested value
+alone. Equality assertions, budgets and evidence remain unchanged. This generic
+contract clarification requires a fresh full source and three-part measurement.
+
 Source `17d5819`, [42617789160](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42617789160):
 all seven non-code jobs pass, including the corrected real application/browser
 journey. Code stops on formatting of the new correction; the hosted patch is
