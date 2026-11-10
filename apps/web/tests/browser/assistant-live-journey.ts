@@ -42,11 +42,13 @@ export async function assistantLiveJourney(
     if (
       response.request().method() === 'GET' &&
       /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/report$/u.test(path)
-    ) metadata.report_status = response.status();
+    )
+      metadata.report_status = response.status();
     if (
       response.request().method() === 'GET' &&
       /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}\/citations\/ev_[a-f0-9]{64}$/u.test(path)
-    ) metadata.citation_status = response.status();
+    )
+      metadata.citation_status = response.status();
     if (response.request().method() === 'POST' && path === '/api/v1/assistant/runs')
       metadata.admission_status = response.status();
   };
@@ -68,7 +70,11 @@ export async function assistantLiveJourney(
   let admissions = 0;
   const observe = (request: Request) => {
     const path = new URL(request.url()).pathname;
-    if (admissions === 1 && request.method() === 'GET' && /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}$/u.test(path))
+    if (
+      admissions === 1 &&
+      request.method() === 'GET' &&
+      /^\/api\/v1\/assistant\/runs\/ar_[a-f0-9]{64}$/u.test(path)
+    )
       ownedRunID ??= path.split('/').at(-1);
     if (request.method() === 'POST' && path === '/api/v1/assistant/runs') {
       admissions++;
@@ -108,7 +114,9 @@ export async function assistantLiveJourney(
     if (ownedRunID === undefined || !/^ar_[a-f0-9]{64}$/u.test(ownedRunID))
       throw new Error('Real owning run identity was not observed');
     try {
-      const response = await page.request.get(`/api/v1/assistant/runs/${ownedRunID}`, { timeout: 15_000 });
+      const response = await page.request.get(`/api/v1/assistant/runs/${ownedRunID}`, {
+        timeout: 15_000,
+      });
       if (response.status() !== 200 || response.headers()['cache-control'] !== 'no-store')
         throw new Error('snapshot_unavailable');
       const body = parseAssistantRunResponse(await response.json(), ownedRunID);
@@ -117,9 +125,20 @@ export async function assistantLiveJourney(
       if (body.content_state !== 'ready') throw new Error('snapshot_not_ready');
       metadata.citation_count = body.citations.length;
       if (goal === 'investigate_incident') {
-        const expected = ['inventory', 'health', 'metrics', 'events', 'topology', 'alert_history', 'workload_history'];
+        const expected = [
+          'inventory',
+          'health',
+          'metrics',
+          'events',
+          'topology',
+          'alert_history',
+          'workload_history',
+        ];
         const coverage = body.coverage;
-        metadata.coverage_valid = coverage !== undefined && coverage.length === expected.length && coverage.every((item, index) => item.tool === expected[index]);
+        metadata.coverage_valid =
+          coverage !== undefined &&
+          coverage.length === expected.length &&
+          coverage.every((item, index) => item.tool === expected[index]);
       }
     } catch {
       throw new Error('Real current owning snapshot was not verified');
