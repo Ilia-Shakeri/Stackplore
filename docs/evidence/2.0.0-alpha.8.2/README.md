@@ -3,6 +3,12 @@
 Candidate **2.0.0-alpha.8.2**, schema22. Hosted receipts are required before a tag
 or publication claim. No workstation test, build, scanner or service is run.
 
+First source `dae2adf` passes [800/800 lifecycle observations](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42779994761)
+with race detection. [Safe receipt](first-lifecycle.json). Its
+[source gate](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42779994666)
+finds formatting of the two new scripts before heavy code tests. The exact hosted
+formatting patch is applied; a fresh complete source gate remains mandatory.
+
 The separate `stage9-lifecycle` workflow repeats eight existing service-boundary
 regressions one hundred times each, with the Go race detector, two parallel tests,
 a recorded deterministic shuffle seed and a ten-minute test deadline. Each named
