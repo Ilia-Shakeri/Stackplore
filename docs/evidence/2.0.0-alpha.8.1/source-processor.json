@@ -1,0 +1,999 @@
+{
+  "schema_version": 1,
+  "source_revision": "2732f132e966f85831c4c73354d3c18125362d21",
+  "recorded_at": "2026-11-10T07:05:35.009Z",
+  "platform": "linux-x64",
+  "status": "passed",
+  "phase": "complete",
+  "stopped": true,
+  "postgres_stopped": true,
+  "scope": "Real bilingual protocol and desktop application with synthetic Demo evidence; not Windows runtime or general quality acceptance",
+  "archive_sha256": "ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25",
+  "model_sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+  "model_revision": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+  "model_license": "Apache-2.0",
+  "model_bytes": 1834426016,
+  "context_tokens": 20480,
+  "call_timeout_seconds": 40,
+  "build": "b11729-412a363c6",
+  "template_sha256": "57f1fd00f0013a2be96aa79b857391f27e23df5b5f847072b524c897e24d0361",
+  "cases": [
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 5.05
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 9.25
+    },
+    {
+      "name": "TestPinnedLocalRuntimeIntegration",
+      "status": "pass",
+      "elapsed_seconds": 14.3
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/en",
+      "status": "pass",
+      "elapsed_seconds": 14.12
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration/fa",
+      "status": "pass",
+      "elapsed_seconds": 18.77
+    },
+    {
+      "name": "TestPinnedLocalEvidenceIntegration",
+      "status": "pass",
+      "elapsed_seconds": 32.88
+    }
+  ],
+  "evidence_probes": [
+    {
+      "locale": "en",
+      "backend_fault": "none",
+      "gateway_fault": "none",
+      "input_tokens": 545,
+      "output_tokens": 73,
+      "input_match": true,
+      "complete": true,
+      "json_valid": true,
+      "sections": 1,
+      "citations_valid": true,
+      "identity_matches": true,
+      "identity_contained": true,
+      "facts_kind": true,
+      "text_bytes": 46
+    },
+    {
+      "locale": "fa",
+      "backend_fault": "none",
+      "gateway_fault": "none",
+      "input_tokens": 782,
+      "output_tokens": 68,
+      "input_match": true,
+      "complete": true,
+      "json_valid": true,
+      "sections": 1,
+      "citations_valid": true,
+      "identity_matches": true,
+      "identity_contained": true,
+      "facts_kind": true,
+      "text_bytes": 46
+    }
+  ],
+  "empty_probes": [
+    {
+      "locale": "en",
+      "gateway_fault": "none",
+      "sections": 1,
+      "gaps_kind": true,
+      "empty_citations": true,
+      "text_exact": true,
+      "text_contains": true,
+      "text_bytes": 37
+    },
+    {
+      "locale": "fa",
+      "gateway_fault": "none",
+      "sections": 1,
+      "gaps_kind": true,
+      "empty_citations": true,
+      "text_exact": true,
+      "text_contains": true,
+      "text_bytes": 44
+    }
+  ],
+  "resource_scope": "owned processor only; shared runner observation, not customer capacity",
+  "runner": {
+    "platform": "linux",
+    "architecture": "x64",
+    "logical_cpus": 4,
+    "processor": "AMD EPYC 9V74 80-Core Processor",
+    "host_memory_bytes": 16760348672
+  },
+  "ci_peak_rss_limit_bytes": 8589934592,
+  "resources": {
+    "peak_rss_bytes": 3219021824,
+    "cpu_user_ticks": 118302,
+    "cpu_system_ticks": 172,
+    "ticks_per_second": 100,
+    "cpu_seconds": 1184.74
+  },
+  "resources_measured_phase": "complete",
+  "application_browser": {
+    "cases": [
+      {
+        "locale": "en",
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0
+      },
+      {
+        "locale": "fa",
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0
+      }
+    ],
+    "journeys": [
+      {
+        "locale": "en",
+        "role": "administrator",
+        "goal": "explain_resource",
+        "coverage_valid": true,
+        "citation_count": 1,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 0,
+        "report_status": 0,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "en",
+        "role": "administrator",
+        "goal": "investigate_incident",
+        "coverage_valid": true,
+        "citation_count": 2,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 2,
+        "report_status": 200,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "en",
+        "role": "viewer",
+        "goal": "explain_resource",
+        "coverage_valid": true,
+        "citation_count": 1,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 0,
+        "report_status": 0,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "en",
+        "role": "viewer",
+        "goal": "investigate_incident",
+        "coverage_valid": true,
+        "citation_count": 2,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 2,
+        "report_status": 200,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "fa",
+        "role": "administrator",
+        "goal": "explain_resource",
+        "coverage_valid": true,
+        "citation_count": 1,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 0,
+        "report_status": 0,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "fa",
+        "role": "administrator",
+        "goal": "investigate_incident",
+        "coverage_valid": true,
+        "citation_count": 2,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 2,
+        "report_status": 200,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "fa",
+        "role": "viewer",
+        "goal": "explain_resource",
+        "coverage_valid": true,
+        "citation_count": 1,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 0,
+        "report_status": 0,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      },
+      {
+        "locale": "fa",
+        "role": "viewer",
+        "goal": "investigate_incident",
+        "coverage_valid": true,
+        "citation_count": 2,
+        "admissions": 1,
+        "admission_status": 202,
+        "run_state": "completed",
+        "content_state": "ready",
+        "resource_identity_supported": true,
+        "identity_contained": true,
+        "identity_text_bytes": 46,
+        "identity_shape": "resource",
+        "citation_current": true,
+        "citation_status": 200,
+        "report_current": true,
+        "report_cleared": true,
+        "report_rows": 2,
+        "report_status": 200,
+        "cleared": true,
+        "view_state": "not_visible",
+        "status_reconnections": 0
+      }
+    ],
+    "guidance_journeys": [
+      {
+        "valid_receipt": true,
+        "locale": "en",
+        "role": "administrator",
+        "status": "passed",
+        "phase": "complete",
+        "snapshot_status": 200,
+        "consent_sent": true,
+        "document_current": true,
+        "not_facts": true,
+        "coverage_valid": true,
+        "guide_supported": true,
+        "guide_section_exact": true,
+        "guide_text_exact": true,
+        "guide_citation_exact": true,
+        "witness_current": true,
+        "cleared": true,
+        "status_reconnections": 0
+      },
+      {
+        "valid_receipt": true,
+        "locale": "en",
+        "role": "viewer",
+        "status": "passed",
+        "phase": "complete",
+        "snapshot_status": 200,
+        "consent_sent": true,
+        "document_current": true,
+        "not_facts": true,
+        "coverage_valid": true,
+        "guide_supported": true,
+        "guide_section_exact": true,
+        "guide_text_exact": true,
+        "guide_citation_exact": true,
+        "witness_current": true,
+        "cleared": true,
+        "status_reconnections": 0
+      },
+      {
+        "valid_receipt": true,
+        "locale": "fa",
+        "role": "administrator",
+        "status": "passed",
+        "phase": "complete",
+        "snapshot_status": 200,
+        "consent_sent": true,
+        "document_current": true,
+        "not_facts": true,
+        "coverage_valid": true,
+        "guide_supported": true,
+        "guide_section_exact": true,
+        "guide_text_exact": true,
+        "guide_citation_exact": true,
+        "witness_current": true,
+        "cleared": true,
+        "status_reconnections": 0
+      },
+      {
+        "valid_receipt": true,
+        "locale": "fa",
+        "role": "viewer",
+        "status": "passed",
+        "phase": "complete",
+        "snapshot_status": 200,
+        "consent_sent": true,
+        "document_current": true,
+        "not_facts": true,
+        "coverage_valid": true,
+        "guide_supported": true,
+        "guide_section_exact": true,
+        "guide_text_exact": true,
+        "guide_citation_exact": true,
+        "witness_current": true,
+        "cleared": true,
+        "status_reconnections": 0
+      }
+    ],
+    "database_metadata": [
+      {
+        "source_revision": "2732f132e966f85831c4c73354d3c18125362d21",
+        "status": "observed",
+        "runs": [
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 1,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "investigate_incident",
+            "state": "completed",
+            "tool_calls": 7,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 2,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 1,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "investigate_incident",
+            "state": "completed",
+            "tool_calls": 7,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 2,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          }
+        ],
+        "steps": [
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 627,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "health",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "metrics",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "events",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "topology",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "alert_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "workload_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 1034,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "reviewed_document",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 774,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 621,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "health",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "metrics",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "events",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "topology",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "alert_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "workload_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 1036,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "reviewed_document",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 767,
+            "maximum_units": 16512
+          }
+        ]
+      },
+      {
+        "source_revision": "2732f132e966f85831c4c73354d3c18125362d21",
+        "status": "observed",
+        "runs": [
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 1,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "investigate_incident",
+            "state": "completed",
+            "tool_calls": 7,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 2,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 1,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "investigate_incident",
+            "state": "completed",
+            "tool_calls": 7,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          },
+          {
+            "goal": "explain_resource",
+            "state": "completed",
+            "tool_calls": 2,
+            "inference_calls": 1,
+            "usage_unknown": false,
+            "usage_conservative": false
+          }
+        ],
+        "steps": [
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 825,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "health",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "metrics",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "events",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "topology",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "alert_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "workload_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 1304,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "reviewed_document",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 1167,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 830,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "health",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "metrics",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "events",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "topology",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "alert_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "workload_history",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 1298,
+            "maximum_units": 16512
+          },
+          {
+            "kind": "inventory",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "reviewed_document",
+            "state": "completed",
+            "units": 0,
+            "maximum_units": 0
+          },
+          {
+            "kind": "inference",
+            "state": "completed",
+            "units": 1168,
+            "maximum_units": 16512
+          }
+        ]
+      }
+    ],
+    "inference_metadata": [
+      {
+        "source_revision": "2732f132e966f85831c4c73354d3c18125362d21",
+        "calls": [
+          {
+            "input_tokens": 558,
+            "output_limit": 512,
+            "elapsed_ms": 14071,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 69,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 965,
+            "output_limit": 512,
+            "elapsed_ms": 23511,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 69,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 733,
+            "output_limit": 512,
+            "elapsed_ms": 15948,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 41,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 552,
+            "output_limit": 512,
+            "elapsed_ms": 14912,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 69,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 967,
+            "output_limit": 512,
+            "elapsed_ms": 23768,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 69,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 726,
+            "output_limit": 512,
+            "elapsed_ms": 15627,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 41,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          }
+        ],
+        "stopped": true
+      },
+      {
+        "source_revision": "2732f132e966f85831c4c73354d3c18125362d21",
+        "calls": [
+          {
+            "input_tokens": 757,
+            "output_limit": 512,
+            "elapsed_ms": 18756,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 68,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 1236,
+            "output_limit": 512,
+            "elapsed_ms": 30779,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 68,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 1116,
+            "output_limit": 512,
+            "elapsed_ms": 25183,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 51,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 762,
+            "output_limit": 512,
+            "elapsed_ms": 18303,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 68,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 1230,
+            "output_limit": 512,
+            "elapsed_ms": 30167,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 68,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          },
+          {
+            "input_tokens": 1117,
+            "output_limit": 512,
+            "elapsed_ms": 25681,
+            "http_status": 200,
+            "fault": "none",
+            "output_tokens": 51,
+            "complete": true,
+            "input_match": true,
+            "sections": 1,
+            "citation_count": 1
+          }
+        ],
+        "stopped": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "source_revision": "2732f132e966f85831c4c73354d3c18125362d21",
+  "scope": "selected real database and deterministic fault regressions; not full security or pilot acceptance",
+  "status": "passed",
+  "cases": [
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference",
+      "name": "TestStage8MalformedOutputMatrixNeverRetriesOrPublishes",
+      "status": "pass",
+      "elapsed_seconds": 0.01,
+      "subcases": 72,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference",
+      "name": "TestFailedDispatchCannotBeRetried",
+      "status": "pass",
+      "elapsed_seconds": 0,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference",
+      "name": "TestGatewayRejectsUnsafeCountAndGeneration",
+      "status": "pass",
+      "elapsed_seconds": 0,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference",
+      "name": "TestGatewayBoundsCancellationAndSafeErrors",
+      "status": "pass",
+      "elapsed_seconds": 0.02,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference",
+      "name": "TestConcurrentDispatchHasOneWinner",
+      "status": "pass",
+      "elapsed_seconds": 0,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference",
+      "name": "TestLocalRejectsMalformedUnknownAndOversizedProtocol",
+      "status": "pass",
+      "elapsed_seconds": 0.24,
+      "subcases": 16,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference",
+      "name": "TestLocalRejectsIdentityChangeBeforeDispatch",
+      "status": "pass",
+      "elapsed_seconds": 0.04,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference",
+      "name": "TestLocalCancellationStopsOneActualDispatch",
+      "status": "pass",
+      "elapsed_seconds": 0.06,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference",
+      "name": "TestLocalRechecksAndPinsDNSWithoutFollowingRedirect",
+      "status": "pass",
+      "elapsed_seconds": 0.03,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/provider/inference",
+      "name": "TestLocalDeadlineDNSBoundsAndNoAmbientProxy",
+      "status": "pass",
+      "elapsed_seconds": 0.04,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice",
+      "name": "TestRunShutdownFencesMemoryThenJoinsActiveProducer",
+      "status": "pass",
+      "elapsed_seconds": 0,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice",
+      "name": "TestLateAdmissionCommitCannotRestoreClosedConversation",
+      "status": "pass",
+      "elapsed_seconds": 0,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/assistantservice",
+      "name": "TestUserRevocationAndReadAuthorizationFenceCompletedAnswer",
+      "status": "pass",
+      "elapsed_seconds": 0,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+      "name": "TestAssistantNativeCrashBoundaries",
+      "status": "pass",
+      "elapsed_seconds": 4.96,
+      "subcases": 3,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+      "name": "TestAssistantHotPathQueryPlansAndRetentionBoundsOnRealPostgreSQL",
+      "status": "pass",
+      "elapsed_seconds": 1.83,
+      "subcases": 7,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+      "name": "TestAssistantUnknownSettlementCannotRefundConfirmedCalls",
+      "status": "pass",
+      "elapsed_seconds": 0.91,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+      "name": "TestAssistantInferenceRequiresReservedRemainingUnitsBeforeDispatch",
+      "status": "pass",
+      "elapsed_seconds": 0.96,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+      "name": "TestAssistantStatusFailureRollsBackAdmissionAndStepTransactions",
+      "status": "pass",
+      "elapsed_seconds": 1.33,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    },
+    {
+      "package": "github.com/Ilia-Shakeri/stackplore/apps/api/internal/postgres",
+      "name": "TestAssistantRestoreGenerationReadKeepsCurrentFence",
+      "status": "pass",
+      "elapsed_seconds": 0.87,
+      "subcases": 0,
+      "skipped_subcases": 0,
+      "failed_subcases": 0
+    }
+  ],
+  "fuzz": "passed",
+  "fuzz_budget_seconds": 10,
+  "fuzz_elapsed_ms": 19747
+}

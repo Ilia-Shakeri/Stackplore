@@ -1,8 +1,9 @@
 # Version 2 implementation ledger
 
-> Current candidate **2.0.0-alpha.8.1**, schema22: real public-seed development
-> measurement, owned processor consumption and named fault/database receipts.
-> Hosted source, measurement, package and immutable-tag gates remain required.
+> Tagged checkpoint **2.0.0-alpha.8.1**, schema22, source `2732f13`: all eight
+> source jobs, 72/72 structural development observations across three hosted
+> passes, nineteen named fault regressions and signed trial pass. Exact-tag and
+> public publication have their own live receipts. Human quality remains pending.
 > [Current evidence](../evidence/2.0.0-alpha.8.1/README.md),
 > [stage9 preparation](stage9-preparation.md). Independent stage8 exit is open.
 

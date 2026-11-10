@@ -1,7 +1,21 @@
 # Alpha8.1 — measured development evaluation and fault receipts
 
-Version **2.0.0-alpha.8.1**, schema22. Fresh source, package, tag and publication
-receipts are required; implementation alone does not imply success.
+Version **2.0.0-alpha.8.1**, schema22. Immutable tag `v2.0.0-alpha.8.1` identifies
+source `2732f132e966f85831c4c73354d3c18125362d21`.
+
+- [Source verification 42772694584](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42772694584): all eight jobs pass, including complete source/build/tests, concurrency, real PostgreSQL, desktop/offline, pinned processor, providers and deployment.
+- [Three-part measurement 42772694241](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42772694241): three hosted passes and exact-source aggregation pass; [safe report](source-evaluation.json) records 72/72 structurally complete observations, zero rejected/missing/not-run cases and p95 28,916 ms. Human grounding and correct abstention remain pending.
+- [Fault receipt](source-hardening.json): all nineteen named regressions, 72 malformed-output subcases, three native crash boundaries, seven query-plan paths and bounded fuzz pass.
+- [Real processor/application receipt](source-processor.json): baseline bilingual protocol and owning desktop journeys pass with owned cleanup; the measured process remains below the CI-only 8-GiB RSS ceiling.
+- [Signed package/security trial 42772840395](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42772840395): package, strict scans and signing pass; branch publication correctly skips.
+- [Exact-tag verification 42775243567](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42775243567): owning live receipt for the immutable tag; source success cannot replace this result.
+- [Signed publication 42775243575](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42775243575): owning live receipt for package/publication; [public release location](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.8.1). Publication does not establish independent downloaded-asset or customer acceptance.
+
+Tag/publication links expose their own current results. Follow-up documentation
+commits have their own hosted gate and do not move the immutable tag. Current
+observed processor high-water RSS across the three seed workers is approximately
+3.05 GiB; CPU model/count and process CPU measurements remain per worker. This is
+neither a production memory minimum nor a same-hardware idle/busy workload proof.
 
 This increment adds three real pinned-profile passes across the twelve public
 paired seed scenarios: **72 planned observations**, not 72 independent scenarios.
@@ -131,9 +145,9 @@ DNS/cancellation/malformed responses and one-use dispatch. A 72-case malformed
 output matrix plus a ten-second bounded single-worker parser fuzz run extends
 the machine suite. These permutations do not inflate the eighteen curated attacks.
 
-Review loop: **8/10 pending actual hosted results**. Source, measurement parsing,
-unit/fault checks, full regressions, security/package checks and real development
-measurements must be inspected before a bounded score or tag is accepted.
+Review loop: **8 → corrections → 9/10 within the measured reporting/runtime-test
+boundary**, after complete source, three-part development, fault and signed trial
+receipts. The structural result is not a human quality score or whole-stage exit.
 No workstation tests, builds or services run.
 
 [Evaluation protocol](../../v2/evaluation.md),

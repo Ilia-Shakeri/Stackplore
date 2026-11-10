@@ -9,8 +9,9 @@
 - Report latency and validated completion tokens without fabricating human
   grounding, correct abstention, blind holdout acceptance or failed-call usage.
 - Match the existing application output budget and retain generation-completeness
-  diagnostics. Request concise, nonrepeating sections while preserving evidence,
-  uncertainty and unchanged safety/time limits; preserve earlier rejected baselines.
+  diagnostics. Tune Persian brevity while retaining the published English task
+  contract, evidence, uncertainty and unchanged safety/time limits; preserve
+  earlier rejected baselines.
 - Record owned processor peak RSS, CPU ticks and runner hardware with a CI-only
   8-GiB RSS ceiling; production capacity remains separately unproven.
 - Add nineteen named fault/database/usage regressions, 72 malformed-output
@@ -19,6 +20,10 @@
   development measurement workflow. [Receipts and limits](docs/evidence/2.0.0-alpha.8.1/README.md).
 - Prepare the [stage9 rehearsal matrix](docs/v2/stage9-preparation.md); stage8
   independent quality and actual pilot gates remain open.
+- Source `2732f13` passes all eight hosted jobs, three real development passes
+  with 72/72 structural observations, nineteen named fault regressions and signed
+  trial. [Exact-tag/publication and scope](docs/evidence/2.0.0-alpha.8.1/README.md)
+  remain separately bound; this is not whole-stage or stable2 acceptance.
 
 ## [2.0.0-alpha.8] - 2026-11-09
 

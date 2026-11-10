@@ -1,8 +1,10 @@
 # Documentation
 
-Current **2.0.0-alpha.8.1** preparation adds measured public-seed evaluation,
-processor RSS/CPU metadata and named fault receipts. Fresh source and measurement
-gates remain separate. [Current evidence](evidence/2.0.0-alpha.8.1/README.md),
+Tagged **2.0.0-alpha.8.1** at `2732f13` adds measured public-seed evaluation,
+processor RSS/CPU metadata and named fault receipts. All eight source jobs,
+three measurement passes and signed trial pass; exact-tag/publication have
+separate live receipts. Independent quality and whole-stage acceptance remain open.
+[Current evidence](evidence/2.0.0-alpha.8.1/README.md),
 [stage8](v2/stage8-readiness.md), [stage9 preparation](v2/stage9-preparation.md).
 
 Current stage8 preparation: **2.0.0-alpha.8**, schema22, immutable tag at `ec866ca`.

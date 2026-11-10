@@ -1,5 +1,11 @@
 # Stackplore active implementation evidence
 
+**2026-11-10 — alpha8.1:** immutable tag at `2732f13`; all eight source jobs,
+three hosted passes (72/72 structural observations), nineteen named fault checks
+and signed package/security trial pass. Exact-tag/publication have separate live
+receipts. Independent corpus/grounding/abstention, same-hardware helper-load
+comparison, pilot and stable gates remain open. [Current receipts](evidence/2.0.0-alpha.8.1/README.md).
+
 **2026-11-09 — alpha8.1 preparation:** three real public-seed passes, processor
 RSS/CPU metadata and named fault/database receipts. Fresh hosted results and
 signed package/tag gates are required. [Evidence](evidence/2.0.0-alpha.8.1/README.md).

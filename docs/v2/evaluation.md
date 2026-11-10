@@ -13,6 +13,12 @@ or a measured quality result; source/tag/package receipts remain separate.
 
 ### Smart Assistant — development measurements, alpha8.1
 
+Source `2732f13` passes its complete source gate and three-part development
+measurement: 72/72 structurally complete, no rejected/missing/not-run cases;
+attempted p95 28,916 ms across the recorded workers. [Current immutable evidence
+and retained failures](../evidence/2.0.0-alpha.8.1/README.md). This does not accept
+human grounding, correct abstention, a blind holdout or customer capacity.
+
 The separate `stage8-quality` hosted workflow runs three parallel hosted jobs,
 each with one pinned processor and one pass across all twelve public seed
 scenarios: 24 case/locale observations per pass, 72 overall. The unchanged main

@@ -5,8 +5,11 @@ not completion of stage8. Workstation activity is limited to file edits and
 lightweight Git; execution belongs to GitHub Actions.
 
 Current development adds real three-pass seed measurements, safe grouped summaries,
-owned process RSS/CPU measurements and named database/fault receipts. Fresh hosted
-results are required. [Current evidence](../evidence/2.0.0-alpha.8.1/README.md),
+owned process RSS/CPU measurements and named database/fault receipts. Source
+`2732f13` passes all eight hosted jobs, all three development passes (72/72
+structural observations), nineteen named fault checks and signed trial. Exact-tag
+and publication have independent live receipts; human quality and whole-stage
+acceptance remain open. [Current evidence](../evidence/2.0.0-alpha.8.1/README.md),
 [evaluation details](evaluation.md), [stage9 preparation](stage9-preparation.md).
 
 Immutable tag `v2.0.0-alpha.8` identifies `ec866ca`, which passes all eight source
