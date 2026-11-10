@@ -1,8 +1,9 @@
 # Stackplore active implementation evidence
 
 **2026-11-10 — alpha8.2 candidate:** add hosted repetition of eight service
-lifecycle boundaries with race detection and exact observation counts. No runtime
-change. Fresh source, package and publication receipts remain required.
+lifecycle boundaries with race detection and exact observation counts. A real
+Persian incident deadline failure requires compact private reference metadata;
+facts, permissions and deadlines stay unchanged. Fresh source, package and publication receipts remain required.
 [Scope](evidence/2.0.0-alpha.8.2/README.md). Independent quality, same-host load,
 real reconnect/restart/soak and pilot gates stay open.
 

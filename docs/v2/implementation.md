@@ -2,7 +2,8 @@
 
 > Candidate **2.0.0-alpha.8.2**, schema22: hosted repetition of eight service
 > lifecycle boundaries, one hundred times each with race detection. Fresh hosted
-> receipts remain required. Runtime and permissions do not change. This prepares
+> receipts remain required. Private observation reference metadata is compacted
+> after a real deadline failure; facts, permissions and budgets stay unchanged. This prepares
 > stage9; it does not close independent stage8 quality, load, soak or pilot gates.
 > [Candidate evidence](../evidence/2.0.0-alpha.8.2/README.md).
 

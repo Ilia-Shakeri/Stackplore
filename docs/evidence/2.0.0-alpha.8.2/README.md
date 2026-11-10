@@ -27,14 +27,39 @@ database recovery, a sixty-minute soak or customer/pilot acceptance.
 The complete existing eight-job source gate and signed package/security checks
 remain separate and unchanged. The new workflow supplements rather than substitutes
 for real processor, desktop, provider, deployment and PostgreSQL checks. No product
-runtime, permission, deadline, schema or processing profile changes in this increment.
+permission, deadline, schema or processing profile changes in this increment.
+
+## Real runtime failure and correction
+
+Source `af93c95` passes [three development passes and aggregation](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42780229616)
+and the [signed package/security trial](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42780235770),
+but its [real application gate](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42780177276)
+fails. [Failed processor receipt](attempt-af93-processor.json),
+[development receipt](attempt-af93-evaluation.json). The Persian administrator
+incident dispatch counts1226 input tokens and closes at39,998 ms without complete
+generation; the owning run correctly remains uncertain. It is not a successful
+answer or a status-follow defect. Other successful checks cannot override it.
+
+[ADR-0024](../../adr/0024-compact-observation-reference-metadata.md) removes only
+redundant owning citation metadata from complete known observation envelopes on
+the private counted wire, using the already-bound outer handle. All facts and
+original caller evidence remain intact; guidance keeps its existing projection.
+Mixed/unfamiliar/ambiguous groups fall back untouched. Final canonical expansion,
+strict reference validation, no retry and all byte/token/time budgets remain.
+New tests cover reversible private binding, unchanged facts/nested IDs, guidance,
+ambiguous full-group fallback and unissued-handle rejection. Fresh complete source,
+real application and development measurements are required after the correction.
 
 ## Correction loop
 
 Initial review: **8/10 within lifecycle receipt collection**. Repeated runs need
 exact denominators, nested-failure handling and output privacy before the checker
-can serve as evidence. These requirements are implemented and tested remotely;
-a fresh hosted result is required before the bounded score can reach 9/10.
+can serve as evidence. Those fixes are implemented. Formatted source
+`af93c952c8ede8ee22e1ede602006dab5c07edab` passes the four receipt-contract tests
+and [800/800 repeated race-enabled observations](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42780177199)
+in 20,409 ms including test compilation. [Safe receipt](source-lifecycle.json).
+Follow-up review: **9/10 within lifecycle receipt collection**. No skipped or
+failed observations are hidden; raw test output is never projected into receipts.
 This score cannot certify the whole infrastructure, semantic quality or stage8 exit.
 
 ## Roadmap position

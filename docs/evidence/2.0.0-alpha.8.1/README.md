@@ -8,8 +8,9 @@ source `2732f132e966f85831c4c73354d3c18125362d21`.
 - [Fault receipt](source-hardening.json): all nineteen named regressions, 72 malformed-output subcases, three native crash boundaries, seven query-plan paths and bounded fuzz pass.
 - [Real processor/application receipt](source-processor.json): baseline bilingual protocol and owning desktop journeys pass with owned cleanup; the measured process remains below the CI-only 8-GiB RSS ceiling.
 - [Signed package/security trial 42772840395](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42772840395): package, strict scans and signing pass; branch publication correctly skips.
-- [Exact-tag verification 42775243567](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42775243567): owning live receipt for the immutable tag; source success cannot replace this result.
-- [Signed publication 42775243575](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42775243575): owning live receipt for package/publication; [public release location](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.8.1). Publication does not establish independent downloaded-asset or customer acceptance.
+- [Exact-tag verification 42775243567](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42775243567): all eight jobs pass on the immutable tag.
+- [Signed publication 42775243575](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42775243575): package and publication pass; [public prerelease 440080400](https://github.com/Ilia-Shakeri/Stackplore/releases/tag/v2.0.0-alpha.8.1) is published on 2026-11-10 with 39 assets, each carrying a SHA-256 digest. Publication does not establish independent downloaded-asset or customer acceptance.
+- Documentation follow-up `515c782cb577fa1e69a0f0b66ffa02015f9e76bc`: all eight [hosted jobs 42776267547](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/42776267547) pass without moving the immutable tag.
 
 Tag/publication links expose their own current results. Follow-up documentation
 commits have their own hosted gate and do not move the immutable tag. Current

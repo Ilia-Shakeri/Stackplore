@@ -5,6 +5,10 @@
 - Date: 2026-11-01
 - Owners: Project maintainers
 
+Embedded observation metadata retention is amended by
+[ADR-0024](0024-compact-observation-reference-metadata.md); canonical evidence,
+guidance, private bindings and final gateway validation remain unchanged.
+
 ## Context
 
 The real five-read workflow succeeds at `4eb5d7e`. Another hosted CPU run at

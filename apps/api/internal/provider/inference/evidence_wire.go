@@ -3,6 +3,7 @@ package inference
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	port "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
 )
@@ -13,8 +14,8 @@ type countedEvidence struct {
 	Usage string          `json:"usage,omitempty"`
 }
 
-// Factor only complete matching envelopes. Every value is retained, including
-// each item's quality, record, original citation ID and pagination metadata.
+// Factor only complete matching envelopes. Observation citation metadata uses
+// its already-bound private handle; facts, quality and pagination stay intact.
 // This is inert data formatting; it grants no authority or new read capability.
 func factorEvidence(items []port.Evidence, aliases []string) ([]countedEvidence, json.RawMessage, error) {
 	if len(items) != len(aliases) {
@@ -26,6 +27,10 @@ func factorEvidence(items []port.Evidence, aliases []string) ([]countedEvidence,
 	for index, item := range items {
 		document, candidate, valid := splitEnvelope(item)
 		if !valid || index > 0 && !bytes.Equal(candidate, scope) {
+			group = false
+			break
+		}
+		if !item.Guidance && !compactRecordCitation(document, item.ID, aliases[index]) {
 			group = false
 			break
 		}
@@ -58,6 +63,35 @@ func factorEvidence(items []port.Evidence, aliases []string) ([]countedEvidence,
 		scope = nil
 	}
 	return result, scope, nil
+}
+
+// Change only the literal owning metadata field, never strings inside facts.
+// Unfamiliar or ambiguous records retain the entire original opaque envelope.
+func compactRecordCitation(document map[string]json.RawMessage, canonical, alias string) bool {
+	var records []map[string]json.RawMessage
+	if json.Unmarshal(document["records"], &records) != nil || len(records) != 1 || records[0] == nil || alias == "" {
+		return false
+	}
+	for key := range records[0] {
+		if key != "citation_id" && strings.EqualFold(key, "citation_id") {
+			return false
+		}
+	}
+	var id string
+	if json.Unmarshal(records[0]["citation_id"], &id) != nil || id != canonical {
+		return false
+	}
+	encoded, err := json.Marshal(alias)
+	if err != nil {
+		return false
+	}
+	records[0]["citation_id"] = encoded
+	contents, err := json.Marshal(records)
+	if err != nil {
+		return false
+	}
+	document["records"] = contents
+	return true
 }
 
 func splitEnvelope(item port.Evidence) (map[string]json.RawMessage, json.RawMessage, bool) {

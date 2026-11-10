@@ -9,9 +9,13 @@
 - Require exact starts and completions; reject missing, duplicate, skipped,
   failed, truncated and package-level race outcomes. Retain metadata only.
 - Preserve the complete eight-job source gate, runtime and deployment checks.
-  No product runtime, profile, schema or permission changes in this increment.
+  Deployment profile, schema, permission and call budgets remain unchanged.
 - Keep independent quality, real reconnect/restart/soak, load comparison and
   pilot acceptance open. This is stage9 preparation, not stable2 acceptance.
+- Reduce redundant observation reference metadata only on the private counted
+  wire after a real Persian incident exceeds its unchanged generation deadline.
+  Preserve all facts, original canonical evidence, guidance and output bindings;
+  retain the failed baseline and require fresh owning runtime receipts.
 
 ## [2.0.0-alpha.8.1] - 2026-11-10
 

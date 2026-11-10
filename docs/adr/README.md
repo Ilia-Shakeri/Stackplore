@@ -50,6 +50,10 @@ or release. Implementation and source-bound proof remain in the active plan.
 
 ## Adding a record
 
+[ADR-0024](0024-compact-observation-reference-metadata.md) amends only embedded
+observation reference metadata on the private processor wire. Its accepted design
+does not replace exact-source hosted verification or quality acceptance.
+
 1. Copy [`0000-template.md`](0000-template.md).
 2. Allocate the next four-digit number; never reuse a number.
 3. Name the file `NNNN-short-kebab-title.md`.

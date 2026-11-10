@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 
 	port "github.com/Ilia-Shakeri/stackplore/apps/api/internal/inference"
@@ -58,9 +59,81 @@ func TestFactoredEvidenceReconstructsEveryOriginalValueAndQuality(t *testing.T) 
 			}
 			combined[key] = value
 		}
+		records := combined["records"].([]any)
+		record := records[0].(map[string]any)
+		if record["citation_id"] != item.ID {
+			t.Fatal("embedded observation reference did not use its bound handle")
+		}
+		record["citation_id"] = items[index].ID
 		if !reflect.DeepEqual(combined, original) {
 			t.Fatal("factoring changed evidence, quality, scope or original reference values")
 		}
+	}
+}
+
+func TestObservationWireCompactsOnlyOwningReferenceAndKeepsPrivateBinding(t *testing.T) {
+	t.Parallel()
+	item := envelopeFixture(t, "ev_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "stale", 1)
+	original := item.Text
+	aliases, bindings, err := compactReferences([]string{item.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	wire, scope, err := factorEvidence([]port.Evidence{item}, aliases)
+	if err != nil || len(wire) != 1 || len(scope) == 0 || item.Text != original || bytes.Contains(wire[0].Text, []byte(item.ID)) {
+		t.Fatal("reference compaction changed the caller or retained redundant metadata")
+	}
+	answer, err := canonicalAnswer([]byte(`{"sections":[{"kind":"facts","text":"Bounded observation.","citations":["e1"]}]}`), bindings)
+	if err != nil || !bytes.Contains(answer, []byte(item.ID)) || bytes.Contains(answer, []byte(`"e1"`)) {
+		t.Fatal("private handle escaped publication or lost its owning reference")
+	}
+	if _, err := canonicalAnswer([]byte(`{"sections":[{"kind":"facts","text":"Unissued reference.","citations":["e2"]}]}`), bindings); err != port.ErrInvalidOutput {
+		t.Fatal("reference compaction admitted an unissued handle")
+	}
+}
+
+func TestAmbiguousReferenceMetadataFallsBackForEntireGroup(t *testing.T) {
+	t.Parallel()
+	first := envelopeFixture(t, "first_reference", "available", 1)
+	for _, replacement := range []string{`"CITATION_ID":"second_reference"`, `"citation_id":"second_reference","CITATION_ID":"second_reference"`} {
+		second := envelopeFixture(t, "second_reference", "available", 1)
+		second.Text = strings.Replace(second.Text, `"citation_id":"second_reference"`, replacement, 1)
+		items := []port.Evidence{first, second}
+		wire, scope, err := factorEvidence(items, []string{"e1", "e2"})
+		if err != nil || scope != nil {
+			t.Fatal("ambiguous citation metadata gained compact framing")
+		}
+		for index, item := range wire {
+			var text string
+			if json.Unmarshal(item.Text, &text) != nil || text != items[index].Text {
+				t.Fatal("fallback partially rewrote a mixed group")
+			}
+		}
+	}
+}
+
+func TestCompactionPreservesReferenceLikeFactsAndGuidanceMetadata(t *testing.T) {
+	t.Parallel()
+	observation := envelopeFixture(t, "original_observation", "available", 1)
+	observation.Text = strings.Replace(observation.Text, `"resource_id":"actual_resource_identity"`, `"resource_id":"original_observation","nested":{"citation_id":"original_observation"}`, 1)
+	guide := envelopeFixture(t, "original_guide", "available", 1)
+	guide.Guidance = true
+	wire, scope, err := factorEvidence([]port.Evidence{observation, guide}, []string{"e1", "g1"})
+	if err != nil || len(scope) == 0 || len(wire) != 2 {
+		t.Fatal("complete mixed envelope group lost its scope")
+	}
+	var document map[string]any
+	if json.Unmarshal(wire[0].Text, &document) != nil {
+		t.Fatal("invalid compact observation")
+	}
+	records := document["records"].([]any)
+	record := records[0].(map[string]any)
+	nested := record["nested"].(map[string]any)
+	if record["citation_id"] != "e1" || record["resource_id"] != observation.ID || nested["citation_id"] != observation.ID {
+		t.Fatal("compaction rewrote a fact or nested field")
+	}
+	if !bytes.Contains(wire[1].Text, []byte(`"citation_id":"original_guide"`)) || wire[1].Usage != "reviewed_guidance" {
+		t.Fatal("guidance reference metadata changed before its owning projection")
 	}
 }
 

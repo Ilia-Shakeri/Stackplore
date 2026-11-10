@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "source_revision": "af93c952c8ede8ee22e1ede602006dab5c07edab",
+  "scope": "Repeated service boundary regressions with deterministic dependencies; not real processor, database restart, reconnect, soak or pilot acceptance",
+  "status": "passed",
+  "release_accepted": false,
+  "iterations_per_case": 100,
+  "expected_observations": 800,
+  "race_detector": true,
+  "maximum_parallel_tests": 2,
+  "shuffle_seed": 214,
+  "timeout_seconds": 600,
+  "cases": [
+    {
+      "name": "TestRunShutdownFencesMemoryThenJoinsActiveProducer",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0
+    },
+    {
+      "name": "TestConcurrentCloseAndCancellationCannotReadClearedOwner",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0
+    },
+    {
+      "name": "TestLateAdmissionCommitCannotRestoreClosedConversation",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0
+    },
+    {
+      "name": "TestExplicitCancelAndShutdownLeaveNoWorker",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0.060000000000000005
+    },
+    {
+      "name": "TestCancelPendingAdmissionClosesReadinessWithoutReopeningMemory",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0
+    },
+    {
+      "name": "TestLifetimeLossClearsQueuedAndCompletedVolatileStateBeforeRun",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0
+    },
+    {
+      "name": "TestMemoryExpiryCancelsActiveWorkAndCannotBeReadBack",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0
+    },
+    {
+      "name": "TestUserRevocationAndReadAuthorizationFenceCompletedAnswer",
+      "started": 100,
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0.3100000000000001
+    }
+  ],
+  "package_passed": true,
+  "completed_observations": 800,
+  "elapsed_ms": 20409
+}
