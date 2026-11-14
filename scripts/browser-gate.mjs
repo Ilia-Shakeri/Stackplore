@@ -9,7 +9,13 @@ import { hostedAssistantProfile } from './hosted-assistant-profile.mjs';
 import { startHostedProcessorObserver } from './hosted-processor-observer.mjs';
 import { readOwnedResources, validateResourceSamples } from './stage9-resources.mjs';
 
-if (process.env.SP_STAGE9_WORKLOAD !== undefined && (process.env.SP_STAGE9_WORKLOAD !== 'true' || process.env.GITHUB_ACTIONS !== 'true' || process.env.RUNNER_ENVIRONMENT !== 'github-hosted' || process.env.GITHUB_WORKFLOW !== 'stage9-workload'))
+if (
+  process.env.SP_STAGE9_WORKLOAD !== undefined &&
+  (process.env.SP_STAGE9_WORKLOAD !== 'true' ||
+    process.env.GITHUB_ACTIONS !== 'true' ||
+    process.env.RUNNER_ENVIRONMENT !== 'github-hosted' ||
+    process.env.GITHUB_WORKFLOW !== 'stage9-workload')
+)
   throw new Error('Hosted workload runner required');
 
 const root = resolve(import.meta.dirname, '..');
@@ -95,12 +101,20 @@ function workloadDatabase(databaseName) {
     'active_runs', (SELECT count(*) FROM assistant_runs WHERE state NOT IN ('completed','failed','cancelled','expired','interrupted','uncertain')),
     'uncertain_runs', (SELECT count(*) FROM assistant_runs WHERE usage_unknown)
   )`;
-  const result = spawnSync('psql', ['--no-psqlrc', '--set', 'ON_ERROR_STOP=on', '--tuples-only', '--no-align', '-c', query], {
-    env: { ...pgEnvironment, PGDATABASE: databaseName, PGOPTIONS: '-c statement_timeout=3000' }, encoding: 'utf8', timeout: 5000, maxBuffer: 4096,
-  });
+  const result = spawnSync(
+    'psql',
+    ['--no-psqlrc', '--set', 'ON_ERROR_STOP=on', '--tuples-only', '--no-align', '-c', query],
+    {
+      env: { ...pgEnvironment, PGDATABASE: databaseName, PGOPTIONS: '-c statement_timeout=3000' },
+      encoding: 'utf8',
+      timeout: 5000,
+      maxBuffer: 4096,
+    },
+  );
   if (result.status !== 0) throw new Error('workload_database_unavailable');
   const value = JSON.parse(result.stdout);
-  if (Object.values(value).some((count) => !Number.isSafeInteger(count) || count < 0 || count > 64)) throw new Error('workload_database_invalid');
+  if (Object.values(value).some((count) => !Number.isSafeInteger(count) || count < 0 || count > 64))
+    throw new Error('workload_database_invalid');
   return value;
 }
 const binary = resolve(work, process.platform === 'win32' ? 'server.exe' : 'server');
@@ -259,13 +273,25 @@ for (const mode of requestedModes) {
       const sample = async () => {
         try {
           if (resourceSamples.length >= 180) throw new Error('resource_samples');
-          const [application, processor] = await Promise.all([readOwnedResources(server.pid), readOwnedResources(processorPID)]);
+          const [application, processor] = await Promise.all([
+            readOwnedResources(server.pid),
+            readOwnedResources(processorPID),
+          ]);
           const database = workloadDatabase(ownedDatabase);
-          resourceSamples.push({ elapsed_ms: Date.now() - started, application, processor, database });
-        } catch { resourceError = true; }
+          resourceSamples.push({
+            elapsed_ms: Date.now() - started,
+            application,
+            processor,
+            database,
+          });
+        } catch {
+          resourceError = true;
+        }
       };
       await sample();
-      resourceTimer = globalThis.setInterval(() => { resourcePending = resourcePending.then(sample); }, 30_000);
+      resourceTimer = globalThis.setInterval(() => {
+        resourcePending = resourcePending.then(sample);
+      }, 30_000);
       resourceTimer.unref();
     }
     const test = spawn(process.execPath, [cli, 'test', '--config', 'playwright.config.ts'], {
@@ -299,24 +325,45 @@ for (const mode of requestedModes) {
       await resourcePending;
       let summary = { status: 'failed' };
       try {
-        if (resourceError) throw new Error('resource_sample_failed');
-        summary = validateResourceSamples(resourceSamples, process.env.SP_STAGE9_SOAK === 'true');
+        const measured = validateResourceSamples(resourceSamples, process.env.SP_STAGE9_SOAK === 'true');
         const database = workloadDatabase(ownedDatabase);
-        if (database.queued_runs !== 0 || database.active_runs !== 0 || database.uncertain_runs !== 0) throw new Error('workload_unsettled');
-        summary = { ...summary, final_database: database };
-      } catch { exitCode = 1; }
-      await writeFile(resolve(root, '.tmp/hosted-resources.json'), `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, ...summary, observations: resourceSamples })}\n`, { mode: 0o600 });
+        if (
+          database.queued_runs !== 0 ||
+          database.active_runs !== 0 ||
+          database.uncertain_runs !== 0 || resourceError
+        ) {
+          exitCode = 1;
+        } else summary = { ...measured, final_database: database };
+      } catch {
+        exitCode = 1;
+      }
+      await writeFile(
+        resolve(root, '.tmp/hosted-resources.json'),
+        `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, ...summary, observations: resourceSamples })}\n`,
+        { mode: 0o600 },
+      );
     }
     if (proxy) {
       proxy.closeAllConnections();
       await new Promise((done) => proxy.close(done));
     }
-    if (server && server.exitCode === null) {
+    if (server && server.exitCode === null && server.signalCode === null) {
       server.kill();
       await new Promise((done) => {
         server.once('exit', done);
         globalThis.setTimeout(done, 5000).unref();
       });
+      if (server.exitCode === null && server.signalCode === null) {
+        server.kill('SIGKILL');
+        await new Promise((done) => {
+          server.once('exit', done);
+          globalThis.setTimeout(done, 5000).unref();
+        });
+      }
+      if (server.exitCode === null && server.signalCode === null) {
+        exitCode = 1;
+        if (failure === undefined) failure = new Error('Owned browser server cleanup failed');
+      }
     }
     if (created) {
       if (realAssistant) {

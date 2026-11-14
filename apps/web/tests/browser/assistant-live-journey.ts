@@ -12,8 +12,13 @@ export async function assistantLiveJourney(
   role: 'administrator' | 'viewer',
   goal: 'explain_resource' | 'investigate_incident' = 'explain_resource',
 ) {
-  const loadQueries = process.env.SP_STAGE9_WORKLOAD === 'true' && locale === 'en' && role === 'administrator' && goal === 'investigate_incident'
-    ? await prepareWorkload(page) : undefined;
+  const loadQueries =
+    process.env.SP_STAGE9_WORKLOAD === 'true' &&
+    locale === 'en' &&
+    role === 'administrator' &&
+    goal === 'investigate_incident'
+      ? await prepareWorkload(page)
+      : undefined;
   const metadata = {
     source_revision: process.env.GITHUB_SHA,
     locale,
@@ -116,8 +121,12 @@ export async function assistantLiveJourney(
       metadata.status_reconnections = reconnections;
       if (idleReads !== undefined && busyReads !== undefined) {
         workloadReceipt('load', {
-          status: 'collected', scope: 'Same-source enabled profile: idle versus one actual admitted generation; not feature-off/on baseline',
-          idle: idleReads, busy: busyReads, maximum_p95_ratio: 1.1,
+          status: 'collected',
+          scope:
+            'Same-source enabled profile: idle versus one actual admitted generation; not feature-off/on baseline',
+          idle: idleReads,
+          busy: busyReads,
+          maximum_p95_ratio: 1.1,
           p95_ratio: busyReads.latency_p95_ms / Math.max(1, idleReads.latency_p95_ms),
           release_accepted: false,
         });

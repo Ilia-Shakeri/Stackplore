@@ -225,9 +225,15 @@ export function safeArchiveLinks(text) {
 async function main() {
   assertHostedProcessorEnvironment(process.platform, process.env);
   const workload = process.env.SP_STAGE9_WORKLOAD;
-  if (workload !== undefined && (workload !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage9-workload'))
+  if (
+    workload !== undefined &&
+    (workload !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage9-workload')
+  )
     throw new Error('hosted_processor.workload_scope');
-  if (process.env.SP_STAGE9_SOAK !== undefined && (workload !== 'true' || process.env.SP_STAGE9_SOAK !== 'true'))
+  if (
+    process.env.SP_STAGE9_SOAK !== undefined &&
+    (workload !== 'true' || process.env.SP_STAGE9_SOAK !== 'true')
+  )
     throw new Error('hosted_processor.soak_scope');
   const seedEvaluation = process.env.SP_STAGE8_SEED_EVALUATION;
   const seedPass = Number(process.env.SP_STAGE8_SEED_PASS);
@@ -806,7 +812,11 @@ async function main() {
         report.workload = validateWorkload(load, observed, process.env.GITHUB_SHA);
         const resources = await metadata('hosted-resources.json');
         if (resources.status !== 'passed') throw new Error('hosted_processor.workload_resources');
-        report.workload_resources = { status: resources.status, samples: resources.samples, last_elapsed_ms: resources.last_elapsed_ms };
+        report.workload_resources = {
+          status: resources.status,
+          samples: resources.samples,
+          last_elapsed_ms: resources.last_elapsed_ms,
+        };
         if (process.env.SP_STAGE9_SOAK === 'true')
           report.soak = validateSoak(await metadata('hosted-soak.json'), process.env.GITHUB_SHA);
         if (process.env.SP_STAGE9_SOAK !== 'true' && report.workload.status !== 'passed')

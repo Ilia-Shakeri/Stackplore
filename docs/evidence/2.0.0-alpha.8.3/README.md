@@ -53,6 +53,14 @@ security/package, exact-tag and publication gates remain separate.
 
 ## Self-correction
 
+First source `e6ee5d0`: [contract gate43590785928](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43590785928)
+passes all four metadata tests and TypeScript checking, then rejects explicit
+throws inside cleanup. Those checks are rewritten to preserve failure state
+without overriding cleanup. Its hosted formatting patch is applied. The full
+[source gate43590785879](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43590785879)
+also rejects formatting before heavy code tests. Load/soak jobs correctly skip
+after the failed precursor; no measurement acceptance is inferred.
+
 Initial boundary review:8/10. Required corrections: prove actual overlap; retain
 all denominators and failures; guard execution before I/O; bound duration, reads,
 memory and descriptors; keep source, load, soak, pilot and semantic acceptance
