@@ -212,6 +212,8 @@ test('runtime Dockerfile rejects unpinned, missing, or drifted base and helper b
     dockerfile(pin).replace(POSTGRES_RUNTIME_PATCH_COMMAND, ''),
     dockerfile(pin).replace('musl=1.2.6-r3', 'musl=1.2.6-r2'),
     dockerfile(pin).replace('zlib=1.4-r0', 'zlib=1.3.2-r0'),
+    dockerfile(pin).replace('krb5-libs=1.22.3-r0', 'krb5-libs=1.22.2-r1'),
+    dockerfile(pin).replace('libxslt=1.1.43-r4', 'libxslt=1.1.43-r3'),
     `${POSTGRES_RUNTIME_PATCH_COMMAND}\n${dockerfile(pin).replace(POSTGRES_RUNTIME_PATCH_COMMAND, '')}`,
     dockerfile(pin).replace('/usr/local/bin/gosu', '/usr/local/bin/other'),
     dockerfile(pin).replace('/usr/share/licenses/stackplore-postgres/', '/discard/'),

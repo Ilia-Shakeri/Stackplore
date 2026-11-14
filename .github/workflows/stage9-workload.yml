@@ -7,6 +7,14 @@ on:
       - '.github/workflows/stage9-workload.yml'
       - 'scripts/stage9-workload*.mjs'
       - 'apps/web/tests/browser/hosted-workload.ts'
+      - 'apps/web/tests/browser/assistant-live-journey.ts'
+      - 'apps/web/tests/browser/normal-auth.spec.ts'
+      - 'scripts/browser-gate.mjs'
+      - 'scripts/check-hosted-processor-linux.mjs'
+      - 'scripts/hosted-processor-observer.mjs'
+      - 'scripts/runtime-image-policy.mjs'
+      - 'deploy/Dockerfile.postgres'
+      - 'deploy/postgres-image.json'
   workflow_dispatch:
 
 permissions:

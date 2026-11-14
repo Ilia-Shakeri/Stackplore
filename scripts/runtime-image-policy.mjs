@@ -1,7 +1,7 @@
 export const POSTGRES_IMAGE_POLICY_PATH = 'deploy/postgres-image.json';
 export const MINIMUM_POSTGRES_VERSION = '17.11';
 export const POSTGRES_RUNTIME_PATCH_COMMAND =
-  'RUN apk add --no-cache --upgrade musl=1.2.6-r3 musl-utils=1.2.6-r3 zlib=1.4-r0';
+  'RUN apk add --no-cache --upgrade musl=1.2.6-r3 musl-utils=1.2.6-r3 zlib=1.4-r0 krb5-libs=1.22.3-r0 libxslt=1.1.43-r4';
 export const GOSU_BUILD_IMAGE =
   'golang:1.26.10-alpine@sha256:9ce231b28998b32e116927c61aa5c406183061d4f3f2d61b292c88e7f6bdf7ca';
 

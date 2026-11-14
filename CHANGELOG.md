@@ -4,6 +4,9 @@
 
 ### Hosted workload and real read/interface soak candidate
 
+- Patch pinned database-image Kerberos and XSLT libraries after the current
+  strict scan reports19 high-severity findings; preserve PostgreSQL17.11 and
+  strict scan rejection, and test against downgrading the fixed package versions.
 - Add a dedicated real application load measurement with unchanged v1 read shape,
   actual completed-generation overlap and the existing10% p95 regression ceiling.
 - Add a separate60-minute read/interface soak:100 cycles,8000 scoped reads and200

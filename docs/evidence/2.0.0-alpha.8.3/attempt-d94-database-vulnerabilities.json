@@ -1,0 +1,140 @@
+{
+  "findings": [
+    {
+      "VulnerabilityID": "CVE-2026-107364",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112315",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112316",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112317",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112318",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112319",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112320",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112321",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112322",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-112323",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-118380",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-119079",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-40355",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-40356",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-71199",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-71200",
+      "PkgName": "krb5-libs",
+      "InstalledVersion": "1.22.2-r1",
+      "FixedVersion": "1.22.3-r0",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-125350",
+      "PkgName": "libxslt",
+      "InstalledVersion": "1.1.43-r3",
+      "FixedVersion": "1.1.43-r4",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-87636",
+      "PkgName": "libxslt",
+      "InstalledVersion": "1.1.43-r3",
+      "FixedVersion": "1.1.43-r4",
+      "Severity": "HIGH"
+    },
+    {
+      "VulnerabilityID": "CVE-2026-9947",
+      "PkgName": "libxslt",
+      "InstalledVersion": "1.1.43-r3",
+      "FixedVersion": "1.1.43-r4",
+      "Severity": "HIGH"
+    }
+  ],
+  "status": "failed",
+  "source_revision": "d94e1a2132238f19b942714deea09345a5b5a571",
+  "run_id": 43591229668
+}

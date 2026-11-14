@@ -53,6 +53,18 @@ security/package, exact-tag and publication gates remain separate.
 
 ## Self-correction
 
+Source `d94e1a2`: the hosted workload precursor passes metadata tests, TypeScript,
+lint and formatting, and real load/soak jobs start. The independent
+[package trial43591229668](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591229668)
+rejects19 high-severity findings across `krb5-libs`1.22.2-r1 and `libxslt`1.1.43-r3.
+[Safe failure summary](attempt-d94-database-vulnerabilities.json). Pin the official
+Alpine fixes [krb5-libs1.22.3-r0](https://pkgs.alpinelinux.org/package/v3.24/main/x86_64/krb5-libs)
+and [libxslt1.1.43-r4](https://pkgs.alpinelinux.org/package/v3.24/main/x86_64/libxslt-dev)
+in the runtime image and enforce both in the image-policy regression. PostgreSQL
+17.11 and its upstream digest remain unchanged. Strict HIGH/CRITICAL rejection
+and no-ignore policy stay unchanged. The old-image workload run is superseded;
+fresh load/soak and package scans are mandatory on the corrected image.
+
 First source `e6ee5d0`: [contract gate43590785928](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43590785928)
 passes all four metadata tests and TypeScript checking, then rejects explicit
 throws inside cleanup. Those checks are rewritten to preserve failure state
