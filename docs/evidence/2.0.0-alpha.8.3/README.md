@@ -53,6 +53,29 @@ security/package, exact-tag and publication gates remain separate.
 
 ## Self-correction
 
+Source `fcbc20d` keeps a [failed load processor receipt](attempt-fcbc-load-processor.json):
+three-thread generation reaches the40-second Persian incident deadline on its
+load worker. Its separate soak starts but fails after one completed cycle (80
+reads,2 health checks); no hour is accepted. Source `48266ca` with four threads
+and niceness10 completes all application generations, but its measured load p95
+rises25 to56 ms (ratio2.24); scheduling priority alone does not meet the1.1 goal.
+
+The next candidate uses explicit hosted CPU separation: on exactly four allowed
+logical CPUs, three run the owned processor and the remaining CPU runs the owning
+application/browser supervisor and owned PostgreSQL container. Both idle and busy
+phases use the same allocation. The processor has three compute/batch threads and
+niceness10. Actual processor/application affinities and the container's CPU setting
+are checked; the container name and owner label must match this exact workflow
+before modification. No other container is changed. Allocation and hardware remain
+in the owning receipt. This is a new deployment budget requiring fresh results,
+not retroactive acceptance of shared-CPU failures or a customer sizing promise.
+
+[ADR-0025](../../adr/0025-common-evidence-metadata.md) shares only byte-identical
+quality/pagination metadata after the existing complete matching scope gate. All
+facts, original inputs, differing values, canonical citations and call budgets
+remain. Lossless reconstruction and the actual SQL/adapter boundary are tested.
+The purpose is to reduce redundant prefill work within the unchanged deadline.
+
 Source `6d322de` passes all eight [source jobs43591531884](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591531884),
 the [strict signed package trial43591551564](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591551564)
 after database-library patches, and all three [development passes43591556839](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591556839).

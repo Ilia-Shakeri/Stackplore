@@ -8,6 +8,9 @@
 
 ## Context
 
+Optional identical envelope metadata sharing is subsequently specified by
+[ADR-0025](0025-common-evidence-metadata.md), without changing reference authority.
+
 Source `af93c95` passes all three public development passes and 800 service
 boundary observations. Its real desktop Persian incident reaches the unchanged
 40-second dispatch limit with 1,226 counted input tokens. The observer records

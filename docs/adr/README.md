@@ -50,6 +50,10 @@ or release. Implementation and source-bound proof remain in the active plan.
 
 ## Adding a record
 
+[ADR-0025](0025-common-evidence-metadata.md) permits lossless sharing of identical
+quality/pagination metadata only after the existing complete canonical scope gates.
+Its design acceptance does not establish runtime, performance or release acceptance.
+
 [ADR-0024](0024-compact-observation-reference-metadata.md) amends only embedded
 observation reference metadata on the private processor wire. Its accepted design
 does not replace exact-source hosted verification or quality acceptance.

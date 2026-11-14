@@ -78,7 +78,7 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 					Text json.RawMessage `json:"text"`
 				} `json:"evidence"`
 			}
-			if !decode([]byte(request.Messages[1].Content), &input) || input.Locale != "en" || input.Question != "Explain the selected resource." || len(input.Evidence) != 1 || input.Evidence[0].ID != "e1" || len(input.Evidence[0].Text) > 8192 || len(input.Scope) != 7 {
+			if !decode([]byte(request.Messages[1].Content), &input) || input.Locale != "en" || input.Question != "Explain the selected resource." || len(input.Evidence) != 1 || input.Evidence[0].ID != "e1" || len(input.Evidence[0].Text) > 8192 || len(input.Scope) < 7 || len(input.Scope) > 11 {
 				reject()
 				return
 			}
@@ -87,7 +87,7 @@ func newAssistantWireFixture(t *testing.T, backend *assistantServiceBackend) inf
 			}
 			// Explicit keys below preserve the closed projection's snake-case wire.
 			var fields map[string]json.RawMessage
-			if !inference.UniqueJSON(input.Evidence[0].Text) || json.Unmarshal(input.Evidence[0].Text, &fields) != nil || len(fields) != 5 {
+			if !inference.UniqueJSON(input.Evidence[0].Text) || json.Unmarshal(input.Evidence[0].Text, &fields) != nil || len(fields)+len(input.Scope) != 12 {
 				reject()
 				return
 			}

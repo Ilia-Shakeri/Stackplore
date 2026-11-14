@@ -8,6 +8,7 @@ import process from 'node:process';
 import { hostedAssistantProfile } from './hosted-assistant-profile.mjs';
 import { startHostedProcessorObserver } from './hosted-processor-observer.mjs';
 import { readOwnedResources, validateResourceSamples } from './stage9-resources.mjs';
+import { assertCPUSet } from './stage9-cpu.mjs';
 
 if (
   process.env.SP_STAGE9_WORKLOAD !== undefined &&
@@ -268,6 +269,7 @@ for (const mode of requestedModes) {
     }
     if (!ready) throw new Error('Disposable browser server not ready');
     if (process.env.SP_STAGE9_WORKLOAD === 'true' && locale === 'en') {
+      assertCPUSet(await readFile(`/proc/${server.pid}/status`, 'utf8'), process.env.SP_STAGE9_APPLICATION_CPUSET);
       const processorPID = Number(process.env.SP_STAGE9_PROCESSOR_PID);
       const started = Date.now();
       const sample = async () => {

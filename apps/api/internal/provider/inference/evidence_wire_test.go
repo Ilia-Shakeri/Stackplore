@@ -37,6 +37,39 @@ func TestGuidanceUsageSurvivesBothFactoredAndOpaqueEvidence(t *testing.T) {
 	}
 }
 
+func TestOnlyIdenticalMetadataMovesIntoCommonScope(t *testing.T) {
+	t.Parallel()
+	first := envelopeFixture(t, "reference_first", "available", 1)
+	second := envelopeFixture(t, "reference_second", "stale", 1)
+	wire, scope, err := factorEvidence([]port.Evidence{first, second}, []string{"e1", "e2"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var header map[string]json.RawMessage
+	if json.Unmarshal(scope, &header) != nil {
+		t.Fatal("invalid common scope")
+	}
+	if _, found := header["quality"]; found {
+		t.Fatal("different quality was promoted to common scope")
+	}
+	for _, key := range []string{"more_available", "item_index", "item_count"} {
+		if _, found := header[key]; !found {
+			t.Fatal("identical pagination metadata was repeated")
+		}
+	}
+	for _, item := range wire {
+		var document map[string]json.RawMessage
+		if json.Unmarshal(item.Text, &document) != nil || document["quality"] == nil || document["records"] == nil {
+			t.Fatal("individual quality or observation was discarded")
+		}
+	}
+	second = envelopeFixture(t, "reference_second", "available", 1)
+	_, scope, err = factorEvidence([]port.Evidence{first, second}, []string{"e1", "e2"})
+	if err != nil || json.Unmarshal(scope, &header) != nil || header["quality"] == nil {
+		t.Fatal("identical complete quality metadata was not factored")
+	}
+}
+
 func TestFactoredEvidenceReconstructsEveryOriginalValueAndQuality(t *testing.T) {
 	t.Parallel()
 	items := []port.Evidence{envelopeFixture(t, "canonical_first", "available", 1), envelopeFixture(t, "canonical_second", "stale", 1)}

@@ -39,6 +39,31 @@ func factorEvidence(items []port.Evidence, aliases []string) ([]countedEvidence,
 			scope = candidate
 		}
 	}
+	if group {
+		var header map[string]json.RawMessage
+		if json.Unmarshal(scope, &header) != nil {
+			return nil, nil, port.ErrInvalid
+		}
+		// Share only byte-identical metadata. Every differing value stays per item.
+		for _, key := range []string{"quality", "more_available", "item_index", "item_count"} {
+			common := documents[0][key]
+			matching := len(common) > 0
+			for _, document := range documents {
+				matching = matching && bytes.Equal(common, document[key])
+			}
+			if matching {
+				header[key] = common
+				for _, document := range documents {
+					delete(document, key)
+				}
+			}
+		}
+		var err error
+		scope, err = json.Marshal(header)
+		if err != nil {
+			return nil, nil, port.ErrInvalid
+		}
+	}
 	result := make([]countedEvidence, len(items))
 	if items == nil {
 		result = nil

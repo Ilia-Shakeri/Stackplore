@@ -2,8 +2,18 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateWorkload, validateSoak } from './stage9-workload.mjs';
 import { processResources, validateResourceSamples } from './stage9-resources.mjs';
+import { workloadCPUSet, assertCPUSet } from './stage9-cpu.mjs';
 
 const source = 'a'.repeat(40);
+test('four owned logical CPUs split into disjoint compute and application budgets', () => {
+  assert.deepEqual(workloadCPUSet('Cpus_allowed_list:\t0-3\n'), { processor: '0,1,2', application_database_browser: '3' });
+  assert.deepEqual(workloadCPUSet('Cpus_allowed_list:\t2,4,6-7\n'), { processor: '2,4,6', application_database_browser: '7' });
+  assert.doesNotThrow(() => assertCPUSet('Cpus_allowed_list:\t0-2\n', '0,1,2'));
+  assert.doesNotThrow(() => assertCPUSet('Cpus_allowed_list:\t3\n', '3'));
+  assert.throws(() => assertCPUSet('Cpus_allowed_list:\t0-3\n', '0,1,2'), /ownership/u);
+  for (const value of ['0-1', '0-4', '0,0,1,2', '3-0', '0-3;evil', ''])
+    assert.throws(() => workloadCPUSet(`Cpus_allowed_list:\t${value}\n`), /stage9_cpu/u);
+});
 const sample = (started, p95) => ({
   requests: 80,
   parallel: 8,

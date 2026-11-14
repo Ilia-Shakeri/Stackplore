@@ -5,7 +5,7 @@ on:
     branches: ['v2/**']
     paths:
       - '.github/workflows/stage9-workload.yml'
-      - 'scripts/stage9-workload*.mjs'
+      - 'scripts/stage9-*.mjs'
       - 'apps/web/tests/browser/hosted-workload.ts'
       - 'apps/web/tests/browser/assistant-live-journey.ts'
       - 'apps/web/tests/browser/normal-auth.spec.ts'

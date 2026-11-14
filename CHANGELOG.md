@@ -13,6 +13,9 @@
   health checks, with partial failure receipts and normal session behavior.
 - Sample owned application/processor RSS and descriptors plus database wait/queue
   metadata; enforce bounded growth and no unsettled runs at the final read.
+- Retain failed shared-CPU load attempts; add an explicit checked CPU allocation
+  for the hosted deployment and losslessly share identical evidence metadata to
+  reduce redundant prefill. Actual new load/soak results remain required.
 - Retain the full bilingual real application gate. No product limits or permissions
   change. Feature-off/on, active-generation/restart soak, independent quality and
   pilot acceptance remain separate and unaccepted until owning receipts exist.

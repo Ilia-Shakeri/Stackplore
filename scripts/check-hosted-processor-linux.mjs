@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { summarizeSeedEvaluation, seedEvaluationOutputTokens } from './seed-evaluation.mjs';
 import { checkCorpus } from './check-v2-corpus.mjs';
 import { validateWorkload, validateSoak } from './stage9-workload.mjs';
+import { workloadCPUSet, assertCPUSet } from './stage9-cpu.mjs';
 
 const archiveHash = 'ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25';
 const modelHash = '061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a';
@@ -320,6 +321,7 @@ async function main() {
     ]);
     const tickRate = Number(run('getconf', ['CLK_TCK'], { maxBuffer: 1024 }).trim());
     report.resources = parseProcessMeasurement(status, stat, tickRate);
+    if (workload === 'true') assertCPUSet(status, report.cpu_allocation.processor);
     if (workload === 'true' && report.resources.niceness !== 10)
       throw new Error('hosted_processor.scheduling_budget');
     report.resources_measured_phase = report.phase;
@@ -457,12 +459,24 @@ async function main() {
       reservation.listen(58102, '127.0.0.1', () => reservation.close(accept));
     });
     report.phase = 'start';
-    report.processor_threads = 4;
+    if (workload === 'true') {
+      report.cpu_allocation = workloadCPUSet(await readFile('/proc/self/status', 'utf8'));
+      const runID = process.env.GITHUB_RUN_ID, attempt = process.env.GITHUB_RUN_ATTEMPT;
+      if (!/^[0-9]+$/u.test(runID ?? '') || !/^[0-9]+$/u.test(attempt ?? ''))
+        throw new Error('hosted_processor.database_owner');
+      const container = `stackplore-code-postgres-${runID}-${attempt}`;
+      if (run('docker', ['inspect', '--format', '{{index .Config.Labels "stackplore.test-owner"}}', container]).trim() !== `${runID}-${attempt}-code`)
+        throw new Error('hosted_processor.database_owner');
+      run('docker', ['update', '--cpuset-cpus', report.cpu_allocation.application_database_browser, container], { stdio: 'ignore' });
+      if (run('docker', ['inspect', '--format', '{{.HostConfig.CpusetCpus}}', container]).trim() !== report.cpu_allocation.application_database_browser)
+        throw new Error('hosted_processor.database_cpu_budget');
+    }
+    report.processor_threads = workload === 'true' ? 3 : 4;
     report.processor_niceness = workload === 'true' ? 10 : 0;
     child = spawn(
-      workload === 'true' ? 'nice' : executable,
+      workload === 'true' ? 'taskset' : executable,
       [
-        ...(workload === 'true' ? ['-n', '10', executable] : []),
+        ...(workload === 'true' ? ['-c', report.cpu_allocation.processor, 'nice', '-n', '10', executable] : []),
         '--model',
         model,
         '--alias',
@@ -670,7 +684,7 @@ async function main() {
       run('corepack', ['pnpm', 'run', 'build:web'], { stdio: 'ignore' });
       run('node', ['scripts/embed-web-assets.mjs'], { stdio: 'ignore' });
       report.phase = 'application_browser';
-      const browser = spawnSync('node', ['scripts/browser-gate.mjs'], {
+      const browser = spawnSync(workload === 'true' ? 'taskset' : 'node', workload === 'true' ? ['-c', report.cpu_allocation.application_database_browser, 'node', 'scripts/browser-gate.mjs'] : ['scripts/browser-gate.mjs'], {
         cwd: root,
         stdio: 'ignore',
         timeout: workload === 'true' ? 4_800_000 : 600_000,
@@ -680,6 +694,7 @@ async function main() {
           SP_BROWSER_REAL_ASSISTANT: 'true',
           SP_BROWSER_WORK_ROOT: temporary,
           ...(workload === 'true' ? { SP_STAGE9_PROCESSOR_PID: String(child.pid) } : {}),
+          ...(workload === 'true' ? { SP_STAGE9_APPLICATION_CPUSET: report.cpu_allocation.application_database_browser } : {}),
         },
       });
       report.application_browser = {

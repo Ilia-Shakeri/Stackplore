@@ -8,6 +8,8 @@
 Embedded observation metadata retention is amended by
 [ADR-0024](0024-compact-observation-reference-metadata.md); canonical evidence,
 guidance, private bindings and final gateway validation remain unchanged.
+Optional byte-identical quality/pagination sharing follows
+[ADR-0025](0025-common-evidence-metadata.md); reconstructed evidence remains complete.
 
 ## Context
 
