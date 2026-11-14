@@ -61,6 +61,7 @@ export function parseProcessMeasurement(status, stat, ticksPerSecond) {
     .split(/\s+/u);
   const user = Number(fields[11]);
   const system = Number(fields[12]);
+  const niceness = Number(fields[16]);
   const rss = Number(peak) * 1024;
   if (
     !peak ||
@@ -70,6 +71,9 @@ export function parseProcessMeasurement(status, stat, ticksPerSecond) {
     user < 0 ||
     !Number.isSafeInteger(system) ||
     system < 0 ||
+    !Number.isInteger(niceness) ||
+    niceness < -20 ||
+    niceness > 19 ||
     !Number.isSafeInteger(user + system) ||
     !Number.isInteger(ticksPerSecond) ||
     ticksPerSecond < 1 ||
@@ -82,6 +86,7 @@ export function parseProcessMeasurement(status, stat, ticksPerSecond) {
     cpu_system_ticks: system,
     ticks_per_second: ticksPerSecond,
     cpu_seconds: (user + system) / ticksPerSecond,
+    niceness,
   };
 }
 
@@ -315,6 +320,8 @@ async function main() {
     ]);
     const tickRate = Number(run('getconf', ['CLK_TCK'], { maxBuffer: 1024 }).trim());
     report.resources = parseProcessMeasurement(status, stat, tickRate);
+    if (workload === 'true' && report.resources.niceness !== 10)
+      throw new Error('hosted_processor.scheduling_budget');
     report.resources_measured_phase = report.phase;
     if (report.resources.peak_rss_bytes > report.ci_peak_rss_limit_bytes)
       throw new Error('hosted_processor.memory_budget');

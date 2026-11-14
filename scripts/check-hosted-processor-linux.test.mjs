@@ -29,6 +29,7 @@ test('owned process measurement keeps RSS high-water and CPU ticks with spaced p
     cpu_system_ticks: 75,
     ticks_per_second: 100,
     cpu_seconds: 2,
+    niceness: 0,
   });
   for (const [status, changedStat, ticks] of [
     ['', stat, 100],

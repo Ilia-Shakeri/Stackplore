@@ -69,7 +69,7 @@ export async function measureReads(page: Page, queries: Map<string, string>) {
           items?: unknown;
           page?: { has_more?: unknown };
         };
-      await response.dispose();
+        await response.dispose();
         if (
           !['available', 'stale'].includes(String(body.availability)) ||
           !['complete', 'partial'].includes(String(body.completeness)) ||
