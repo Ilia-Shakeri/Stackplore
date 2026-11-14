@@ -16,12 +16,17 @@ on:
       - 'deploy/Dockerfile.postgres'
       - 'deploy/postgres-image.json'
   workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        default: both
+        options: [both, load, soak]
 
 permissions:
   contents: read
 
 concurrency:
-  group: stage9-workload-${{ github.ref }}
+  group: stage9-workload-${{ github.ref }}-${{ inputs.mode || 'both' }}
   cancel-in-progress: false
 
 jobs:
@@ -64,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: [load, soak]
+        mode: ${{ fromJSON(inputs.mode == 'load' && '["load"]' || inputs.mode == 'soak' && '["soak"]' || '["load","soak"]') }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -105,6 +110,7 @@ jobs:
             .tmp/hosted-load.json
             .tmp/hosted-soak.json
             .tmp/hosted-resources.json
+            .tmp/hosted-read-failure.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 14

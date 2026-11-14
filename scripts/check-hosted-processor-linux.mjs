@@ -457,7 +457,7 @@ async function main() {
       reservation.listen(58102, '127.0.0.1', () => reservation.close(accept));
     });
     report.phase = 'start';
-    report.processor_threads = workload === 'true' ? 3 : 4;
+    report.processor_threads = 4;
     report.processor_niceness = workload === 'true' ? 10 : 0;
     child = spawn(
       workload === 'true' ? 'nice' : executable,
