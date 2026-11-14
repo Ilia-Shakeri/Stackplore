@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { expect, type Page, type Request, type Response } from '@playwright/test';
 import { parseAssistantRunResponse } from '@stackplore/api-client';
 import { waitForLiveAssistant } from './assistant-live-state';
+import { measureReads, prepareWorkload, workloadReceipt } from './hosted-workload';
 
 // No routes are intercepted. Replies pass through the production application.
 export async function assistantLiveJourney(
@@ -11,6 +12,8 @@ export async function assistantLiveJourney(
   role: 'administrator' | 'viewer',
   goal: 'explain_resource' | 'investigate_incident' = 'explain_resource',
 ) {
+  const loadQueries = process.env.SP_STAGE9_WORKLOAD === 'true' && locale === 'en' && role === 'administrator' && goal === 'investigate_incident'
+    ? await prepareWorkload(page) : undefined;
   const metadata = {
     source_revision: process.env.GITHUB_SHA,
     locale,
@@ -98,6 +101,7 @@ export async function assistantLiveJourney(
         : 'Return only one facts section. Copy text exactly from evidence[0].text.records[0].resource_id. Set citations to [evidence[0].id]. No other sections.';
     expect(admissions).toBe(0);
     await input.fill(question);
+    const idleReads = loadQueries === undefined ? undefined : await measureReads(page, loadQueries);
     await input.press('Tab');
     await expect(
       panel.getByRole('button', { name: label('assistant.send'), exact: true }),
@@ -105,7 +109,19 @@ export async function assistantLiveJourney(
     await page.keyboard.press('Enter');
     // Avoid locator-error DOM dumps containing a generated reply.
     try {
-      metadata.status_reconnections = await waitForLiveAssistant(page, label('assistant.listen'));
+      const [reconnections, busyReads] = await Promise.all([
+        waitForLiveAssistant(page, label('assistant.listen')),
+        loadQueries === undefined ? undefined : measureReads(page, loadQueries),
+      ]);
+      metadata.status_reconnections = reconnections;
+      if (idleReads !== undefined && busyReads !== undefined) {
+        workloadReceipt('load', {
+          status: 'collected', scope: 'Same-source enabled profile: idle versus one actual admitted generation; not feature-off/on baseline',
+          idle: idleReads, busy: busyReads, maximum_p95_ratio: 1.1,
+          p95_ratio: busyReads.latency_p95_ms / Math.max(1, idleReads.latency_p95_ms),
+          release_accepted: false,
+        });
+      }
     } catch {
       throw new Error('Real bounded resource completion was not published');
     }

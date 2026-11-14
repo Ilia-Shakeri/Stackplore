@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0-alpha.8.3] - 2026-11-14
+
+### Hosted workload and real read/interface soak candidate
+
+- Add a dedicated real application load measurement with unchanged v1 read shape,
+  actual completed-generation overlap and the existing10% p95 regression ceiling.
+- Add a separate60-minute read/interface soak:100 cycles,8000 scoped reads and200
+  health checks, with partial failure receipts and normal session behavior.
+- Sample owned application/processor RSS and descriptors plus database wait/queue
+  metadata; enforce bounded growth and no unsettled runs at the final read.
+- Retain the full bilingual real application gate. No product limits or permissions
+  change. Feature-off/on, active-generation/restart soak, independent quality and
+  pilot acceptance remain separate and unaccepted until owning receipts exist.
+
 ## [2.0.0-alpha.8.2] - 2026-11-10
 
 ### Repeated lifecycle preparation

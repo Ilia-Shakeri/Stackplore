@@ -1,5 +1,11 @@
 # Version 2 implementation ledger
 
+> Candidate **2.0.0-alpha.8.3**, schema22, adds actual same-worker idle/busy load
+> with generation overlap and a separate one-hour read/interface soak. Exact
+> hosted results remain pending. Full restart/cancel/generation soak, off/on
+> comparison, independent quality and pilot acceptance remain open.
+> [Candidate evidence](../evidence/2.0.0-alpha.8.3/README.md).
+
 > Tagged **2.0.0-alpha.8.2**, schema22, at `01b8cfc`: all eight source jobs,
 > three development passes (72/72 structural observations), 800/800 repeated
 > race-enabled service-boundary observations and signed package/security trial

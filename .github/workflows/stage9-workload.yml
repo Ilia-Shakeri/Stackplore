@@ -1,0 +1,102 @@
+name: stage9-workload
+
+on:
+  push:
+    branches: ['v2/**']
+    paths:
+      - '.github/workflows/stage9-workload.yml'
+      - 'scripts/stage9-workload*.mjs'
+      - 'apps/web/tests/browser/hosted-workload.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage9-workload-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+      - name: Install locked formatter and type tools
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          corepack pnpm install --frozen-lockfile
+      - name: Check bounded metadata contracts, types, lint and formatting
+        run: |
+          node --test scripts/stage9-workload.test.mjs
+          corepack pnpm --filter @stackplore/web typecheck
+          corepack pnpm exec eslint scripts/stage9-*.mjs scripts/browser-gate.mjs apps/web/tests/browser/hosted-workload.ts apps/web/tests/browser/assistant-live-journey.ts apps/web/tests/browser/normal-auth.spec.ts
+          corepack pnpm exec prettier --check scripts/stage9-*.mjs scripts/browser-gate.mjs scripts/check-hosted-processor-linux.mjs scripts/hosted-processor-observer.mjs apps/web/tests/browser/hosted-workload.ts apps/web/tests/browser/assistant-live-journey.ts apps/web/tests/browser/normal-auth.spec.ts .github/workflows/stage9-workload.yml
+      - name: Prepare hosted formatting patch after a failed gate
+        if: failure()
+        run: |
+          mkdir -p .tmp
+          corepack pnpm exec prettier --write scripts/stage9-*.mjs scripts/browser-gate.mjs scripts/check-hosted-processor-linux.mjs scripts/hosted-processor-observer.mjs apps/web/tests/browser/hosted-workload.ts apps/web/tests/browser/assistant-live-journey.ts apps/web/tests/browser/normal-auth.spec.ts .github/workflows/stage9-workload.yml
+          git diff --binary > .tmp/stage9-format.patch
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: stage9-format
+          path: .tmp/stage9-format.patch
+          include-hidden-files: true
+          if-no-files-found: error
+  real-application:
+    needs: contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 105
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [load, soak]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: 1.26.10
+          cache-dependency-path: apps/api/go.sum
+      - name: Check measurement completeness and privacy
+        run: node --test scripts/stage9-workload.test.mjs
+      - name: Install locked hosted browser dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          corepack pnpm install --frozen-lockfile
+          go -C apps/api mod download
+          corepack pnpm --filter @stackplore/web exec playwright install --with-deps chromium
+      - name: Start only the owned patched database
+        run: bash scripts/start-test-postgres.sh start code
+      - name: Measure real application load or one-hour read and interface soak
+        env:
+          SP_STAGE9_WORKLOAD: 'true'
+          SP_STAGE9_MODE: ${{ matrix.mode }}
+        run: |
+          if [ "$SP_STAGE9_MODE" = soak ]; then export SP_STAGE9_SOAK=true; fi
+          node scripts/check-hosted-processor-linux.mjs
+      - name: Stop only the owned database
+        if: always()
+        run: bash scripts/start-test-postgres.sh stop code
+      - name: Retain safe metadata including partial failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stage9-${{ matrix.mode }}
+          path: |
+            .tmp/hosted-processor.json
+            .tmp/hosted-load.json
+            .tmp/hosted-soak.json
+            .tmp/hosted-resources.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

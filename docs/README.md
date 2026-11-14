@@ -1,5 +1,9 @@
 # Documentation
 
+Candidate **2.0.0-alpha.8.3**, schema22: actual application idle/busy load and
+one-hour read/interface soak, hosted only. Results remain pending; no product
+permission or processing limit changes. [Scope and limits](evidence/2.0.0-alpha.8.3/README.md).
+
 Tagged **2.0.0-alpha.8.2**, schema22, at `01b8cfc`: all eight source jobs,
 72/72 structural development observations, 800/800 repeated service-boundary
 observations and signed package/security trial pass. Compact private reference

@@ -20,6 +20,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { summarizeSeedEvaluation, seedEvaluationOutputTokens } from './seed-evaluation.mjs';
 import { checkCorpus } from './check-v2-corpus.mjs';
+import { validateWorkload, validateSoak } from './stage9-workload.mjs';
 
 const archiveHash = 'ef0db60597825a63534a536bd60d3c290cf82631b2a48461278dc2c9eb436c25';
 const modelHash = '061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a';
@@ -223,6 +224,11 @@ export function safeArchiveLinks(text) {
 
 async function main() {
   assertHostedProcessorEnvironment(process.platform, process.env);
+  const workload = process.env.SP_STAGE9_WORKLOAD;
+  if (workload !== undefined && (workload !== 'true' || process.env.GITHUB_WORKFLOW !== 'stage9-workload'))
+    throw new Error('hosted_processor.workload_scope');
+  if (process.env.SP_STAGE9_SOAK !== undefined && (workload !== 'true' || process.env.SP_STAGE9_SOAK !== 'true'))
+    throw new Error('hosted_processor.soak_scope');
   const seedEvaluation = process.env.SP_STAGE8_SEED_EVALUATION;
   const seedPass = Number(process.env.SP_STAGE8_SEED_PASS);
   if (
@@ -651,12 +657,13 @@ async function main() {
       const browser = spawnSync('node', ['scripts/browser-gate.mjs'], {
         cwd: root,
         stdio: 'ignore',
-        timeout: 600_000,
+        timeout: workload === 'true' ? 4_800_000 : 600_000,
         env: {
           ...process.env,
           SP_BROWSER_MODES: 'normal-en,normal-fa',
           SP_BROWSER_REAL_ASSISTANT: 'true',
           SP_BROWSER_WORK_ROOT: temporary,
+          ...(workload === 'true' ? { SP_STAGE9_PROCESSOR_PID: String(child.pid) } : {}),
         },
       });
       report.application_browser = {
@@ -793,6 +800,18 @@ async function main() {
         )
       )
         throw new Error('hosted_processor.browser_failed');
+      if (workload === 'true') {
+        const load = await metadata('hosted-load.json');
+        const observed = await metadata('hosted-inference-normal-en.json');
+        report.workload = validateWorkload(load, observed, process.env.GITHUB_SHA);
+        const resources = await metadata('hosted-resources.json');
+        if (resources.status !== 'passed') throw new Error('hosted_processor.workload_resources');
+        report.workload_resources = { status: resources.status, samples: resources.samples, last_elapsed_ms: resources.last_elapsed_ms };
+        if (process.env.SP_STAGE9_SOAK === 'true')
+          report.soak = validateSoak(await metadata('hosted-soak.json'), process.env.GITHUB_SHA);
+        if (process.env.SP_STAGE9_SOAK !== 'true' && report.workload.status !== 'passed')
+          throw new Error('hosted_processor.workload_regression');
+      }
       await measure();
     }
     if (seedEvaluation === 'true') {

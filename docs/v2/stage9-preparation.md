@@ -22,7 +22,22 @@ or failed cases and the complete separate eight-job source gate. This closes onl
 the deterministic service-regression precursor, not the lifecycle matrix below.
 [Exact receipt scope](../evidence/2.0.0-alpha.8.2/README.md).
 
-## Entry gate
+## Actual workload and read/interface soak candidate
+
+Version2.0.0-alpha.8.3 adds a dedicated hosted `stage9-workload` workflow with
+independent load and soak jobs. The former measures the unchanged80-read workload
+idle and during one real admitted generation and verifies actual overlap before
+applying the10% p95 ceiling. The latter keeps actual application/database/processor
+processes alive for60 minutes with100 clear/reopen/read cycles,8000 reads and200
+health checks. Owned-process RSS/descriptors and database wait/queue metadata are
+sampled every30 seconds. Counts, limits and open gates are specified in the
+[candidate evidence](../evidence/2.0.0-alpha.8.3/README.md).
+
+No measured result exists until its exact-source hosted run completes. This does
+not establish feature-off/on load comparison, active-generation/cancel/reconnect/
+restart soak, semantic quality or a pilot. Existing acceptance gates stay open.
+
+## Independent entry gate
 
 The release owner must inspect the complete reviewed corpus and actual independent
 sign-offs, three held-out passes per supported pinned profile, security-critical

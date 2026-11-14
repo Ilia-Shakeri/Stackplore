@@ -51,6 +51,7 @@ export async function startHostedProcessorObserver(environment) {
         }
         const input = JSON.parse(body.toString('utf8'));
         observation = {
+          started_epoch_ms: Date.now(),
           input_tokens: Array.isArray(input.prompt) ? input.prompt.length : 0,
           output_limit: Number.isInteger(input.n_predict) ? input.n_predict : 0,
           elapsed_ms: 0,

@@ -7,6 +7,7 @@ import { runbookAdminJourney, runbookViewerJourney } from './runbook-journey';
 import { assistantJourney } from './assistant-journey';
 import { assistantLiveJourney } from './assistant-live-journey';
 import { assistantGuidanceJourney } from './assistant-guidance-journey';
+import { realApplicationSoak } from './hosted-workload';
 
 const locale = process.env.SP_BROWSER_LOCALE === 'fa' ? 'fa' : 'en';
 const text = Object.assign(
@@ -304,6 +305,10 @@ test(`normal ${locale}: setup, recent authentication, role boundaries, history a
       '/offline.html',
       '/offline.js',
     ]);
+    if (process.env.SP_STAGE9_SOAK === 'true' && locale === 'en') {
+      test.setTimeout(4_500_000);
+      await realApplicationSoak(page, label);
+    }
     await logout(page);
   } finally {
     await page

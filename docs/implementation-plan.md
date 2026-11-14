@@ -1,5 +1,10 @@
 # Stackplore active implementation evidence
 
+**2026-11-14 — alpha8.3 candidate:** hosted actual idle/busy read load and a
+separate one-hour read/interface soak, with owned-process RSS/descriptor and
+database wait/queue observations. No local execution. Exact-source hosted results
+remain pending. [Scope and remaining gates](evidence/2.0.0-alpha.8.3/README.md).
+
 **2026-11-10 — alpha8.2:** immutable tag at `01b8cfc`; all eight source jobs,
 three hosted passes (72/72 structural observations), 800/800 repeated service
 boundary observations and signed package/security trial pass. Compact private
