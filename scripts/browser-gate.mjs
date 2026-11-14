@@ -325,12 +325,16 @@ for (const mode of requestedModes) {
       await resourcePending;
       let summary = { status: 'failed' };
       try {
-        const measured = validateResourceSamples(resourceSamples, process.env.SP_STAGE9_SOAK === 'true');
+        const measured = validateResourceSamples(
+          resourceSamples,
+          process.env.SP_STAGE9_SOAK === 'true',
+        );
         const database = workloadDatabase(ownedDatabase);
         if (
           database.queued_runs !== 0 ||
           database.active_runs !== 0 ||
-          database.uncertain_runs !== 0 || resourceError
+          database.uncertain_runs !== 0 ||
+          resourceError
         ) {
           exitCode = 1;
         } else summary = { ...measured, final_database: database };
