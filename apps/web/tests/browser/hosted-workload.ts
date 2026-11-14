@@ -63,7 +63,11 @@ export async function measureReads(page: Page, queries: Map<string, string>) {
         const before = Date.now();
         const response = await page.request.get(query, { timeout: 10_000 });
         if (response.status() !== 200) {
-          writeFileSync(resolve('../../.tmp/hosted-read-failure.json'), `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, reason: 'http_status', status: response.status(), round, completed_reads: durations.length, route: path })}\n`, { mode: 0o600 });
+          writeFileSync(
+            resolve('../../.tmp/hosted-read-failure.json'),
+            `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, reason: 'http_status', status: response.status(), round, completed_reads: durations.length, route: path })}\n`,
+            { mode: 0o600 },
+          );
           await response.dispose();
           throw new Error('Hosted workload read failed');
         }
@@ -81,7 +85,11 @@ export async function measureReads(page: Page, queries: Map<string, string>) {
           body.items.length > 200 ||
           (path !== '/api/v1/metrics/current' && typeof body.page?.has_more !== 'boolean')
         ) {
-          writeFileSync(resolve('../../.tmp/hosted-read-failure.json'), `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, reason: 'envelope', round, completed_reads: durations.length, route: path })}\n`, { mode: 0o600 });
+          writeFileSync(
+            resolve('../../.tmp/hosted-read-failure.json'),
+            `${JSON.stringify({ source_revision: process.env.GITHUB_SHA, reason: 'envelope', round, completed_reads: durations.length, route: path })}\n`,
+            { mode: 0o600 },
+          );
           throw new Error('Hosted workload envelope invalid');
         }
         durations.push(Date.now() - before);
