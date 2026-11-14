@@ -13,6 +13,7 @@ const locale = process.env.SP_BROWSER_LOCALE === 'fa' ? 'fa' : 'en';
 const text = Object.assign(
   {},
   ...[
+    'assistant/messages',
     'assistant/runbooks.messages',
     'auth/messages',
     'users/messages',

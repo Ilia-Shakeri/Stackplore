@@ -69,6 +69,7 @@ export async function measureReads(page: Page, queries: Map<string, string>) {
           items?: unknown;
           page?: { has_more?: unknown };
         };
+      await response.dispose();
         if (
           !['available', 'stale'].includes(String(body.availability)) ||
           !['complete', 'partial'].includes(String(body.completeness)) ||
@@ -142,7 +143,9 @@ export async function realApplicationSoak(page: Page, label: (key: string) => st
       report.max_read_p95_ms = Math.max(report.max_read_p95_ms, batch.latency_p95_ms);
       for (const target of ['/readyz', 'http://127.0.0.1:58102/health']) {
         const response = await page.request.get(target, { timeout: 5000 });
-        if (response.status() !== 200) throw new Error('Soak owned service health failed');
+        const status = response.status();
+        await response.dispose();
+        if (status !== 200) throw new Error('Soak owned service health failed');
         report.health_checks++;
       }
       await page.goto(resourcePage);

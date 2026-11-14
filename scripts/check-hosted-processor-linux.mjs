@@ -450,9 +450,12 @@ async function main() {
       reservation.listen(58102, '127.0.0.1', () => reservation.close(accept));
     });
     report.phase = 'start';
+    report.processor_threads = workload === 'true' ? 3 : 4;
+    report.processor_niceness = workload === 'true' ? 10 : 0;
     child = spawn(
-      executable,
+      workload === 'true' ? 'nice' : executable,
       [
+        ...(workload === 'true' ? ['-n', '10', executable] : []),
         '--model',
         model,
         '--alias',
@@ -468,9 +471,9 @@ async function main() {
         '--ctx-size',
         '20480',
         '--threads',
-        '4',
+        String(report.processor_threads),
         '--threads-batch',
-        '4',
+        String(report.processor_threads),
         '--threads-http',
         '2',
         '--device',

@@ -53,6 +53,27 @@ security/package, exact-tag and publication gates remain separate.
 
 ## Self-correction
 
+Source `6d322de` passes all eight [source jobs43591531884](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591531884),
+the [strict signed package trial43591551564](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591551564)
+after database-library patches, and all three [development passes43591556839](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591556839).
+Its [workload run43591531902](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591531902)
+fails both owning measurements. [Load](attempt-6d-load.json) records80 idle/80 busy
+reads with actual generation overlap, p95 rising30 to45 ms (ratio1.5), so the
+unchanged1.1 threshold correctly rejects. [Soak](attempt-6d-soak.json) records
+zero cycles; the normal authentication fixture omitted the base assistant label
+catalog used by the new soak helper. Add that actual catalog; do not substitute
+labels or skip interface assertions. Dispose measured response bodies so the
+test client does not retain eight thousand bodies throughout the hour.
+
+For the dedicated four-CPU workload deployment, budget the owned processor to
+three compute/batch threads and Linux niceness10, leaving normal-priority capacity
+for application/database/browser work. Record both settings explicitly. This is
+a new hosted deployment budget and requires fresh load/soak evidence; it is not
+proof that the previous four-thread allocation meets the10% goal. The normal
+eight-job processor and public-seed gates retain four threads. Model/build/template,
+one slot, all prompts/facts and the40-second call budget remain unchanged. No
+workload, threshold, failed baseline or response assertions are weakened.
+
 Source `d94e1a2`: the hosted workload precursor passes metadata tests, TypeScript,
 lint and formatting, and real load/soak jobs start. The independent
 [package trial43591229668](https://github.com/Ilia-Shakeri/Stackplore/actions/runs/43591229668)
